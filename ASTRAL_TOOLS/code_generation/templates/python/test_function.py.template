@@ -1,0 +1,10 @@
+def test_{function_name}():
+    """Test {description}"""
+    # Arrange
+    {test_setup}
+
+    # Act
+    result = {function_call}
+
+    # Assert
+    {assertions}

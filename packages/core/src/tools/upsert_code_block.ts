@@ -7,7 +7,8 @@
 import * as Diff from 'diff';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Project, SourceFile, Node } from 'ts-morph';
+import { SourceFile, Node } from 'ts-morph';
+import * as astAdapter from '../ast/adapter.js';
 import { DEFAULT_DIFF_OPTIONS, getDiffStat } from './diffOptions.js';
 import {
   BaseDeclarativeTool,
@@ -202,14 +203,16 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
   }
 
   private async handleTypeScriptFile(): Promise<ToolResult> {
-    const project = new Project({
-      useInMemoryFileSystem: true,
-    });
+  const project = astAdapter.createProject();
 
     try {
       // Read the file content
-      const originalContent = fs.readFileSync(this.params.file_path, 'utf-8');
-      const sourceFile = project.createSourceFile(this.params.file_path, originalContent);
+      const parsed = astAdapter.parseFileWithProject(project, this.params.file_path);
+      if (parsed.error || !parsed.sourceFile) {
+        throw new Error(parsed.error || 'Failed to parse file');
+      }
+      const originalContent = parsed.text || '';
+      const sourceFile = parsed.sourceFile;
 
       const existingBlocks = this.findTypeScriptBlocks(sourceFile);
       const targetBlock = existingBlocks.find(block => block.name === this.params.block_name);
@@ -227,7 +230,7 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
       }
 
       // Save the modified content
-      const newContent = sourceFile.getFullText();
+  const newContent = astAdapter.dumpSourceFileText(sourceFile);
       fs.writeFileSync(this.params.file_path, newContent, 'utf-8');
 
       const blockType = this.params.block_type || this.detectTypeScriptBlockType(this.params.content);

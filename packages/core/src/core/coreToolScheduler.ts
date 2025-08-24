@@ -247,7 +247,8 @@ interface CoreToolSchedulerOptions {
   onToolCallsUpdate?: ToolCallsUpdateHandler;
   getPreferredEditor: () => EditorType | undefined;
   onEditorClose: () => void;
-  loopDetectionService: LoopDetectionService;
+  // Optional - if not provided a default LoopDetectionService will be constructed
+  loopDetectionService?: LoopDetectionService;
 }
 
 export class CoreToolScheduler {
@@ -277,7 +278,8 @@ export class CoreToolScheduler {
     this.onToolCallsUpdate = options.onToolCallsUpdate;
     this.getPreferredEditor = options.getPreferredEditor;
     this.onEditorClose = options.onEditorClose;
-    this.loopDetectionService = options.loopDetectionService;
+  // If caller didn't supply a LoopDetectionService, create a default instance tied to our config.
+  this.loopDetectionService = options.loopDetectionService ?? new LoopDetectionService(this.config);
   }
 
   private setStatusInternal(

@@ -1,0 +1,12 @@
+/**
+ * {description}
+ */
+app.{method}('/{endpoint}', async (req, res) => {{
+    try {{
+        {route_body}
+        res.json({{ status: 'success', data: result }});
+    }} catch (error) {{
+        console.error(`Error in {endpoint}:`, error);
+        res.status(500).json({{ status: 'error', message: error.message }});
+    }}
+}});

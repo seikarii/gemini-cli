@@ -1,0 +1,15 @@
+async def {function_name}({parameters}){return_type}:
+    """
+    {description}
+
+    Args:
+        {args_docs}
+
+    Returns:
+        {return_docs}
+    """
+    try:
+        {function_body}
+    except Exception as e:
+        logger.error(f"Error in {function_name}: {{e}}")
+        raise

@@ -1,0 +1,8 @@
+/**
+ * {description}
+ * @param {{{param_types}}}
+ * @returns {{{return_type}}}
+ */
+export function {function_name}({parameters}): {return_type} {{
+    {function_body}
+}}

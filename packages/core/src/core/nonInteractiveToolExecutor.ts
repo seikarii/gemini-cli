@@ -6,6 +6,7 @@
 
 import { ToolCallRequestInfo, ToolCallResponseInfo, Config } from '../index.js';
 import { CoreToolScheduler } from './coreToolScheduler.js';
+import { LoopDetectionService } from '../services/loopDetectionService.js';
 
 /**
  * Executes a single tool call non-interactively by leveraging the CoreToolScheduler.
@@ -23,6 +24,7 @@ export async function executeToolCall(
       onAllToolCallsComplete: async (completedToolCalls) => {
         resolve(completedToolCalls[0].response);
       },
+      loopDetectionService: new LoopDetectionService(config),
     })
       .schedule(toolCallRequest, abortSignal)
       .catch(reject);

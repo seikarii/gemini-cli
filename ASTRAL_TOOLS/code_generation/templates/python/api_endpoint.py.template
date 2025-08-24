@@ -1,0 +1,11 @@
+@app.route('/{endpoint}', methods=['{method}'])
+def {function_name}({parameters}):
+    """
+    {description}
+    """
+    try:
+        {endpoint_body}
+        return jsonify({{"status": "success", "data": result}})
+    except Exception as e:
+        logger.error(f"Error in {function_name}: {{e}}")
+        return jsonify({{"status": "error", "message": str(e)}}), 500

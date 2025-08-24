@@ -28,6 +28,7 @@ import {
   ToolCallStatus,
   HistoryItemWithoutId,
 } from '../types.js';
+import { LoopDetectionService } from '@google/gemini-cli-core';
 
 export type ScheduleFn = (
   request: ToolCallRequestInfo | ToolCallRequestInfo[],
@@ -131,25 +132,26 @@ export function useReactToolScheduler(
     [setToolCallsForDisplay],
   );
 
-  const scheduler = useMemo(
-    () =>
-      new CoreToolScheduler({
-        outputUpdateHandler,
-        onAllToolCallsComplete: allToolCallsCompleteHandler,
-        onToolCallsUpdate: toolCallsUpdateHandler,
-        getPreferredEditor,
-        config,
-        onEditorClose,
-      }),
-    [
-      config,
+  // Create a LoopDetectionService instance and pass it to CoreToolScheduler so types remain strict.
+  const scheduler = useMemo(() => {
+    const loopService = new LoopDetectionService(config);
+    return new CoreToolScheduler({
       outputUpdateHandler,
-      allToolCallsCompleteHandler,
-      toolCallsUpdateHandler,
+      onAllToolCallsComplete: allToolCallsCompleteHandler,
+      onToolCallsUpdate: toolCallsUpdateHandler,
       getPreferredEditor,
+      config,
       onEditorClose,
-    ],
-  );
+      loopDetectionService: loopService,
+    });
+  }, [
+    config,
+    outputUpdateHandler,
+    allToolCallsCompleteHandler,
+    toolCallsUpdateHandler,
+    getPreferredEditor,
+    onEditorClose,
+  ]);
 
   const schedule: ScheduleFn = useCallback(
     (

@@ -1,0 +1,11 @@
+def {function_name}({parameters}){return_type}:
+    """
+    {description}
+
+    Args:
+        {args_docs}
+
+    Returns:
+        {return_docs}
+    """
+    {function_body}

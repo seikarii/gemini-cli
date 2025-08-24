@@ -1,0 +1,8 @@
+/**
+ * {description}
+ * @param {{{param_types}}}
+ * @returns {{{return_type}}}
+ */
+function {function_name}({parameters}) {{
+    {function_body}
+}}

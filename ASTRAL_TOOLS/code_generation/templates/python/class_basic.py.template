@@ -1,0 +1,14 @@
+class {class_name}:
+    """
+    {description}
+    """
+
+    def __init__(self{init_params}):
+        """Initialize {class_name}"""
+        {init_body}
+
+    def {main_method}(self{method_params}):
+        """
+        {method_description}
+        """
+        {method_body}

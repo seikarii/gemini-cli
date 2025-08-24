@@ -1,0 +1,18 @@
+from dataclasses import dataclass, asdict
+from typing import Any, Dict
+
+@dataclass
+class {class_name}:
+    """
+    {description}
+    """
+    {fields}
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> '{class_name}':
+        """Create from dictionary"""
+        return cls(**data)

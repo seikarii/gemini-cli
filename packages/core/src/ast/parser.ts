@@ -79,7 +79,8 @@ export async function readFileWithEncodingFallback(filePath: string): Promise<{ 
  * Defensive parse to ts-morph SourceFile.
  * Uses a fresh Project (in-memory) so we do not affect disk.
  */
-export function parseSourceToSourceFile(source: string, filePath: string): { sourceFile?: SourceFile | null; error?: string | null } {
+// Internal implementation expects (source, filePath)
+function parseSourceToSourceFileImpl(source: string, filePath: string): { sourceFile?: SourceFile | null; error?: string | null } {
   try {
     const project = new Project({ useInMemoryFileSystem: true, compilerOptions: { allowJs: true } });
     const normalizedPath = path.isAbsolute(filePath) ? filePath : path.resolve('/', filePath);
@@ -88,6 +89,28 @@ export function parseSourceToSourceFile(source: string, filePath: string): { sou
   } catch (e: any) {
     return { sourceFile: null, error: `Parsing failed: ${String(e)}` };
   }
+}
+
+/**
+ * Compatibility wrapper for parseSourceToSourceFile.
+ * Accepts either (source, filePath) or the older callers that pass (filePath, source).
+ */
+export function parseSourceToSourceFile(a: string, b?: string): { sourceFile?: SourceFile | null; error?: string | null } {
+  // If only one arg provided, treat it as source with missing filePath -> use virtual path
+  if (b === undefined) {
+    return parseSourceToSourceFileImpl(a, '/virtual-file.ts');
+  }
+
+  // Heuristic: if first arg contains a newline or semicolon, treat as source
+  const looksLikeSource = a.includes('\n') || a.includes(';') || a.includes('{');
+  const looksLikePath = b.includes('\n') === false && (a.startsWith('.') || a.startsWith('/') || a.match(/\\.[tj]s[x]?$/i));
+
+  if (looksLikeSource && !looksLikePath) {
+    return parseSourceToSourceFileImpl(a, b);
+  }
+
+  // Fallback: assume callers passed (filePath, source)
+  return parseSourceToSourceFileImpl(b, a);
 }
 
 /**

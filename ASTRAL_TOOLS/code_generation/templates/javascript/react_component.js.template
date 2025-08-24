@@ -1,0 +1,14 @@
+import React{react_imports} from 'react';
+
+/**
+ * {description}
+ */
+const {component_name} = ({props}) => {{
+    {component_body}
+
+    return (
+        {jsx_return}
+    );
+}};
+
+export default {component_name};

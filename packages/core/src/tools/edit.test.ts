@@ -14,6 +14,7 @@ import { IDEConnectionStatus } from '../ide/ide-client.js';
 
 vi.mock('../utils/editCorrector.js', () => ({
   ensureCorrectEdit: mockEnsureCorrectEdit,
+  resetEditCorrectorCaches: vi.fn(),
 }));
 
 vi.mock('../core/client.js', () => ({

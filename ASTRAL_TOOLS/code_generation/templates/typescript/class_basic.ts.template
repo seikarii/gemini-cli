@@ -1,0 +1,15 @@
+export class {class_name} {{
+    /**
+     * {description}
+     */
+    constructor({constructor_params}) {{
+        {constructor_body}
+    }}
+
+    /**
+     * {method_description}
+     */
+    public {main_method}({method_params}): {return_type} {{
+        {method_body}
+    }}
+}}
