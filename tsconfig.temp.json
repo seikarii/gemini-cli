@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+  "esModuleInterop": true,
+  "skipLibCheck": true,
+  "strict": false,
+  "resolveJsonModule": true,
+  "lib": ["es2019", "dom"],
+  "typeRoots": ["types"],
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "allowJs": false,
+  "types": []
+  },
+  "files": [
+    "packages/core/src/tools/ast.ts",
+    "packages/core/src/tools/upsert_code_block.ts"
+  ]
+}
