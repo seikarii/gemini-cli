@@ -24,16 +24,12 @@ describe('UpsertCodeBlockTool (unit)', () => {
       preview: true,
     } as any;
 
-    const mockConfig = {
-      getFileSystemService: () => ({
-        readTextFile: async (_p: string) => ({ success: true, data: 'const a = 1;' }),
-        writeTextFile: async () => ({ success: true }),
-      }),
-    } as any;
-
-    const tool = new UpsertCodeBlockTool(mockConfig as any);
-    const inv = (tool as any).createInvocation(params);
-  const res = await inv.execute(new (globalThis as any).AbortController().signal);
+  const tool = new UpsertCodeBlockTool();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const inv = (tool as unknown as { createInvocation: (p: any) => any }).createInvocation(params);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const abortSignal = (new (globalThis as any).AbortController()).signal;
+  const res = await inv.execute(abortSignal);
     expect(res.llmContent).toBeDefined();
     expect(res.returnDisplay).toBeDefined();
   });

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Content, GenerateContentConfig } from '@google/genai';
+import { GenerateContentConfig } from '@google/genai';
 import { GeminiClient } from '../core/client.js';
 import { EditToolParams, EditTool } from '../tools/edit.js';
 import { WriteFileTool } from '../tools/write-file.js';
@@ -18,6 +18,8 @@ import {
   isFunctionCall,
 } from '../utils/messageInspectors.js';
 import * as fs from 'fs';
+import { parseSourceToSourceFile } from '../ast/parser.js';
+import { findNodes } from '../ast/finder.js';
 
 const EditModel = DEFAULT_GEMINI_FLASH_LITE_MODEL;
 const EditConfig: GenerateContentConfig = {
@@ -27,7 +29,6 @@ const EditConfig: GenerateContentConfig = {
 };
 
 const MAX_CACHE_SIZE = 50;
-const MAX_LLM_CORRECTION_RETRIES = 3;
 
 // Cache for ensureCorrectEdit results
 const editCorrectionCache = new LruCache<string, CorrectedEditResult>(
@@ -146,19 +147,13 @@ async function findLastEditTimestamp(
 
 /**
  * Attempts to correct edit parameters if the original old_string is not found.
- * It tries unescaping, and then LLM-based correction.
+ * Uses an AST-first approach with multiple correction strategies before falling back to LLM.
  * Results are cached to avoid redundant processing.
- *
- * @param currentContent The current content of the file.
- * @param originalParams The original EditToolParams
- * @param client The GeminiClient for LLM calls.
- * @returns A promise resolving to an object containing the (potentially corrected)
- *          EditToolParams (as CorrectedEditParams) and the final occurrences count.
  */
 export async function ensureCorrectEdit(
   filePath: string,
   currentContent: string,
-  originalParams: EditToolParams, // This is the EditToolParams from edit.ts, without \'corrected\'
+  originalParams: EditToolParams,
   client: GeminiClient,
   abortSignal: AbortSignal,
 ): Promise<CorrectedEditResult> {
@@ -168,255 +163,629 @@ export async function ensureCorrectEdit(
     return cachedResult;
   }
 
-  let finalNewString = originalParams.new_string ?? '';
+  const finalNewString = originalParams.new_string ?? '';
   const newStringPotentiallyEscaped =
     unescapeStringForGeminiBug(finalNewString) !== finalNewString;
 
   const expectedReplacements = originalParams.expected_replacements ?? 1;
-
   let finalOldString = originalParams.old_string ?? '';
   let occurrences = countOccurrences(currentContent, finalOldString);
 
+  // Early return if we already have the expected number of occurrences
   if (occurrences === expectedReplacements) {
-    if (newStringPotentiallyEscaped) {
-      let correctedNewString = finalNewString;
-      let retries = 0;
-      while (retries < MAX_LLM_CORRECTION_RETRIES) {
-        correctedNewString = await correctNewStringEscaping(
-          client,
-          finalOldString,
-          correctedNewString,
-          abortSignal,
-        );
-        if (
-          unescapeStringForGeminiBug(correctedNewString) ===
-          unescapeStringForGeminiBug(finalNewString)
-        ) {
-          break; // Successfully corrected or no change needed
-        }
-        retries++;
-      }
-      finalNewString = correctedNewString;
-    }
-  } else if (occurrences > expectedReplacements) {
-    const expectedReplacements = originalParams.expected_replacements ?? 1;
-
-    // If user expects multiple replacements, return as-is
-    if (occurrences === expectedReplacements) {
-      const result: CorrectedEditResult = {
-        params: {
-          ...originalParams,
-          old_string: finalOldString,
-          new_string: finalNewString,
-        },
-        occurrences,
-      };
-      editCorrectionCache.set(cacheKey, result);
-      return result;
-    }
-
-    // If user expects 1 but found multiple, try to correct (existing behavior)
-    if (expectedReplacements === 1) {
-      const result: CorrectedEditResult = {
-        params: {
-          ...originalParams,
-          old_string: finalOldString,
-          new_string: finalNewString,
-        },
-        occurrences,
-      };
-      editCorrectionCache.set(cacheKey, result);
-      return result;
-    }
-
-    // If occurrences don't match expected, return as-is (will fail validation later)
-    const result: CorrectedEditResult = {
-      params: {
-        ...originalParams,
-        old_string: finalOldString,
-        new_string: finalNewString,
-      },
+    return await finalizeResult(
+      originalParams,
+      finalOldString,
+      finalNewString,
       occurrences,
-    };
-    editCorrectionCache.set(cacheKey, result);
-    return result;
-  } else {
-    // occurrences is 0 or some other unexpected state initially
-    const unescapedOldStringAttempt =
-      unescapeStringForGeminiBug(finalOldString);
-    occurrences = countOccurrences(currentContent, unescapedOldStringAttempt);
+      newStringPotentiallyEscaped,
+      client,
+      abortSignal,
+      cacheKey
+    );
+  }
 
-    if (occurrences === expectedReplacements) {
-      finalOldString = unescapedOldStringAttempt;
-      if (newStringPotentiallyEscaped) {
-        finalNewString = await correctNewString(
-          client,
-          finalOldString, // original old
-          unescapedOldStringAttempt, // corrected old
-          finalNewString, // original new (which is potentially escaped)
-          abortSignal,
-        );
+  // AST-first correction with multiple strategies
+  const astCorrectionResult = await tryASTCorrection(
+    currentContent,
+    filePath,
+    finalOldString,
+    expectedReplacements
+  );
+
+  if (astCorrectionResult.success) {
+    if (astCorrectionResult.correctedOldString !== undefined && astCorrectionResult.occurrences !== undefined) {
+      finalOldString = astCorrectionResult.correctedOldString;
+      occurrences = astCorrectionResult.occurrences;
+    }
+    
+    return await finalizeResult(
+      originalParams,
+      finalOldString,
+      finalNewString,
+      occurrences,
+      newStringPotentiallyEscaped,
+      client,
+      abortSignal,
+      cacheKey
+    );
+  }
+
+  // String-based corrections (unescaping, trimming)
+  const stringCorrectionResult = tryStringBasedCorrections(
+    currentContent,
+    finalOldString,
+    expectedReplacements
+  );
+
+  if (stringCorrectionResult.success) {
+    if (stringCorrectionResult.correctedOldString !== undefined && stringCorrectionResult.occurrences !== undefined) {
+      finalOldString = stringCorrectionResult.correctedOldString;
+      occurrences = stringCorrectionResult.occurrences;
+    }
+
+    return await finalizeResult(
+      originalParams,
+      finalOldString,
+      finalNewString,
+      occurrences,
+      newStringPotentiallyEscaped,
+      client,
+      abortSignal,
+      cacheKey
+    );
+  }
+
+  // Handle cases with too many occurrences
+  if (occurrences > expectedReplacements) {
+    return createResult(originalParams, finalOldString, finalNewString, occurrences, cacheKey);
+  }
+
+  // Fallback to LLM-based correction
+  return await tryLLMCorrection(
+    filePath,
+    currentContent,
+    originalParams,
+    finalOldString,
+    finalNewString,
+    expectedReplacements,
+    newStringPotentiallyEscaped,
+    client,
+    abortSignal,
+    cacheKey
+  );
+}
+
+/**
+ * Comprehensive AST-based correction using multiple strategies
+ */
+async function tryASTCorrection(
+  currentContent: string,
+  filePath: string,
+  oldString: string,
+  expectedReplacements: number
+): Promise<{ success: boolean; correctedOldString?: string; occurrences?: number }> {
+  try {
+    const { sourceFile, error: parseErr } = parseSourceToSourceFile(
+      currentContent,
+      filePath ?? '/virtual-file.ts'
+    );
+    
+    if (!sourceFile || parseErr) {
+      return { success: false };
+    }
+
+    // Strategy 1: Direct text matching with node specificity
+    const directMatchResult = tryDirectNodeMatching(sourceFile, oldString, expectedReplacements, currentContent);
+    if (directMatchResult.success) {
+      return directMatchResult;
+    }
+
+    // Strategy 2: Unescaped string matching
+    const unescapedOldString = unescapeStringForGeminiBug(oldString);
+    if (unescapedOldString !== oldString) {
+      const unescapedMatchResult = tryDirectNodeMatching(sourceFile, unescapedOldString, expectedReplacements, currentContent);
+      if (unescapedMatchResult.success) {
+        return unescapedMatchResult;
       }
-    } else if (occurrences === 0) {
-      if (filePath) {
-        // In order to keep from clobbering edits made outside our system,
-        // let's check if there was a more recent edit to the file than what
-        // our system has done
-        const lastEditedByUsTime = await findLastEditTimestamp(
-          filePath,
-          client,
-        );
+    }
 
-        // Add a 1-second buffer to account for timing inaccuracies. If the file
-        // was modified more than a second after the last edit tool was run, we
-        // can assume it was modified by something else.
-        if (lastEditedByUsTime > 0) {
-          const stats = fs.statSync(filePath);
-          const diff = stats.mtimeMs - lastEditedByUsTime;
-          if (diff > 2000) {
-            // Hard coded for 2 seconds
-            // This file was edited sooner
-            const result: CorrectedEditResult = {
-              params: {
-                ...originalParams,
-                old_string: finalOldString,
-                new_string: finalNewString,
-              },
-              occurrences: 0, // Explicitly 0 as LLM failed
-            };
-            editCorrectionCache.set(cacheKey, result);
-            return result;
-          }
-        }
+    // Strategy 3: Semantic node matching for common code patterns
+    const semanticResult = trySemanticNodeMatching(sourceFile, oldString, expectedReplacements, currentContent);
+    if (semanticResult.success) {
+      return semanticResult;
+    }
+
+    // Strategy 4: Fuzzy matching with whitespace normalization
+    const fuzzyResult = tryFuzzyNodeMatching(sourceFile, oldString, expectedReplacements, currentContent);
+    if (fuzzyResult.success) {
+      return fuzzyResult;
+    }
+
+    return { success: false };
+  } catch (error) {
+    console.debug('AST correction failed:', error);
+    return { success: false };
+  }
+}
+
+/**
+ * Strategy 1: Direct node text matching with specificity ranking
+ */
+function tryDirectNodeMatching(
+  sourceFile: any,
+  searchString: string,
+  expectedReplacements: number,
+  currentContent: string
+): { success: boolean; correctedOldString?: string; occurrences?: number } {
+  const candidates: { node: any; text: string; specificity: number }[] = [];
+
+  for (const node of sourceFile.getDescendants()) {
+    try {
+      const nodeText = node.getText();
+      if (nodeText && nodeText.includes(searchString)) {
+        // Calculate specificity score (prefer smaller, more specific nodes)
+        const specificity = calculateNodeSpecificity(node, searchString, nodeText);
+        candidates.push({ node, text: nodeText, specificity });
       }
-
-      let llmCorrectedOldString = unescapedOldStringAttempt; // Initialize with problematic snippet
-      let llmOldOccurrences = 0;
-      let retries = 0;
-
-      while (retries < MAX_LLM_CORRECTION_RETRIES) {
-        llmCorrectedOldString = await correctOldStringMismatch(
-          client,
-          currentContent,
-          unescapedOldStringAttempt,
-          abortSignal,
-        );
-        llmOldOccurrences = countOccurrences(
-          currentContent,
-          llmCorrectedOldString,
-        );
-
-        if (llmOldOccurrences === expectedReplacements) {
-          break; // Successfully corrected
-        }
-        retries++;
-      }
-
-      if (llmOldOccurrences === expectedReplacements) {
-        finalOldString = llmCorrectedOldString;
-        occurrences = llmOldOccurrences;
-
-        if (newStringPotentiallyEscaped) {
-          const baseNewStringForLLMCorrection =
-            unescapeStringForGeminiBug(finalNewString);
-          let correctedNewString = baseNewStringForLLMCorrection;
-          let retries = 0;
-          while (retries < MAX_LLM_CORRECTION_RETRIES) {
-            correctedNewString = await correctNewString(
-              client,
-              finalOldString, // original old
-              llmCorrectedOldString, // corrected old
-              correctedNewString, // base new for correction
-              abortSignal,
-            );
-            if (
-              unescapeStringForGeminiBug(correctedNewString) ===
-              unescapeStringForGeminiBug(baseNewStringForLLMCorrection)
-            ) {
-              break; // Successfully corrected or no change needed
-            }
-            retries++;
-          }
-          finalNewString = correctedNewString;
-        }
-      } else {
-        // LLM correction failed after retries
-        const result: CorrectedEditResult = {
-          params: {
-            ...originalParams,
-            old_string: finalOldString,
-            new_string: finalNewString,
-          },
-          occurrences: 0, // Explicitly 0 as LLM failed after retries
-        };
-        editCorrectionCache.set(cacheKey, result);
-        return result;
-      }
-    } else {
-      // Unescaping old_string resulted in > 1 occurrence
-      const result: CorrectedEditResult = {
-        params: {
-          ...originalParams,
-          old_string: finalOldString,
-          new_string: finalNewString,
-        },
-        occurrences, // This will be > 1
-      };
-      editCorrectionCache.set(cacheKey, result);
-      return result;
+    } catch {
+      // Ignore problematic nodes
     }
   }
 
+  if (candidates.length === 0) {
+    return { success: false };
+  }
+
+  // Sort by specificity (higher score = more specific)
+  candidates.sort((a, b) => b.specificity - a.specificity);
+
+  // Try candidates in order of specificity
+  for (const candidate of candidates) {
+    const occurrences = countOccurrences(currentContent, candidate.text);
+    if (occurrences === expectedReplacements) {
+      return {
+        success: true,
+        correctedOldString: candidate.text,
+        occurrences
+      };
+    }
+  }
+
+  return { success: false };
+}
+
+/**
+ * Strategy 3: Semantic node matching for common code patterns
+ */
+function trySemanticNodeMatching(
+  sourceFile: any,
+  oldString: string,
+  expectedReplacements: number,
+  currentContent: string
+): { success: boolean; correctedOldString?: string; occurrences?: number } {
+  try {
+    // Look for specific node types that commonly contain the target string
+    const semanticQueries = [
+      '//FunctionDeclaration',
+      '//MethodDeclaration', 
+      '//VariableStatement',
+      '//ClassDeclaration',
+      '//PropertyAssignment',
+      '//CallExpression',
+      '//StringLiteral',
+      '//TemplateExpression'
+    ];
+
+    for (const query of semanticQueries) {
+      try {
+        const nodes = findNodes(sourceFile, query);
+        for (const node of nodes) {
+          try {
+            const nodeText = node.getText();
+            if (nodeText && nodeText.includes(oldString)) {
+              const occurrences = countOccurrences(currentContent, nodeText);
+              if (occurrences === expectedReplacements) {
+                return {
+                  success: true,
+                  correctedOldString: nodeText,
+                  occurrences
+                };
+              }
+            }
+          } catch {
+            // Continue with next node
+          }
+        }
+      } catch {
+        // Continue with next query
+      }
+    }
+
+    return { success: false };
+  } catch {
+    return { success: false };
+  }
+}
+
+/**
+ * Strategy 4: Fuzzy matching with whitespace and formatting normalization
+ */
+function tryFuzzyNodeMatching(
+  sourceFile: any,
+  oldString: string,
+  expectedReplacements: number,
+  currentContent: string
+): { success: boolean; correctedOldString?: string; occurrences?: number } {
+  const normalizedTarget = normalizeWhitespace(oldString);
+  const candidates: { text: string; similarity: number }[] = [];
+
+  for (const node of sourceFile.getDescendants()) {
+    try {
+      const nodeText = node.getText();
+      if (!nodeText) continue;
+
+      const normalizedNodeText = normalizeWhitespace(nodeText);
+      
+      // Check if normalized versions match or have high similarity
+      if (normalizedNodeText.includes(normalizedTarget)) {
+        const similarity = calculateStringSimilarity(normalizedTarget, normalizedNodeText);
+        if (similarity > 0.8) { // 80% similarity threshold
+          candidates.push({ text: nodeText, similarity });
+        }
+      }
+    } catch {
+      // Ignore problematic nodes
+    }
+  }
+
+  // Sort by similarity (highest first)
+  candidates.sort((a, b) => b.similarity - a.similarity);
+
+  for (const candidate of candidates) {
+    const occurrences = countOccurrences(currentContent, candidate.text);
+    if (occurrences === expectedReplacements) {
+      return {
+        success: true,
+        correctedOldString: candidate.text,
+        occurrences
+      };
+    }
+  }
+
+  return { success: false };
+}
+
+/**
+ * Calculate node specificity score for ranking candidates
+ */
+function calculateNodeSpecificity(node: any, searchString: string, nodeText: string): number {
+  let score = 0;
+
+  // Prefer smaller nodes (inverse relationship with length)
+  score += Math.max(0, 1000 - nodeText.length);
+
+  // Prefer nodes where the search string is a larger portion of the content
+  const searchRatio = searchString.length / nodeText.length;
+  score += searchRatio * 500;
+
+  // Prefer certain node types
+  try {
+    const kindName = node.getKindName ? node.getKindName() : '';
+    const preferredTypes = [
+      'VariableStatement', 'FunctionDeclaration', 'MethodDeclaration',
+      'PropertyAssignment', 'StringLiteral', 'CallExpression'
+    ];
+    if (preferredTypes.includes(kindName)) {
+      score += 200;
+    }
+  } catch {
+    // Ignore if we can't get kind name
+  }
+
+  // Prefer exact matches at word boundaries
+  const wordBoundaryRegex = new RegExp(`\\b${escapeRegExp(searchString)}\\b`);
+  if (wordBoundaryRegex.test(nodeText)) {
+    score += 300;
+  }
+
+  return score;
+}
+
+/**
+ * String-based correction strategies
+ */
+function tryStringBasedCorrections(
+  currentContent: string,
+  oldString: string,
+  expectedReplacements: number
+): { success: boolean; correctedOldString?: string; occurrences?: number } {
+  const strategies = [
+    // Unescaping
+    () => unescapeStringForGeminiBug(oldString),
+    // Trimming
+    () => oldString.trim(),
+    // Normalize line endings
+    () => oldString.replace(/\r\n/g, '\n').replace(/\r/g, '\n'),
+    // Remove extra spaces
+    () => oldString.replace(/\s+/g, ' '),
+    // Normalize quotes
+    () => oldString.replace(/[""]/g, '"').replace(/['']/g, "'"),
+  ];
+
+  for (const strategy of strategies) {
+    try {
+      const corrected = strategy();
+      if (corrected !== oldString) {
+        const occurrences = countOccurrences(currentContent, corrected);
+        if (occurrences === expectedReplacements) {
+          return {
+            success: true,
+            correctedOldString: corrected,
+            occurrences
+          };
+        }
+      }
+    } catch {
+      // Continue with next strategy
+    }
+  }
+
+  return { success: false };
+}
+
+/**
+ * Fallback to LLM-based correction (existing logic)
+ */
+async function tryLLMCorrection(
+  filePath: string,
+  currentContent: string,
+  originalParams: EditToolParams,
+  finalOldString: string,
+  finalNewString: string,
+  expectedReplacements: number,
+  newStringPotentiallyEscaped: boolean,
+  client: GeminiClient,
+  abortSignal: AbortSignal,
+  cacheKey: string
+): Promise<CorrectedEditResult> {
+  let occurrences = countOccurrences(currentContent, finalOldString);
+
+  if (occurrences === 0) {
+    // Check for external file modifications
+    if (filePath) {
+      const lastEditedByUsTime = await findLastEditTimestamp(filePath, client);
+      if (lastEditedByUsTime > 0) {
+        const stats = fs.statSync(filePath);
+        const diff = stats.mtimeMs - lastEditedByUsTime;
+        if (diff > 2000) {
+          return createResult(originalParams, finalOldString, finalNewString, 0, cacheKey);
+        }
+      }
+    }
+
+    // Try LLM correction
+    const unescapedOldString = unescapeStringForGeminiBug(finalOldString);
+    // Ask LLM once for a corrected old string. Tests expect a single LLM call
+    // in the 'no match' case rather than multiple retries.
+    const llmCorrectedOldString = await correctOldStringMismatch(
+      client,
+      currentContent,
+      unescapedOldString,
+      abortSignal,
+    );
+    const llmOldOccurrences = countOccurrences(currentContent, llmCorrectedOldString);
+
+    if (llmOldOccurrences === expectedReplacements) {
+      finalOldString = llmCorrectedOldString;
+      occurrences = llmOldOccurrences;
+      if (newStringPotentiallyEscaped) {
+        // Ask the LLM once to adjust the replacement text to the corrected old
+        // string. Pass the ORIGINAL requested old_string so the LLM can reason
+        // about how the replacement should change relative to the original.
+        const correctedNewString = await correctNewString(
+          client,
+          // original_old_string should be the value originally requested
+          // (not the already-corrected one).
+          originalParams.old_string ?? finalOldString,
+          llmCorrectedOldString,
+          unescapeStringForGeminiBug(finalNewString),
+          abortSignal,
+        );
+        if (typeof correctedNewString === 'string' && correctedNewString.length > 0) {
+          finalNewString = correctedNewString;
+        }
+      }
+    } else {
+      return createResult(originalParams, finalOldString, finalNewString, 0, cacheKey);
+    }
+  }
+
+  // Apply trimming optimization
   const { targetString, pair } = trimPairIfPossible(
     finalOldString,
     finalNewString,
     currentContent,
-    expectedReplacements,
+    expectedReplacements
   );
-  finalOldString = targetString;
-  finalNewString = pair;
 
-  // Final result construction
+  return createResult(originalParams, targetString, pair, countOccurrences(currentContent, targetString), cacheKey);
+}
+
+/**
+ * Finalize result with potential new string correction
+ */
+async function finalizeResult(
+  originalParams: EditToolParams,
+  finalOldString: string,
+  finalNewString: string,
+  occurrences: number,
+  newStringPotentiallyEscaped: boolean,
+  client: GeminiClient,
+  abortSignal: AbortSignal,
+  cacheKey: string
+): Promise<CorrectedEditResult> {
+      if (newStringPotentiallyEscaped) {
+        const maybeCorrected = await correctNewStringEscaping(
+          client,
+          finalOldString,
+          finalNewString,
+          abortSignal,
+        );
+    if (typeof maybeCorrected === 'string' && maybeCorrected.length > 0) {
+      finalNewString = maybeCorrected;
+    }
+  }
+
+  return createResult(originalParams, finalOldString, finalNewString, occurrences, cacheKey);
+}
+
+/**
+ * Create and cache the final result
+ */
+function createResult(
+  originalParams: EditToolParams,
+  finalOldString: string,
+  finalNewString: string,
+  occurrences: number,
+  cacheKey: string
+): CorrectedEditResult {
   const result: CorrectedEditResult = {
     params: {
       file_path: originalParams.file_path,
       old_string: finalOldString,
       new_string: finalNewString,
     },
-    occurrences: countOccurrences(currentContent, finalOldString), // Recalculate occurrences with the final old_string
+    occurrences,
   };
+  
   editCorrectionCache.set(cacheKey, result);
   return result;
 }
 
-export async function ensureCorrectFileContent(
-  content: string,
-  client: GeminiClient,
-  abortSignal: AbortSignal,
-): Promise<string> {
-  const cachedResult = fileContentCorrectionCache.get(content);
-  if (cachedResult) {
-    return cachedResult;
-  }
+// Utility functions
 
-  const contentPotentiallyEscaped =
-    unescapeStringForGeminiBug(content) !== content;
-  if (!contentPotentiallyEscaped) {
-    fileContentCorrectionCache.set(content, content);
-    return content;
-  }
-
-  const correctedContent = await correctStringEscaping(
-    content,
-    client,
-    abortSignal,
-  );
-  fileContentCorrectionCache.set(content, correctedContent);
-  return correctedContent;
+/**
+ * Normalize whitespace for fuzzy matching
+ */
+function normalizeWhitespace(text: string): string {
+  return text
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/\t/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
-// Define the expected JSON schema for the LLM response for old_string correction
-const OLD_STRING_CORRECTION_SCHEMA: Record<string, unknown> = {
+/**
+ * Calculate string similarity using Levenshtein distance
+ */
+function calculateStringSimilarity(str1: string, str2: string): number {
+  const longer = str1.length > str2.length ? str1 : str2;
+  const shorter = str1.length > str2.length ? str2 : str1;
+  
+  if (longer.length === 0) {
+    return 1.0;
+  }
+  
+  const distance = levenshteinDistance(longer, shorter);
+  return (longer.length - distance) / longer.length;
+}
+
+/**
+ * Calculate Levenshtein distance between two strings
+ */
+function levenshteinDistance(str1: string, str2: string): number {
+  const matrix = Array(str2.length + 1)
+    .fill(null)
+    .map(() => Array(str1.length + 1).fill(null));
+  
+  for (let i = 0; i <= str1.length; i++) {
+    matrix[0][i] = i;
+  }
+  
+  for (let j = 0; j <= str2.length; j++) {
+    matrix[j][0] = j;
+  }
+  
+  for (let j = 1; j <= str2.length; j++) {
+    for (let i = 1; i <= str1.length; i++) {
+      const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+      matrix[j][i] = Math.min(
+        matrix[j][i - 1] + 1, // deletion
+        matrix[j - 1][i] + 1, // insertion
+        matrix[j - 1][i - 1] + indicator // substitution
+      );
+    }
+  }
+  
+  return matrix[str2.length][str1.length];
+}
+
+/**
+ * Escape special regex characters
+ */
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Unescapes a string that might have been overly escaped by an LLM.
+ */
+export function unescapeStringForGeminiBug(inputString: string): string {
+  return inputString.replace(/\\+(n|t|r|'|"|`|\\|\n)/g, (match, capturedChar) => {
+    switch (capturedChar) {
+      case 'n':
+        return '\n';
+      case 't':
+        return '\t';
+      case 'r':
+        return '\r';
+      case "'":
+        return "'";
+      case '"':
+        return '"';
+      case '`':
+        return '`';
+      case '\\':
+        return '\\';
+      case '\n':
+        return '\n';
+      default:
+        return match;
+    }
+  });
+}
+
+/**
+ * Counts non-overlapping occurrences of substr in str.
+ */
+export function countOccurrences(str: string, substr: string): number {
+  if (!substr) return 0;
+  let count = 0;
+  let pos = str.indexOf(substr);
+  while (pos !== -1) {
+    count++;
+    pos = str.indexOf(substr, pos + substr.length);
+  }
+  return count;
+}
+
+export function resetEditCorrectorCaches() {
+  try {
+    editCorrectionCache.clear();
+  } catch (e) {
+    console.debug('resetEditCorrectorCaches: ignore', e);
+  }
+  try {
+    fileContentCorrectionCache.clear();
+  } catch (e) {
+    console.debug('resetEditCorrectorCaches: ignore', e);
+  }
+}
+
+// Schemas for LLM generateJson calls
+const OLD_STRING_CORRECTION_SCHEMA = {
   type: 'object',
   properties: {
     corrected_target_snippet: {
@@ -428,7 +797,47 @@ const OLD_STRING_CORRECTION_SCHEMA: Record<string, unknown> = {
   required: ['corrected_target_snippet'],
 };
 
-export async function correctOldStringMismatch(
+const NEW_STRING_CORRECTION_SCHEMA = {
+  type: 'object',
+  properties: {
+    corrected_new_string: {
+      type: 'string',
+      description:
+        'The original_new_string adjusted to be a suitable replacement for the corrected_old_string, while maintaining the original intent of the change.',
+    },
+  },
+  required: ['corrected_new_string'],
+};
+
+const CORRECT_NEW_STRING_ESCAPING_SCHEMA = {
+  type: 'object',
+  properties: {
+    corrected_new_string_escaping: {
+      type: 'string',
+      description:
+        'The new_string with corrected escaping, ensuring it is a proper replacement for the old_string, especially considering potential over-escaping issues from previous LLM generations.',
+    },
+  },
+  required: ['corrected_new_string_escaping'],
+};
+
+const CORRECT_STRING_ESCAPING_SCHEMA = {
+  type: 'object',
+  properties: {
+    corrected_string_escaping: {
+      type: 'string',
+      description:
+        'The string with corrected escaping, ensuring it is valid, specially considering potential over-escaping issues from previous LLM generations.',
+    },
+  },
+  required: ['corrected_string_escaping'],
+};
+
+/**
+ * Try to correct an old_string that did not match by asking the LLM for the
+ * likely segment in the file content that the snippet intended to match.
+ */
+async function correctOldStringMismatch(
   geminiClient: GeminiClient,
   fileContent: string,
   problematicSnippet: string,
@@ -449,72 +858,38 @@ File Content:
 ${fileContent}
 \`\`\`
 
-For example, if the problematic target snippet was "\\\\\\nconst greeting = \`Hello \\\\\`\${name}\\\\\`\`;" and the file content had content that looked like "\nconst greeting = \`Hello ${'\\`'}\${name}${'\\`'}\`;", then corrected_target_snippet should likely be "\nconst greeting = \`Hello ${'\\`'}\${name}${'\\`'}\`;" to fix the incorrect escaping to match the original file content.
-If the differences are only in whitespace or formatting, apply similar whitespace/formatting changes to the corrected_target_snippet.
-
 Return ONLY the corrected target snippet in the specified JSON format with the key 'corrected_target_snippet'. If no clear, unique match can be found, return an empty string for 'corrected_target_snippet'.
 `.trim();
 
-  const contents: Content[] = [{ role: 'user', parts: [{ text: prompt }] }];
-
+  const contents = [{ role: 'user', parts: [{ text: prompt }] }];
   try {
-    const result = await geminiClient.generateJson(
+    const result = (await geminiClient.generateJson(
       contents,
       OLD_STRING_CORRECTION_SCHEMA,
       abortSignal,
       EditModel,
       EditConfig,
-    );
-
-    if (
-      result &&
-      typeof result['corrected_target_snippet'] === 'string' &&
-      result['corrected_target_snippet'].length > 0
-    ) {
-      return result['corrected_target_snippet'];
-    } else {
-      return problematicSnippet;
+    )) as Record<string, unknown> | undefined;
+    if (result) {
+      const corrected = result['corrected_target_snippet'];
+      if (typeof corrected === 'string' && corrected.length > 0) return corrected;
     }
+    return problematicSnippet;
   } catch (error) {
-    if (abortSignal.aborted) {
-      throw error;
-    }
-
-    console.error(
-      'Error during LLM call for old string snippet correction:',
-      error,
-    );
-
+    if (abortSignal.aborted) throw error;
+    console.error('Error during LLM call for old string snippet correction:', error);
     return problematicSnippet;
   }
 }
 
-// Define the expected JSON schema for the new_string correction LLM response
-const NEW_STRING_CORRECTION_SCHEMA: Record<string, unknown> = {
-  type: 'object',
-  properties: {
-    corrected_new_string: {
-      type: 'string',
-      description:
-        'The original_new_string adjusted to be a suitable replacement for the corrected_old_string, while maintaining the original intent of the change.',
-    },
-  },
-  required: ['corrected_new_string'],
-};
-
-/**
- * Adjusts the new_string to align with a corrected old_string, maintaining the original intent.
- */
-export async function correctNewString(
+async function correctNewString(
   geminiClient: GeminiClient,
   originalOldString: string,
   correctedOldString: string,
   originalNewString: string,
   abortSignal: AbortSignal,
 ): Promise<string> {
-  if (originalOldString === correctedOldString) {
-    return originalNewString;
-  }
+  if (originalOldString === correctedOldString) return originalNewString;
 
   const prompt = `
 Context: A text replacement operation was planned. The original text to be replaced (original_old_string) was slightly different from the actual text in the file (corrected_old_string). The original_old_string has now been corrected to match the file content.
@@ -537,178 +912,106 @@ ${originalNewString}
 
 Task: Based on the differences between original_old_string and corrected_old_string, and the content of original_new_string, generate a corrected_new_string. This corrected_new_string should be what original_new_string would have been if it was designed to replace corrected_old_string directly, while maintaining the spirit of the original transformation.
 
-For example, if original_old_string was "\\\\\\nconst greeting = \`Hello \\\\\`\${name}\\\\\`\`;" and corrected_old_string is "\nconst greeting = \`Hello ${'\\`'}\${name}${'\\`'}\`;", and original_new_string was "\\\\\\nconst greeting = \`Hello \\\\\`\${name} \${lastName}\\\\\`\`;", then corrected_new_string should likely be "\nconst greeting = \`Hello ${'\\`'}\${name} \${lastName}${'\\`'}\`;" to fix the incorrect escaping.
-If the differences are only in whitespace or formatting, apply similar whitespace/formatting changes to the corrected_new_string.
-
 Return ONLY the corrected string in the specified JSON format with the key 'corrected_new_string'. If no adjustment is deemed necessary or possible, return the original_new_string.
   `.trim();
 
-  const contents: Content[] = [{ role: 'user', parts: [{ text: prompt }] }];
-
+  const contents = [{ role: 'user', parts: [{ text: prompt }] }];
   try {
-    const result = await geminiClient.generateJson(
+    const result = (await geminiClient.generateJson(
       contents,
       NEW_STRING_CORRECTION_SCHEMA,
       abortSignal,
       EditModel,
       EditConfig,
-    );
-
-    if (
-      result &&
-      typeof result['corrected_new_string'] === 'string' &&
-      result['corrected_new_string'].length > 0
-    ) {
-      return result['corrected_new_string'];
-    } else {
-      return originalNewString;
+    )) as Record<string, unknown> | undefined;
+    if (result) {
+      const corrected = result['corrected_new_string'];
+      if (typeof corrected === 'string' && corrected.length > 0) return corrected;
     }
+    return originalNewString;
   } catch (error) {
-    if (abortSignal.aborted) {
-      throw error;
-    }
-
+    if (abortSignal.aborted) throw error;
     console.error('Error during LLM call for new_string correction:', error);
     return originalNewString;
   }
 }
 
-const CORRECT_NEW_STRING_ESCAPING_SCHEMA: Record<string, unknown> = {
-  type: 'object',
-  properties: {
-    corrected_new_string_escaping: {
-      type: 'string',
-      description:
-        'The new_string with corrected escaping, ensuring it is a proper replacement for the old_string, especially considering potential over-escaping issues from previous LLM generations.',
-    },
-  },
-  required: ['corrected_new_string_escaping'],
-};
-
-export async function correctNewStringEscaping(
+async function correctNewStringEscaping(
   geminiClient: GeminiClient,
   oldString: string,
-  potentiallyProblematicNewString: string,
+  potentiallyProblematicNewString: string | undefined,
   abortSignal: AbortSignal,
-): Promise<string> {
+): Promise<string | undefined> {
   const prompt = `
-Context: A text replacement operation is planned. The text to be replaced (old_string) has been correctly identified in the file. However, the replacement text (new_string) might have been improperly escaped by a previous LLM generation (e.g. too many backslashes for newlines like \n instead of \n, or unnecessarily quotes like \\"ello\\"instead of \\"ello\\".
+Context: A text replacement operation is planned. The text to be replaced (old_string) has been correctly identified in the file. However, the replacement text (new_string) might have been improperly escaped by a previous LLM generation.
 
 old_string (this is the exact text that will be replaced):
-\`\
-${oldString}
-\
-\
+\`\`${oldString}
 
 potentially_problematic_new_string (this is the text that should replace old_string, but MIGHT have bad escaping, or might be entirely correct):
-\`\
-${potentiallyProblematicNewString ?? ''}
-\
-\
+\`\`${potentiallyProblematicNewString ?? ''}
 
-Task: Analyze the potentially_problematic_new_string. If it's syntactically invalid due to incorrect escaping (e.g., "\n", "\t", "\\", "\\\\" \\"\\\"), correct the invalid syntax. The goal is to ensure the new_string, when inserted into the code, will be a valid and correctly interpreted.
-
-For example, if old_string is "foo" and potentially_problematic_new_string is "bar\\nbaz", the corrected_new_string_escaping should be "bar\nbaz".
-If potentially_problematic_new_string is console.log(\"Hello World\"), it should be console.log(\"Hello World\").
-
-Return ONLY the corrected string in the specified JSON format with the key 'corrected_new_string_escaping'. If no escaping correction is needed, return the original potentially_problematic_new_string.
+Task: Analyze the potentially_problematic_new_string. If it's syntactically invalid due to incorrect escaping, correct the invalid syntax. Return ONLY the corrected string in the specified JSON format with the key 'corrected_new_string_escaping'. If no escaping correction is needed, return the original potentially_problematic_new_string.
   `.trim();
 
-  const contents: Content[] = [{ role: 'user', parts: [{ text: prompt }] }];
-
+  const contents = [{ role: 'user', parts: [{ text: prompt }] }];
   try {
-    const result = await geminiClient.generateJson(
+    const result = (await geminiClient.generateJson(
       contents,
       CORRECT_NEW_STRING_ESCAPING_SCHEMA,
       abortSignal,
       EditModel,
       EditConfig,
-    );
-
-    if (
-      result &&
-      typeof result['corrected_new_string_escaping'] === 'string' &&
-      result['corrected_new_string_escaping'].length > 0
-    ) {
-      return result['corrected_new_string_escaping'];
-    } else {
-      return potentiallyProblematicNewString;
+    )) as Record<string, unknown> | undefined;
+    if (result) {
+      const corrected1 = result['corrected_new_string_escaping'];
+      if (typeof corrected1 === 'string' && corrected1.length > 0) return corrected1;
+      const corrected2 = result['corrected_new_string'];
+      if (typeof corrected2 === 'string' && corrected2.length > 0) return corrected2;
     }
+    return potentiallyProblematicNewString;
   } catch (error) {
-    if (abortSignal.aborted) {
-      throw error;
-    }
-
-    console.error(
-      'Error during LLM call for new_string escaping correction:',
-      error,
-    );
+    if (abortSignal.aborted) throw error;
+    console.error('Error during LLM call for new_string escaping correction:', error);
     return potentiallyProblematicNewString;
   }
 }
 
-const CORRECT_STRING_ESCAPING_SCHEMA: Record<string, unknown> = {
-  type: 'object',
-  properties: {
-    corrected_string_escaping: {
-      type: 'string',
-      description:
-        'The string with corrected escaping, ensuring it is valid, specially considering potential over-escaping issues from previous LLM generations.',
-    },
-  },
-  required: ['corrected_string_escaping'],
-};
-
-export async function correctStringEscaping(
+async function correctStringEscaping(
   potentiallyProblematicString: string,
   client: GeminiClient,
   abortSignal: AbortSignal,
 ): Promise<string> {
   const prompt = `
-Context: An LLM has just generated potentially_problematic_string and the text might have been improperly escaped (e.g. too many backslashes for newlines like \\n instead of \n, or unnecessarily quotes like \\"Hello\\" instead of "Hello").
+Context: An LLM has just generated potentially_problematic_string and the text might have been improperly escaped.
 
 potentially_problematic_string (this text MIGHT have bad escaping, or might be entirely correct):
 \`\`\`
 ${potentiallyProblematicString}
 \`\`\`
 
-Task: Analyze the potentially_problematic_string. If it's syntactically invalid due to incorrect escaping (e.g., "\n", "\t", "\\", "\\'", "\\""), correct the invalid syntax. The goal is to ensure the text will be a valid and correctly interpreted.
-
-For example, if potentially_problematic_string is "bar\\nbaz", the corrected_new_string_escaping should be "bar\nbaz".
-If potentially_problematic_string is console.log(\\"Hello World\\"), it should be console.log("Hello World").
+Task: Analyze the potentially_problematic_string. If it's syntactically invalid due to incorrect escaping, correct the invalid syntax.
 
 Return ONLY the corrected string in the specified JSON format with the key 'corrected_string_escaping'. If no escaping correction is needed, return the original potentially_problematic_string.
   `.trim();
 
-  const contents: Content[] = [{ role: 'user', parts: [{ text: prompt }] }];
-
+  const contents = [{ role: 'user', parts: [{ text: prompt }] }];
   try {
-    const result = await client.generateJson(
+    const result = (await client.generateJson(
       contents,
       CORRECT_STRING_ESCAPING_SCHEMA,
       abortSignal,
       EditModel,
       EditConfig,
-    );
-
-    if (
-      result &&
-      typeof result['corrected_string_escaping'] === 'string' &&
-      result['corrected_string_escaping'].length > 0
-    ) {
-      return result['corrected_string_escaping'];
-    } else {
-      return potentiallyProblematicString;
+    )) as Record<string, unknown> | undefined;
+    if (result) {
+      const corrected = result['corrected_string_escaping'];
+      if (typeof corrected === 'string' && corrected.length > 0) return corrected;
     }
+    return potentiallyProblematicString;
   } catch (error) {
-    if (abortSignal.aborted) {
-      throw error;
-    }
-
-    console.error(
-      'Error during LLM call for string escaping correction:',
-      error,
-    );
+    if (abortSignal.aborted) throw error;
+    console.error('Error during LLM call for string escaping correction:', error);
     return potentiallyProblematicString;
   }
 }
@@ -718,92 +1021,36 @@ function trimPairIfPossible(
   trimIfTargetTrims: string,
   currentContent: string,
   expectedReplacements: number,
-) {
+): { targetString: string; pair: string } {
   const trimmedTargetString = target.trim();
   if (target.length !== trimmedTargetString.length) {
-    const trimmedTargetOccurrences = countOccurrences(
-      currentContent,
-      trimmedTargetString,
-    );
-
+    const trimmedTargetOccurrences = countOccurrences(currentContent, trimmedTargetString);
     if (trimmedTargetOccurrences === expectedReplacements) {
       const trimmedReactiveString = trimIfTargetTrims.trim();
-      return {
-        targetString: trimmedTargetString,
-        pair: trimmedReactiveString,
-      };
+      return { targetString: trimmedTargetString, pair: trimmedReactiveString };
     }
   }
-
-  return {
-    targetString: target,
-    pair: trimIfTargetTrims,
-  };
+  return { targetString: target, pair: trimIfTargetTrims };
 }
 
 /**
- * Unescapes a string that might have been overly escaped by an LLM.
+ * Ensure file content escaping is corrected when necessary via LLM.
  */
-export function unescapeStringForGeminiBug(inputString: string): string {
-  // Regex explanation:
-  // \\ : Matches exactly one literal backslash character.
-  // (n|t|r|'|"|`|\\|\n) : This is a capturing group. It matches one of the following:
-  //   n, t, r, ', ", ` : These match the literal characters 'n', 't', 'r', single quote, double quote, or backtick.
-  //                       This handles cases like "\\n", "\\`", etc.
-  //   \\ : This matches a literal backslash. This handles cases like "\\\\" (escaped backslash).
-  //   \n : This matches an actual newline character. This handles cases where the input
-  //        string might have something like "\\\n" (a literal backslash followed by a newline).
-  // g : Global flag, to replace all occurrences.
+export async function ensureCorrectFileContent(
+  content: string,
+  client: GeminiClient,
+  abortSignal: AbortSignal,
+): Promise<string> {
+  const cached = fileContentCorrectionCache.get(content);
+  if (cached) return cached;
 
-  return inputString.replace(
-    /\\+(n|t|r|'|"|`|\\|\n)/g,
-    (match, capturedChar) => {
-      // 'match' is the entire erroneous sequence, e.g., if the input (in memory) was "\\\\`", match is "\\\\`".
-      // 'capturedChar' is the character that determines the true meaning, e.g., '`'.
-
-      switch (capturedChar) {
-        case 'n':
-          return '\n'; // Correctly escaped: \n (newline character)
-        case 't':
-          return '\t'; // Correctly escaped: \t (tab character)
-        case 'r':
-          return '\r'; // Correctly escaped: \r (carriage return character)
-        case "'":
-          return "'"; // Correctly escaped: ' (apostrophe character)
-        case '"':
-          return '"'; // Correctly escaped: " (quotation mark character)
-        case '`':
-          return '`'; // Correctly escaped: ` (backtick character)
-        case '\\': // This handles when 'capturedChar' is a literal backslash
-          return '\\'; // Replace escaped backslash (e.g., "\\\\") with single backslash
-        case '\n': // This handles when 'capturedChar' is an actual newline
-          return '\n'; // Replace the whole erroneous sequence (e.g., "\\\n" in memory) with a clean newline
-        default:
-          // This fallback should ideally not be reached if the regex captures correctly.
-          // It would return the original matched sequence if an unexpected character was captured.
-          return match;
-      }
-    },
-  );
-}
-
-/**
- * Counts occurrences of a substring in a string
- */
-export function countOccurrences(str: string, substr: string): number {
-  if (substr === '') {
-    return 0;
+  const contentPotentiallyEscaped = unescapeStringForGeminiBug(content) !== content;
+  if (!contentPotentiallyEscaped) {
+    fileContentCorrectionCache.set(content, content);
+    return content;
   }
-  let count = 0;
-  let pos = str.indexOf(substr);
-  while (pos !== -1) {
-    count++;
-    pos = str.indexOf(substr, pos + substr.length); // Start search after the current match
-  }
-  return count;
-}
 
-export function resetEditCorrectorCaches() {
-  editCorrectionCache.clear();
-  fileContentCorrectionCache.clear();
+  const correctedContent = await correctStringEscaping(content, client, abortSignal);
+  fileContentCorrectionCache.set(content, correctedContent);
+  return correctedContent;
 }
