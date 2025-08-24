@@ -232,9 +232,7 @@ export async function processSingleFileContent(
     switch (fileType) {
       case 'binary': {
         return {
-          llmContent: {
-            text: `Cannot display content of binary file: ${relativePathForDisplay}`,
-          },
+          llmContent: `Cannot display content of binary file: ${relativePathForDisplay}`,
           returnDisplay: `Skipped binary file: ${relativePathForDisplay}`,
         };
       }
@@ -254,7 +252,7 @@ export async function processSingleFileContent(
         }
         const content = readResult.data!;
         return {
-          llmContent: { text: content },
+          llmContent: content,
           returnDisplay: `Read SVG as text: ${relativePathForDisplay}`,
         };
       }
@@ -333,7 +331,7 @@ export async function processSingleFileContent(
         // Should not happen with current detectFileType logic
         const exhaustiveCheck: never = fileType;
         return {
-          llmContent: { text: `Unhandled file type: ${exhaustiveCheck}` },
+          llmContent: `Unhandled file type: ${exhaustiveCheck}`,
           returnDisplay: `Skipped unhandled file type: ${relativePathForDisplay}`,
           error: `Unhandled file type for ${filePath}`,
         };
@@ -345,9 +343,7 @@ export async function processSingleFileContent(
       .relative(rootDirectory, filePath)
       .replace(/\\/g, '/');
     return {
-      llmContent: {
-        text: `Error reading file ${displayPath}: ${errorMessage}`,
-      },
+      llmContent: `Error reading file ${displayPath}: ${errorMessage}`,
       returnDisplay: `Error reading file ${displayPath}: ${errorMessage}`,
       error: `Error reading file ${filePath}: ${errorMessage}`,
       errorType: ToolErrorType.READ_CONTENT_FAILURE,

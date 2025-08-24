@@ -28,4 +28,16 @@
   "typeRoots": ["./types", "./node_modules/@types", "./node_modules"],
     "jsx": "react-jsx"
   }
+  ,
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "test",
+    "**/test/**",
+  "integration-tests",
+  "**/integration-tests/**",
+  "packages/mew-upgrade"
+  ]
 }

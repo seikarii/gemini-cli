@@ -110,14 +110,24 @@ ${result.llmContent}`;
       llmContent = result.llmContent || '';
     }
 
-    // Ensure llmContent is a string and within size limits
+    // Allow llmContent to be either a string (text) or an object with expected parts
     const mimetype = getSpecificMimeType(this.params.absolute_path);
     const programming_language = getProgrammingLanguage({
       absolute_path: this.params.absolute_path,
     });
 
-    if (typeof llmContent !== 'string') {
-      const errorMsg = `File content is not a string. Mime type: ${mimetype}`;
+    const isString = typeof llmContent === 'string';
+
+    function isPartUnion(value: unknown): value is PartUnion {
+      if (!value || typeof value !== 'object') return false;
+      const v = value as Record<string, unknown>;
+      return 'text' in v || 'inlineData' in v;
+    }
+
+    const isPartObject = isPartUnion(llmContent);
+
+    if (!isString && !isPartObject) {
+      const errorMsg = `File content is not in a supported format. Mime type: ${mimetype}`;
       return {
         llmContent: errorMsg,
         returnDisplay: `❌ Error: ${errorMsg}`,
@@ -128,8 +138,8 @@ ${result.llmContent}`;
       };
     }
 
-    if (llmContent.length > MAX_LLM_CONTENT_SIZE) {
-      const errorMsg = `File content exceeds maximum allowed size for LLM (${MAX_LLM_CONTENT_SIZE} bytes). Actual size: ${llmContent.length} bytes.`;
+    if (isString && (llmContent as string).length > MAX_LLM_CONTENT_SIZE) {
+      const errorMsg = `File content exceeds maximum allowed size for LLM (${MAX_LLM_CONTENT_SIZE} bytes). Actual size: ${(llmContent as string).length} bytes.`;
       return {
         llmContent: errorMsg,
         returnDisplay: `❌ Error: ${errorMsg}`,
@@ -140,10 +150,7 @@ ${result.llmContent}`;
       };
     }
 
-    const lines =
-      typeof result.llmContent === 'string'
-        ? result.llmContent.split('\n').length
-        : undefined;
+    const lines = isString ? (result.llmContent as string).split('\n').length : undefined;
     logFileOperation(
       this.config,
       new FileOperationEvent(
@@ -157,8 +164,18 @@ ${result.llmContent}`;
       ),
     );
 
+    // If the PartUnion is an object containing text, many existing tests expect a plain string.
+    // Unwrap { text: string } -> string for backward compatibility, but keep inlineData objects as-is.
+    let finalLlmContent: PartUnion = llmContent;
+    if (!isString && isPartObject) {
+      const obj = llmContent as Record<string, unknown>;
+      if ('text' in obj && typeof obj['text'] === 'string') {
+        finalLlmContent = obj['text'] as string;
+      }
+    }
+
     return {
-      llmContent,
+      llmContent: finalLlmContent,
       returnDisplay: result.returnDisplay || '',
     };
   }

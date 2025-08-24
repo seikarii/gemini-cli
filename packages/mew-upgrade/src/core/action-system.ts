@@ -61,8 +61,8 @@ export class ActionSystem {
       const toolExecutor = this.toolRegistry[action.tool];
       if (toolExecutor) {
         try {
-          const result = await toolExecutor(action.params);
-          // In a real system, this result would be fed back into memory.
+          await toolExecutor(action.params);
+          // In a real system, the result could be fed back into memory.
           console.log(`ActionSystem: Action ${action.id} completed.`);
         } catch (error) {
           console.error(`ActionSystem: Error executing action ${action.id}`, error);

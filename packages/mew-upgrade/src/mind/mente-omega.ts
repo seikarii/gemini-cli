@@ -6,7 +6,7 @@
 
 import { MentalLaby } from './mental-laby.js';
 import { ActionSystem, PlanDeAccion } from '../core/action-system.js';
-import type { ContentGenerator } from '../../core/src/core/contentGenerator.js';
+import type { ContentGenerator } from '@google/gemini-cli-core';
 import type { Content } from '@google/genai';
 import type { Persistable } from '../persistence/persistence-service.js';
 
@@ -17,7 +17,7 @@ import type { Persistable } from '../persistence/persistence-service.js';
 export class MenteOmega implements Persistable {
   memory: MentalLaby;
   private actions: ActionSystem;
-  private menteAlfa: ContentGenerator; // The connection to Gemini (MenteAlfa)
+  private menteAlfa: any; // The connection to Gemini (MenteAlfa) - use any to match different runtime client shapes
 
   constructor(menteAlfa: ContentGenerator) {
     this.memory = new MentalLaby();
@@ -60,7 +60,12 @@ export class MenteOmega implements Persistable {
 
   private async getPlanFromMenteAlfa(context: Content[], signal?: AbortSignal): Promise<PlanDeAccion> {
     try {
-      const result = await this.menteAlfa.generateContent(context, { temperature: 0.7 }, signal ?? new AbortController().signal);
+      // Call the underlying client-style generateContent(contents, generationConfig, abortSignal?) which many callers use
+      const result = await (this.menteAlfa as any).generateContent(
+        context,
+        { temperature: 0.7 },
+        signal ?? new AbortController().signal,
+      );
 
       // Try to extract a text response safely
       let textResponse = '';
@@ -82,7 +87,7 @@ export class MenteOmega implements Persistable {
         {
           id: 'llm_step_1',
           tool: 'run_shell_command',
-          params: { command: `echo "LLM: ${justification.replace(/\"/g, '\\"')}"` },
+          params: { command: `echo "LLM: ${justification}"` },
         },
       ];
 

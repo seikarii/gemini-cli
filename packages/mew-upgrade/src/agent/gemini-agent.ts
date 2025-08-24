@@ -4,7 +4,7 @@
 
 import { MenteOmega } from '../mind/mente-omega.js';
 import { UnifiedPersistence } from '../persistence/unified-persistence.js';
-import { createContentGenerator, AuthType, ContentGenerator } from '@google/gemini-cli-core/dist/src/core/contentGenerator';
+import { createContentGenerator, AuthType, ContentGenerator } from '@google/gemini-cli-core';
 // @ts-ignore: build/runtime uses ESM paths; keep TS import for types
 import { Config } from '../../cli/src/config/config';
 
@@ -86,7 +86,7 @@ export class GeminiAgent {
     // --- Example Usage Simulation ---
     // Simulate a user making a request after a short delay.
     setTimeout(() => {
-      this.terminal.simulateUserRequest('Refactor the auth logic in src/auth.py');
+      this.terminal.simulateUserRequest('What do you think about autogenesis?');
     }, 2000);
   }
 
@@ -132,5 +132,8 @@ const mockConfig: Config = {
 if (typeof require !== 'undefined' && require.main === module) {
   const agent = new GeminiAgent(mockConfig);
   void agent.start();
+
+// Keep the process alive to see async output
+setInterval(() => {}, 1000);
 }
 

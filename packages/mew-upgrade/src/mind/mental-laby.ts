@@ -2,8 +2,8 @@
  * @file Implements the MentalLaby, the core associative memory graph.
  */
 
-import { Film } from './film';
-import { Persistable } from '../persistence/persistence-service';
+import { Film } from './film.js';
+import { Persistable } from '../persistence/persistence-service.js';
 
 // --- Utility Functions ---
 
