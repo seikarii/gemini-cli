@@ -169,9 +169,8 @@ export async function ensureCorrectEdit(
   }
 
   let finalNewString = originalParams.new_string ?? '';
-  const newStringPotentiallyEscaped = 
-    unescapeStringForGeminiBug(finalNewString) !== 
-    finalNewString;
+  const newStringPotentiallyEscaped =
+    unescapeStringForGeminiBug(finalNewString) !== finalNewString;
 
   const expectedReplacements = originalParams.expected_replacements ?? 1;
 
@@ -189,7 +188,10 @@ export async function ensureCorrectEdit(
           correctedNewString,
           abortSignal,
         );
-        if (unescapeStringForGeminiBug(correctedNewString) === unescapeStringForGeminiBug(finalNewString)) {
+        if (
+          unescapeStringForGeminiBug(correctedNewString) ===
+          unescapeStringForGeminiBug(finalNewString)
+        ) {
           break; // Successfully corrected or no change needed
         }
         retries++;
@@ -202,7 +204,11 @@ export async function ensureCorrectEdit(
     // If user expects multiple replacements, return as-is
     if (occurrences === expectedReplacements) {
       const result: CorrectedEditResult = {
-        params: { ...originalParams, old_string: finalOldString, new_string: finalNewString },
+        params: {
+          ...originalParams,
+          old_string: finalOldString,
+          new_string: finalNewString,
+        },
         occurrences,
       };
       editCorrectionCache.set(cacheKey, result);
@@ -212,7 +218,11 @@ export async function ensureCorrectEdit(
     // If user expects 1 but found multiple, try to correct (existing behavior)
     if (expectedReplacements === 1) {
       const result: CorrectedEditResult = {
-        params: { ...originalParams, old_string: finalOldString, new_string: finalNewString },
+        params: {
+          ...originalParams,
+          old_string: finalOldString,
+          new_string: finalNewString,
+        },
         occurrences,
       };
       editCorrectionCache.set(cacheKey, result);
@@ -221,16 +231,19 @@ export async function ensureCorrectEdit(
 
     // If occurrences don't match expected, return as-is (will fail validation later)
     const result: CorrectedEditResult = {
-      params: { ...originalParams, old_string: finalOldString, new_string: finalNewString },
+      params: {
+        ...originalParams,
+        old_string: finalOldString,
+        new_string: finalNewString,
+      },
       occurrences,
     };
     editCorrectionCache.set(cacheKey, result);
     return result;
   } else {
     // occurrences is 0 or some other unexpected state initially
-    const unescapedOldStringAttempt = unescapeStringForGeminiBug(
-      finalOldString,
-    );
+    const unescapedOldStringAttempt =
+      unescapeStringForGeminiBug(finalOldString);
     occurrences = countOccurrences(currentContent, unescapedOldStringAttempt);
 
     if (occurrences === expectedReplacements) {
@@ -264,7 +277,11 @@ export async function ensureCorrectEdit(
             // Hard coded for 2 seconds
             // This file was edited sooner
             const result: CorrectedEditResult = {
-              params: { ...originalParams, old_string: finalOldString, new_string: finalNewString },
+              params: {
+                ...originalParams,
+                old_string: finalOldString,
+                new_string: finalNewString,
+              },
               occurrences: 0, // Explicitly 0 as LLM failed
             };
             editCorrectionCache.set(cacheKey, result);
@@ -300,9 +317,8 @@ export async function ensureCorrectEdit(
         occurrences = llmOldOccurrences;
 
         if (newStringPotentiallyEscaped) {
-          const baseNewStringForLLMCorrection = unescapeStringForGeminiBug(
-            finalNewString,
-          );
+          const baseNewStringForLLMCorrection =
+            unescapeStringForGeminiBug(finalNewString);
           let correctedNewString = baseNewStringForLLMCorrection;
           let retries = 0;
           while (retries < MAX_LLM_CORRECTION_RETRIES) {
@@ -313,7 +329,10 @@ export async function ensureCorrectEdit(
               correctedNewString, // base new for correction
               abortSignal,
             );
-            if (unescapeStringForGeminiBug(correctedNewString) === unescapeStringForGeminiBug(baseNewStringForLLMCorrection)) {
+            if (
+              unescapeStringForGeminiBug(correctedNewString) ===
+              unescapeStringForGeminiBug(baseNewStringForLLMCorrection)
+            ) {
               break; // Successfully corrected or no change needed
             }
             retries++;
@@ -323,7 +342,11 @@ export async function ensureCorrectEdit(
       } else {
         // LLM correction failed after retries
         const result: CorrectedEditResult = {
-          params: { ...originalParams, old_string: finalOldString, new_string: finalNewString },
+          params: {
+            ...originalParams,
+            old_string: finalOldString,
+            new_string: finalNewString,
+          },
           occurrences: 0, // Explicitly 0 as LLM failed after retries
         };
         editCorrectionCache.set(cacheKey, result);
@@ -332,14 +355,17 @@ export async function ensureCorrectEdit(
     } else {
       // Unescaping old_string resulted in > 1 occurrence
       const result: CorrectedEditResult = {
-        params: { ...originalParams, old_string: finalOldString, new_string: finalNewString },
+        params: {
+          ...originalParams,
+          old_string: finalOldString,
+          new_string: finalNewString,
+        },
         occurrences, // This will be > 1
       };
       editCorrectionCache.set(cacheKey, result);
       return result;
     }
   }
-
 
   const { targetString, pair } = trimPairIfPossible(
     finalOldString,
@@ -587,7 +613,6 @@ If potentially_problematic_new_string is console.log(\"Hello World\"), it should
 
 Return ONLY the corrected string in the specified JSON format with the key 'corrected_new_string_escaping'. If no escaping correction is needed, return the original potentially_problematic_new_string.
   `.trim();
-
 
   const contents: Content[] = [{ role: 'user', parts: [{ text: prompt }] }];
 

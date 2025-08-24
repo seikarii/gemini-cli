@@ -278,8 +278,9 @@ export class CoreToolScheduler {
     this.onToolCallsUpdate = options.onToolCallsUpdate;
     this.getPreferredEditor = options.getPreferredEditor;
     this.onEditorClose = options.onEditorClose;
-  // If caller didn't supply a LoopDetectionService, create a default instance tied to our config.
-  this.loopDetectionService = options.loopDetectionService ?? new LoopDetectionService(this.config);
+    // If caller didn't supply a LoopDetectionService, create a default instance tied to our config.
+    this.loopDetectionService =
+      options.loopDetectionService ?? new LoopDetectionService(this.config);
   }
 
   private setStatusInternal(
@@ -878,7 +879,10 @@ export class CoreToolScheduler {
                 errorType: undefined,
               };
               this.setStatusInternal(callId, 'success', successResponse);
-              this.loopDetectionService.trackToolCallResult(scheduledCall.request, true);
+              this.loopDetectionService.trackToolCallResult(
+                scheduledCall.request,
+                true,
+              );
             } else {
               // It is a failure
               const error = new Error(toolResult.error.message);
@@ -888,7 +892,10 @@ export class CoreToolScheduler {
                 toolResult.error.type,
               );
               this.setStatusInternal(callId, 'error', errorResponse);
-              this.loopDetectionService.trackToolCallResult(scheduledCall.request, false);
+              this.loopDetectionService.trackToolCallResult(
+                scheduledCall.request,
+                false,
+              );
             }
           })
           .catch((executionError: Error) => {
@@ -903,7 +910,10 @@ export class CoreToolScheduler {
                 ToolErrorType.UNHANDLED_EXCEPTION,
               ),
             );
-            this.loopDetectionService.trackToolCallResult(scheduledCall.request, false);
+            this.loopDetectionService.trackToolCallResult(
+              scheduledCall.request,
+              false,
+            );
           });
       });
     }

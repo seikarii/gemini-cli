@@ -27,7 +27,10 @@ import { ToolErrorType } from './tool-error.js';
 import { makeRelative, shortenPath } from '../utils/paths.js';
 import { isNodeError } from '../utils/errors.js';
 import { Config, ApprovalMode } from '../config/config.js';
-import { ensureCorrectEdit, CorrectedEditResult } from '../utils/editCorrector.js';
+import {
+  ensureCorrectEdit,
+  CorrectedEditResult,
+} from '../utils/editCorrector.js';
 import { DEFAULT_DIFF_OPTIONS, getDiffStat } from './diffOptions.js';
 import { ReadFileTool } from './read-file.js';
 import { ModifiableDeclarativeTool, ModifyContext } from './modifiable-tool.js';
@@ -74,10 +77,16 @@ export function applyReplacement(
   if (targetOccurrence === 'last') {
     const idx = content.lastIndexOf(oldString);
     if (idx === -1) return content;
-    return content.slice(0, idx) + newString + content.slice(idx + oldString.length);
+    return (
+      content.slice(0, idx) + newString + content.slice(idx + oldString.length)
+    );
   }
 
-  if (typeof targetOccurrence === 'number' && Number.isInteger(targetOccurrence) && targetOccurrence > 0) {
+  if (
+    typeof targetOccurrence === 'number' &&
+    Number.isInteger(targetOccurrence) &&
+    targetOccurrence > 0
+  ) {
     // replace N-th (1-based) occurrence
     let count = 0;
     let start = 0;
@@ -93,7 +102,9 @@ export function applyReplacement(
       start = found + oldString.length;
     }
     if (idx === -1) return content;
-    return content.slice(0, idx) + newString + content.slice(idx + oldString.length);
+    return (
+      content.slice(0, idx) + newString + content.slice(idx + oldString.length)
+    );
   }
 
   // default / 'first' or undefined -> replace first occurrence only
@@ -112,39 +123,47 @@ export function applyRangeEdit(
   newContent: string,
 ): string {
   const lines = currentContent.split('\n');
-  
+
   // Validate range bounds
   if (startLine < 0 || startLine >= lines.length) {
-    throw new Error(`Start line ${startLine} is out of bounds (0-${lines.length - 1})`);
+    throw new Error(
+      `Start line ${startLine} is out of bounds (0-${lines.length - 1})`,
+    );
   }
   if (endLine < 0 || endLine >= lines.length) {
-    throw new Error(`End line ${endLine} is out of bounds (0-${lines.length - 1})`);
+    throw new Error(
+      `End line ${endLine} is out of bounds (0-${lines.length - 1})`,
+    );
   }
   if (startLine > endLine) {
-    throw new Error(`Start line ${startLine} cannot be greater than end line ${endLine}`);
+    throw new Error(
+      `Start line ${startLine} cannot be greater than end line ${endLine}`,
+    );
   }
   if (startLine === endLine && startColumn > endColumn) {
-    throw new Error(`Start column ${startColumn} cannot be greater than end column ${endColumn} on the same line`);
+    throw new Error(
+      `Start column ${startColumn} cannot be greater than end column ${endColumn} on the same line`,
+    );
   }
 
   // Extract parts: before range, after range
   const beforeLines = lines.slice(0, startLine);
   const afterLines = lines.slice(endLine + 1);
-  
+
   // Handle the start and end lines
   const startLineContent = lines[startLine] || '';
   const endLineContent = lines[endLine] || '';
-  
+
   const beforeRange = startLineContent.substring(0, startColumn);
   const afterRange = endLineContent.substring(endColumn);
-  
+
   // Combine the result
   const newLines = [
     ...beforeLines,
     beforeRange + newContent + afterRange,
-    ...afterLines
+    ...afterLines,
   ];
-  
+
   return newLines.join('\n');
 }
 
@@ -251,8 +270,6 @@ const DEFAULT_AUTOFIX_CONFIG: AutofixConfig = {
   adjustIndentation: true,
 };
 
-
-
 /**
  * Normalizes whitespace in a string while preserving relative indentation
  */
@@ -269,13 +286,13 @@ function normalizeWhitespace(text: string): string {
  * Detects the indentation pattern of a text block with improved base detection
  */
 function detectIndentationAdvanced(text: string): { baseIndent: string } {
-  const lines = text.split('\n').filter(line => line.trim().length > 0);
+  const lines = text.split('\n').filter((line) => line.trim().length > 0);
   const indentations = lines
-    .map(line => {
+    .map((line) => {
       const match = line.match(/^(\s*)/);
       return match ? match[1] : '';
     })
-    .filter(indent => indent.length > 0);
+    .filter((indent) => indent.length > 0);
 
   if (indentations.length === 0) {
     return { baseIndent: '' };
@@ -285,7 +302,7 @@ function detectIndentationAdvanced(text: string): { baseIndent: string } {
   const baseIndent = indentations.reduce((min, current) => {
     if (min === '') return current;
     if (current === '') return min;
-    
+
     let i = 0;
     while (i < Math.min(min.length, current.length) && min[i] === current[i]) {
       i++;
@@ -295,7 +312,6 @@ function detectIndentationAdvanced(text: string): { baseIndent: string } {
 
   return { baseIndent };
 }
-
 
 /**
  * Adjusts the indentation of a text block to match a target indentation
@@ -311,7 +327,7 @@ function adjustIndentationAdvanced(text: string, targetIndent: string): string {
       if (line.trim() === '') return line; // keep empty lines as-is
 
       const currentIndent = line.match(/^(\s*)/)?.[1] || '';
-      
+
       if (index === 0) {
         // For first line, replace its indentation with target
         return targetIndent + line.replace(/^\s*/, '');
@@ -327,20 +343,30 @@ function adjustIndentationAdvanced(text: string, targetIndent: string): string {
     .join('\n');
 }
 
-
-
 /**
  * Optimized fuzzy matching with sliding window buffer to avoid excessive array creation
  */
 function findFuzzyMatchesOptimized(
-  content: string, 
-  searchString: string, 
-  config: AutofixConfig
-): Array<{ match: string; similarity: number; startIndex: number; endIndex: number }> {
-  const normalizedSearch = config.normalizeWhitespace ? normalizeWhitespace(searchString) : searchString;
+  content: string,
+  searchString: string,
+  config: AutofixConfig,
+): Array<{
+  match: string;
+  similarity: number;
+  startIndex: number;
+  endIndex: number;
+}> {
+  const normalizedSearch = config.normalizeWhitespace
+    ? normalizeWhitespace(searchString)
+    : searchString;
   const lines = content.split('\n');
   const searchLines = normalizedSearch.split('\n');
-  const candidates: Array<{ match: string; similarity: number; startIndex: number; endIndex: number }> = [];
+  const candidates: Array<{
+    match: string;
+    similarity: number;
+    startIndex: number;
+    endIndex: number;
+  }> = [];
 
   // Try different window sizes around the expected length
   const searchLineCount = searchLines.length;
@@ -349,8 +375,8 @@ function findFuzzyMatchesOptimized(
     searchLineCount + 1,
     searchLineCount - 1,
     searchLineCount + 2,
-    searchLineCount - 2
-  ].filter(size => size > 0);
+    searchLineCount - 2,
+  ].filter((size) => size > 0);
 
   for (const windowSize of windowSizes) {
     if (windowSize > lines.length) continue;
@@ -358,16 +384,21 @@ function findFuzzyMatchesOptimized(
     // Initialize sliding window buffer
     let windowBuffer = lines.slice(0, windowSize);
     let windowText = windowBuffer.join('\n');
-    let normalizedCandidate = config.normalizeWhitespace ? normalizeWhitespace(windowText) : windowText;
-    
+    let normalizedCandidate = config.normalizeWhitespace
+      ? normalizeWhitespace(windowText)
+      : windowText;
+
     // Check first window
-    let similarity = stringSimilarity.compareTwoStrings(normalizedSearch, normalizedCandidate);
+    let similarity = stringSimilarity.compareTwoStrings(
+      normalizedSearch,
+      normalizedCandidate,
+    );
     if (similarity >= config.minSimilarityThreshold) {
       candidates.push({
         match: windowText,
         similarity,
         startIndex: 0,
-        endIndex: windowSize - 1
+        endIndex: windowSize - 1,
       });
     }
 
@@ -377,17 +408,22 @@ function findFuzzyMatchesOptimized(
       windowBuffer.shift();
       windowBuffer.push(lines[i + windowSize - 1]);
       windowText = windowBuffer.join('\n');
-      normalizedCandidate = config.normalizeWhitespace ? normalizeWhitespace(windowText) : windowText;
-      
+      normalizedCandidate = config.normalizeWhitespace
+        ? normalizeWhitespace(windowText)
+        : windowText;
+
       // Calculate similarity for current window
-      similarity = stringSimilarity.compareTwoStrings(normalizedSearch, normalizedCandidate);
-      
+      similarity = stringSimilarity.compareTwoStrings(
+        normalizedSearch,
+        normalizedCandidate,
+      );
+
       if (similarity >= config.minSimilarityThreshold) {
         candidates.push({
           match: windowText,
           similarity,
           startIndex: i,
-          endIndex: i + windowSize - 1
+          endIndex: i + windowSize - 1,
         });
       }
     }
@@ -405,40 +441,54 @@ function findFuzzyMatchesOptimized(
 function findBestMatchWithDMP(
   content: string,
   searchString: string,
-  config: AutofixConfig
+  config: AutofixConfig,
 ): { match: string; confidence: number; startIndex: number } | null {
   try {
     const dmp = new DiffMatchPatch.diff_match_patch();
-    
+
     // Configure diff-match-patch for better matching
     dmp.Match_Threshold = 0.8; // Higher threshold for quality matches
     dmp.Match_Distance = 1000; // Allow matches within reasonable distance
-    
-    const normalizedContent = config.normalizeWhitespace ? normalizeWhitespace(content) : content;
-    const normalizedSearch = config.normalizeWhitespace ? normalizeWhitespace(searchString) : searchString;
-    
+
+    const normalizedContent = config.normalizeWhitespace
+      ? normalizeWhitespace(content)
+      : content;
+    const normalizedSearch = config.normalizeWhitespace
+      ? normalizeWhitespace(searchString)
+      : searchString;
+
     // Find the best location for the search string in content
-    const matchLocation = dmp.match_main(normalizedContent, normalizedSearch, 0);
-    
+    const matchLocation = dmp.match_main(
+      normalizedContent,
+      normalizedSearch,
+      0,
+    );
+
     if (matchLocation === -1) {
       return null; // No match found
     }
-    
+
     // Extract the actual match from original content
     const searchLength = normalizedSearch.length;
-    const actualMatch = content.substring(matchLocation, matchLocation + searchLength);
-    
+    const actualMatch = content.substring(
+      matchLocation,
+      matchLocation + searchLength,
+    );
+
     // Calculate confidence based on similarity
-    const confidence = stringSimilarity.compareTwoStrings(normalizedSearch, normalizeWhitespace(actualMatch));
-    
+    const confidence = stringSimilarity.compareTwoStrings(
+      normalizedSearch,
+      normalizeWhitespace(actualMatch),
+    );
+
     if (confidence >= config.minSimilarityThreshold) {
       return {
         match: actualMatch,
         confidence,
-        startIndex: matchLocation
+        startIndex: matchLocation,
       };
     }
-    
+
     return null;
   } catch (error) {
     // Fallback if diff-match-patch fails
@@ -471,12 +521,12 @@ async function autofixEdit(
   if (config.normalizeWhitespace) {
     const normalizedOld = normalizeWhitespace(oldString);
     const normalizedContent = normalizeWhitespace(currentContent);
-    
+
     if (normalizedContent.includes(normalizedOld)) {
       // Find the actual text in the original content that matches our normalized version
       const lines = currentContent.split('\n');
       const searchLines = normalizedOld.split('\n');
-      
+
       // Look for a sequence of lines that when normalized match our target
       for (let i = 0; i <= lines.length - searchLines.length; i++) {
         const candidate = lines.slice(i, i + searchLines.length).join('\n');
@@ -492,23 +542,31 @@ async function autofixEdit(
   if (config.enableFuzzyMatching) {
     const dmpMatch = findBestMatchWithDMP(currentContent, oldString, config);
     if (dmpMatch && dmpMatch.confidence >= 0.85) {
-      appliedFixes.push(`dmp_match_${Math.round(dmpMatch.confidence * 100)}pct`);
+      appliedFixes.push(
+        `dmp_match_${Math.round(dmpMatch.confidence * 100)}pct`,
+      );
       workingOldString = dmpMatch.match;
-      
+
       // Apply advanced indentation adjustment if needed
       if (config.adjustIndentation && workingOldString !== oldString) {
         const lines = currentContent.split('\n');
         const matchLines = workingOldString.split('\n');
-        
+
         if (matchLines.length > 0) {
           // Find where this content appears in the file to get proper indentation
           const firstLineContent = matchLines[0].trim();
-          const matchingLineIndex = lines.findIndex(line => line.trim() === firstLineContent);
-          
+          const matchingLineIndex = lines.findIndex(
+            (line) => line.trim() === firstLineContent,
+          );
+
           if (matchingLineIndex !== -1) {
-            const targetIndent = lines[matchingLineIndex].match(/^(\s*)/)?.[1] || '';
-            const adjustedOldString = adjustIndentationAdvanced(oldString, targetIndent);
-            
+            const targetIndent =
+              lines[matchingLineIndex].match(/^(\s*)/)?.[1] || '';
+            const adjustedOldString = adjustIndentationAdvanced(
+              oldString,
+              targetIndent,
+            );
+
             if (currentContent.includes(adjustedOldString)) {
               appliedFixes.push('advanced_indentation_adjustment');
               workingOldString = adjustedOldString;
@@ -516,7 +574,7 @@ async function autofixEdit(
           }
         }
       }
-      
+
       // If we found a good match with DMP, return it
       return workingOldString;
     }
@@ -524,12 +582,18 @@ async function autofixEdit(
 
   // Step 4: Optimized fuzzy matching as fallback
   if (config.enableFuzzyMatching && workingOldString === oldString) {
-    const fuzzyMatches = findFuzzyMatchesOptimized(currentContent, oldString, config);
-    
+    const fuzzyMatches = findFuzzyMatchesOptimized(
+      currentContent,
+      oldString,
+      config,
+    );
+
     if (fuzzyMatches.length > 0) {
       const bestMatch = fuzzyMatches[0];
-      appliedFixes.push(`optimized_fuzzy_match_${Math.round(bestMatch.similarity * 100)}pct`);
-      
+      appliedFixes.push(
+        `optimized_fuzzy_match_${Math.round(bestMatch.similarity * 100)}pct`,
+      );
+
       // If we have a high confidence match, use it
       if (bestMatch.similarity >= 0.85) {
         workingOldString = bestMatch.match;
@@ -541,16 +605,22 @@ async function autofixEdit(
   if (config.adjustIndentation && workingOldString !== oldString) {
     const lines = currentContent.split('\n');
     const oldLines = workingOldString.split('\n');
-    
+
     if (oldLines.length > 0) {
       // Find where this content appears in the file to get proper indentation
       const firstLineContent = oldLines[0].trim();
-      const matchingLineIndex = lines.findIndex(line => line.trim() === firstLineContent);
-      
+      const matchingLineIndex = lines.findIndex(
+        (line) => line.trim() === firstLineContent,
+      );
+
       if (matchingLineIndex !== -1) {
-        const targetIndent = lines[matchingLineIndex].match(/^(\s*)/)?.[1] || '';
-        const adjustedOldString = adjustIndentationAdvanced(oldString, targetIndent);
-        
+        const targetIndent =
+          lines[matchingLineIndex].match(/^(\s*)/)?.[1] || '';
+        const adjustedOldString = adjustIndentationAdvanced(
+          oldString,
+          targetIndent,
+        );
+
         if (currentContent.includes(adjustedOldString)) {
           appliedFixes.push('basic_indentation_adjustment');
           workingOldString = adjustedOldString;
@@ -560,16 +630,19 @@ async function autofixEdit(
   }
 
   // Log telemetry for debugging and improvement
-  if (appliedFixes.length > 1) { // More than just 'exact_match_failed'
+  if (appliedFixes.length > 1) {
+    // More than just 'exact_match_failed'
     console.debug('AutofixEdit applied fixes:', appliedFixes.join(', '));
-    
+
     // Log confidence metrics for future improvements
     if (workingOldString !== oldString) {
       const finalSimilarity = stringSimilarity.compareTwoStrings(
-        normalizeWhitespace(oldString), 
-        normalizeWhitespace(workingOldString)
+        normalizeWhitespace(oldString),
+        normalizeWhitespace(workingOldString),
       );
-      console.debug(`AutofixEdit final similarity: ${Math.round(finalSimilarity * 100)}%`);
+      console.debug(
+        `AutofixEdit final similarity: ${Math.round(finalSimilarity * 100)}%`,
+      );
     }
   }
 
@@ -622,19 +695,19 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
    */
   private calculateExpectedReplacements(
     totalOccurrences: number,
-  targetOccurrence: number | 'first' | 'last' | 'all' | undefined
+    targetOccurrence: number | 'first' | 'last' | 'all' | undefined,
   ): number {
-  // Default historical behavior: if not specified, user intended to replace all occurrences.
-  const target = targetOccurrence ?? 'all';
-    
+    // Default historical behavior: if not specified, user intended to replace all occurrences.
+    const target = targetOccurrence ?? 'all';
+
     if (totalOccurrences === 0) return 0;
-    
+
     if (target === 'all') return totalOccurrences;
     if (target === 'first' || target === 'last') return 1;
     if (typeof target === 'number') {
       return totalOccurrences >= target ? 1 : 0;
     }
-    
+
     return 1; // default fallback
   }
 
@@ -645,7 +718,12 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
 
     const { start_line, start_column, end_line, end_column } = params;
 
-    if (start_line! < 0 || start_column! < 0 || end_line! < 0 || end_column! < 0) {
+    if (
+      start_line! < 0 ||
+      start_column! < 0 ||
+      end_line! < 0 ||
+      end_column! < 0
+    ) {
       return 'Line and column numbers must be non-negative';
     }
 
@@ -667,7 +745,7 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
     params: EditToolParams,
     abortSignal: AbortSignal,
   ): Promise<CalculatedEdit> {
-  const isRangeEdit = this.isRangeEdit(params);
+    const isRangeEdit = this.isRangeEdit(params);
     let currentContent: string | null = null;
     let fileExists = false;
     let isNewFile = false;
@@ -725,7 +803,8 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
     if (!fileExists) {
       if (isRangeEdit) {
         error = {
-          display: 'File not found. Cannot apply range edit to non-existent file.',
+          display:
+            'File not found. Cannot apply range edit to non-existent file.',
           raw: `File not found: ${params.file_path}`,
           type: ToolErrorType.FILE_NOT_FOUND,
         };
@@ -747,7 +826,7 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
         try {
           const lines = currentContent.split('\n');
           const { start_line, start_column, end_line, end_column } = params;
-          
+
           // Additional runtime validation against actual file content
           if (start_line! >= lines.length || end_line! >= lines.length) {
             error = {
@@ -755,7 +834,10 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
               raw: `Line numbers out of bounds for file: ${params.file_path}`,
               type: ToolErrorType.EDIT_PREPARATION_FAILURE,
             };
-          } else if (start_column! > lines[start_line!].length || end_column! > lines[end_line!].length) {
+          } else if (
+            start_column! > lines[start_line!].length ||
+            end_column! > lines[end_line!].length
+          ) {
             error = {
               display: `Column numbers out of bounds for specified lines.`,
               raw: `Column numbers out of bounds for file: ${params.file_path}`,
@@ -797,15 +879,19 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
           );
           finalOldString = correctedEdit.params.old_string;
           finalNewString = correctedEdit.params.new_string;
-          
+
           // Calculate total occurrences in content. Prefer the occurrences info returned by ensureCorrectEdit if provided.
           const totalOccurrences =
-            typeof (correctedEdit as CorrectedEditResult).occurrences === 'number'
+            typeof (correctedEdit as CorrectedEditResult).occurrences ===
+            'number'
               ? (correctedEdit as CorrectedEditResult).occurrences
               : this.countOccurrences(currentContent, finalOldString);
-          
+
           // Calculate actual replacements that will be performed
-          occurrences = this.calculateExpectedReplacements(totalOccurrences, params.target_occurrence);
+          occurrences = this.calculateExpectedReplacements(
+            totalOccurrences,
+            params.target_occurrence,
+          );
 
           // New handling for target_occurrence
           // Default to 'all' to preserve historical behavior unless caller specified otherwise.
@@ -830,7 +916,10 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
             };
           } else if (target === 'all') {
             // For 'all', validate against actual total if expected_replacements is specified
-            if (params.expected_replacements !== undefined && totalOccurrences !== params.expected_replacements) {
+            if (
+              params.expected_replacements !== undefined &&
+              totalOccurrences !== params.expected_replacements
+            ) {
               error = {
                 display: `Failed to edit, expected ${params.expected_replacements} occurrences but found ${totalOccurrences}`,
                 raw: `Expected ${params.expected_replacements} occurrences but found ${totalOccurrences} for old_string in file: ${params.file_path}`,
@@ -846,7 +935,10 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
               };
             } else {
               // Single replacement expected - validate if user provided expected_replacements
-              if (params.expected_replacements !== undefined && params.expected_replacements !== 1) {
+              if (
+                params.expected_replacements !== undefined &&
+                params.expected_replacements !== 1
+              ) {
                 error = {
                   display: `expected_replacements conflicts with target_occurrence.`,
                   raw: `Parameter mismatch: expected_replacements=${params.expected_replacements} but target_occurrence=${target} will perform 1 replacement`,
@@ -856,7 +948,10 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
             }
           } else {
             // 'first' or 'last' or default behavior -> single replacement expected
-            if (params.expected_replacements !== undefined && params.expected_replacements !== 1) {
+            if (
+              params.expected_replacements !== undefined &&
+              params.expected_replacements !== 1
+            ) {
               error = {
                 display: `Failed to edit, expected ${params.expected_replacements} occurrences but target_occurrence="${target}" will perform 1 replacement.`,
                 raw: `Failed to edit, Expected ${params.expected_replacements} occurrences but target_occurrence="${target}" performs 1 replacement for old_string in file: ${params.file_path}`,
@@ -918,7 +1013,9 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
 
     // Check if content actually changed
     if (!error && fileExists && currentContent === newContent) {
-      console.debug('DEBUG calculateEdit: setting EDIT_NO_CHANGE', { file: params.file_path });
+      console.debug('DEBUG calculateEdit: setting EDIT_NO_CHANGE', {
+        file: params.file_path,
+      });
       error = {
         display:
           'No changes to apply. The new content is identical to the current content.',
@@ -1058,7 +1155,7 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
     }
 
     if (editData.error) {
-    console.debug('DEBUG execute: editData.error present:', editData.error);
+      console.debug('DEBUG execute: editData.error present:', editData.error);
       return {
         llmContent: editData.error.raw,
         returnDisplay: `Error: ${editData.error.display}`,
@@ -1070,24 +1167,29 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
     }
 
     // Defensive: if edit calculations result in no-op, return EDIT_NO_CHANGE
-    const normalizeLineEndings = (s: string | null) => (s ?? '').replace(/\r\n/g, '\n');
-    if (!editData.isNewFile && normalizeLineEndings(editData.currentContent) === normalizeLineEndings(editData.newContent)) {
-    // Debug logging to aid test diagnosis
-    console.debug('DEBUG EDIT_NO_CHANGE', {
-          file: this.params.file_path,
-          occurrences: editData.occurrences,
-          currentContentSnippet: (editData.currentContent || '').slice(0, 120),
-          newContentSnippet: (editData.newContent || '').slice(0, 120),
-        });
-        return {
-          llmContent: `No changes to apply. The new content is identical to the current content.`,
-          returnDisplay: `No changes to apply. The new content is identical to the current content.`,
-          error: {
-            message: 'No changes to apply',
-            type: ToolErrorType.EDIT_NO_CHANGE,
-          },
-        };
-      }
+    const normalizeLineEndings = (s: string | null) =>
+      (s ?? '').replace(/\r\n/g, '\n');
+    if (
+      !editData.isNewFile &&
+      normalizeLineEndings(editData.currentContent) ===
+        normalizeLineEndings(editData.newContent)
+    ) {
+      // Debug logging to aid test diagnosis
+      console.debug('DEBUG EDIT_NO_CHANGE', {
+        file: this.params.file_path,
+        occurrences: editData.occurrences,
+        currentContentSnippet: (editData.currentContent || '').slice(0, 120),
+        newContentSnippet: (editData.newContent || '').slice(0, 120),
+      });
+      return {
+        llmContent: `No changes to apply. The new content is identical to the current content.`,
+        returnDisplay: `No changes to apply. The new content is identical to the current content.`,
+        error: {
+          message: 'No changes to apply',
+          type: ToolErrorType.EDIT_NO_CHANGE,
+        },
+      };
+    }
 
     try {
       this.ensureParentDirectoriesExist(this.params.file_path);
@@ -1096,7 +1198,7 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
         if (fs.existsSync(this.params.file_path)) {
           fs.accessSync(this.params.file_path, fs.constants.W_OK);
         }
-  } catch (_accessErr) {
+      } catch (_accessErr) {
         return {
           llmContent: `Error executing edit: Permission denied writing to file: ${this.params.file_path}`,
           returnDisplay: `Error writing file: Permission denied writing to file: ${this.params.file_path}`,
@@ -1115,35 +1217,37 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
       }
       resetEditCorrectorCaches();
 
-        // Verify that the file on disk actually changed. Some write operations
-        // may succeed but result in identical content (no-op). In that case,
-        // return EDIT_NO_CHANGE so callers/tests receive the appropriate error.
-        try {
-          const verifyRes = await this.config.getFileSystemService().readTextFile(this.params.file_path);
-          if (verifyRes.success) {
-            const onDisk = (verifyRes.data ?? '').replace(/\r\n/g, '\n');
-            const before = (editData.currentContent ?? '').replace(/\r\n/g, '\n');
-            if (!editData.isNewFile && onDisk === before) {
-              return {
-                llmContent: `No changes to apply. The new content is identical to the current content.`,
-                returnDisplay: `No changes to apply. The new content is identical to the current content.`,
-                error: {
-                  message: 'No changes to apply',
-                  type: ToolErrorType.EDIT_NO_CHANGE,
-                },
-              };
-            }
+      // Verify that the file on disk actually changed. Some write operations
+      // may succeed but result in identical content (no-op). In that case,
+      // return EDIT_NO_CHANGE so callers/tests receive the appropriate error.
+      try {
+        const verifyRes = await this.config
+          .getFileSystemService()
+          .readTextFile(this.params.file_path);
+        if (verifyRes.success) {
+          const onDisk = (verifyRes.data ?? '').replace(/\r\n/g, '\n');
+          const before = (editData.currentContent ?? '').replace(/\r\n/g, '\n');
+          if (!editData.isNewFile && onDisk === before) {
+            return {
+              llmContent: `No changes to apply. The new content is identical to the current content.`,
+              returnDisplay: `No changes to apply. The new content is identical to the current content.`,
+              error: {
+                message: 'No changes to apply',
+                type: ToolErrorType.EDIT_NO_CHANGE,
+              },
+            };
           }
-        } catch {
-          // ignore verification errors - fall through to normal behavior
         }
+      } catch {
+        // ignore verification errors - fall through to normal behavior
+      }
 
       let displayResult: ToolResultDisplay;
       const fileName = path.basename(this.params.file_path);
       const originallyProposedContent =
-        this.params.ai_proposed_string || 
-        this.params.new_string || 
-        this.params.new_content || 
+        this.params.ai_proposed_string ||
+        this.params.new_string ||
+        this.params.new_content ||
         '';
       const diffStat = getDiffStat(
         fileName,
@@ -1182,8 +1286,12 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
       ];
       if (this.params.modified_by_user) {
         // Include the canonical phrase expected by tests while still providing context
-        llmSuccessMessageParts.push(`User modified the ` + '`new_string`' + ` content`);
-        const modifiedContent = editData.isRangeEdit ? this.params.new_content : this.params.new_string;
+        llmSuccessMessageParts.push(
+          `User modified the ` + '`new_string`' + ` content`,
+        );
+        const modifiedContent = editData.isRangeEdit
+          ? this.params.new_content
+          : this.params.new_string;
         // Provide the modified content for additional context
         llmSuccessMessageParts.push(`Modified content: ${modifiedContent}.`);
       }
@@ -1311,37 +1419,32 @@ Always use the ${ReadFileTool.Name} tool to examine the file's current content b
               'Controls which occurrence(s) to replace: number (1-based) for specific occurrence, "first" for the first (default), "last" for the last, or "all" for all occurrences.',
             oneOf: [
               { type: 'number', minimum: 1 },
-              { type: 'string', enum: ['first', 'last', 'all'] }
+              { type: 'string', enum: ['first', 'last', 'all'] },
             ],
           },
           start_line: {
             type: 'number',
-            description:
-              'Start line for range-based editing (0-indexed).',
+            description: 'Start line for range-based editing (0-indexed).',
             minimum: 0,
           },
           start_column: {
             type: 'number',
-            description:
-              'Start column for range-based editing (0-indexed).',
+            description: 'Start column for range-based editing (0-indexed).',
             minimum: 0,
           },
           end_line: {
             type: 'number',
-            description:
-              'End line for range-based editing (0-indexed).',
+            description: 'End line for range-based editing (0-indexed).',
             minimum: 0,
           },
           end_column: {
             type: 'number',
-            description:
-              'End column for range-based editing (0-indexed).',
+            description: 'End column for range-based editing (0-indexed).',
             minimum: 0,
           },
           new_content: {
             type: 'string',
-            description:
-              'New content to insert for range-based editing.',
+            description: 'New content to insert for range-based editing.',
           },
         },
         required: ['file_path'],
@@ -1371,16 +1474,15 @@ Always use the ${ReadFileTool.Name} tool to examine the file's current content b
     }
 
     // Check if this is range-based or string-based editing
-    const hasRangeParams = 
+    const hasRangeParams =
       params.start_line !== undefined ||
       params.start_column !== undefined ||
       params.end_line !== undefined ||
       params.end_column !== undefined ||
       params.new_content !== undefined;
 
-    const hasStringParams = 
-      params.old_string !== undefined ||
-      params.new_string !== undefined;
+    const hasStringParams =
+      params.old_string !== undefined || params.new_string !== undefined;
 
     if (hasRangeParams && hasStringParams) {
       return 'Cannot mix range-based and string-based editing parameters. Use either (start_line, start_column, end_line, end_column, new_content) or (old_string, new_string).';
@@ -1425,9 +1527,17 @@ Always use the ${ReadFileTool.Name} tool to examine the file's current content b
       }
 
       // Validate compatibility between target_occurrence and expected_replacements
-      if (params.target_occurrence !== undefined && params.expected_replacements !== undefined) {
+      if (
+        params.target_occurrence !== undefined &&
+        params.expected_replacements !== undefined
+      ) {
         const target = params.target_occurrence;
-        if ((target === 'first' || target === 'last' || typeof target === 'number') && params.expected_replacements !== 1) {
+        if (
+          (target === 'first' ||
+            target === 'last' ||
+            typeof target === 'number') &&
+          params.expected_replacements !== 1
+        ) {
           return 'expected_replacements must be 1 when target_occurrence is "first", "last", or a specific number';
         }
       }
@@ -1436,9 +1546,7 @@ Always use the ${ReadFileTool.Name} tool to examine the file's current content b
     return null;
   }
 
-  getModifyContext(
-    _abortSignal: AbortSignal,
-  ): ModifyContext<EditToolParams> {
+  getModifyContext(_abortSignal: AbortSignal): ModifyContext<EditToolParams> {
     return {
       getFilePath: (params: EditToolParams) => params.file_path,
       getCurrentContent: async (params: EditToolParams): Promise<string> => {
@@ -1504,7 +1612,7 @@ Always use the ${ReadFileTool.Name} tool to examine the file's current content b
         modifiedProposedContent: string,
         originalParams: EditToolParams,
       ): EditToolParams => {
-        const isRangeEdit = 
+        const isRangeEdit =
           originalParams.start_line !== undefined &&
           originalParams.start_column !== undefined &&
           originalParams.end_line !== undefined &&
@@ -1530,7 +1638,9 @@ Always use the ${ReadFileTool.Name} tool to examine the file's current content b
     };
   }
 
-  protected override createInvocation(params: EditToolParams): ToolInvocation<EditToolParams, ToolResult> {
+  protected override createInvocation(
+    params: EditToolParams,
+  ): ToolInvocation<EditToolParams, ToolResult> {
     return new EditToolInvocation(this.config, params);
   }
 }

@@ -297,7 +297,7 @@ export class LoopDetectedEvent {
     readonly confidence?: number,
     readonly affectedFiles?: string[],
     readonly toolsInvolved?: string[],
-    readonly reasoning?: string
+    readonly reasoning?: string,
   ) {}
 }
 

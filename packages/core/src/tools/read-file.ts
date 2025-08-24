@@ -16,7 +16,6 @@ import {
 } from './tools.js';
 import { ToolErrorType } from './tool-error.js';
 
-
 import { PartUnion } from '@google/genai';
 import {
   processSingleFileContent,
@@ -27,7 +26,6 @@ import { FileOperation } from '../telemetry/metrics.js';
 import { getProgrammingLanguage } from '../telemetry/telemetry-utils.js';
 import { logFileOperation } from '../telemetry/loggers.js';
 import { FileOperationEvent } from '../telemetry/types.js';
-
 
 /**
  * Parameters for the ReadFile tool

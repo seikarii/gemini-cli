@@ -78,6 +78,10 @@ describe('SessionStatsContext', () => {
           },
         },
       },
+      files: {
+        totalLinesAdded: 0,
+        totalLinesRemoved: 0,
+      },
       tools: {
         totalCalls: 1,
         totalSuccess: 1,
@@ -87,6 +91,7 @@ describe('SessionStatsContext', () => {
           accept: 1,
           reject: 0,
           modify: 0,
+          auto_accept: 0,
         },
         byName: {
           'test-tool': {
@@ -98,6 +103,7 @@ describe('SessionStatsContext', () => {
               accept: 1,
               reject: 0,
               modify: 0,
+              auto_accept: 0,
             },
           },
         },

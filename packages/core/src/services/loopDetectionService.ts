@@ -52,32 +52,63 @@ class SemanticSimilarity {
   static calculateSimilarity(text1: string, text2: string): number {
     const words1 = this.tokenize(text1);
     const words2 = this.tokenize(text2);
-    
+
     if (words1.size === 0 && words2.size === 0) return 1.0;
     if (words1.size === 0 || words2.size === 0) return 0.0;
-    
-    const intersection = new Set([...words1].filter(x => words2.has(x)));
+
+    const intersection = new Set([...words1].filter((x) => words2.has(x)));
     const union = new Set([...words1, ...words2]);
-    
+
     const jaccardSimilarity = intersection.size / union.size;
-    
+
     // Apply fuzzy matching for near-synonyms and variations
     const fuzzyBonus = this.calculateFuzzyBonus(text1, text2);
-    
+
     return Math.min(1.0, jaccardSimilarity + fuzzyBonus);
   }
 
   private static tokenize(text: string): Set<string> {
     const stopwords = new Set([
-      'the','and','for','that','this','with','from','you','your','are','was','were','has','have',
-      'but','not','can','will','its','they','their','them','our','we','us','a','an','of','in','on','to','is'
+      'the',
+      'and',
+      'for',
+      'that',
+      'this',
+      'with',
+      'from',
+      'you',
+      'your',
+      'are',
+      'was',
+      'were',
+      'has',
+      'have',
+      'but',
+      'not',
+      'can',
+      'will',
+      'its',
+      'they',
+      'their',
+      'them',
+      'our',
+      'we',
+      'us',
+      'a',
+      'an',
+      'of',
+      'in',
+      'on',
+      'to',
+      'is',
     ]);
 
     return new Set(
-      text.toLowerCase()
+      text
+        .toLowerCase()
         .replace(/[^\w\s]/g, ' ')
         .split(/\s+/)
-        .filter(word => word.length > 2 && !stopwords.has(word))
+        .filter((word) => word.length > 2 && !stopwords.has(word)),
     );
   }
 
@@ -85,36 +116,38 @@ class SemanticSimilarity {
     // Simple edit distance-based fuzzy matching
     const normalized1 = text1.toLowerCase().replace(/\s+/g, '');
     const normalized2 = text2.toLowerCase().replace(/\s+/g, '');
-    
-  if (normalized1 === normalized2) return 0.12; // exact match: modest bonus
-    
+
+    if (normalized1 === normalized2) return 0.12; // exact match: modest bonus
+
     const editDistance = this.levenshteinDistance(normalized1, normalized2);
     const maxLength = Math.max(normalized1.length, normalized2.length);
-    
+
     if (maxLength === 0) return 0;
-    
-    const similarity = 1 - (editDistance / maxLength);
-  // Only give a small fuzzy bonus for very similar strings to avoid over-triggering
-  return similarity > 0.92 ? 0.05 : 0;
+
+    const similarity = 1 - editDistance / maxLength;
+    // Only give a small fuzzy bonus for very similar strings to avoid over-triggering
+    return similarity > 0.92 ? 0.05 : 0;
   }
 
   private static levenshteinDistance(str1: string, str2: string): number {
-    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
-    
+    const matrix = Array(str2.length + 1)
+      .fill(null)
+      .map(() => Array(str1.length + 1).fill(null));
+
     for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
     for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
-    
+
     for (let j = 1; j <= str2.length; j++) {
       for (let i = 1; i <= str1.length; i++) {
         const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
         matrix[j][i] = Math.min(
-          matrix[j][i - 1] + 1,     // deletion
-          matrix[j - 1][i] + 1,     // insertion
-          matrix[j - 1][i - 1] + indicator // substitution
+          matrix[j][i - 1] + 1, // deletion
+          matrix[j - 1][i] + 1, // insertion
+          matrix[j - 1][i - 1] + indicator, // substitution
         );
       }
     }
-    
+
     return matrix[str2.length][str1.length];
   }
 }
@@ -167,7 +200,7 @@ export enum LoopBreakAction {
 
 /**
  * Enhanced service for detecting and preventing infinite loops in AI responses.
- * 
+ *
  * Features:
  * - Semantic content similarity detection beyond simple hashing
  * - Advanced tool call pattern recognition (alternating, non-consecutive)
@@ -195,7 +228,11 @@ export class LoopDetectionService {
   // Advanced pattern detection
   private toolCallHistory: ToolCallPattern[] = [];
   private fileOperationHistory: FileOperation[] = [];
-  private semanticContentChunks: Array<{content: string, hash: string, timestamp: number}> = [];
+  private semanticContentChunks: Array<{
+    content: string;
+    hash: string;
+    timestamp: number;
+  }> = [];
   private lastLoopConfidence = 0;
   private consecutiveHighConfidenceChecks = 0;
 
@@ -211,7 +248,10 @@ export class LoopDetectionService {
 
   // User feedback integration
   private confidenceListener?: (confidence: number, reasoning?: string) => void;
-  private actionSuggestionListener?: (actions: LoopBreakAction[], reasoning: string) => void;
+  private actionSuggestionListener?: (
+    actions: LoopBreakAction[],
+    reasoning: string,
+  ) => void;
   private thinkingListener?: (isThinking: boolean) => void;
 
   constructor(config: Config) {
@@ -236,14 +276,18 @@ export class LoopDetectionService {
   /**
    * Set callback for confidence level updates
    */
-  setConfidenceListener(listener: (confidence: number, reasoning?: string) => void): void {
+  setConfidenceListener(
+    listener: (confidence: number, reasoning?: string) => void,
+  ): void {
     this.confidenceListener = listener;
   }
 
   /**
    * Set callback for action suggestions
    */
-  setActionSuggestionListener(listener: (actions: LoopBreakAction[], reasoning: string) => void): void {
+  setActionSuggestionListener(
+    listener: (actions: LoopBreakAction[], reasoning: string) => void,
+  ): void {
     this.actionSuggestionListener = listener;
   }
 
@@ -257,56 +301,80 @@ export class LoopDetectionService {
   /**
    * Process user-initiated loop break command
    */
-  async handleUserLoopCommand(signal: AbortSignal): Promise<LoopDetectionResult> {
+  async handleUserLoopCommand(
+    signal: AbortSignal,
+  ): Promise<LoopDetectionResult> {
     // Immediate aggressive check when user suspects a loop
     const result = await this.performComprehensiveLoopCheck(signal, true);
-    
+
     if (result.isLoop || result.confidence > CONFIDENCE_THRESHOLD_LOW) {
-      this.notifyActionSuggestions(result.suggestedActions, 
-        result.reasoning || 'User-initiated loop detection triggered comprehensive analysis');
+      this.notifyActionSuggestions(
+        result.suggestedActions,
+        result.reasoning ||
+          'User-initiated loop detection triggered comprehensive analysis',
+      );
     }
-    
+
     return result;
   }
 
   /**
    * Track file system operations for state-based loop detection
    */
-  trackFileOperation(filePath: string, operation: string, contentHash: string): void {
+  trackFileOperation(
+    filePath: string,
+    operation: string,
+    contentHash: string,
+  ): void {
     this.fileOperationHistory.push({
       filePath,
       operation,
       contentHash,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     // Keep only recent operations
-    const cutoffTime = Date.now() - (5 * 60 * 1000); // 5 minutes
-    this.fileOperationHistory = this.fileOperationHistory.filter(op => op.timestamp > cutoffTime);
+    const cutoffTime = Date.now() - 5 * 60 * 1000; // 5 minutes
+    this.fileOperationHistory = this.fileOperationHistory.filter(
+      (op) => op.timestamp > cutoffTime,
+    );
 
     // Check for file state loops
     this.checkFileStateLoop(filePath, contentHash);
   }
 
   private checkFileStateLoop(filePath: string, contentHash: string): void {
-    const fileOps = this.fileOperationHistory.filter(op => op.filePath === filePath);
-    
+    const fileOps = this.fileOperationHistory.filter(
+      (op) => op.filePath === filePath,
+    );
+
     if (fileOps.length < FILE_STATE_LOOP_THRESHOLD) return;
 
     // Check if recent operations result in same content
     const recentOps = fileOps.slice(-FILE_STATE_LOOP_THRESHOLD);
-    const sameContentOps = recentOps.filter(op => op.contentHash === contentHash);
+    const sameContentOps = recentOps.filter(
+      (op) => op.contentHash === contentHash,
+    );
 
     if (sameContentOps.length >= FILE_STATE_LOOP_THRESHOLD) {
-      const confidence = Math.min(1.0, sameContentOps.length / FILE_STATE_LOOP_THRESHOLD);
-      this.updateConfidence(confidence, `File state loop detected: ${filePath} has same content after ${sameContentOps.length} operations`);
-      
+      const confidence = Math.min(
+        1.0,
+        sameContentOps.length / FILE_STATE_LOOP_THRESHOLD,
+      );
+      this.updateConfidence(
+        confidence,
+        `File state loop detected: ${filePath} has same content after ${sameContentOps.length} operations`,
+      );
+
       if (confidence > CONFIDENCE_THRESHOLD_MEDIUM) {
-        this.suggestLoopBreakActions([
-          LoopBreakAction.RESET_FILE_STATE,
-          LoopBreakAction.CHANGE_STRATEGY,
-          LoopBreakAction.REQUEST_USER_INPUT
-        ], `Repeated operations on ${filePath} without progress`);
+        this.suggestLoopBreakActions(
+          [
+            LoopBreakAction.RESET_FILE_STATE,
+            LoopBreakAction.CHANGE_STRATEGY,
+            LoopBreakAction.REQUEST_USER_INPUT,
+          ],
+          `Repeated operations on ${filePath} without progress`,
+        );
       }
     }
   }
@@ -351,7 +419,10 @@ export class LoopDetectionService {
    * New method to track the result of a tool call (success or failure).
    * This method should be called *after* a tool has been executed.
    */
-  trackToolCallResult(toolCall: { name: string; args: object }, isSuccess: boolean): boolean {
+  trackToolCallResult(
+    toolCall: { name: string; args: object },
+    isSuccess: boolean,
+  ): boolean {
     const key = this.getToolCallKey(toolCall);
     let isLoop = false;
 
@@ -367,7 +438,7 @@ export class LoopDetectionService {
         isLoop = this.handleDetectedLoop(
           LoopType.CONSECUTIVE_FAILED_TOOL_CALLS,
           0.99, // High confidence for consecutive failures
-          `Consecutive failures of tool '${toolCall.name}' detected.`
+          `Consecutive failures of tool '${toolCall.name}' detected.`,
         );
       }
     } else {
@@ -378,7 +449,11 @@ export class LoopDetectionService {
     return isLoop;
   }
 
-  private handleDetectedLoop(loopType: LoopType, confidence: number, reasoning: string): boolean {
+  private handleDetectedLoop(
+    loopType: LoopType,
+    confidence: number,
+    reasoning: string,
+  ): boolean {
     this.updateConfidence(confidence, reasoning);
 
     // We log the loop detection event regardless.
@@ -410,7 +485,7 @@ export class LoopDetectionService {
       toolName: toolCall.name,
       argsHash,
       timestamp: Date.now(),
-      sequenceIndex: this.toolCallHistory.length
+      sequenceIndex: this.toolCallHistory.length,
     });
 
     // Keep reasonable history size
@@ -419,7 +494,10 @@ export class LoopDetectionService {
     }
   }
 
-  private checkAdvancedToolCallPatterns(toolCall: { name: string; args: object }): boolean {
+  private checkAdvancedToolCallPatterns(toolCall: {
+    name: string;
+    args: object;
+  }): boolean {
     this.trackToolCall(toolCall);
 
     // Check consecutive identical calls (existing logic)
@@ -428,7 +506,7 @@ export class LoopDetectionService {
       return this.handleDetectedLoop(
         LoopType.CONSECUTIVE_IDENTICAL_TOOL_CALLS,
         0.9,
-        `Consecutive identical tool calls to ${toolCall.name} detected.`
+        `Consecutive identical tool calls to ${toolCall.name} detected.`,
       );
     }
 
@@ -437,7 +515,7 @@ export class LoopDetectionService {
       return this.handleDetectedLoop(
         LoopType.ALTERNATING_TOOL_PATTERN,
         0.8,
-        'Alternating tool pattern detected.'
+        'Alternating tool pattern detected.',
       );
     }
 
@@ -446,7 +524,7 @@ export class LoopDetectionService {
       return this.handleDetectedLoop(
         LoopType.NON_CONSECUTIVE_TOOL_PATTERN,
         0.75,
-        `Non-consecutive repetitive pattern for ${toolCall.name} detected.`
+        `Non-consecutive repetitive pattern for ${toolCall.name} detected.`,
       );
     }
 
@@ -455,18 +533,23 @@ export class LoopDetectionService {
   }
 
   private checkAlternatingPattern(): boolean {
-    if (this.toolCallHistory.length < ALTERNATING_PATTERN_THRESHOLD) return false;
+    if (this.toolCallHistory.length < ALTERNATING_PATTERN_THRESHOLD)
+      return false;
 
     const recent = this.toolCallHistory.slice(-ALTERNATING_PATTERN_THRESHOLD);
-    
+
     // Check for A-B-A-B pattern
-    const pattern1 = recent[0].toolName === recent[2].toolName && 
-                    recent[1].toolName === recent[3].toolName &&
-                    recent[0].toolName !== recent[1].toolName;
+    const pattern1 =
+      recent[0].toolName === recent[2].toolName &&
+      recent[1].toolName === recent[3].toolName &&
+      recent[0].toolName !== recent[1].toolName;
 
     if (pattern1) {
       const confidence = 0.8;
-      this.updateConfidence(confidence, `Alternating tool pattern detected: ${recent[0].toolName} ↔ ${recent[1].toolName}`);
+      this.updateConfidence(
+        confidence,
+        `Alternating tool pattern detected: ${recent[0].toolName} ↔ ${recent[1].toolName}`,
+      );
       return true;
     }
 
@@ -474,16 +557,29 @@ export class LoopDetectionService {
   }
 
   private checkNonConsecutivePattern(currentToolName: string): boolean {
-    if (this.toolCallHistory.length < NON_CONSECUTIVE_PATTERN_THRESHOLD) return false;
+    if (this.toolCallHistory.length < NON_CONSECUTIVE_PATTERN_THRESHOLD)
+      return false;
 
-    const recent = this.toolCallHistory.slice(-NON_CONSECUTIVE_PATTERN_THRESHOLD);
-    const currentToolOccurrences = recent.filter(call => call.toolName === currentToolName).length;
+    const recent = this.toolCallHistory.slice(
+      -NON_CONSECUTIVE_PATTERN_THRESHOLD,
+    );
+    const currentToolOccurrences = recent.filter(
+      (call) => call.toolName === currentToolName,
+    ).length;
 
     // If same tool appears more than half the time in recent history, it's likely a pattern
-    if (currentToolOccurrences >= Math.ceil(NON_CONSECUTIVE_PATTERN_THRESHOLD / 2)) {
-      const confidence = Math.min(1.0, currentToolOccurrences / NON_CONSECUTIVE_PATTERN_THRESHOLD);
-      this.updateConfidence(confidence, `Non-consecutive repetitive pattern detected for tool: ${currentToolName}`);
-      
+    if (
+      currentToolOccurrences >= Math.ceil(NON_CONSECUTIVE_PATTERN_THRESHOLD / 2)
+    ) {
+      const confidence = Math.min(
+        1.0,
+        currentToolOccurrences / NON_CONSECUTIVE_PATTERN_THRESHOLD,
+      );
+      this.updateConfidence(
+        confidence,
+        `Non-consecutive repetitive pattern detected for tool: ${currentToolName}`,
+      );
+
       if (confidence > CONFIDENCE_THRESHOLD_MEDIUM) {
         return true;
       }
@@ -500,8 +596,9 @@ export class LoopDetectionService {
       this.lastToolCallKey = key;
       this.toolCallRepetitionCount = 1;
     }
-    
-    const threshold = TOOL_CALL_THRESHOLDS[toolCall.name] || TOOL_CALL_THRESHOLDS['default'];
+
+    const threshold =
+      TOOL_CALL_THRESHOLDS[toolCall.name] || TOOL_CALL_THRESHOLDS['default'];
 
     if (this.toolCallRepetitionCount >= threshold) {
       return true;
@@ -516,17 +613,26 @@ export class LoopDetectionService {
     // Existing markdown/structure detection logic
     const numFences = (content.match(/```/g) ?? []).length;
     const hasTable = /(^|\n)\s*(\|.*\||[|+-]{3,})/.test(content);
-    const hasListItem = /(^|\n)\s*[*-+]\s/.test(content) || /(^|\n)\s*\d+\.\s/.test(content);
+    const hasListItem =
+      /(^|\n)\s*[*-+]\s/.test(content) || /(^|\n)\s*\d+\.\s/.test(content);
     const hasHeading = /(^|\n)#+\s/.test(content);
     const hasBlockquote = /(^|\n)>\s/.test(content);
     const isDivider = /^[+-_=*─-╿]+$/.test(content);
 
-    if (numFences || hasTable || hasListItem || hasHeading || hasBlockquote || isDivider) {
+    if (
+      numFences ||
+      hasTable ||
+      hasListItem ||
+      hasHeading ||
+      hasBlockquote ||
+      isDivider
+    ) {
       this.resetContentTracking();
     }
 
     const wasInCodeBlock = this.inCodeBlock;
-    this.inCodeBlock = numFences % 2 === 0 ? this.inCodeBlock : !this.inCodeBlock;
+    this.inCodeBlock =
+      numFences % 2 === 0 ? this.inCodeBlock : !this.inCodeBlock;
     if (wasInCodeBlock || this.inCodeBlock || isDivider) {
       return false;
     }
@@ -541,7 +647,7 @@ export class LoopDetectionService {
       return this.handleDetectedLoop(
         LoopType.CHANTING_IDENTICAL_SENTENCES,
         0.95,
-        'Repetitive content detected (hash-based).'
+        'Repetitive content detected (hash-based).',
       );
     }
 
@@ -549,7 +655,7 @@ export class LoopDetectionService {
       return this.handleDetectedLoop(
         LoopType.SEMANTIC_CONTENT_LOOP,
         this.lastLoopConfidence,
-        'Semantically similar content detected.'
+        'Semantically similar content detected.',
       );
     }
 
@@ -558,17 +664,19 @@ export class LoopDetectionService {
 
   private trackSemanticContent(content: string): void {
     if (content.trim().length < 10) return; // Skip very short content
-    
+
     const contentHash = createHash('sha256').update(content).digest('hex');
     this.semanticContentChunks.push({
       content: content.trim(),
       hash: contentHash,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     // Keep recent chunks only
-    const cutoffTime = Date.now() - (2 * 60 * 1000); // 2 minutes
-    this.semanticContentChunks = this.semanticContentChunks.filter(chunk => chunk.timestamp > cutoffTime);
+    const cutoffTime = Date.now() - 2 * 60 * 1000; // 2 minutes
+    this.semanticContentChunks = this.semanticContentChunks.filter(
+      (chunk) => chunk.timestamp > cutoffTime,
+    );
   }
 
   private analyzeSemanticContentLoop(): boolean {
@@ -580,10 +688,16 @@ export class LoopDetectionService {
     const hashCounts: Record<string, number> = {};
     for (const c of recentChunks) {
       hashCounts[c.hash] = (hashCounts[c.hash] || 0) + 1;
-      if (hashCounts[c.hash] >= Math.max(3, Math.floor(CONTENT_LOOP_THRESHOLD / 2))) {
+      if (
+        hashCounts[c.hash] >=
+        Math.max(3, Math.floor(CONTENT_LOOP_THRESHOLD / 2))
+      ) {
         // high confidence when exact same chunk repeats several times
         const confidence = 0.9;
-        this.updateConfidence(confidence, `Exact repeated content detected (${hashCounts[c.hash]} repeats)`);
+        this.updateConfidence(
+          confidence,
+          `Exact repeated content detected (${hashCounts[c.hash]} repeats)`,
+        );
         return true;
       }
     }
@@ -593,7 +707,7 @@ export class LoopDetectionService {
       for (let j = i + 1; j < recentChunks.length; j++) {
         const similarity = SemanticSimilarity.calculateSimilarity(
           recentChunks[i].content,
-          recentChunks[j].content
+          recentChunks[j].content,
         );
 
         if (similarity > 0.88) {
@@ -609,7 +723,10 @@ export class LoopDetectionService {
     // Require a stronger similarity ratio before flagging, but allow earlier confidence updates
     if (similarityRatio > 0.6) {
       const confidence = Math.min(1.0, similarityRatio * 1.2);
-      this.updateConfidence(confidence, `Semantic content similarity detected: ${Math.round(similarityRatio * 100)}% similar content`);
+      this.updateConfidence(
+        confidence,
+        `Semantic content similarity detected: ${Math.round(similarityRatio * 100)}% similar content`,
+      );
 
       if (confidence > CONFIDENCE_THRESHOLD_HIGH) {
         return true;
@@ -628,16 +745,19 @@ export class LoopDetectionService {
 
     // Adaptive checking based on confidence levels
     const shouldCheck = this.shouldPerformLLMCheck();
-    
+
     if (shouldCheck) {
       this.lastCheckTurn = this.turnsInCurrentPrompt;
       const result = await this.performComprehensiveLoopCheck(signal);
-      
+
       if (result.isLoop) {
-        this.suggestLoopBreakActions(result.suggestedActions, result.reasoning || 'LLM detected conversation loop');
+        this.suggestLoopBreakActions(
+          result.suggestedActions,
+          result.reasoning || 'LLM detected conversation loop',
+        );
         return true;
       }
-      
+
       this.updateConfidence(result.confidence, result.reasoning);
     }
 
@@ -647,15 +767,23 @@ export class LoopDetectionService {
   private shouldPerformLLMCheck(): boolean {
     // More frequent checks when confidence is rising
     if (this.lastLoopConfidence > CONFIDENCE_THRESHOLD_MEDIUM) {
-      return this.turnsInCurrentPrompt - this.lastCheckTurn >= Math.max(1, this.llmCheckInterval / 2);
+      return (
+        this.turnsInCurrentPrompt - this.lastCheckTurn >=
+        Math.max(1, this.llmCheckInterval / 2)
+      );
     }
 
     // Standard interval check
-    return this.turnsInCurrentPrompt >= LLM_CHECK_AFTER_TURNS &&
-           this.turnsInCurrentPrompt - this.lastCheckTurn >= this.llmCheckInterval;
+    return (
+      this.turnsInCurrentPrompt >= LLM_CHECK_AFTER_TURNS &&
+      this.turnsInCurrentPrompt - this.lastCheckTurn >= this.llmCheckInterval
+    );
   }
 
-  private async performComprehensiveLoopCheck(signal: AbortSignal, userInitiated = false): Promise<LoopDetectionResult> {
+  private async performComprehensiveLoopCheck(
+    signal: AbortSignal,
+    userInitiated = false,
+  ): Promise<LoopDetectionResult> {
     if (this.thinkingListener) {
       this.thinkingListener(true);
     }
@@ -665,7 +793,9 @@ export class LoopDetectionService {
         .getHistory()
         .slice(-LLM_LOOP_CHECK_HISTORY_COUNT);
 
-      const intensityModifier = userInitiated ? ' The user has explicitly requested a loop check, so be especially thorough.' : '';
+      const intensityModifier = userInitiated
+        ? ' The user has explicitly requested a loop check, so be especially thorough.'
+        : '';
 
       const prompt = `You are a sophisticated AI diagnostic agent specializing in identifying when a conversational AI is stuck in an unproductive state. Your task is to analyze the provided conversation history and determine if the assistant has ceased to make meaningful progress.${intensityModifier}
 
@@ -699,51 +829,67 @@ Analyze the conversation and provide:
         properties: {
           reasoning: {
             type: 'string',
-            description: 'Detailed reasoning about whether the conversation is looping without forward progress.'
+            description:
+              'Detailed reasoning about whether the conversation is looping without forward progress.',
           },
           confidence: {
             type: 'number',
-            description: 'A number between 0.0 and 1.0 representing confidence that the conversation is in an unproductive state.'
+            description:
+              'A number between 0.0 and 1.0 representing confidence that the conversation is in an unproductive state.',
           },
           loopType: {
             type: 'string',
-            enum: ['repetitive_actions', 'cognitive_loop', 'file_state_loop', 'semantic_repetition', 'none'],
-            description: 'The type of loop detected, if any.'
+            enum: [
+              'repetitive_actions',
+              'cognitive_loop',
+              'file_state_loop',
+              'semantic_repetition',
+              'none',
+            ],
+            description: 'The type of loop detected, if any.',
           },
           suggestedActions: {
             type: 'array',
             items: {
               type: 'string',
-              enum: Object.values(LoopBreakAction)
+              enum: Object.values(LoopBreakAction),
             },
-            description: 'Suggested actions to break the loop if confidence > 0.5'
+            description:
+              'Suggested actions to break the loop if confidence > 0.5',
           },
           affectedFiles: {
             type: 'array',
             items: { type: 'string' },
-            description: 'File paths that seem to be stuck in loops, if applicable'
-          }
+            description:
+              'File paths that seem to be stuck in loops, if applicable',
+          },
         },
-        required: ['reasoning', 'confidence']
+        required: ['reasoning', 'confidence'],
       };
 
       const contents = [
         ...recentHistory,
-        { role: 'user', parts: [{ text: prompt }] }
+        { role: 'user', parts: [{ text: prompt }] },
       ];
       const result = await this.config
         .getGeminiClient()
         .generateJson(contents, schema, signal, DEFAULT_GEMINI_FLASH_MODEL);
 
-      const confidence = typeof result['confidence'] === 'number' ? result['confidence'] : 0;
-      const reasoning = typeof result['reasoning'] === 'string' ? result['reasoning'] : '';
-      const suggestedActions = Array.isArray(result['suggestedActions']) ? result['suggestedActions'] : [];
-      const affectedFiles = Array.isArray(result['affectedFiles']) ? result['affectedFiles'] : [];
+      const confidence =
+        typeof result['confidence'] === 'number' ? result['confidence'] : 0;
+      const reasoning =
+        typeof result['reasoning'] === 'string' ? result['reasoning'] : '';
+      const suggestedActions = Array.isArray(result['suggestedActions'])
+        ? result['suggestedActions']
+        : [];
+      const affectedFiles = Array.isArray(result['affectedFiles'])
+        ? result['affectedFiles']
+        : [];
 
       // Adjust LLM check interval based on confidence
       this.llmCheckInterval = Math.round(
         MIN_LLM_CHECK_INTERVAL +
-        (MAX_LLM_CHECK_INTERVAL - MIN_LLM_CHECK_INTERVAL) * (1 - confidence)
+          (MAX_LLM_CHECK_INTERVAL - MIN_LLM_CHECK_INTERVAL) * (1 - confidence),
       );
 
       const isLoop = confidence > CONFIDENCE_THRESHOLD_HIGH;
@@ -759,16 +905,15 @@ Analyze the conversation and provide:
         loopType,
         suggestedActions: suggestedActions as LoopBreakAction[],
         reasoning,
-        affectedFiles
+        affectedFiles,
       };
-
     } catch (e) {
       this.config.getDebugMode() ? console.error(e) : console.debug(e);
       return {
         isLoop: false,
         confidence: 0,
         loopType: LoopType.LLM_DETECTED_LOOP,
-        suggestedActions: []
+        suggestedActions: [],
       };
     } finally {
       if (this.thinkingListener) {
@@ -779,11 +924,16 @@ Analyze the conversation and provide:
 
   private mapLoopTypeFromString(loopType: string): LoopType {
     switch (loopType) {
-      case 'repetitive_actions': return LoopType.CONSECUTIVE_IDENTICAL_TOOL_CALLS;
-      case 'cognitive_loop': return LoopType.LLM_DETECTED_LOOP;
-      case 'file_state_loop': return LoopType.FILE_STATE_LOOP;
-      case 'semantic_repetition': return LoopType.SEMANTIC_CONTENT_LOOP;
-      default: return LoopType.LLM_DETECTED_LOOP;
+      case 'repetitive_actions':
+        return LoopType.CONSECUTIVE_IDENTICAL_TOOL_CALLS;
+      case 'cognitive_loop':
+        return LoopType.LLM_DETECTED_LOOP;
+      case 'file_state_loop':
+        return LoopType.FILE_STATE_LOOP;
+      case 'semantic_repetition':
+        return LoopType.SEMANTIC_CONTENT_LOOP;
+      default:
+        return LoopType.LLM_DETECTED_LOOP;
     }
   }
 
@@ -791,8 +941,11 @@ Analyze the conversation and provide:
    * Update confidence and notify listeners
    */
   private updateConfidence(confidence: number, reasoning?: string): void {
-    this.lastLoopConfidence = Math.max(this.lastLoopConfidence * 0.9, confidence); // Decay previous confidence
-    
+    this.lastLoopConfidence = Math.max(
+      this.lastLoopConfidence * 0.9,
+      confidence,
+    ); // Decay previous confidence
+
     if (confidence > CONFIDENCE_THRESHOLD_MEDIUM) {
       this.consecutiveHighConfidenceChecks++;
     } else {
@@ -804,9 +957,15 @@ Analyze the conversation and provide:
     }
 
     // Auto-suggest actions for sustained high confidence
-    if (this.consecutiveHighConfidenceChecks >= 2 && confidence > CONFIDENCE_THRESHOLD_HIGH) {
+    if (
+      this.consecutiveHighConfidenceChecks >= 2 &&
+      confidence > CONFIDENCE_THRESHOLD_HIGH
+    ) {
       const actions = this.generateAdaptiveBreakActions(confidence);
-      this.suggestLoopBreakActions(actions, reasoning || 'Sustained high loop confidence detected');
+      this.suggestLoopBreakActions(
+        actions,
+        reasoning || 'Sustained high loop confidence detected',
+      );
     }
   }
 
@@ -820,11 +979,11 @@ Analyze the conversation and provide:
     if (confidence > CONFIDENCE_THRESHOLD_HIGH) {
       actions.push(LoopBreakAction.CHANGE_STRATEGY);
       actions.push(LoopBreakAction.INCREASE_TEMPERATURE);
-      
+
       if (this.fileOperationHistory.length > 0) {
         actions.push(LoopBreakAction.RESET_FILE_STATE);
       }
-      
+
       actions.push(LoopBreakAction.REQUEST_USER_INPUT);
     }
 
@@ -842,9 +1001,12 @@ Analyze the conversation and provide:
     return actions;
   }
 
-  private suggestLoopBreakActions(actions: LoopBreakAction[], reasoning: string): void {
+  private suggestLoopBreakActions(
+    actions: LoopBreakAction[],
+    reasoning: string,
+  ): void {
     this.pendingBreakActions = actions;
-    
+
     if (this.actionSuggestionListener) {
       this.actionSuggestionListener(actions, reasoning);
     }
@@ -877,9 +1039,14 @@ Analyze the conversation and provide:
       return;
     }
 
-    const truncationAmount = this.streamContentHistory.length - MAX_HISTORY_LENGTH;
-    this.streamContentHistory = this.streamContentHistory.slice(truncationAmount);
-    this.lastContentIndex = Math.max(0, this.lastContentIndex - truncationAmount);
+    const truncationAmount =
+      this.streamContentHistory.length - MAX_HISTORY_LENGTH;
+    this.streamContentHistory =
+      this.streamContentHistory.slice(truncationAmount);
+    this.lastContentIndex = Math.max(
+      0,
+      this.lastContentIndex - truncationAmount,
+    );
 
     for (const [hash, oldIndices] of this.contentStats.entries()) {
       const adjustedIndices = oldIndices
@@ -906,10 +1073,16 @@ Analyze the conversation and provide:
 
       // Early exit: if the same hash has appeared multiple times non-overlapping, flag quickly
       const existing = this.contentStats.get(chunkHash);
-      if (existing && existing.length >= Math.max(2, Math.floor(CONTENT_LOOP_THRESHOLD / 2))) {
+      if (
+        existing &&
+        existing.length >= Math.max(2, Math.floor(CONTENT_LOOP_THRESHOLD / 2))
+      ) {
         // ensure repeats are non-overlapping
         const lastIdx = existing[existing.length - 1];
-        if (Math.abs(this.lastContentIndex - lastIdx) > Math.floor(CONTENT_CHUNK_SIZE / 2)) {
+        if (
+          Math.abs(this.lastContentIndex - lastIdx) >
+          Math.floor(CONTENT_CHUNK_SIZE / 2)
+        ) {
           return true;
         }
       }
@@ -925,7 +1098,10 @@ Analyze the conversation and provide:
   }
 
   private hasMoreChunksToProcess(): boolean {
-  return this.lastContentIndex + CONTENT_CHUNK_SIZE <= this.streamContentHistory.length;
+    return (
+      this.lastContentIndex + CONTENT_CHUNK_SIZE <=
+      this.streamContentHistory.length
+    );
   }
 
   private isLoopDetectedForChunk(chunk: string, hash: string): boolean {
@@ -940,7 +1116,10 @@ Analyze the conversation and provide:
 
     // Ensure the match is not trivially overlapping with the most recent index
     const lastIndex = existingIndices[existingIndices.length - 1];
-    if (Math.abs(this.lastContentIndex - lastIndex) < Math.floor(CONTENT_CHUNK_SIZE / 2)) {
+    if (
+      Math.abs(this.lastContentIndex - lastIndex) <
+      Math.floor(CONTENT_CHUNK_SIZE / 2)
+    ) {
       // overlapping - ignore to reduce false positives
       existingIndices.push(this.lastContentIndex);
       this.contentStats.set(hash, existingIndices);
@@ -963,14 +1142,18 @@ Analyze the conversation and provide:
 
     // Ensure repeats are reasonably spaced (non-overlapping repeated sections)
     const recentIndices = existingIndices.slice(-CONTENT_LOOP_THRESHOLD);
-    const totalDistance = recentIndices[recentIndices.length - 1] - recentIndices[0];
+    const totalDistance =
+      recentIndices[recentIndices.length - 1] - recentIndices[0];
     const averageDistance = totalDistance / (CONTENT_LOOP_THRESHOLD - 1);
     const maxAllowedDistance = CONTENT_CHUNK_SIZE * 2;
 
     return averageDistance <= maxAllowedDistance;
   }
 
-  private isActualContentMatch(currentChunk: string, originalIndex: number): boolean {
+  private isActualContentMatch(
+    currentChunk: string,
+    originalIndex: number,
+  ): boolean {
     const originalChunk = this.streamContentHistory.substring(
       originalIndex,
       originalIndex + CONTENT_CHUNK_SIZE,
@@ -985,7 +1168,10 @@ Analyze the conversation and provide:
     );
   }
 
-  private notifyActionSuggestions(actions: LoopBreakAction[], reasoning: string): void {
+  private notifyActionSuggestions(
+    actions: LoopBreakAction[],
+    reasoning: string,
+  ): void {
     if (this.actionSuggestionListener) {
       this.actionSuggestionListener(actions, reasoning);
     }

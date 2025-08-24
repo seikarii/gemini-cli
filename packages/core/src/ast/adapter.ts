@@ -23,22 +23,35 @@ export function createProject(): Project {
   return new Project({ useInMemoryFileSystem: true });
 }
 
-export function parseFileWithProject(project: Project, filePath: string): ParseResult {
+export function parseFileWithProject(
+  project: Project,
+  filePath: string,
+): ParseResult {
   try {
     const original = fs.readFileSync(filePath, 'utf-8');
-    const normalizedPath = path.isAbsolute(filePath) ? filePath : path.resolve('/', filePath);
-    const sf = project.createSourceFile(normalizedPath, original, { overwrite: true });
+    const normalizedPath = path.isAbsolute(filePath)
+      ? filePath
+      : path.resolve('/', filePath);
+    const sf = project.createSourceFile(normalizedPath, original, {
+      overwrite: true,
+    });
     return { project, sourceFile: sf, text: original, error: null };
   } catch (e: unknown) {
     return { error: String(e) };
   }
 }
 
-export function parseSourceToSourceFileWithProject(project: Project, source: string, filePath?: string): ParseResult {
+export function parseSourceToSourceFileWithProject(
+  project: Project,
+  source: string,
+  filePath?: string,
+): ParseResult {
   const fp = filePath ?? '/virtual-file.ts';
   try {
     const normalizedPath = path.isAbsolute(fp) ? fp : path.resolve('/', fp);
-    const sf = project.createSourceFile(normalizedPath, source, { overwrite: true });
+    const sf = project.createSourceFile(normalizedPath, source, {
+      overwrite: true,
+    });
     return { project, sourceFile: sf, text: source, error: null };
   } catch (e: unknown) {
     return { error: String(e) };

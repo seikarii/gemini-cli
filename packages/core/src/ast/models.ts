@@ -111,12 +111,19 @@ export class ComplexQuery {
     if (logicalOperator) this.logicalOperator = logicalOperator;
   }
 
-  addCondition(field: string, operator: QueryOperator, value?: unknown): ComplexQuery {
+  addCondition(
+    field: string,
+    operator: QueryOperator,
+    value?: unknown,
+  ): ComplexQuery {
     this.conditions.push({ field, operator, value });
     return this;
   }
 
-  addChildQuery(query: ComplexQuery, operator: QueryOperator = QueryOperator.AND): ComplexQuery {
+  addChildQuery(
+    query: ComplexQuery,
+    operator: QueryOperator = QueryOperator.AND,
+  ): ComplexQuery {
     query.logicalOperator = operator;
     this.childQueries.push(query);
     return this;

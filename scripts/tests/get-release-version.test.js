@@ -5,7 +5,7 @@
  */
 
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getReleaseVersion } from '../get-release-version';
+import { getReleaseVersion } from '../get-release-version.js';
 
 // Mock child_process so we can spy on execSync
 vi.mock('child_process', () => ({

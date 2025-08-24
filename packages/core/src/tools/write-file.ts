@@ -242,16 +242,28 @@ class WriteFileToolInvocation extends BaseToolInvocation<
   }
 
   async execute(abortSignal: AbortSignal): Promise<ToolResult> {
-    let { file_path, content, ai_proposed_content, modified_by_user, mode = 'overwrite', skip_correction } = this.params;
+    let {
+      file_path,
+      content,
+      ai_proposed_content,
+      modified_by_user,
+      mode = 'overwrite',
+      skip_correction,
+    } = this.params;
 
     if (mode === 'append' && !fs.existsSync(file_path)) {
-        // If appending to a non-existent file, it's the same as overwriting an empty file.
-        mode = 'overwrite';
+      // If appending to a non-existent file, it's the same as overwriting an empty file.
+      mode = 'overwrite';
     }
 
     // Safeguard against accidental file wipe
-    if (mode === 'overwrite' && !content && fs.existsSync(file_path) && fs.statSync(file_path).size > 0) {
-      const errorMsg = `Attempted to overwrite a non-empty file with empty content. Operation aborted to prevent data loss.`
+    if (
+      mode === 'overwrite' &&
+      !content &&
+      fs.existsSync(file_path) &&
+      fs.statSync(file_path).size > 0
+    ) {
+      const errorMsg = `Attempted to overwrite a non-empty file with empty content. Operation aborted to prevent data loss.`;
       return {
         llmContent: errorMsg,
         returnDisplay: errorMsg,
@@ -264,19 +276,22 @@ class WriteFileToolInvocation extends BaseToolInvocation<
 
     let finalContent = content;
     if (mode === 'append') {
-        const readResult = await this.config.getFileSystemService().readTextFile(file_path);
-        if (!readResult.success) {
-          throw new Error(readResult.error);
-        }
-        const existingContent = readResult.data!;
-        finalContent = existingContent + '\n' + content;
+      const readResult = await this.config
+        .getFileSystemService()
+        .readTextFile(file_path);
+      if (!readResult.success) {
+        throw new Error(readResult.error);
+      }
+      const existingContent = readResult.data!;
+      finalContent = existingContent + '\n' + content;
     }
 
     let fileContent = finalContent;
     let originalContent = '';
     let fileExists = false;
     let isNewFile = false;
-    let correctedContentResult: GetCorrectedFileContentResult | undefined = undefined;
+    let correctedContentResult: GetCorrectedFileContentResult | undefined =
+      undefined;
 
     if (!skip_correction) {
       correctedContentResult = await getCorrectedFileContent(
@@ -367,7 +382,8 @@ class WriteFileToolInvocation extends BaseToolInvocation<
       const displayResult: FileDiff = {
         fileDiff,
         fileName,
-        originalContent: correctedContentResult?.originalContent || originalContent,
+        originalContent:
+          correctedContentResult?.originalContent || originalContent,
         newContent: correctedContentResult?.correctedContent || fileContent,
         diffStat,
       };
@@ -480,12 +496,14 @@ export class WriteFileTool
             type: 'string',
           },
           mode: {
-            description: "The mode of writing. `overwrite` will replace the entire file, `append` will add to the end. Defaults to `overwrite`.",
+            description:
+              'The mode of writing. `overwrite` will replace the entire file, `append` will add to the end. Defaults to `overwrite`.',
             type: 'string',
             enum: ['overwrite', 'append'],
           },
           skip_correction: {
-            description: "If true, bypasses the content correction logic (ensureCorrectEdit). Use with caution, primarily for simple appends to config files.",
+            description:
+              'If true, bypasses the content correction logic (ensureCorrectEdit). Use with caution, primarily for simple appends to config files.',
             type: 'boolean',
           },
         },

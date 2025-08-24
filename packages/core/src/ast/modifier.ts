@@ -5,7 +5,14 @@
  */
 
 import crypto from 'crypto';
-import { Project, SourceFile, Node, Statement, ClassDeclaration, SyntaxKind } from 'ts-morph';
+import {
+  Project,
+  SourceFile,
+  Node,
+  Statement,
+  ClassDeclaration,
+  SyntaxKind,
+} from 'ts-morph';
 import { findNodes } from './finder.js';
 import { ModificationSpec, ModificationOperation } from './models.js';
 
@@ -20,14 +27,24 @@ type ModifierResult = {
 export class ASTModifier {
   private backups = new Map<string, string>();
 
-  constructor(private readonly projectOptions: { useInMemoryFileSystem?: boolean } = { useInMemoryFileSystem: true }) {}
+  constructor(
+    private readonly projectOptions: { useInMemoryFileSystem?: boolean } = {
+      useInMemoryFileSystem: true,
+    },
+  ) {}
 
   private createProject() {
-    return new Project({ useInMemoryFileSystem: !!this.projectOptions.useInMemoryFileSystem });
+    return new Project({
+      useInMemoryFileSystem: !!this.projectOptions.useInMemoryFileSystem,
+    });
   }
 
   private createBackup(sourceText: string) {
-    const id = crypto.createHash('md5').update(sourceText + Date.now().toString()).digest('hex').slice(0, 12);
+    const id = crypto
+      .createHash('md5')
+      .update(sourceText + Date.now().toString())
+      .digest('hex')
+      .slice(0, 12);
     this.backups.set(id, sourceText);
     return id;
   }
@@ -43,11 +60,13 @@ export class ASTModifier {
   async applyModifications(
     sourceText: string,
     modifications: ModificationSpec[],
-    opts?: { filePath?: string; format?: boolean }
+    opts?: { filePath?: string; format?: boolean },
   ): Promise<ModifierResult> {
     const project = this.createProject();
     const filePath = opts?.filePath ?? '/virtual-file.ts';
-    const sourceFile = project.createSourceFile(filePath, sourceText, { overwrite: true });
+    const sourceFile = project.createSourceFile(filePath, sourceText, {
+      overwrite: true,
+    });
 
     const backupId = this.createBackup(sourceText);
 
@@ -76,20 +95,37 @@ export class ASTModifier {
           // eslint-disable-next-line @typescript-eslint/no-var-requires
           const prettier = require('prettier');
           const cfg = await prettier.resolveConfig(filePath).catch(() => ({}));
-          modifiedText = prettier.format(modifiedText, { ...(cfg || {}), filepath: filePath });
+          modifiedText = prettier.format(modifiedText, {
+            ...(cfg || {}),
+            filepath: filePath,
+          });
         } catch {
           // ignore formatting errors, return raw modified text
         }
       }
 
-      return { success: true, output: 'Modifications applied', modifiedText, backupId };
+      return {
+        success: true,
+        output: 'Modifications applied',
+        modifiedText,
+        backupId,
+      };
     } catch (e: any) {
       const restored = this.restoreBackup(backupId);
-      return { success: false, error: String(e), output: 'Restored from backup', modifiedText: restored, backupId };
+      return {
+        success: false,
+        error: String(e),
+        output: 'Restored from backup',
+        modifiedText: restored,
+        backupId,
+      };
     }
   }
 
-  private async applyFileLevelModification(sourceFile: SourceFile, mod: ModificationSpec): Promise<void> {
+  private async applyFileLevelModification(
+    sourceFile: SourceFile,
+    mod: ModificationSpec,
+  ): Promise<void> {
     switch (mod.operation) {
       case ModificationOperation.ADD_IMPORT:
         if (!mod.newCode) throw new Error('add_import requires newCode');
@@ -113,7 +149,11 @@ export class ASTModifier {
     }
   }
 
-  private async applyModificationToNode(sourceFile: SourceFile, node: Node, mod: ModificationSpec): Promise<void> {
+  private async applyModificationToNode(
+    sourceFile: SourceFile,
+    node: Node,
+    mod: ModificationSpec,
+  ): Promise<void> {
     switch (mod.operation) {
       case ModificationOperation.REPLACE:
         if (!mod.newCode) throw new Error('replace requires newCode');
@@ -123,7 +163,11 @@ export class ASTModifier {
       case ModificationOperation.INSERT_BEFORE:
       case ModificationOperation.INSERT_AFTER:
         if (!mod.newCode) throw new Error('insert requires newCode');
-        await this.insertRelative(node, mod.newCode, mod.operation === ModificationOperation.INSERT_BEFORE);
+        await this.insertRelative(
+          node,
+          mod.newCode,
+          mod.operation === ModificationOperation.INSERT_BEFORE,
+        );
         break;
 
       case ModificationOperation.DELETE:
@@ -131,7 +175,8 @@ export class ASTModifier {
         break;
 
       case ModificationOperation.MODIFY_ATTRIBUTE:
-        if (!mod.attribute) throw new Error('modify_attribute requires attribute name');
+        if (!mod.attribute)
+          throw new Error('modify_attribute requires attribute name');
         // Try to set property if exists
         try {
           // @ts-ignore access internal
@@ -142,7 +187,8 @@ export class ASTModifier {
         break;
 
       case ModificationOperation.WRAP:
-        if (!mod.wrapperTemplate) throw new Error('wrap requires wrapperTemplate');
+        if (!mod.wrapperTemplate)
+          throw new Error('wrap requires wrapperTemplate');
         await this.wrapNode(node, mod.wrapperTemplate);
         break;
 
@@ -153,7 +199,8 @@ export class ASTModifier {
         break;
 
       case ModificationOperation.REFACTOR:
-        if (!mod.attribute) throw new Error('refactor requires attribute & value');
+        if (!mod.attribute)
+          throw new Error('refactor requires attribute & value');
         try {
           // set attribute on node if possible
           // @ts-ignore
@@ -164,28 +211,45 @@ export class ASTModifier {
         break;
 
       case ModificationOperation.RENAME_SYMBOL_SCOPED:
-        if (!mod.attribute || typeof mod.value !== 'string') throw new Error('rename_symbol_scoped requires attribute(oldName) and value(newName)');
-        await this.renameSymbolScoped(node, String(mod.attribute), String(mod.value));
+        if (!mod.attribute || typeof mod.value !== 'string')
+          throw new Error(
+            'rename_symbol_scoped requires attribute(oldName) and value(newName)',
+          );
+        await this.renameSymbolScoped(
+          node,
+          String(mod.attribute),
+          String(mod.value),
+        );
         break;
 
       case ModificationOperation.ADD_TO_CLASS_BASES:
-        if (!mod.newCode) throw new Error('add_to_class_bases requires newCode');
+        if (!mod.newCode)
+          throw new Error('add_to_class_bases requires newCode');
         if (Node.isClassDeclaration(node)) {
           const cls = node as ClassDeclaration;
           const existing = cls.getExtends();
           if (existing) {
             // append to heritageClause by replacing with new text
-            const baseText = cls.getHeritageClauses().map(h => h.getText()).join(' ');
-            cls.replaceWithText(cls.getText().replace(baseText, `${baseText}, ${mod.newCode}`));
+            const baseText = cls
+              .getHeritageClauses()
+              .map((h) => h.getText())
+              .join(' ');
+            cls.replaceWithText(
+              cls.getText().replace(baseText, `${baseText}, ${mod.newCode}`),
+            );
           } else {
             // add an extends clause
-            cls.insertText(cls.getStart() + cls.getText().indexOf('{'), ` extends ${mod.newCode} `);
+            cls.insertText(
+              cls.getStart() + cls.getText().indexOf('{'),
+              ` extends ${mod.newCode} `,
+            );
           }
         }
         break;
 
       case ModificationOperation.REMOVE_CLASS_METHODS:
-        if (!mod.value || !Array.isArray(mod.value)) throw new Error('remove_class_methods requires value:list');
+        if (!mod.value || !Array.isArray(mod.value))
+          throw new Error('remove_class_methods requires value:list');
         if (Node.isClassDeclaration(node)) {
           const cls = node as ClassDeclaration;
           const methodNames = new Set(mod.value as string[]);
@@ -196,17 +260,24 @@ export class ASTModifier {
         break;
 
       case ModificationOperation.UPDATE_METHOD_SIGNATURE:
-        if (!mod.newCode) throw new Error('update_method_signature requires newCode');
+        if (!mod.newCode)
+          throw new Error('update_method_signature requires newCode');
         await this.updateMethodSignature(node, mod.newCode);
         break;
 
       case ModificationOperation.INSERT_STATEMENT_INTO_FUNCTION:
-        if (!mod.newCode) throw new Error('insert_statement_into_function requires newCode');
-        await this.insertStatementIntoFunction(node, mod.newCode, Boolean(mod.metadata?.['insert_at_end']) ?? true);
+        if (!mod.newCode)
+          throw new Error('insert_statement_into_function requires newCode');
+        await this.insertStatementIntoFunction(
+          node,
+          mod.newCode,
+          Boolean(mod.metadata?.['insert_at_end']) ?? true,
+        );
         break;
 
       case ModificationOperation.REPLACE_EXPRESSION:
-        if (!mod.newCode) throw new Error('replace_expression requires newCode');
+        if (!mod.newCode)
+          throw new Error('replace_expression requires newCode');
         node.replaceWithText(mod.newCode);
         break;
 
@@ -221,17 +292,26 @@ export class ASTModifier {
     const parent = node.getParent();
     if (!parent) {
       // fallback to replaceWithText surrounding insertion
-      const text = before ? `${code}\n${node.getText()}` : `${node.getText()}\n${code}`;
+      const text = before
+        ? `${code}\n${node.getText()}`
+        : `${node.getText()}\n${code}`;
       node.replaceWithText(text);
       return;
     }
 
     // If parent is a block (list of statements), use insertStatements
     const block = parent.getFirstChildByKind(SyntaxKind.Block) ?? parent;
-    if ((block as any).insertStatements && typeof (block as any).insertStatements === 'function') {
+    if (
+      (block as any).insertStatements &&
+      typeof (block as any).insertStatements === 'function'
+    ) {
       // find index of node among block statements
-      const statements = (block as any).getStatements ? (block as any).getStatements() : [];
-      const idx = statements.findIndex((s: Statement) => s.getStart() === node.getStart());
+      const statements = (block as any).getStatements
+        ? (block as any).getStatements()
+        : [];
+      const idx = statements.findIndex(
+        (s: Statement) => s.getStart() === node.getStart(),
+      );
       if (idx >= 0) {
         if (before) (block as any).insertStatements(idx, code);
         else (block as any).insertStatements(idx + 1, code);
@@ -240,24 +320,35 @@ export class ASTModifier {
     }
 
     // fallback: text replacement
-    const text = before ? `${code}\n${node.getText()}` : `${node.getText()}\n${code}`;
+    const text = before
+      ? `${code}\n${node.getText()}`
+      : `${node.getText()}\n${code}`;
     node.replaceWithText(text);
   }
 
   private async wrapNode(node: Node, wrapperTemplate: string) {
     // wrapperTemplate expected to contain a placeholder like "{node}" or "/*NODE*/"
-    const raw = wrapperTemplate.replace('{node}', node.getText()).replace('/*NODE*/', node.getText());
+    const raw = wrapperTemplate
+      .replace('{node}', node.getText())
+      .replace('/*NODE*/', node.getText());
     node.replaceWithText(raw);
   }
 
-  private async extractNodeAsFunction(sourceFile: SourceFile, node: Node, funcName: string) {
+  private async extractNodeAsFunction(
+    sourceFile: SourceFile,
+    node: Node,
+    funcName: string,
+  ) {
     // Try to create a function at top of file that returns or contains the node
     const nodeText = node.getText();
     const funcText = `function ${funcName}() { return (${nodeText}); }`;
     // Insert at top, after imports if any
     const imports = sourceFile.getImportDeclarations();
     if (imports.length > 0) {
-      sourceFile.insertText(imports[imports.length - 1].getEnd(), '\n' + funcText);
+      sourceFile.insertText(
+        imports[imports.length - 1].getEnd(),
+        '\n' + funcText,
+      );
     } else {
       sourceFile.insertStatements(0, funcText);
     }
@@ -265,12 +356,19 @@ export class ASTModifier {
     node.replaceWithText(`${funcName}()`);
   }
 
-  private async renameSymbolScoped(scopeNode: Node, oldName: string, newName: string) {
+  private async renameSymbolScoped(
+    scopeNode: Node,
+    oldName: string,
+    newName: string,
+  ) {
     // Walk descendants and replace identifier text when it matches oldName
     scopeNode.forEachDescendant((n) => {
       try {
         // look for identifiers (VariableDeclaration, Identifier nodes)
-        if ((n.getKind && n.getKind() === SyntaxKind.Identifier) || (n.getText && n.getText() === oldName)) {
+        if (
+          (n.getKind && n.getKind() === SyntaxKind.Identifier) ||
+          (n.getText && n.getText() === oldName)
+        ) {
           if (n.getText() === oldName) {
             n.replaceWithText(newName);
           }
@@ -289,24 +387,36 @@ export class ASTModifier {
   }
 
   private async updateMethodSignature(node: Node, newSignature: string) {
-    if (Node.isFunctionDeclaration(node) || Node.isMethodDeclaration(node) || Node.isArrowFunction(node) || Node.isFunctionExpression(node)) {
+    if (
+      Node.isFunctionDeclaration(node) ||
+      Node.isMethodDeclaration(node) ||
+      Node.isArrowFunction(node) ||
+      Node.isFunctionExpression(node)
+    ) {
       try {
         // attempt to set parameters by replacing the signature portion
-        const bodyText = node.getFirstChildByKind(SyntaxKind.Block)?.getText() ?? '{}';
+        const bodyText =
+          node.getFirstChildByKind(SyntaxKind.Block)?.getText() ?? '{}';
         const name = (node as any).getName ? (node as any).getName() : '';
         const replaceText = `${name}(${newSignature}) ${bodyText}`;
         // replace whole node with new signature + body (safer than trying to mutate params)
         node.replaceWithText(replaceText);
       } catch {
         // fallback: naive text replace
-        node.replaceWithText(node.getText().replace(/\([^\)]*\)/, `(${newSignature})`));
+        node.replaceWithText(
+          node.getText().replace(/\([^\)]*\)/, `(${newSignature})`),
+        );
       }
     } else {
       // not a function -> ignore
     }
   }
 
-  private async insertStatementIntoFunction(node: Node, stmtCode: string, atEnd = true) {
+  private async insertStatementIntoFunction(
+    node: Node,
+    stmtCode: string,
+    atEnd = true,
+  ) {
     // If node is a function or method, insert into its body
     const block = node.getFirstChildByKind(SyntaxKind.Block);
     if (block && (block as any).insertStatements) {
@@ -317,7 +427,9 @@ export class ASTModifier {
     }
 
     // fallback: replace node text by injecting before/after
-    const text = atEnd ? `${node.getText()}\n${stmtCode}` : `${stmtCode}\n${node.getText()}`;
+    const text = atEnd
+      ? `${node.getText()}\n${stmtCode}`
+      : `${stmtCode}\n${node.getText()}`;
     node.replaceWithText(text);
   }
 }

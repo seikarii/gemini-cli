@@ -23,6 +23,7 @@ import {
 import { cpLen } from '../../utils/textUtils.js';
 
 const initialState: TextBufferState = {
+  viewportWidth: 80,
   lines: [''],
   cursorRow: 0,
   cursorCol: 0,
@@ -1485,12 +1486,11 @@ describe('textBufferReducer vim operations', () => {
         cursorRow: 1,
         cursorCol: 2,
         preferredCol: null,
-        visualLines: [['line1'], ['line2'], ['line3']],
-        visualScrollRow: 0,
-        visualCursor: { row: 1, col: 2 },
-        viewport: { width: 10, height: 5 },
+        viewportWidth: 10,
         undoStack: [],
         redoStack: [],
+        clipboard: null,
+        selectionAnchor: null,
       };
 
       const action: TextBufferAction = {
@@ -1513,12 +1513,11 @@ describe('textBufferReducer vim operations', () => {
         cursorRow: 1,
         cursorCol: 0,
         preferredCol: null,
-        visualLines: [['line1'], ['line2'], ['line3'], ['line4']],
-        visualScrollRow: 0,
-        visualCursor: { row: 1, col: 0 },
-        viewport: { width: 10, height: 5 },
+        viewportWidth: 10,
         undoStack: [],
         redoStack: [],
+        clipboard: null,
+        selectionAnchor: null,
       };
 
       const action: TextBufferAction = {
@@ -1541,12 +1540,11 @@ describe('textBufferReducer vim operations', () => {
         cursorRow: 0,
         cursorCol: 5,
         preferredCol: null,
-        visualLines: [['only line']],
-        visualScrollRow: 0,
-        visualCursor: { row: 0, col: 5 },
-        viewport: { width: 10, height: 5 },
+        viewportWidth: 10,
         undoStack: [],
         redoStack: [],
+        clipboard: null,
+        selectionAnchor: null,
       };
 
       const action: TextBufferAction = {
@@ -1569,12 +1567,11 @@ describe('textBufferReducer vim operations', () => {
         cursorRow: 1,
         cursorCol: 0,
         preferredCol: null,
-        visualLines: [['line1'], ['line2']],
-        visualScrollRow: 0,
-        visualCursor: { row: 1, col: 0 },
-        viewport: { width: 10, height: 5 },
+        viewportWidth: 10,
         undoStack: [],
         redoStack: [],
+        clipboard: null,
+        selectionAnchor: null,
       };
 
       const action: TextBufferAction = {
@@ -1597,12 +1594,11 @@ describe('textBufferReducer vim operations', () => {
         cursorRow: 0,
         cursorCol: 0,
         preferredCol: null,
-        visualLines: [['line1'], ['line2'], ['line3'], ['line4']],
-        visualScrollRow: 0,
-        visualCursor: { row: 0, col: 0 },
-        viewport: { width: 10, height: 5 },
+        viewportWidth: 10,
         undoStack: [],
         redoStack: [],
+        clipboard: null,
+        selectionAnchor: null,
       };
 
       // Delete all 4 lines with 4dd

@@ -5,7 +5,10 @@
  */
 
 import * as path from 'path';
-import { FileSystemService, FileOperationResult } from '../services/fileSystemService.js';
+import {
+  FileSystemService,
+  FileOperationResult,
+} from '../services/fileSystemService.js';
 
 /**
  * Creates a timestamped backup of a given file.
@@ -15,7 +18,7 @@ import { FileSystemService, FileOperationResult } from '../services/fileSystemSe
  */
 export async function createFileBackup(
   filePath: string,
-  fileSystemService: FileSystemService
+  fileSystemService: FileSystemService,
 ): Promise<string> {
   const timestamp = new Date().toISOString().replace(/[:.-]/g, ''); // YYYYMMDDTHHMMSSsssZ
   const randomSuffix = Math.random().toString(36).substring(2, 8); // Short random string
@@ -26,7 +29,10 @@ export async function createFileBackup(
   const backupFileName = `${base}${ext}.backup_${timestamp}_${randomSuffix}`;
   const backupPath = path.join(dir, backupFileName);
 
-  const result: FileOperationResult = await fileSystemService.copyFile(filePath, backupPath);
+  const result: FileOperationResult = await fileSystemService.copyFile(
+    filePath,
+    backupPath,
+  );
 
   if (!result.success) {
     throw new Error(`Failed to create backup of ${filePath}: ${result.error}`);

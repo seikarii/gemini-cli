@@ -23,9 +23,7 @@ export class AcpFileSystemService implements FileSystemService {
     private readonly fallback: FileSystemService,
   ) {}
 
-  async readTextFile(
-    filePath: string,
-  ): Promise<FileOperationResult<string>> {
+  async readTextFile(filePath: string): Promise<FileOperationResult<string>> {
     if (!this.capabilities.readTextFile) {
       return this.fallback.readTextFile(filePath);
     }
@@ -95,7 +93,7 @@ export class AcpFileSystemService implements FileSystemService {
 
   createDirectory(
     dirPath: string,
-    options?: {recursive?: boolean},
+    options?: { recursive?: boolean },
   ): Promise<FileOperationResult> {
     return this.fallback.createDirectory(dirPath, options);
   }
@@ -106,7 +104,7 @@ export class AcpFileSystemService implements FileSystemService {
 
   deleteDirectory(
     dirPath: string,
-    options?: {recursive?: boolean},
+    options?: { recursive?: boolean },
   ): Promise<FileOperationResult> {
     return this.fallback.deleteDirectory(dirPath, options);
   }
@@ -133,7 +131,7 @@ export class AcpFileSystemService implements FileSystemService {
 
   listDirectoryRecursive(
     dirPath: string,
-    options?: {maxDepth?: number; includeDirectories?: boolean},
+    options?: { maxDepth?: number; includeDirectories?: boolean },
   ): Promise<FileOperationResult<string[]>> {
     return this.fallback.listDirectoryRecursive(dirPath, options);
   }
@@ -146,7 +144,7 @@ export class AcpFileSystemService implements FileSystemService {
     return this.fallback.clearCache(filePath);
   }
 
-  getCacheStats(): {size: number; hitRate: number; totalRequests: number} {
+  getCacheStats(): { size: number; hitRate: number; totalRequests: number } {
     return this.fallback.getCacheStats();
   }
 }

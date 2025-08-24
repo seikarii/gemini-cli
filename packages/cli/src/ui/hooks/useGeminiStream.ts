@@ -822,8 +822,6 @@ export const useGeminiStream = (
 
       markToolsAsSubmitted(callIdsToMarkAsSubmitted);
 
-      
-
       submitQuery(
         responsesToSend,
         {

@@ -12,8 +12,15 @@ import {
   ToolResult,
 } from './tools.js';
 import { Config } from '../config/config.js';
-import { parseSourceToSourceFile, extractIntentionsFromSourceFile } from '../ast/parser.js';
-import { ASTQuery, DictionaryQuery, ASTQuery as _ASTQuery } from '../ast/models.js';
+import {
+  parseSourceToSourceFile,
+  extractIntentionsFromSourceFile,
+} from '../ast/parser.js';
+import {
+  ASTQuery,
+  DictionaryQuery,
+  ASTQuery as _ASTQuery,
+} from '../ast/models.js';
 
 // Modifier imports
 import { ASTModifier } from '../ast/modifier.js';
@@ -25,7 +32,11 @@ import { Node } from 'ts-morph';
  * Very small, dependency-free line-oriented unified-ish diff generator.
  * Not perfect, but returns a readable diff for preview mode without adding deps.
  */
-function generateSimpleLineDiff(oldText: string, newText: string, filePath: string) {
+function generateSimpleLineDiff(
+  oldText: string,
+  newText: string,
+  filePath: string,
+) {
   const oldLines = oldText.split(/\r\n|\r|\n/);
   const newLines = newText.split(/\r\n|\r|\n/);
   const max = Math.max(oldLines.length, newLines.length);
@@ -57,8 +68,14 @@ export interface ASTReadToolParams {
   file_path: string;
 }
 
-class ASTReadToolInvocation extends BaseToolInvocation<ASTReadToolParams, ToolResult> {
-  constructor(private readonly config: Config, private readonly toolParams: ASTReadToolParams) {
+class ASTReadToolInvocation extends BaseToolInvocation<
+  ASTReadToolParams,
+  ToolResult
+> {
+  constructor(
+    private readonly config: Config,
+    private readonly toolParams: ASTReadToolParams,
+  ) {
     super(toolParams);
   }
 
@@ -78,7 +95,10 @@ class ASTReadToolInvocation extends BaseToolInvocation<ASTReadToolParams, ToolRe
       };
     }
 
-    const sourceFile = parseSourceToSourceFile(file_path, readResult.data!)?.sourceFile;
+    const sourceFile = parseSourceToSourceFile(
+      file_path,
+      readResult.data!,
+    )?.sourceFile;
     if (!sourceFile) {
       return {
         llmContent: `Error: Could not parse file: ${file_path}`,
@@ -94,7 +114,10 @@ class ASTReadToolInvocation extends BaseToolInvocation<ASTReadToolParams, ToolRe
   }
 }
 
-export class ASTReadTool extends BaseDeclarativeTool<ASTReadToolParams, ToolResult> {
+export class ASTReadTool extends BaseDeclarativeTool<
+  ASTReadToolParams,
+  ToolResult
+> {
   static readonly Name = 'ast_read';
 
   constructor(private readonly config: Config) {
@@ -106,17 +129,19 @@ export class ASTReadTool extends BaseDeclarativeTool<ASTReadToolParams, ToolResu
       {
         properties: {
           file_path: {
-            description: "The absolute path to the file to analyze.",
+            description: 'The absolute path to the file to analyze.',
             type: 'string',
           },
         },
         required: ['file_path'],
         type: 'object',
-      }
+      },
     );
   }
 
-  protected createInvocation(params: ASTReadToolParams): ToolInvocation<ASTReadToolParams, ToolResult> {
+  protected createInvocation(
+    params: ASTReadToolParams,
+  ): ToolInvocation<ASTReadToolParams, ToolResult> {
     return new ASTReadToolInvocation(this.config, params);
   }
 }
@@ -130,8 +155,14 @@ export interface ASTFindToolParams {
   query: ASTQuery | DictionaryQuery | string;
 }
 
-class ASTFindToolInvocation extends BaseToolInvocation<ASTFindToolParams, ToolResult> {
-  constructor(private readonly config: Config, private readonly toolParams: ASTFindToolParams) {
+class ASTFindToolInvocation extends BaseToolInvocation<
+  ASTFindToolParams,
+  ToolResult
+> {
+  constructor(
+    private readonly config: Config,
+    private readonly toolParams: ASTFindToolParams,
+  ) {
     super(toolParams);
   }
 
@@ -151,7 +182,10 @@ class ASTFindToolInvocation extends BaseToolInvocation<ASTFindToolParams, ToolRe
       };
     }
 
-    const sourceFile = parseSourceToSourceFile(file_path, readResult.data!)?.sourceFile;
+    const sourceFile = parseSourceToSourceFile(
+      file_path,
+      readResult.data!,
+    )?.sourceFile;
     if (!sourceFile) {
       return {
         llmContent: `Error: Could not parse file: ${file_path}`,
@@ -170,7 +204,9 @@ class ASTFindToolInvocation extends BaseToolInvocation<ASTFindToolParams, ToolRe
     const results = foundNodes.map((node: Node) => {
       return {
         kind: node.getKindName(),
-        text: node.getText().substring(0, 100) + (node.getText().length > 100 ? '...' : ''),
+        text:
+          node.getText().substring(0, 100) +
+          (node.getText().length > 100 ? '...' : ''),
         startLine: node.getStartLineNumber(),
         endLine: node.getEndLineNumber(),
       };
@@ -183,7 +219,10 @@ class ASTFindToolInvocation extends BaseToolInvocation<ASTFindToolParams, ToolRe
   }
 }
 
-export class ASTFindTool extends BaseDeclarativeTool<ASTFindToolParams, ToolResult> {
+export class ASTFindTool extends BaseDeclarativeTool<
+  ASTFindToolParams,
+  ToolResult
+> {
   static readonly Name = 'ast_find';
 
   constructor(private readonly config: Config) {
@@ -195,21 +234,24 @@ export class ASTFindTool extends BaseDeclarativeTool<ASTFindToolParams, ToolResu
       {
         properties: {
           file_path: {
-            description: "The absolute path to the file to search.",
+            description: 'The absolute path to the file to search.',
             type: 'string',
           },
           query: {
-            description: "A query to find nodes based on their properties. Accepts dictionary query, ComplexQuery, or XPath-like string.",
+            description:
+              'A query to find nodes based on their properties. Accepts dictionary query, ComplexQuery, or XPath-like string.',
             type: 'object',
           },
         },
         required: ['file_path', 'query'],
         type: 'object',
-      }
+      },
     );
   }
 
-  protected createInvocation(params: ASTFindToolParams): ToolInvocation<ASTFindToolParams, ToolResult> {
+  protected createInvocation(
+    params: ASTFindToolParams,
+  ): ToolInvocation<ASTFindToolParams, ToolResult> {
     return new ASTFindToolInvocation(this.config, params);
   }
 }
@@ -227,8 +269,14 @@ export interface ASTEditToolParams {
   create_backup?: boolean; // if false, skip creating backup (default true)
 }
 
-class ASTEditToolInvocation extends BaseToolInvocation<ASTEditToolParams, ToolResult> {
-  constructor(private readonly config: Config, private readonly toolParams: ASTEditToolParams) {
+class ASTEditToolInvocation extends BaseToolInvocation<
+  ASTEditToolParams,
+  ToolResult
+> {
+  constructor(
+    private readonly config: Config,
+    private readonly toolParams: ASTEditToolParams,
+  ) {
     super(toolParams);
   }
 
@@ -250,7 +298,10 @@ class ASTEditToolInvocation extends BaseToolInvocation<ASTEditToolParams, ToolRe
       };
     }
 
-    const sourceFile = parseSourceToSourceFile(file_path, readResult.data!)?.sourceFile;
+    const sourceFile = parseSourceToSourceFile(
+      file_path,
+      readResult.data!,
+    )?.sourceFile;
     if (!sourceFile) {
       return {
         llmContent: `Error: Could not parse file: ${file_path}`,
@@ -261,15 +312,17 @@ class ASTEditToolInvocation extends BaseToolInvocation<ASTEditToolParams, ToolRe
 
     if (foundNodes.length === 0) {
       return {
-        llmContent: 'Error: No nodes found matching the query. No changes made.',
-        returnDisplay: 'Error: No nodes found matching the query. No changes made.',
+        llmContent:
+          'Error: No nodes found matching the query. No changes made.',
+        returnDisplay:
+          'Error: No nodes found matching the query. No changes made.',
       };
     }
 
     if (foundNodes.length > 1) {
       return {
-        llmContent: `Error: Query is not specific enough. Found ${foundNodes.length} nodes. No changes made.`, 
-        returnDisplay: `Error: Query is not specific enough. Found ${foundNodes.length} nodes. No changes made.`, 
+        llmContent: `Error: Query is not specific enough. Found ${foundNodes.length} nodes. No changes made.`,
+        returnDisplay: `Error: Query is not specific enough. Found ${foundNodes.length} nodes. No changes made.`,
       };
     }
 
@@ -284,7 +337,11 @@ class ASTEditToolInvocation extends BaseToolInvocation<ASTEditToolParams, ToolRe
     ];
 
     // Ask modifier to format; it will always create an internal backup id.
-    const modResult = await modifier.applyModifications(readResult.data!, mods, { filePath: file_path, format: true });
+    const modResult = await modifier.applyModifications(
+      readResult.data!,
+      mods,
+      { filePath: file_path, format: true },
+    );
 
     if (!modResult.success) {
       return {
@@ -297,7 +354,11 @@ class ASTEditToolInvocation extends BaseToolInvocation<ASTEditToolParams, ToolRe
 
     if (preview) {
       // Return a compact diff instead of the full modified file
-      const diff = generateSimpleLineDiff(readResult.data!, newContent, file_path);
+      const diff = generateSimpleLineDiff(
+        readResult.data!,
+        newContent,
+        file_path,
+      );
       return {
         llmContent: `Preview diff (no file written). Backup id: ${modResult.backupId ?? 'n/a'}\n\n${diff}`,
         returnDisplay: `Preview diff (no file written). Backup id: ${modResult.backupId ?? 'n/a'}\n\n${diff}`,
@@ -314,13 +375,16 @@ class ASTEditToolInvocation extends BaseToolInvocation<ASTEditToolParams, ToolRe
     }
 
     return {
-      llmContent: `Successfully edited node in ${file_path} (backup: ${createBackup ? modResult.backupId ?? 'n/a' : 'skipped'})`,
-      returnDisplay: `Successfully edited node in ${file_path} (backup: ${createBackup ? modResult.backupId ?? 'n/a' : 'skipped'})`,
+      llmContent: `Successfully edited node in ${file_path} (backup: ${createBackup ? (modResult.backupId ?? 'n/a') : 'skipped'})`,
+      returnDisplay: `Successfully edited node in ${file_path} (backup: ${createBackup ? (modResult.backupId ?? 'n/a') : 'skipped'})`,
     };
   }
 }
 
-export class ASTEditTool extends BaseDeclarativeTool<ASTEditToolParams, ToolResult> {
+export class ASTEditTool extends BaseDeclarativeTool<
+  ASTEditToolParams,
+  ToolResult
+> {
   static readonly Name = 'ast_edit';
 
   constructor(private readonly config: Config) {
@@ -332,33 +396,38 @@ export class ASTEditTool extends BaseDeclarativeTool<ASTEditToolParams, ToolResu
       {
         properties: {
           file_path: {
-            description: "The absolute path to the file to edit.",
+            description: 'The absolute path to the file to edit.',
             type: 'string',
           },
           query: {
-            description: "The query to locate the single node to edit (DictionaryQuery, ComplexQuery, or XPath-like string).",
+            description:
+              'The query to locate the single node to edit (DictionaryQuery, ComplexQuery, or XPath-like string).',
             type: 'object',
           },
           new_text: {
-            description: "The new text to replace the found node with.",
+            description: 'The new text to replace the found node with.',
             type: 'string',
           },
           preview: {
-            description: "If true, return the modified content without writing the file.",
+            description:
+              'If true, return the modified content without writing the file.',
             type: 'boolean',
           },
           create_backup: {
-            description: "If false, skip creating a persistent backup when writing the file (default true).",
+            description:
+              'If false, skip creating a persistent backup when writing the file (default true).',
             type: 'boolean',
           },
         },
         required: ['file_path', 'query', 'new_text'],
         type: 'object',
-      }
+      },
     );
   }
 
-  protected createInvocation(params: ASTEditToolParams): ToolInvocation<ASTEditToolParams, ToolResult> {
+  protected createInvocation(
+    params: ASTEditToolParams,
+  ): ToolInvocation<ASTEditToolParams, ToolResult> {
     return new ASTEditToolInvocation(this.config, params);
   }
 }

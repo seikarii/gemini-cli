@@ -39,12 +39,17 @@ export interface ParseResult {
 /**
  * Simple defensive file size check.
  */
-export async function checkFileSize(filePath: string): Promise<{ ok: boolean; error?: string }> {
+export async function checkFileSize(
+  filePath: string,
+): Promise<{ ok: boolean; error?: string }> {
   try {
     const st = await fs.stat(filePath);
     const sizeMb = st.size / (1024 * 1024);
     if (sizeMb > MAX_FILE_SIZE_MB) {
-      return { ok: false, error: `File too large: ${sizeMb.toFixed(1)}MB (max ${MAX_FILE_SIZE_MB}MB)` };
+      return {
+        ok: false,
+        error: `File too large: ${sizeMb.toFixed(1)}MB (max ${MAX_FILE_SIZE_MB}MB)`,
+      };
     }
     return { ok: true };
   } catch (e: any) {
@@ -55,7 +60,9 @@ export async function checkFileSize(filePath: string): Promise<{ ok: boolean; er
 /**
  * Read file with encoding fallbacks (utf-8, latin1).
  */
-export async function readFileWithEncodingFallback(filePath: string): Promise<{ content: string | null; error: string | null }> {
+export async function readFileWithEncodingFallback(
+  filePath: string,
+): Promise<{ content: string | null; error: string | null }> {
   const encodings = ['utf8', 'latin1', 'cp1252'] as const;
   for (const enc of encodings) {
     try {
@@ -80,11 +87,21 @@ export async function readFileWithEncodingFallback(filePath: string): Promise<{ 
  * Uses a fresh Project (in-memory) so we do not affect disk.
  */
 // Internal implementation expects (source, filePath)
-function parseSourceToSourceFileImpl(source: string, filePath: string): { sourceFile?: SourceFile | null; error?: string | null } {
+function parseSourceToSourceFileImpl(
+  source: string,
+  filePath: string,
+): { sourceFile?: SourceFile | null; error?: string | null } {
   try {
-    const project = new Project({ useInMemoryFileSystem: true, compilerOptions: { allowJs: true } });
-    const normalizedPath = path.isAbsolute(filePath) ? filePath : path.resolve('/', filePath);
-    const sf = project.createSourceFile(normalizedPath, source, { overwrite: true });
+    const project = new Project({
+      useInMemoryFileSystem: true,
+      compilerOptions: { allowJs: true },
+    });
+    const normalizedPath = path.isAbsolute(filePath)
+      ? filePath
+      : path.resolve('/', filePath);
+    const sf = project.createSourceFile(normalizedPath, source, {
+      overwrite: true,
+    });
     return { sourceFile: sf, error: null };
   } catch (e: any) {
     return { sourceFile: null, error: `Parsing failed: ${String(e)}` };
@@ -95,15 +112,21 @@ function parseSourceToSourceFileImpl(source: string, filePath: string): { source
  * Compatibility wrapper for parseSourceToSourceFile.
  * Accepts either (source, filePath) or the older callers that pass (filePath, source).
  */
-export function parseSourceToSourceFile(a: string, b?: string): { sourceFile?: SourceFile | null; error?: string | null } {
+export function parseSourceToSourceFile(
+  a: string,
+  b?: string,
+): { sourceFile?: SourceFile | null; error?: string | null } {
   // If only one arg provided, treat it as source with missing filePath -> use virtual path
   if (b === undefined) {
     return parseSourceToSourceFileImpl(a, '/virtual-file.ts');
   }
 
   // Heuristic: if first arg contains a newline or semicolon, treat as source
-  const looksLikeSource = a.includes('\n') || a.includes(';') || a.includes('{');
-  const looksLikePath = b.includes('\n') === false && (a.startsWith('.') || a.startsWith('/') || a.match(/\\.[tj]s[x]?$/i));
+  const looksLikeSource =
+    a.includes('\n') || a.includes(';') || a.includes('{');
+  const looksLikePath =
+    b.includes('\n') === false &&
+    (a.startsWith('.') || a.startsWith('/') || a.match(/\\.[tj]s[x]?$/i));
 
   if (looksLikeSource && !looksLikePath) {
     return parseSourceToSourceFileImpl(a, b);
@@ -116,7 +139,10 @@ export function parseSourceToSourceFile(a: string, b?: string): { sourceFile?: S
 /**
  * Extract comments (line comments and block comments) and JSDoc blocks using regex + ts-morph where possible.
  */
-export function extractCommentsAndJsDoc(source: string, sourceFile?: SourceFile | null): { comments: string[]; jsdocs: string[] } {
+export function extractCommentsAndJsDoc(
+  source: string,
+  sourceFile?: SourceFile | null,
+): { comments: string[]; jsdocs: string[] } {
   const comments: string[] = [];
   const jsdocs: string[] = [];
 
@@ -157,7 +183,10 @@ export function extractCommentsAndJsDoc(source: string, sourceFile?: SourceFile 
             const js = (nd as any).getJsDocs ? (nd as any).getJsDocs() : [];
             if (Array.isArray(js) && js.length > 0) {
               for (const d of js) {
-                const txt = typeof d.getInnerText === 'function' ? d.getInnerText() : String(d.getText?.() ?? '');
+                const txt =
+                  typeof d.getInnerText === 'function'
+                    ? d.getInnerText()
+                    : String(d.getText?.() ?? '');
                 if (txt) jsdocs.push(txt.trim());
               }
             }
@@ -180,7 +209,9 @@ export function extractCommentsAndJsDoc(source: string, sourceFile?: SourceFile 
  * Extract intentions (functions, classes, imports, constants) from a ts-morph SourceFile.
  * Defensive: isolate node-level errors to avoid complete failure.
  */
-export function extractIntentionsFromSourceFile(sourceFile?: SourceFile | null): any {
+export function extractIntentionsFromSourceFile(
+  sourceFile?: SourceFile | null,
+): any {
   const intents: any = {
     functions: [],
     classes: [],
@@ -201,7 +232,10 @@ export function extractIntentionsFromSourceFile(sourceFile?: SourceFile | null):
         try {
           intents.imports.push({
             moduleSpecifier: imp.getModuleSpecifierValue(),
-            namedImports: imp.getNamedImports().map((n) => ({ name: n.getName(), alias: n.getAliasNode()?.getText?.() ?? undefined })),
+            namedImports: imp.getNamedImports().map((n) => ({
+              name: n.getName(),
+              alias: n.getAliasNode()?.getText?.() ?? undefined,
+            })),
             defaultImport: imp.getDefaultImport()?.getText?.() ?? undefined,
             namespaceImport: imp.getNamespaceImport()?.getText?.() ?? undefined,
           });
@@ -223,7 +257,11 @@ export function extractIntentionsFromSourceFile(sourceFile?: SourceFile | null):
             isAsync: f.isAsync?.() ?? false,
             startLine: f.getStartLineNumber?.() ?? null,
             endLine: f.getEndLineNumber?.() ?? null,
-            params: f.getParameters?.().map((p: any) => ({ name: p.getName?.(), type: p.getType?.().getText?.() ?? '' })) ?? [],
+            params:
+              f.getParameters?.().map((p: any) => ({
+                name: p.getName?.(),
+                type: p.getType?.().getText?.() ?? '',
+              })) ?? [],
           });
         } catch (e: any) {
           intents.parsingErrors.push(`function node error: ${String(e)}`);
@@ -243,7 +281,11 @@ export function extractIntentionsFromSourceFile(sourceFile?: SourceFile | null):
             isExported: c.isExported?.() ?? false,
             startLine: c.getStartLineNumber?.() ?? null,
             endLine: c.getEndLineNumber?.() ?? null,
-            methods: c.getMethods?.().map((m: any) => ({ name: m.getName?.(), isAsync: m.isAsync?.() ?? false })) ?? [],
+            methods:
+              c.getMethods?.().map((m: any) => ({
+                name: m.getName?.(),
+                isAsync: m.isAsync?.() ?? false,
+              })) ?? [],
           });
         } catch (e: any) {
           intents.parsingErrors.push(`class node error: ${String(e)}`);
@@ -278,7 +320,9 @@ export function extractIntentionsFromSourceFile(sourceFile?: SourceFile | null):
                 });
               }
             } catch (e: any) {
-              intents.parsingErrors.push(`variable declaration error: ${String(e)}`);
+              intents.parsingErrors.push(
+                `variable declaration error: ${String(e)}`,
+              );
             }
           }
         } catch (e: any) {
@@ -309,7 +353,9 @@ export function extractIntentionsFromSourceFile(sourceFile?: SourceFile | null):
       // ignore
     }
   } catch (e: any) {
-    intents.parsingErrors.push(`intentions overall extraction failed: ${String(e)}`);
+    intents.parsingErrors.push(
+      `intentions overall extraction failed: ${String(e)}`,
+    );
   }
 
   return intents;
@@ -354,14 +400,20 @@ export async function readAndParseFile(filePath: string): Promise<ParseResult> {
     result.fileInfo.sizeBytes = Buffer.byteLength(content, 'utf8');
     result.fileInfo.lineCount = content.split(/\r\n|\r|\n/).length;
 
-    const { sourceFile, error: parseErr } = parseSourceToSourceFile(content, resolved);
+    const { sourceFile, error: parseErr } = parseSourceToSourceFile(
+      content,
+      resolved,
+    );
     if (parseErr) {
       result.parseError = parseErr;
       // continue with partial extraction where possible
     }
     result.sourceFile = sourceFile ?? null;
 
-    const { comments, jsdocs } = extractCommentsAndJsDoc(content, sourceFile ?? null);
+    const { comments, jsdocs } = extractCommentsAndJsDoc(
+      content,
+      sourceFile ?? null,
+    );
     result.comments = comments;
     result.jsdocs = jsdocs;
 
@@ -391,7 +443,13 @@ export class ASTReader {
   description =
     'Reads JS/TS files, parses them into an AST, extracts structural information and comments with defensive parsing.';
 
-  async execute(params: ASTReaderParams): Promise<{ success: boolean; output: string; metadata?: any; errorMessage?: string; executionTime?: number }> {
+  async execute(params: ASTReaderParams): Promise<{
+    success: boolean;
+    output: string;
+    metadata?: any;
+    errorMessage?: string;
+    executionTime?: number;
+  }> {
     const start = Date.now();
     try {
       const filePath = params.filePath;
@@ -400,7 +458,9 @@ export class ASTReader {
       const parts: string[] = [];
       parts.push(`📄 AST READER RESULTS`);
       parts.push(`File: ${r.fileInfo.path}`);
-      parts.push(`Size: ${r.fileInfo.sizeBytes} bytes (${r.fileInfo.lineCount} lines)`);
+      parts.push(
+        `Size: ${r.fileInfo.sizeBytes} bytes (${r.fileInfo.lineCount} lines)`,
+      );
       parts.push(`Processing Time: ${r.fileInfo.processingTimeMs}ms`);
 
       if (r.parseError) {
@@ -411,23 +471,39 @@ export class ASTReader {
 
       const intents = r.intentions || {};
       if (intents && !intents.extraction_error) {
-        const fnCount = Array.isArray(intents.functions) ? intents.functions.length : 0;
-        const clsCount = Array.isArray(intents.classes) ? intents.classes.length : 0;
-        const impCount = Array.isArray(intents.imports) ? intents.imports.length : 0;
-        parts.push(`📊 Extracted: ${fnCount} functions, ${clsCount} classes, ${impCount} imports`);
-        if (Array.isArray(intents.parsingErrors) && intents.parsingErrors.length > 0) {
-          parts.push(`⚠️ Partial Errors: ${intents.parsingErrors.length} node processing issues`);
+        const fnCount = Array.isArray(intents.functions)
+          ? intents.functions.length
+          : 0;
+        const clsCount = Array.isArray(intents.classes)
+          ? intents.classes.length
+          : 0;
+        const impCount = Array.isArray(intents.imports)
+          ? intents.imports.length
+          : 0;
+        parts.push(
+          `📊 Extracted: ${fnCount} functions, ${clsCount} classes, ${impCount} imports`,
+        );
+        if (
+          Array.isArray(intents.parsingErrors) &&
+          intents.parsingErrors.length > 0
+        ) {
+          parts.push(
+            `⚠️ Partial Errors: ${intents.parsingErrors.length} node processing issues`,
+          );
         }
       }
 
-      parts.push(`💬 Documentation: ${r.comments.length} comments, ${r.jsdocs.length} JSDoc blocks`);
+      parts.push(
+        `💬 Documentation: ${r.comments.length} comments, ${r.jsdocs.length} JSDoc blocks`,
+      );
 
       const output = parts.join('\n');
 
       const metadata: any = {
         fileInfo: r.fileInfo,
         parseError: r.parseError,
-        intentions: params.extractIntentions === false ? undefined : r.intentions,
+        intentions:
+          params.extractIntentions === false ? undefined : r.intentions,
         comments: params.extractComments === false ? undefined : r.comments,
         jsdocs: params.extractComments === false ? undefined : r.jsdocs,
       };

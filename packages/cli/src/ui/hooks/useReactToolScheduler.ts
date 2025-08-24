@@ -142,7 +142,7 @@ export function useReactToolScheduler(
       getPreferredEditor,
       config,
       onEditorClose,
-      loopDetectionService: loopService,
+  loopDetectionService: loopService,
     });
   }, [
     config,

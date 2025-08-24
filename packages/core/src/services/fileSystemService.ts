@@ -7,7 +7,6 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-
 /**
  * Configuration options for file system operations
  */
@@ -81,20 +80,55 @@ interface FileCacheEntry {
  * Enhanced file system service interface following Crisalida patterns
  */
 export interface FileSystemService {
-  readTextFile(filePath: string, options?: FileSystemOptions): Promise<FileOperationResult<string>>;
-  writeTextFile(filePath: string, content: string, options?: FileSystemOptions): Promise<FileOperationResult>;
-  appendTextFile(filePath: string, content: string, options?: FileSystemOptions): Promise<FileOperationResult>;
-  readBinaryFile(filePath: string, options?: FileSystemOptions): Promise<FileOperationResult<Buffer>>;
-  writeBinaryFile(filePath: string, data: Buffer, options?: FileSystemOptions): Promise<FileOperationResult>;
+  readTextFile(
+    filePath: string,
+    options?: FileSystemOptions,
+  ): Promise<FileOperationResult<string>>;
+  writeTextFile(
+    filePath: string,
+    content: string,
+    options?: FileSystemOptions,
+  ): Promise<FileOperationResult>;
+  appendTextFile(
+    filePath: string,
+    content: string,
+    options?: FileSystemOptions,
+  ): Promise<FileOperationResult>;
+  readBinaryFile(
+    filePath: string,
+    options?: FileSystemOptions,
+  ): Promise<FileOperationResult<Buffer>>;
+  writeBinaryFile(
+    filePath: string,
+    data: Buffer,
+    options?: FileSystemOptions,
+  ): Promise<FileOperationResult>;
   exists(filePath: string): Promise<boolean>;
   getFileInfo(filePath: string): Promise<FileOperationResult<FileInfo>>;
-  createDirectory(dirPath: string, options?: { recursive?: boolean }): Promise<FileOperationResult>;
+  createDirectory(
+    dirPath: string,
+    options?: { recursive?: boolean },
+  ): Promise<FileOperationResult>;
   deleteFile(filePath: string): Promise<FileOperationResult>;
-  deleteDirectory(dirPath: string, options?: { recursive?: boolean }): Promise<FileOperationResult>;
-  copyFile(sourcePath: string, destPath: string, options?: FileSystemOptions): Promise<FileOperationResult>;
-  moveFile(sourcePath: string, destPath: string, options?: FileSystemOptions): Promise<FileOperationResult>;
+  deleteDirectory(
+    dirPath: string,
+    options?: { recursive?: boolean },
+  ): Promise<FileOperationResult>;
+  copyFile(
+    sourcePath: string,
+    destPath: string,
+    options?: FileSystemOptions,
+  ): Promise<FileOperationResult>;
+  moveFile(
+    sourcePath: string,
+    destPath: string,
+    options?: FileSystemOptions,
+  ): Promise<FileOperationResult>;
   listDirectory(dirPath: string): Promise<FileOperationResult<string[]>>;
-  listDirectoryRecursive(dirPath: string, options?: { maxDepth?: number; includeDirectories?: boolean }): Promise<FileOperationResult<string[]>>;
+  listDirectoryRecursive(
+    dirPath: string,
+    options?: { maxDepth?: number; includeDirectories?: boolean },
+  ): Promise<FileOperationResult<string[]>>;
   isPathSafe(filePath: string, allowedRoots?: string[]): boolean;
   clearCache(filePath?: string): void;
   getCacheStats(): { size: number; hitRate: number; totalRequests: number };
@@ -103,7 +137,7 @@ export interface FileSystemService {
 /**
  * Robust file system service implementation with self-validating cache,
  * comprehensive error handling, and defensive programming patterns.
- * 
+ *
  * Features:
  * - Self-validating in-memory cache with mtime verification
  * - Path traversal protection
@@ -116,7 +150,9 @@ export interface FileSystemService {
  * - Cache statistics and management
  */
 export class StandardFileSystemService implements FileSystemService {
-  private readonly defaultOptions: Required<Omit<FileSystemOptions, 'bypassCache' | 'maxCacheEntries'>> = {
+  private readonly defaultOptions: Required<
+    Omit<FileSystemOptions, 'bypassCache' | 'maxCacheEntries'>
+  > = {
     encoding: 'utf-8',
     timeout: 30000,
     createDirectories: true,
@@ -155,7 +191,7 @@ export class StandardFileSystemService implements FileSystemService {
 
       // Validate against allowed roots if specified
       if (allowedRoots.length > 0) {
-        const isInAllowedRoot = allowedRoots.some(root => {
+        const isInAllowedRoot = allowedRoots.some((root) => {
           const normalizedRoot = path.resolve(root);
           return normalizedPath.startsWith(normalizedRoot);
         });
@@ -166,7 +202,9 @@ export class StandardFileSystemService implements FileSystemService {
 
       // Prevent access to system directories (basic protection)
       const systemDirs = ['/etc', '/proc', '/sys', '/dev', '/root'];
-      const isSystemDir = systemDirs.some(dir => normalizedPath.startsWith(dir));
+      const isSystemDir = systemDirs.some((dir) =>
+        normalizedPath.startsWith(dir),
+      );
       if (isSystemDir && process.platform !== 'win32') {
         return false;
       }
@@ -183,7 +221,7 @@ export class StandardFileSystemService implements FileSystemService {
   private async withTimeout<T>(
     operation: Promise<T>,
     timeoutMs: number,
-    operationName: string
+    operationName: string,
   ): Promise<T> {
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
@@ -197,13 +235,18 @@ export class StandardFileSystemService implements FileSystemService {
   /**
    * Validate file size against limits
    */
-  private async validateFileSize(filePath: string, maxSize: number): Promise<void> {
+  private async validateFileSize(
+    filePath: string,
+    maxSize: number,
+  ): Promise<void> {
     try {
       const stats = await fs.stat(filePath);
       if (stats.size > maxSize) {
-        throw new Error(`File size ${stats.size} bytes exceeds maximum allowed ${maxSize} bytes`);
+        throw new Error(
+          `File size ${stats.size} bytes exceeds maximum allowed ${maxSize} bytes`,
+        );
       }
-        } catch (_error) {
+    } catch (_error) {
       if ((_error as NodeJS.ErrnoException).code !== 'ENOENT') {
         throw _error;
       }
@@ -220,7 +263,9 @@ export class StandardFileSystemService implements FileSystemService {
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       if (nodeError.code !== 'EEXIST') {
-        throw new Error(`Failed to create directory ${dirPath}: ${nodeError.message}`);
+        throw new Error(
+          `Failed to create directory ${dirPath}: ${nodeError.message}`,
+        );
       }
     }
   }
@@ -233,7 +278,7 @@ export class StandardFileSystemService implements FileSystemService {
     data?: T,
     error?: string,
     errorCode?: string,
-    metadata?: FileOperationResult<T>['metadata']
+    metadata?: FileOperationResult<T>['metadata'],
   ): FileOperationResult<T> {
     return {
       success,
@@ -258,14 +303,17 @@ export class StandardFileSystemService implements FileSystemService {
    * Get high-precision mtime for cache validation
    */
   private async getFileMtimeMs(filePath: string): Promise<number> {
-        const stats = await fs.stat(filePath);
+    const stats = await fs.stat(filePath);
     return stats.mtimeMs;
   }
 
   /**
    * Check if cached content is still valid by comparing mtime
    */
-  private async isCacheValid(filePath: string, cacheEntry: FileCacheEntry): Promise<boolean> {
+  private async isCacheValid(
+    filePath: string,
+    cacheEntry: FileCacheEntry,
+  ): Promise<boolean> {
     try {
       const currentMtimeMs = await this.getFileMtimeMs(filePath);
       return currentMtimeMs === cacheEntry.mtimeMs;
@@ -315,7 +363,7 @@ export class StandardFileSystemService implements FileSystemService {
   private async getCachedOrFreshContent(
     filePath: string,
     encoding: BufferEncoding,
-    bypassCache: boolean = false
+    bypassCache: boolean = false,
   ): Promise<{ content: string; cacheHit: boolean; mtimeMs: number }> {
     const normalizedPath = path.resolve(filePath);
     this.cacheStats.totalRequests++;
@@ -323,17 +371,17 @@ export class StandardFileSystemService implements FileSystemService {
     // Check cache if not bypassing
     if (!bypassCache && this.fileCache.has(normalizedPath)) {
       const cacheEntry = this.fileCache.get(normalizedPath)!;
-      
+
       // Validate cache entry encoding matches request
       if (cacheEntry.encoding === encoding) {
         const isValid = await this.isCacheValid(normalizedPath, cacheEntry);
-        
+
         if (isValid) {
           // Update access statistics
           cacheEntry.accessCount++;
           cacheEntry.lastAccessed = Date.now();
           this.cacheStats.hits++;
-          
+
           return {
             content: cacheEntry.content,
             cacheHit: true,
@@ -354,7 +402,7 @@ export class StandardFileSystemService implements FileSystemService {
     // Update cache (if not bypassing and file is cacheable)
     if (!bypassCache) {
       this.evictLeastRecentlyUsed();
-      
+
       const now = Date.now();
       this.fileCache.set(normalizedPath, {
         content,
@@ -390,12 +438,17 @@ export class StandardFileSystemService implements FileSystemService {
     const startTime = Date.now();
 
     if (!this.isPathSafe(filePath)) {
-      return this.createResult<FileInfo>(false, undefined, 'Unsafe file path detected', 'UNSAFE_PATH');
+      return this.createResult<FileInfo>(
+        false,
+        undefined,
+        'Unsafe file path detected',
+        'UNSAFE_PATH',
+      );
     }
 
     try {
       const stats = await fs.stat(filePath);
-      
+
       // Check permissions
       const permissions = {
         readable: false,
@@ -406,21 +459,21 @@ export class StandardFileSystemService implements FileSystemService {
       try {
         await fs.access(filePath, fs.constants.R_OK);
         permissions.readable = true;
-            } catch {
+      } catch {
         /* intentional */
       }
 
       try {
         await fs.access(filePath, fs.constants.W_OK);
         permissions.writable = true;
-            } catch {
+      } catch {
         /* intentional */
       }
 
       try {
         await fs.access(filePath, fs.constants.X_OK);
         permissions.executable = true;
-            } catch {
+      } catch {
         /* intentional */
       }
 
@@ -442,11 +495,10 @@ export class StandardFileSystemService implements FileSystemService {
         operationTime: Date.now() - startTime,
         mtimeMs: stats.mtimeMs,
       });
-
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       const errorCode = this.extractErrorCode(error);
-      
+
       if (nodeError.code === 'ENOENT') {
         const fileInfo: FileInfo = {
           path: filePath,
@@ -464,16 +516,29 @@ export class StandardFileSystemService implements FileSystemService {
         });
       }
 
-      return this.createResult<FileInfo>(false, undefined, `Failed to get file info: ${nodeError.message}`, errorCode);
+      return this.createResult<FileInfo>(
+        false,
+        undefined,
+        `Failed to get file info: ${nodeError.message}`,
+        errorCode,
+      );
     }
   }
 
-  async readTextFile(filePath: string, options: FileSystemOptions = {}): Promise<FileOperationResult<string>> {
+  async readTextFile(
+    filePath: string,
+    options: FileSystemOptions = {},
+  ): Promise<FileOperationResult<string>> {
     const startTime = Date.now();
     const opts = { ...this.defaultOptions, ...options };
 
     if (!this.isPathSafe(filePath)) {
-      return this.createResult<string>(false, undefined, 'Unsafe file path detected', 'UNSAFE_PATH');
+      return this.createResult<string>(
+        false,
+        undefined,
+        'Unsafe file path detected',
+        'UNSAFE_PATH',
+      );
     }
 
     try {
@@ -481,8 +546,16 @@ export class StandardFileSystemService implements FileSystemService {
       await this.validateFileSize(filePath, opts.maxFileSize);
 
       // Use self-validating cache
-      const operation = this.getCachedOrFreshContent(filePath, opts.encoding, options.bypassCache);
-      const result = await this.withTimeout(operation, opts.timeout, 'readTextFile');
+      const operation = this.getCachedOrFreshContent(
+        filePath,
+        opts.encoding,
+        options.bypassCache,
+      );
+      const result = await this.withTimeout(
+        operation,
+        opts.timeout,
+        'readTextFile',
+      );
 
       return this.createResult(true, result.content, undefined, undefined, {
         filePath,
@@ -492,7 +565,6 @@ export class StandardFileSystemService implements FileSystemService {
         cacheHit: result.cacheHit,
         mtimeMs: result.mtimeMs,
       });
-
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       const errorCode = this.extractErrorCode(error);
@@ -517,26 +589,46 @@ export class StandardFileSystemService implements FileSystemService {
           break;
       }
 
-      return this.createResult<string>(false, undefined, errorMessage, errorCode, {
-        filePath,
-        operationTime: Date.now() - startTime,
-      });
+      return this.createResult<string>(
+        false,
+        undefined,
+        errorMessage,
+        errorCode,
+        {
+          filePath,
+          operationTime: Date.now() - startTime,
+        },
+      );
     }
   }
 
-  async writeTextFile(filePath: string, content: string, options: FileSystemOptions = {}): Promise<FileOperationResult> {
+  async writeTextFile(
+    filePath: string,
+    content: string,
+    options: FileSystemOptions = {},
+  ): Promise<FileOperationResult> {
     const startTime = Date.now();
     const opts = { ...this.defaultOptions, ...options };
 
     if (!this.isPathSafe(filePath)) {
-      return this.createResult(false, undefined, 'Unsafe file path detected', 'UNSAFE_PATH');
+      return this.createResult(
+        false,
+        undefined,
+        'Unsafe file path detected',
+        'UNSAFE_PATH',
+      );
     }
 
     try {
       // Validate content size
       const contentSize = Buffer.byteLength(content, opts.encoding);
       if (contentSize > opts.maxFileSize) {
-        return this.createResult(false, undefined, `Content size ${contentSize} bytes exceeds maximum allowed ${opts.maxFileSize} bytes`, 'FILE_TOO_LARGE');
+        return this.createResult(
+          false,
+          undefined,
+          `Content size ${contentSize} bytes exceeds maximum allowed ${opts.maxFileSize} bytes`,
+          'FILE_TOO_LARGE',
+        );
       }
 
       // Create parent directories if needed
@@ -548,20 +640,20 @@ export class StandardFileSystemService implements FileSystemService {
       if (opts.atomicWrites) {
         // Atomic write: write to temporary file then rename
         const tempPath = `${filePath}.tmp.${Date.now()}.${Math.random().toString(36).substr(2, 9)}`;
-        
+
         try {
           const operation = fs.writeFile(tempPath, content, opts.encoding);
           await this.withTimeout(operation, opts.timeout, 'writeTextFile');
-          
+
           // Atomic rename
           await fs.rename(tempPath, filePath);
         } catch (error) {
           // Cleanup temp file on error
           try {
             await fs.unlink(tempPath);
-                } catch {
-        /* intentional */
-      }
+          } catch {
+            /* intentional */
+          }
           throw error;
         }
       } else {
@@ -579,7 +671,6 @@ export class StandardFileSystemService implements FileSystemService {
         operationTime: Date.now() - startTime,
         encoding: opts.encoding,
       });
-
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       const errorCode = this.extractErrorCode(error);
@@ -610,43 +701,67 @@ export class StandardFileSystemService implements FileSystemService {
     }
   }
 
-  async appendTextFile(filePath: string, content: string, options: FileSystemOptions = {}): Promise<FileOperationResult> {
+  async appendTextFile(
+    filePath: string,
+    content: string,
+    options: FileSystemOptions = {},
+  ): Promise<FileOperationResult> {
     const startTime = Date.now();
     const opts = { ...this.defaultOptions, ...options };
 
     if (!this.isPathSafe(filePath)) {
-      return this.createResult(false, undefined, 'Unsafe file path detected', 'UNSAFE_PATH');
+      return this.createResult(
+        false,
+        undefined,
+        'Unsafe file path detected',
+        'UNSAFE_PATH',
+      );
     }
 
     try {
       // Read existing content (using cache if valid)
       let existingContent = '';
       const fileExists = await this.exists(filePath);
-      
+
       if (fileExists) {
-        const readResult = await this.readTextFile(filePath, { 
-          ...options, 
-          encoding: opts.encoding 
+        const readResult = await this.readTextFile(filePath, {
+          ...options,
+          encoding: opts.encoding,
         });
         if (!readResult.success) {
-          return this.createResult(false, undefined, `Failed to read existing content: ${readResult.error}`, readResult.errorCode);
+          return this.createResult(
+            false,
+            undefined,
+            `Failed to read existing content: ${readResult.error}`,
+            readResult.errorCode,
+          );
         }
         existingContent = readResult.data || '';
       }
 
       // Prepare new content with proper line ending
-      const needsNewline = existingContent.length > 0 && !existingContent.endsWith('\n');
+      const needsNewline =
+        existingContent.length > 0 && !existingContent.endsWith('\n');
       const newContent = existingContent + (needsNewline ? '\n' : '') + content;
 
       // Validate total content size
       const totalSize = Buffer.byteLength(newContent, opts.encoding);
       if (totalSize > opts.maxFileSize) {
-        return this.createResult(false, undefined, `Total content size ${totalSize} bytes exceeds maximum allowed ${opts.maxFileSize} bytes`, 'FILE_TOO_LARGE');
+        return this.createResult(
+          false,
+          undefined,
+          `Total content size ${totalSize} bytes exceeds maximum allowed ${opts.maxFileSize} bytes`,
+          'FILE_TOO_LARGE',
+        );
       }
 
       // Write the combined content atomically
-      const writeResult = await this.writeTextFile(filePath, newContent, options);
-      
+      const writeResult = await this.writeTextFile(
+        filePath,
+        newContent,
+        options,
+      );
+
       if (writeResult.success) {
         return this.createResult(true, undefined, undefined, undefined, {
           filePath,
@@ -657,60 +772,96 @@ export class StandardFileSystemService implements FileSystemService {
       } else {
         return writeResult;
       }
-
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       const errorCode = this.extractErrorCode(error);
-      
-      return this.createResult(false, undefined, `Failed to append to file: ${nodeError.message}`, errorCode, {
-        filePath,
-        operationTime: Date.now() - startTime,
-      });
+
+      return this.createResult(
+        false,
+        undefined,
+        `Failed to append to file: ${nodeError.message}`,
+        errorCode,
+        {
+          filePath,
+          operationTime: Date.now() - startTime,
+        },
+      );
     }
   }
 
-  async readBinaryFile(filePath: string, options: FileSystemOptions = {}): Promise<FileOperationResult<Buffer>> {
+  async readBinaryFile(
+    filePath: string,
+    options: FileSystemOptions = {},
+  ): Promise<FileOperationResult<Buffer>> {
     const startTime = Date.now();
     const opts = { ...this.defaultOptions, ...options };
 
     if (!this.isPathSafe(filePath)) {
-      return this.createResult<Buffer>(false, undefined, 'Unsafe file path detected', 'UNSAFE_PATH');
+      return this.createResult<Buffer>(
+        false,
+        undefined,
+        'Unsafe file path detected',
+        'UNSAFE_PATH',
+      );
     }
 
     try {
       await this.validateFileSize(filePath, opts.maxFileSize);
 
       const operation = fs.readFile(filePath);
-      const buffer = await this.withTimeout(operation, opts.timeout, 'readBinaryFile');
+      const buffer = await this.withTimeout(
+        operation,
+        opts.timeout,
+        'readBinaryFile',
+      );
 
       return this.createResult(true, buffer, undefined, undefined, {
         filePath,
         fileSize: buffer.length,
         operationTime: Date.now() - startTime,
       });
-
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       const errorCode = this.extractErrorCode(error);
-      
-      return this.createResult<Buffer>(false, undefined, `Failed to read binary file: ${nodeError.message}`, errorCode, {
-        filePath,
-        operationTime: Date.now() - startTime,
-      });
+
+      return this.createResult<Buffer>(
+        false,
+        undefined,
+        `Failed to read binary file: ${nodeError.message}`,
+        errorCode,
+        {
+          filePath,
+          operationTime: Date.now() - startTime,
+        },
+      );
     }
   }
 
-  async writeBinaryFile(filePath: string, data: Buffer, options: FileSystemOptions = {}): Promise<FileOperationResult> {
+  async writeBinaryFile(
+    filePath: string,
+    data: Buffer,
+    options: FileSystemOptions = {},
+  ): Promise<FileOperationResult> {
     const startTime = Date.now();
     const opts = { ...this.defaultOptions, ...options };
 
     if (!this.isPathSafe(filePath)) {
-      return this.createResult(false, undefined, 'Unsafe file path detected', 'UNSAFE_PATH');
+      return this.createResult(
+        false,
+        undefined,
+        'Unsafe file path detected',
+        'UNSAFE_PATH',
+      );
     }
 
     try {
       if (data.length > opts.maxFileSize) {
-        return this.createResult(false, undefined, `Data size ${data.length} bytes exceeds maximum allowed ${opts.maxFileSize} bytes`, 'FILE_TOO_LARGE');
+        return this.createResult(
+          false,
+          undefined,
+          `Data size ${data.length} bytes exceeds maximum allowed ${opts.maxFileSize} bytes`,
+          'FILE_TOO_LARGE',
+        );
       }
 
       if (opts.createDirectories) {
@@ -720,7 +871,7 @@ export class StandardFileSystemService implements FileSystemService {
 
       if (opts.atomicWrites) {
         const tempPath = `${filePath}.tmp.${Date.now()}.${Math.random().toString(36).substr(2, 9)}`;
-        
+
         try {
           const operation = fs.writeFile(tempPath, data);
           await this.withTimeout(operation, opts.timeout, 'writeBinaryFile');
@@ -728,9 +879,9 @@ export class StandardFileSystemService implements FileSystemService {
         } catch (error) {
           try {
             await fs.unlink(tempPath);
-                } catch {
-        /* intentional */
-      }
+          } catch {
+            /* intentional */
+          }
           throw error;
         }
       } else {
@@ -746,23 +897,36 @@ export class StandardFileSystemService implements FileSystemService {
         fileSize: data.length,
         operationTime: Date.now() - startTime,
       });
-
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       const errorCode = this.extractErrorCode(error);
-      
-      return this.createResult(false, undefined, `Failed to write binary file: ${nodeError.message}`, errorCode, {
-        filePath,
-        operationTime: Date.now() - startTime,
-      });
+
+      return this.createResult(
+        false,
+        undefined,
+        `Failed to write binary file: ${nodeError.message}`,
+        errorCode,
+        {
+          filePath,
+          operationTime: Date.now() - startTime,
+        },
+      );
     }
   }
 
-  async createDirectory(dirPath: string, options: { recursive?: boolean } = {}): Promise<FileOperationResult> {
+  async createDirectory(
+    dirPath: string,
+    options: { recursive?: boolean } = {},
+  ): Promise<FileOperationResult> {
     const startTime = Date.now();
 
     if (!this.isPathSafe(dirPath)) {
-      return this.createResult(false, undefined, 'Unsafe directory path detected', 'UNSAFE_PATH');
+      return this.createResult(
+        false,
+        undefined,
+        'Unsafe directory path detected',
+        'UNSAFE_PATH',
+      );
     }
 
     try {
@@ -772,11 +936,10 @@ export class StandardFileSystemService implements FileSystemService {
         filePath: dirPath,
         operationTime: Date.now() - startTime,
       });
-
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       const errorCode = this.extractErrorCode(error);
-      
+
       if (nodeError.code === 'EEXIST') {
         return this.createResult(true, undefined, undefined, undefined, {
           filePath: dirPath,
@@ -784,10 +947,16 @@ export class StandardFileSystemService implements FileSystemService {
         });
       }
 
-      return this.createResult(false, undefined, `Failed to create directory: ${nodeError.message}`, errorCode, {
-        filePath: dirPath,
-        operationTime: Date.now() - startTime,
-      });
+      return this.createResult(
+        false,
+        undefined,
+        `Failed to create directory: ${nodeError.message}`,
+        errorCode,
+        {
+          filePath: dirPath,
+          operationTime: Date.now() - startTime,
+        },
+      );
     }
   }
 
@@ -795,12 +964,17 @@ export class StandardFileSystemService implements FileSystemService {
     const startTime = Date.now();
 
     if (!this.isPathSafe(filePath)) {
-      return this.createResult(false, undefined, 'Unsafe file path detected', 'UNSAFE_PATH');
+      return this.createResult(
+        false,
+        undefined,
+        'Unsafe file path detected',
+        'UNSAFE_PATH',
+      );
     }
 
     try {
       await fs.unlink(filePath);
-      
+
       // Invalidate cache for deleted file
       this.invalidateCache(filePath);
 
@@ -808,11 +982,10 @@ export class StandardFileSystemService implements FileSystemService {
         filePath,
         operationTime: Date.now() - startTime,
       });
-
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       const errorCode = this.extractErrorCode(error);
-      
+
       if (nodeError.code === 'ENOENT') {
         return this.createResult(true, undefined, undefined, undefined, {
           filePath,
@@ -820,18 +993,32 @@ export class StandardFileSystemService implements FileSystemService {
         });
       }
 
-      return this.createResult(false, undefined, `Failed to delete file: ${nodeError.message}`, errorCode, {
-        filePath,
-        operationTime: Date.now() - startTime,
-      });
+      return this.createResult(
+        false,
+        undefined,
+        `Failed to delete file: ${nodeError.message}`,
+        errorCode,
+        {
+          filePath,
+          operationTime: Date.now() - startTime,
+        },
+      );
     }
   }
 
-  async deleteDirectory(dirPath: string, options: { recursive?: boolean } = {}): Promise<FileOperationResult> {
+  async deleteDirectory(
+    dirPath: string,
+    options: { recursive?: boolean } = {},
+  ): Promise<FileOperationResult> {
     const startTime = Date.now();
 
     if (!this.isPathSafe(dirPath)) {
-      return this.createResult(false, undefined, 'Unsafe directory path detected', 'UNSAFE_PATH');
+      return this.createResult(
+        false,
+        undefined,
+        'Unsafe directory path detected',
+        'UNSAFE_PATH',
+      );
     }
 
     try {
@@ -854,11 +1041,10 @@ export class StandardFileSystemService implements FileSystemService {
         filePath: dirPath,
         operationTime: Date.now() - startTime,
       });
-
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       const errorCode = this.extractErrorCode(error);
-      
+
       if (nodeError.code === 'ENOENT') {
         return this.createResult(true, undefined, undefined, undefined, {
           filePath: dirPath,
@@ -866,19 +1052,34 @@ export class StandardFileSystemService implements FileSystemService {
         });
       }
 
-      return this.createResult(false, undefined, `Failed to delete directory: ${nodeError.message}`, errorCode, {
-        filePath: dirPath,
-        operationTime: Date.now() - startTime,
-      });
+      return this.createResult(
+        false,
+        undefined,
+        `Failed to delete directory: ${nodeError.message}`,
+        errorCode,
+        {
+          filePath: dirPath,
+          operationTime: Date.now() - startTime,
+        },
+      );
     }
   }
 
-  async copyFile(sourcePath: string, destPath: string, options: FileSystemOptions = {}): Promise<FileOperationResult> {
+  async copyFile(
+    sourcePath: string,
+    destPath: string,
+    options: FileSystemOptions = {},
+  ): Promise<FileOperationResult> {
     const startTime = Date.now();
     const opts = { ...this.defaultOptions, ...options };
 
     if (!this.isPathSafe(sourcePath) || !this.isPathSafe(destPath)) {
-      return this.createResult(false, undefined, 'Unsafe file path detected', 'UNSAFE_PATH');
+      return this.createResult(
+        false,
+        undefined,
+        'Unsafe file path detected',
+        'UNSAFE_PATH',
+      );
     }
 
     try {
@@ -899,24 +1100,38 @@ export class StandardFileSystemService implements FileSystemService {
         filePath: destPath,
         operationTime: Date.now() - startTime,
       });
-
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       const errorCode = this.extractErrorCode(error);
-      
-      return this.createResult(false, undefined, `Failed to copy file: ${nodeError.message}`, errorCode, {
-        filePath: destPath,
-        operationTime: Date.now() - startTime,
-      });
+
+      return this.createResult(
+        false,
+        undefined,
+        `Failed to copy file: ${nodeError.message}`,
+        errorCode,
+        {
+          filePath: destPath,
+          operationTime: Date.now() - startTime,
+        },
+      );
     }
   }
 
-  async moveFile(sourcePath: string, destPath: string, options: FileSystemOptions = {}): Promise<FileOperationResult> {
+  async moveFile(
+    sourcePath: string,
+    destPath: string,
+    options: FileSystemOptions = {},
+  ): Promise<FileOperationResult> {
     const startTime = Date.now();
     const opts = { ...this.defaultOptions, ...options };
 
     if (!this.isPathSafe(sourcePath) || !this.isPathSafe(destPath)) {
-      return this.createResult(false, undefined, 'Unsafe file path detected', 'UNSAFE_PATH');
+      return this.createResult(
+        false,
+        undefined,
+        'Unsafe file path detected',
+        'UNSAFE_PATH',
+      );
     }
 
     try {
@@ -936,15 +1151,20 @@ export class StandardFileSystemService implements FileSystemService {
         filePath: destPath,
         operationTime: Date.now() - startTime,
       });
-
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       const errorCode = this.extractErrorCode(error);
-      
-      return this.createResult(false, undefined, `Failed to move file: ${nodeError.message}`, errorCode, {
-        filePath: destPath,
-        operationTime: Date.now() - startTime,
-      });
+
+      return this.createResult(
+        false,
+        undefined,
+        `Failed to move file: ${nodeError.message}`,
+        errorCode,
+        {
+          filePath: destPath,
+          operationTime: Date.now() - startTime,
+        },
+      );
     }
   }
 
@@ -952,7 +1172,12 @@ export class StandardFileSystemService implements FileSystemService {
     const startTime = Date.now();
 
     if (!this.isPathSafe(dirPath)) {
-      return this.createResult<string[]>(false, undefined, 'Unsafe directory path detected', 'UNSAFE_PATH');
+      return this.createResult<string[]>(
+        false,
+        undefined,
+        'Unsafe directory path detected',
+        'UNSAFE_PATH',
+      );
     }
 
     try {
@@ -962,33 +1187,46 @@ export class StandardFileSystemService implements FileSystemService {
         filePath: dirPath,
         operationTime: Date.now() - startTime,
       });
-
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       const errorCode = this.extractErrorCode(error);
-      
-      return this.createResult<string[]>(false, undefined, `Failed to list directory: ${nodeError.message}`, errorCode, {
-        filePath: dirPath,
-        operationTime: Date.now() - startTime,
-      });
+
+      return this.createResult<string[]>(
+        false,
+        undefined,
+        `Failed to list directory: ${nodeError.message}`,
+        errorCode,
+        {
+          filePath: dirPath,
+          operationTime: Date.now() - startTime,
+        },
+      );
     }
   }
 
   async listDirectoryRecursive(
-    dirPath: string, 
-    options: { maxDepth?: number; includeDirectories?: boolean } = {}
+    dirPath: string,
+    options: { maxDepth?: number; includeDirectories?: boolean } = {},
   ): Promise<FileOperationResult<string[]>> {
     const startTime = Date.now();
     const { maxDepth = 10, includeDirectories = false } = options;
 
     if (!this.isPathSafe(dirPath)) {
-      return this.createResult<string[]>(false, undefined, 'Unsafe directory path detected', 'UNSAFE_PATH');
+      return this.createResult<string[]>(
+        false,
+        undefined,
+        'Unsafe directory path detected',
+        'UNSAFE_PATH',
+      );
     }
 
     try {
       const allEntries: string[] = [];
 
-      const scanDirectory = async (currentPath: string, currentDepth: number): Promise<void> => {
+      const scanDirectory = async (
+        currentPath: string,
+        currentDepth: number,
+      ): Promise<void> => {
         if (currentDepth > maxDepth) {
           return;
         }
@@ -1016,15 +1254,20 @@ export class StandardFileSystemService implements FileSystemService {
         filePath: dirPath,
         operationTime: Date.now() - startTime,
       });
-
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       const errorCode = this.extractErrorCode(error);
-      
-      return this.createResult<string[]>(false, undefined, `Failed to recursively list directory: ${nodeError.message}`, errorCode, {
-        filePath: dirPath,
-        operationTime: Date.now() - startTime,
-      });
+
+      return this.createResult<string[]>(
+        false,
+        undefined,
+        `Failed to recursively list directory: ${nodeError.message}`,
+        errorCode,
+        {
+          filePath: dirPath,
+          operationTime: Date.now() - startTime,
+        },
+      );
     }
   }
 
@@ -1045,9 +1288,10 @@ export class StandardFileSystemService implements FileSystemService {
    * Get cache performance statistics
    */
   getCacheStats(): { size: number; hitRate: number; totalRequests: number } {
-    const hitRate = this.cacheStats.totalRequests > 0 
-      ? (this.cacheStats.hits / this.cacheStats.totalRequests) * 100 
-      : 0;
+    const hitRate =
+      this.cacheStats.totalRequests > 0
+        ? (this.cacheStats.hits / this.cacheStats.totalRequests) * 100
+        : 0;
 
     return {
       size: this.fileCache.size,
