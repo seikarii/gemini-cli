@@ -14,6 +14,8 @@ import {
   ToolLocation,
   ToolResult,
 } from './tools.js';
+import { ToolErrorType } from './tool-error.js';
+
 
 import { PartUnion } from '@google/genai';
 import {
@@ -25,6 +27,7 @@ import { FileOperation } from '../telemetry/metrics.js';
 import { getProgrammingLanguage } from '../telemetry/telemetry-utils.js';
 import { logFileOperation } from '../telemetry/loggers.js';
 import { FileOperationEvent } from '../telemetry/types.js';
+
 
 /**
  * Parameters for the ReadFile tool
@@ -90,6 +93,8 @@ class ReadFileToolInvocation extends BaseToolInvocation<
     }
 
     let llmContent: PartUnion;
+    const MAX_LLM_CONTENT_SIZE = 1024 * 1024; // 1MB limit for LLM content
+
     if (result.isTruncated) {
       const [start, end] = result.linesShown!;
       const total = result.originalLineCount!;
@@ -107,14 +112,40 @@ ${result.llmContent}`;
       llmContent = result.llmContent || '';
     }
 
-    const lines =
-      typeof result.llmContent === 'string'
-        ? result.llmContent.split('\n').length
-        : undefined;
+    // Ensure llmContent is a string and within size limits
     const mimetype = getSpecificMimeType(this.params.absolute_path);
     const programming_language = getProgrammingLanguage({
       absolute_path: this.params.absolute_path,
     });
+
+    if (typeof llmContent !== 'string') {
+      const errorMsg = `File content is not a string. Mime type: ${mimetype}`;
+      return {
+        llmContent: errorMsg,
+        returnDisplay: `❌ Error: ${errorMsg}`,
+        error: {
+          message: errorMsg,
+          type: ToolErrorType.READ_CONTENT_FAILURE,
+        },
+      };
+    }
+
+    if (llmContent.length > MAX_LLM_CONTENT_SIZE) {
+      const errorMsg = `File content exceeds maximum allowed size for LLM (${MAX_LLM_CONTENT_SIZE} bytes). Actual size: ${llmContent.length} bytes.`;
+      return {
+        llmContent: errorMsg,
+        returnDisplay: `❌ Error: ${errorMsg}`,
+        error: {
+          message: errorMsg,
+          type: ToolErrorType.FILE_TOO_LARGE,
+        },
+      };
+    }
+
+    const lines =
+      typeof result.llmContent === 'string'
+        ? result.llmContent.split('\n').length
+        : undefined;
     logFileOperation(
       this.config,
       new FileOperationEvent(

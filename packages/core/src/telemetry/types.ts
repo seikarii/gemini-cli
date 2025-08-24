@@ -280,20 +280,35 @@ export enum LoopType {
   CONSECUTIVE_IDENTICAL_TOOL_CALLS = 'consecutive_identical_tool_calls',
   CHANTING_IDENTICAL_SENTENCES = 'chanting_identical_sentences',
   LLM_DETECTED_LOOP = 'llm_detected_loop',
+  ALTERNATING_TOOL_PATTERN = 'alternating_tool_pattern',
+  NON_CONSECUTIVE_TOOL_PATTERN = 'non_consecutive_tool_pattern',
+  FILE_STATE_LOOP = 'file_state_loop',
+  SEMANTIC_CONTENT_LOOP = 'semantic_content_loop',
 }
 
-export class LoopDetectedEvent implements BaseTelemetryEvent {
-  'event.name': 'loop_detected';
-  'event.timestamp': string;
-  loop_type: LoopType;
-  prompt_id: string;
+/**
+ * Enhanced loop detection event with additional metadata
+ */
+export class LoopDetectedEvent {
+  constructor(
+    readonly loopType: LoopType,
+    readonly promptId: string,
+    readonly confidence?: number,
+    readonly affectedFiles?: string[],
+    readonly toolsInvolved?: string[],
+    readonly reasoning?: string
+  ) {}
+}
 
-  constructor(loop_type: LoopType, prompt_id: string) {
-    this['event.name'] = 'loop_detected';
-    this['event.timestamp'] = new Date().toISOString();
-    this.loop_type = loop_type;
-    this.prompt_id = prompt_id;
-  }
+/**
+ * File system state for tracking modification patterns
+ */
+export interface FileSystemState {
+  filePath: string;
+  contentHash: string;
+  timestamp: number;
+  operation: string;
+  size?: number;
 }
 
 export class NextSpeakerCheckEvent implements BaseTelemetryEvent {

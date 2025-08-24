@@ -49,7 +49,7 @@ import {
   ensureCorrectEdit,
   ensureCorrectFileContent,
   unescapeStringForGeminiBug,
-  resetEditCorrectorCaches_TEST_ONLY,
+  resetEditCorrectorCaches,
 } from './editCorrector.js';
 import { GeminiClient } from '../core/client.js';
 import type { Config } from '../config/config.js';
@@ -240,7 +240,7 @@ describe('editCorrector', () => {
         mockConfigInstance,
       ) as Mocked<GeminiClient>;
       mockGeminiClientInstance.getHistory = vi.fn().mockResolvedValue([]);
-      resetEditCorrectorCaches_TEST_ONLY();
+      resetEditCorrectorCaches();
     });
 
     describe('Scenario Group 1: originalParams.old_string matches currentContent directly', () => {
@@ -680,7 +680,7 @@ describe('editCorrector', () => {
       mockGeminiClientInstance = new GeminiClient(
         mockConfigInstance,
       ) as Mocked<GeminiClient>;
-      resetEditCorrectorCaches_TEST_ONLY();
+      resetEditCorrectorCaches();
     });
 
     it('should return content unchanged if no escaping issues detected', async () => {

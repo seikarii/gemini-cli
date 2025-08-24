@@ -35,6 +35,7 @@ import { IDEConnectionStatus } from '../ide/ide-client.js';
 import { getProgrammingLanguage } from '../telemetry/telemetry-utils.js';
 import { logFileOperation } from '../telemetry/loggers.js';
 import { FileOperationEvent } from '../telemetry/types.js';
+import { resetEditCorrectorCaches } from '../utils/editCorrector.js';
 
 /**
  * Parameters for the WriteFile tool
@@ -49,6 +50,12 @@ export interface WriteFileToolParams {
    * The content to write to the file
    */
   content: string;
+
+  /**
+   * The mode of writing. 'overwrite' will replace the entire file, 'append' will add to the end.
+   * Defaults to 'overwrite'.
+   */
+  mode?: 'overwrite' | 'append';
 
   /**
    * Whether the proposed content was modified by the user.
@@ -79,10 +86,19 @@ export async function getCorrectedFileContent(
   let correctedContent = proposedContent;
 
   try {
-    originalContent = await config
+    const readResult = await config
       .getFileSystemService()
       .readTextFile(filePath);
-    fileExists = true; // File exists and was read
+    if (readResult.success) {
+      originalContent = readResult.data!;
+      fileExists = true; // File exists and was read
+    } else {
+      if (readResult.errorCode !== 'ENOENT') {
+        throw new Error(readResult.error);
+      }
+      fileExists = false;
+      originalContent = '';
+    }
   } catch (err) {
     if (isNodeError(err) && err.code === 'ENOENT') {
       fileExists = false;
@@ -220,12 +236,41 @@ class WriteFileToolInvocation extends BaseToolInvocation<
   }
 
   async execute(abortSignal: AbortSignal): Promise<ToolResult> {
-    const { file_path, content, ai_proposed_content, modified_by_user } =
+    let { file_path, content, ai_proposed_content, modified_by_user, mode = 'overwrite' } =
       this.params;
+
+    if (mode === 'append' && !fs.existsSync(file_path)) {
+        // If appending to a non-existent file, it's the same as overwriting an empty file.
+        mode = 'overwrite';
+    }
+
+    // Safeguard against accidental file wipe
+    if (mode === 'overwrite' && !content && fs.existsSync(file_path) && fs.statSync(file_path).size > 0) {
+      const errorMsg = `Attempted to overwrite a non-empty file with empty content. Operation aborted to prevent data loss.`
+      return {
+        llmContent: errorMsg,
+        returnDisplay: errorMsg,
+        error: {
+          message: errorMsg,
+          type: ToolErrorType.FILE_WRITE_FAILURE,
+        },
+      };
+    }
+
+    let finalContent = content;
+    if (mode === 'append') {
+        const readResult = await this.config.getFileSystemService().readTextFile(file_path);
+        if (!readResult.success) {
+          throw new Error(readResult.error);
+        }
+        const existingContent = readResult.data!;
+        finalContent = existingContent + '\n' + content;
+    }
+
     const correctedContentResult = await getCorrectedFileContent(
       this.config,
       file_path,
-      content,
+      finalContent, // Use finalContent which includes appended text if necessary
       abortSignal,
     );
 
@@ -265,6 +310,7 @@ class WriteFileToolInvocation extends BaseToolInvocation<
       await this.config
         .getFileSystemService()
         .writeTextFile(file_path, fileContent);
+      resetEditCorrectorCaches();
 
       // Generate diff for display result
       const fileName = path.basename(file_path);
@@ -417,6 +463,11 @@ export class WriteFileTool
           content: {
             description: 'The content to write to the file.',
             type: 'string',
+          },
+          mode: {
+            description: "The mode of writing. `overwrite` will replace the entire file, `append` will add to the end. Defaults to `overwrite`.",
+            type: 'string',
+            enum: ['overwrite', 'append'],
           },
         },
         required: ['file_path', 'content'],

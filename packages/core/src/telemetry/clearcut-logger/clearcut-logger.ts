@@ -649,7 +649,7 @@ export class ClearcutLogger {
     const data: EventValue[] = [
       {
         gemini_cli_key: EventMetadataKey.GEMINI_CLI_LOOP_DETECTED_TYPE,
-        value: JSON.stringify(event.loop_type),
+        value: JSON.stringify(event.loopType),
       },
     ];
 

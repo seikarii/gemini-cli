@@ -338,7 +338,7 @@ export function logLoopDetected(
 
   const logger = logs.getLogger(SERVICE_NAME);
   const logRecord: LogRecord = {
-    body: `Loop detected. Type: ${event.loop_type}.`,
+    body: `Loop detected. Type: ${event.loopType}.`,
     attributes,
   };
   logger.emit(logRecord);

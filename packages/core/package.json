@@ -54,6 +54,7 @@
     "strip-ansi": "^7.1.0",
     "undici": "^7.10.0",
     "ws": "^8.18.0",
+    "ts-morph": "^23.0.0",
     "@xterm/headless": "5.5.0"
   },
   "optionalDependencies": {

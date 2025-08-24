@@ -822,10 +822,7 @@ export const useGeminiStream = (
 
       markToolsAsSubmitted(callIdsToMarkAsSubmitted);
 
-      // Don't continue if model was switched due to quota error
-      if (modelSwitchedFromQuotaError) {
-        return;
-      }
+      
 
       submitQuery(
         responsesToSend,
@@ -841,7 +838,6 @@ export const useGeminiStream = (
       markToolsAsSubmitted,
       geminiClient,
       performMemoryRefresh,
-      modelSwitchedFromQuotaError,
     ],
   );
 

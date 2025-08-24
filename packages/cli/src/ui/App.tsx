@@ -460,7 +460,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
         config,
         new FlashFallbackEvent(config.getContentGeneratorConfig().authType!),
       );
-      return false; // Don't continue with current prompt
+      return true; // Continue with current prompt
     };
 
     config.setFlashFallbackHandler(flashFallbackHandler);
