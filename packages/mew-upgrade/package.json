@@ -1,0 +1,25 @@
+{
+  "name": "@google/gemini-cli-mew-upgrade",
+  "version": "0.1.21",
+  "description": "Mew Agent and TUI",
+  "type": "module",
+  "main": "dist/agent/gemini-agent.js",
+  "scripts": {
+    "build": "tsc",
+    "start:app": "tsx src/app/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@google/gemini-cli-core": "file:../core",
+    "ink": "^6.1.1",
+    "react": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "tsx": "^4.20.3",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

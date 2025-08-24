@@ -230,16 +230,26 @@ export function extractIntentionsFromSourceFile(
       const imps = sourceFile.getImportDeclarations();
       for (const imp of imps) {
         try {
+          // small local helper to avoid implicit-`any` callback in map
+          const namedImports = imp.getNamedImports();
+          const mappedNamed = namedImports.map((spec) => {
+            const s = spec as unknown as {
+              getName: () => string;
+              getAliasNode?: () => { getText?: () => string } | undefined;
+            };
+            return {
+              name: s.getName(),
+              alias: s.getAliasNode?.()?.getText?.() ?? undefined,
+            };
+          });
+
           intents.imports.push({
             moduleSpecifier: imp.getModuleSpecifierValue(),
-            namedImports: imp.getNamedImports().map((n) => ({
-              name: n.getName(),
-              alias: n.getAliasNode()?.getText?.() ?? undefined,
-            })),
+            namedImports: mappedNamed,
             defaultImport: imp.getDefaultImport()?.getText?.() ?? undefined,
             namespaceImport: imp.getNamespaceImport()?.getText?.() ?? undefined,
           });
-        } catch (e: any) {
+        } catch (e) {
           intents.parsingErrors.push(`import node error: ${String(e)}`);
         }
       }

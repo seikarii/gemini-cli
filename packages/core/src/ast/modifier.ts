@@ -9,7 +9,6 @@ import {
   Project,
   SourceFile,
   Node,
-  Statement,
   ClassDeclaration,
   SyntaxKind,
 } from 'ts-morph';
@@ -232,7 +231,7 @@ export class ASTModifier {
             // append to heritageClause by replacing with new text
             const baseText = cls
               .getHeritageClauses()
-              .map((h) => h.getText())
+              .map((h: Node) => h.getText())
               .join(' ');
             cls.replaceWithText(
               cls.getText().replace(baseText, `${baseText}, ${mod.newCode}`),
@@ -310,7 +309,7 @@ export class ASTModifier {
         ? (block as any).getStatements()
         : [];
       const idx = statements.findIndex(
-        (s: Statement) => s.getStart() === node.getStart(),
+  (s: Node) => s.getStart() === node.getStart(),
       );
       if (idx >= 0) {
         if (before) (block as any).insertStatements(idx, code);
@@ -362,7 +361,7 @@ export class ASTModifier {
     newName: string,
   ) {
     // Walk descendants and replace identifier text when it matches oldName
-    scopeNode.forEachDescendant((n) => {
+  scopeNode.forEachDescendant((n: Node) => {
       try {
         // look for identifiers (VariableDeclaration, Identifier nodes)
         if (
