@@ -566,7 +566,7 @@ export async function correctNewStringEscaping(
   abortSignal: AbortSignal,
 ): Promise<string> {
   const prompt = `
-Context: A text replacement operation is planned. The text to be replaced (old_string) has been correctly identified in the file. However, the replacement text (new_string) might have been improperly escaped by a previous LLM generation (e.g. too many backslashes for newlines like \n instead of \n, or unnecessarily quotes like \"Hello\" instead of \"Hello\").
+Context: A text replacement operation is planned. The text to be replaced (old_string) has been correctly identified in the file. However, the replacement text (new_string) might have been improperly escaped by a previous LLM generation (e.g. too many backslashes for newlines like \n instead of \n, or unnecessarily quotes like \\"ello\\"instead of \\"ello\\".
 
 old_string (this is the exact text that will be replaced):
 \`\
@@ -580,7 +580,7 @@ ${potentiallyProblematicNewString ?? ''}
 \
 \
 
-Task: Analyze the potentially_problematic_new_string. If it's syntactically invalid due to incorrect escaping (e.g., "\n", "\t", "\\", "\\\", \"\\\""), correct the invalid syntax. The goal is to ensure the new_string, when inserted into the code, will be a valid and correctly interpreted.
+Task: Analyze the potentially_problematic_new_string. If it's syntactically invalid due to incorrect escaping (e.g., "\n", "\t", "\\", "\\\\" \\"\\\"), correct the invalid syntax. The goal is to ensure the new_string, when inserted into the code, will be a valid and correctly interpreted.
 
 For example, if old_string is "foo" and potentially_problematic_new_string is "bar\\nbaz", the corrected_new_string_escaping should be "bar\nbaz".
 If potentially_problematic_new_string is console.log(\"Hello World\"), it should be console.log(\"Hello World\").

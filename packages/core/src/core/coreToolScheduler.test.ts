@@ -137,7 +137,8 @@ describe('CoreToolScheduler', () => {
       onAllToolCallsComplete,
       onToolCallsUpdate,
       getPreferredEditor: () => 'vscode',
-      onEditorClose: vi.fn(),
+      onEditorClose: vi.fn(),      onEditorClose: vi.fn(),
+      loopDetectionService: new LoopDetectionService(mockConfig),
     });
 
     const abortController = new AbortController();
@@ -197,7 +198,8 @@ describe('CoreToolScheduler with payload', () => {
       onAllToolCallsComplete,
       onToolCallsUpdate,
       getPreferredEditor: () => 'vscode',
-      onEditorClose: vi.fn(),
+      onEditorClose: vi.fn(),      onEditorClose: vi.fn(),
+      loopDetectionService: new LoopDetectionService(mockConfig),
     });
 
     const abortController = new AbortController();
@@ -507,7 +509,8 @@ describe('CoreToolScheduler edit cancellation', () => {
       config: mockConfig,
       onAllToolCallsComplete,
       onToolCallsUpdate,
-      getPreferredEditor: () => 'vscode',
+      getPreferredEditor: ()       onEditorClose: vi.fn(),
+      loopDetectionService: new LoopDetectionService(mockConfig),=> 'vscode',
       onEditorClose: vi.fn(),
     });
 
@@ -599,7 +602,8 @@ describe('CoreToolScheduler YOLO mode', () => {
       config: mockConfig,
       onAllToolCallsComplete,
       onToolCallsUpdate,
-      getPreferredEditor: () => 'vscode',
+      getPreferredEditor: ()       onEditorClose: vi.fn(),
+      loopDetectionService: new LoopDetectionService(mockConfig),=> 'vscode',
       onEditorClose: vi.fn(),
     });
 

@@ -25,6 +25,7 @@
     "moduleResolution": "nodenext",
     "target": "es2022",
     "types": ["node", "vitest/globals"],
+    "typeRoots": ["./node_modules/@types", "./node_modules"],
     "jsx": "react-jsx"
   }
 }

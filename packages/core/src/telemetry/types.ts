@@ -284,6 +284,7 @@ export enum LoopType {
   NON_CONSECUTIVE_TOOL_PATTERN = 'non_consecutive_tool_pattern',
   FILE_STATE_LOOP = 'file_state_loop',
   SEMANTIC_CONTENT_LOOP = 'semantic_content_loop',
+  CONSECUTIVE_FAILED_TOOL_CALLS = 'consecutive_failed_tool_calls',
 }
 
 /**

@@ -277,7 +277,7 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
       
       // For plain text files, simply append or replace based on simple pattern matching
       const lines = originalContent.split('\n');
-      const blockPattern = new RegExp(`^\s*(?:def|class|function|const|let|var)\s+${this.params.block_name}\b`);
+      const blockPattern = new RegExp(`^\\s(?:def|class|function|const|let|var)\\s${this.params.block_name}\b`);
       
       let blockStartIndex = -1;
       let blockEndIndex = -1;

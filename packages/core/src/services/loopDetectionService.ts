@@ -13,7 +13,7 @@ import { Config, DEFAULT_GEMINI_FLASH_MODEL } from '../config/config.js';
 // Core detection thresholds
 const TOOL_CALL_THRESHOLDS: Record<string, number> = {
   read_file: 15,
-  default: 5,
+  default: 15,
 };
 // Lower the number of repeated identical chunks required to declare a content loop
 const CONTENT_LOOP_THRESHOLD = 5;
@@ -25,6 +25,7 @@ const MAX_HISTORY_LENGTH = 1000;
 const ALTERNATING_PATTERN_THRESHOLD = 4; // A-B-A-B pattern
 const NON_CONSECUTIVE_PATTERN_THRESHOLD = 6; // A-C-A pattern
 const FILE_STATE_LOOP_THRESHOLD = 5; // Same file operations without progress
+const FAILED_TOOL_CALL_THRESHOLD = 3; // Consecutive failed tool calls
 
 // LLM-based loop detection
 const LLM_LOOP_CHECK_HISTORY_COUNT = 20;
@@ -198,6 +199,10 @@ export class LoopDetectionService {
   private lastLoopConfidence = 0;
   private consecutiveHighConfidenceChecks = 0;
 
+  // New: Failed tool call tracking
+  private lastFailedToolCallKey: string | null = null;
+  private consecutiveFailedToolCallsCount: number = 0;
+
   // LLM tracking (existing + enhanced)
   private turnsInCurrentPrompt = 0;
   private llmCheckInterval = DEFAULT_LLM_CHECK_INTERVAL;
@@ -340,6 +345,37 @@ export class LoopDetectionService {
     }
 
     return this.loopDetected;
+  }
+
+  /**
+   * New method to track the result of a tool call (success or failure).
+   * This method should be called *after* a tool has been executed.
+   */
+  trackToolCallResult(toolCall: { name: string; args: object }, isSuccess: boolean): boolean {
+    const key = this.getToolCallKey(toolCall);
+    let isLoop = false;
+
+    if (!isSuccess) {
+      if (this.lastFailedToolCallKey === key) {
+        this.consecutiveFailedToolCallsCount++;
+      } else {
+        this.lastFailedToolCallKey = key;
+        this.consecutiveFailedToolCallsCount = 1;
+      }
+
+      if (this.consecutiveFailedToolCallsCount >= FAILED_TOOL_CALL_THRESHOLD) {
+        isLoop = this.handleDetectedLoop(
+          LoopType.CONSECUTIVE_FAILED_TOOL_CALLS,
+          0.99, // High confidence for consecutive failures
+          `Consecutive failures of tool '${toolCall.name}' detected.`
+        );
+      }
+    } else {
+      // Reset on successful tool call
+      this.lastFailedToolCallKey = null;
+      this.consecutiveFailedToolCallsCount = 0;
+    }
+    return isLoop;
   }
 
   private handleDetectedLoop(loopType: LoopType, confidence: number, reasoning: string): boolean {

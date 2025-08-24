@@ -2,7 +2,9 @@
  * @license
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
- *
+ */
+
+/**
  * TypeScript port of ideas/ASTRAL_TOOLS/ast_tools/reader.py
  * - robust file reading with encoding fallbacks
  * - file size guard
@@ -10,7 +12,6 @@
  * - comment / JSDoc extraction
  * - intention extraction (functions, classes, imports, constants)
  */
-
 import fs from 'fs/promises';
 import path from 'path';
 import { Project, SourceFile, SyntaxKind } from 'ts-morph';

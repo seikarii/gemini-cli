@@ -19,7 +19,7 @@ class EnhancedXPathParser {
     const parts = {
       axis: 'descendant-or-self' as 'descendant-or-self' | 'child' | 'parent' | 'self',
       nodeTest: '' as string,
-      conditions: [] as Array<any>,
+      conditions: [] as any[],
       position: undefined as number | undefined,
     };
 
@@ -39,7 +39,7 @@ class EnhancedXPathParser {
     }
 
     // split node test and predicates
-    const predicateMatch = expr.match(/^([^\[]+)(\[[\s\S]+\])?/);
+    const predicateMatch = expr.match(/^([^[]+)(\[[\s\S]+\])?/);
     if (!predicateMatch) return parts;
     parts.nodeTest = predicateMatch[1].trim();
 

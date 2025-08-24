@@ -38,7 +38,7 @@ export interface BaseSymbolInfo {
 export interface FunctionInfo extends BaseSymbolInfo {
   isAsync: boolean;
   isExported: boolean;
-  parameters: { name: string; type: string }[];
+  parameters: Array<{ name: string; type: string }>;
   returnType: string;
 }
 
@@ -51,7 +51,7 @@ export interface ClassInfo extends BaseSymbolInfo {
 
 export interface InterfaceInfo extends BaseSymbolInfo {
   isExported: boolean;
-  properties: { name: string; type: string }[];
+  properties: Array<{ name: string; type: string }>;
 }
 
 export interface VariableInfo extends BaseSymbolInfo {
@@ -61,7 +61,7 @@ export interface VariableInfo extends BaseSymbolInfo {
 
 export interface ImportInfo {
   moduleSpecifier: string;
-  namedImports: { name: string; alias?: string }[];
+  namedImports: Array<{ name: string; alias?: string }>;
   namespaceImport?: string;
   defaultImport?: string;
   nodePath?: string;
@@ -69,7 +69,7 @@ export interface ImportInfo {
 }
 
 export interface ExportInfo {
-  namedExports: { name: string; alias?: string }[];
+  namedExports: Array<{ name: string; alias?: string }>;
   moduleSpecifier?: string;
   nodePath?: string;
   nodeId?: string;
