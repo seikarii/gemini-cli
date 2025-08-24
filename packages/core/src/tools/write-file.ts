@@ -276,9 +276,10 @@ class WriteFileToolInvocation extends BaseToolInvocation<
     let originalContent = '';
     let fileExists = false;
     let isNewFile = false;
+    let correctedContentResult: GetCorrectedFileContentResult | undefined = undefined;
 
     if (!skip_correction) {
-      const correctedContentResult = await getCorrectedFileContent(
+      correctedContentResult = await getCorrectedFileContent(
         this.config,
         file_path,
         finalContent, // Use finalContent which includes appended text if necessary
@@ -331,7 +332,7 @@ class WriteFileToolInvocation extends BaseToolInvocation<
       // If there was a readError, originalContent in correctedContentResult is '',
       // but for the diff, we want to show the original content as it was before the write if possible.
       // However, if it was unreadable, currentContentForDiff will be empty.
-      const currentContentForDiff = correctedContentResult.error
+      const currentContentForDiff = correctedContentResult?.error
         ? '' // Or some indicator of unreadable content
         : originalContent;
 
@@ -366,8 +367,8 @@ class WriteFileToolInvocation extends BaseToolInvocation<
       const displayResult: FileDiff = {
         fileDiff,
         fileName,
-        originalContent: correctedContentResult.originalContent,
-        newContent: correctedContentResult.correctedContent,
+        originalContent: correctedContentResult?.originalContent || originalContent,
+        newContent: correctedContentResult?.correctedContent || fileContent,
         diffStat,
       };
 
