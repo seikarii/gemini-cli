@@ -26,6 +26,16 @@ Thumbs.db
 # Ignore built ts files
 dist
 
+# Package build artifacts (compiled JS, source maps, out dirs)
+packages/*/dist/
+packages/**/dist/
+packages/**/src/**/*.js
+packages/**/src/**/*.js.map
+packages/**/src/**/*.cjs
+packages/**/src/**/*.mjs
+# declaration maps (safe to ignore)
+*.d.ts.map
+
 # Docker folder to help skip auth refreshes
 .docker
 
