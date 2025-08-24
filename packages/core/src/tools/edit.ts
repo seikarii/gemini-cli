@@ -7,7 +7,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as Diff from 'diff';
-import * as stringSimilarity from 'string-similarity';
+// Correct import for string-similarity (default import)
+import stringSimilarity from 'string-similarity';
 // Add diff-match-patch for better matching
 import * as DiffMatchPatch from 'diff-match-patch';
 
@@ -226,15 +227,15 @@ interface CalculatedEdit {
  */
 interface AutofixConfig {
   // Minimum similarity threshold for fuzzy matching (0-1)
-  minSimilarityThreshold: 0.7;
+  minSimilarityThreshold: number;
   // Maximum number of candidate matches to consider
-  maxCandidates: 5;
+  maxCandidates: number;
   // Whether to enable fuzzy matching
-  enableFuzzyMatching: true;
+  enableFuzzyMatching: boolean;
   // Whether to normalize whitespace
-  normalizeWhitespace: true;
+  normalizeWhitespace: boolean;
   // Whether to adjust indentation
-  adjustIndentation: true;
+  adjustIndentation: boolean;
 }
 
 const DEFAULT_AUTOFIX_CONFIG: AutofixConfig = {
@@ -298,15 +299,11 @@ function adjustIndentationAdvanced(text: string, targetIndent: string): string {
   const lines = text.split('\n');
   if (lines.length <= 1) return text;
 
-  // Detect the current indentation pattern including base indent
   const { baseIndent } = detectIndentationAdvanced(text);
-  
+
   return lines
     .map((line, index) => {
-      if (line.trim().length === 0) {
-        // Keep empty lines as is
-        return line;
-      }
+      if (line.trim() === '') return line; // keep empty lines as-is
 
       const currentIndent = line.match(/^(\s*)/)?.[1] || '';
       
@@ -600,6 +597,41 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
   /**
    * Validates range edit parameters
    */
+
+  /**
+   * Counts occurrences of a string in content
+   */
+  private countOccurrences(content: string, searchString: string): number {
+    if (!searchString) return 0;
+    let count = 0;
+    let pos = 0;
+    while ((pos = content.indexOf(searchString, pos)) !== -1) {
+      count++;
+      pos += searchString.length;
+    }
+    return count;
+  }
+
+  /**
+   * Calculates how many replacements will actually be performed given target_occurrence
+   */
+  private calculateExpectedReplacements(
+    totalOccurrences: number,
+    targetOccurrence: number | 'first' | 'last' | 'all' | undefined
+  ): number {
+    const target = targetOccurrence ?? 'first';
+    
+    if (totalOccurrences === 0) return 0;
+    
+    if (target === 'all') return totalOccurrences;
+    if (target === 'first' || target === 'last') return 1;
+    if (typeof target === 'number') {
+      return totalOccurrences >= target ? 1 : 0;
+    }
+    
+    return 1; // default fallback
+  }
+
   private validateRangeParams(params: EditToolParams): string | null {
     if (!this.isRangeEdit(params)) {
       return null; // Not a range edit, no validation needed
@@ -620,40 +652,6 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
     }
 
     return null;
-  }
-
-  /**
-   * Counts occurrences of a string in content
-   */
-  function countOccurrences(content: string, searchString: string): number {
-    if (!searchString) return 0;
-    let count = 0;
-    let pos = 0;
-    while ((pos = content.indexOf(searchString, pos)) !== -1) {
-      count++;
-      pos += searchString.length;
-    }
-    return count;
-  }
-
-  /**
-   * Calculates how many replacements will actually be performed given target_occurrence
-   */
-  function calculateExpectedReplacements(
-    totalOccurrences: number,
-    targetOccurrence: number | 'first' | 'last' | 'all' | undefined
-  ): number {
-    const target = targetOccurrence ?? 'first';
-    
-    if (totalOccurrences === 0) return 0;
-    
-    if (target === 'all') return totalOccurrences;
-    if (target === 'first' || target === 'last') return 1;
-    if (typeof target === 'number') {
-      return totalOccurrences >= target ? 1 : 0;
-    }
-    
-    return 1; // default fallback
   }
 
   /**
@@ -795,10 +793,10 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
           finalNewString = correctedEdit.params.new_string;
           
           // Calculate total occurrences in content
-          const totalOccurrences = countOccurrences(currentContent, finalOldString);
+          const totalOccurrences = this.countOccurrences(currentContent, finalOldString);
           
           // Calculate actual replacements that will be performed
-          occurrences = calculateExpectedReplacements(totalOccurrences, params.target_occurrence);
+          occurrences = this.calculateExpectedReplacements(totalOccurrences, params.target_occurrence);
 
           // New handling for target_occurrence
           const target = params.target_occurrence ?? 'first';
@@ -1169,8 +1167,14 @@ export class EditTool
       'Edit',
       `Replaces text within a file using either string-based replacement or precise range-based editing.
 
-**String-based editing (legacy mode):**
-Replaces a single occurrence by default, but can replace multiple occurrences when \`target_occurrence\` is specified. This mode requires providing significant context around the change to ensure precise targeting.
+**String-based editing:**
+By default, replaces the first occurrence of \`old_string\`. Use \`target_occurrence\` to control which occurrence(s) to replace:
+- \`target_occurrence: 'first'\` (default): Replace the first occurrence only
+- \`target_occurrence: 'last'\`: Replace the last occurrence only  
+- \`target_occurrence: 'all'\`: Replace all occurrences
+- \`target_occurrence: N\` (number): Replace the N-th occurrence (1-based)
+
+The \`expected_replacements\` parameter serves as validation - ensure it matches the actual number of replacements that will be performed.
 
 **Range-based editing (robust mode):**
 Allows precise specification of what to delete and insert using line/column coordinates. This mode is more robust as it doesn't depend on exact string matching.
@@ -1181,15 +1185,20 @@ Always use the ${ReadFileTool.Name} tool to examine the file's current content b
 1. \`file_path\` MUST be an absolute path.
 2. \`old_string\` MUST be the exact literal text to replace (including all whitespace, indentation, newlines, etc.).
 3. \`new_string\` MUST be the exact literal text to replace \`old_string\` with.
-4. \`target_occurrence\` controls which occurrences to replace: number (1-based), 'first', 'last', or 'all'.
-5. NEVER escape \`old_string\` or \`new_string\`.
+4. \`target_occurrence\` controls which occurrences to replace.
+5. \`expected_replacements\` validates the number of actual replacements (optional but recommended).
+6. NEVER escape \`old_string\` or \`new_string\`.
 
 **For range-based editing:**
 1. \`file_path\` MUST be an absolute path.
 2. \`start_line\`, \`start_column\`, \`end_line\`, \`end_column\` specify the range to delete (0-indexed).
 3. \`new_content\` is the content to insert at the start position.
 
-**Multiple replacements:** Use \`target_occurrence: 'all'\` to replace all occurrences, or specify a number for the N-th occurrence.`,
+**Examples:**
+- Replace all occurrences: \`{ target_occurrence: 'all' }\`
+- Replace 3rd occurrence: \`{ target_occurrence: 3 }\`
+- Replace last occurrence: \`{ target_occurrence: 'last' }\`
+- Validate replacement count: \`{ target_occurrence: 'all', expected_replacements: 5 }\``,
       Kind.Edit,
       {
         properties: {
@@ -1211,7 +1220,7 @@ Always use the ${ReadFileTool.Name} tool to examine the file's current content b
           expected_replacements: {
             type: 'number',
             description:
-              'Number of replacements expected for string-based editing. Defaults to 1. When using target_occurrence, this serves as validation.',
+              'Expected number of replacements for validation. For target_occurrence="all", this validates the total count. For specific occurrences, this should be 1.',
             minimum: 1,
           },
           target_occurrence: {
@@ -1438,7 +1447,7 @@ Always use the ${ReadFileTool.Name} tool to examine the file's current content b
     };
   }
 
-  createInvocation(params: EditToolParams): ToolInvocation<EditToolParams, ToolResult> {
+  protected override createInvocation(params: EditToolParams): ToolInvocation<EditToolParams, ToolResult> {
     return new EditToolInvocation(this.config, params);
   }
 }
