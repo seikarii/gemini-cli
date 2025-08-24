@@ -43,3 +43,4 @@ packages/vscode-ide-companion/*.vsix
 
 # GHA credentials
 gha-creds-*.json
+ideas/

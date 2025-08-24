@@ -11,7 +11,10 @@ import { LoopDetectedEvent, LoopType } from '../telemetry/types.js';
 import { Config, DEFAULT_GEMINI_FLASH_MODEL } from '../config/config.js';
 
 // Core detection thresholds
-const TOOL_CALL_LOOP_THRESHOLD = 5;
+const TOOL_CALL_THRESHOLDS: Record<string, number> = {
+  read_file: 15,
+  default: 5,
+};
 // Lower the number of repeated identical chunks required to declare a content loop
 const CONTENT_LOOP_THRESHOLD = 5;
 // Use larger chunks and fewer overlapping windows to avoid matching small repeated phrases
@@ -185,6 +188,8 @@ export class LoopDetectionService {
   private lastContentIndex = 0;
   private loopDetected = false;
   private inCodeBlock = false;
+  private loopWarning = false;
+  private temperatureOverride: number | undefined = undefined;
 
   // Advanced pattern detection
   private toolCallHistory: ToolCallPattern[] = [];
@@ -202,9 +207,25 @@ export class LoopDetectionService {
   // User feedback integration
   private confidenceListener?: (confidence: number, reasoning?: string) => void;
   private actionSuggestionListener?: (actions: LoopBreakAction[], reasoning: string) => void;
+  private thinkingListener?: (isThinking: boolean) => void;
 
   constructor(config: Config) {
     this.config = config;
+  }
+
+  /**
+   * Returns a temporary temperature override if an automatic recovery is attempted.
+   * The caller should use this value for the next generation call and then clear it.
+   */
+  getTemperatureOverride(): number | undefined {
+    return this.temperatureOverride;
+  }
+
+  /**
+   * Clears the temporary temperature override.
+   */
+  clearTemperatureOverride(): void {
+    this.temperatureOverride = undefined;
   }
 
   /**
@@ -219,6 +240,13 @@ export class LoopDetectionService {
    */
   setActionSuggestionListener(listener: (actions: LoopBreakAction[], reasoning: string) => void): void {
     this.actionSuggestionListener = listener;
+  }
+
+  /**
+   * Set callback for thinking state updates
+   */
+  setThinkingListener(listener: (isThinking: boolean) => void): void {
+    this.thinkingListener = listener;
   }
 
   /**
@@ -292,19 +320,52 @@ export class LoopDetectionService {
       return true;
     }
 
+    let isLoop = false;
     switch (event.type) {
       case GeminiEventType.ToolCallRequest:
         this.resetContentTracking();
-        this.trackToolCall(event.value);
-        this.loopDetected = this.checkAdvancedToolCallPatterns(event.value);
+        isLoop = this.checkAdvancedToolCallPatterns(event.value);
         break;
       case GeminiEventType.Content:
-        this.loopDetected = this.checkEnhancedContentLoop(event.value);
+        isLoop = this.checkEnhancedContentLoop(event.value);
         break;
       default:
+        // For other event types, we assume no loop and can reset the warning.
+        this.loopWarning = false;
         break;
     }
+
+    if (isLoop) {
+      this.loopDetected = true;
+    }
+
     return this.loopDetected;
+  }
+
+  private handleDetectedLoop(loopType: LoopType, confidence: number, reasoning: string): boolean {
+    this.updateConfidence(confidence, reasoning);
+
+    // We log the loop detection event regardless.
+    this.logLoopDetected(loopType);
+
+    const actions = this.generateAdaptiveBreakActions(confidence);
+    this.suggestLoopBreakActions(actions, reasoning);
+
+    if (this.loopWarning) {
+      // Already warned, now we stop.
+      return true;
+    }
+
+    // This is the first detection in a sequence (a warning).
+    this.loopWarning = true;
+
+    // Try to recover automatically.
+    if (actions.includes(LoopBreakAction.INCREASE_TEMPERATURE)) {
+      this.temperatureOverride = 1.2; // A modest increase.
+    }
+
+    // Don't stop yet, give it a chance to recover.
+    return false;
   }
 
   private trackToolCall(toolCall: { name: string; args: object }): void {
@@ -323,22 +384,37 @@ export class LoopDetectionService {
   }
 
   private checkAdvancedToolCallPatterns(toolCall: { name: string; args: object }): boolean {
+    this.trackToolCall(toolCall);
+
     // Check consecutive identical calls (existing logic)
     const basicLoop = this.checkToolCallLoop(toolCall);
-    if (basicLoop) return true;
+    if (basicLoop) {
+      return this.handleDetectedLoop(
+        LoopType.CONSECUTIVE_IDENTICAL_TOOL_CALLS,
+        0.9,
+        `Consecutive identical tool calls to ${toolCall.name} detected.`
+      );
+    }
 
     // Check alternating patterns (A-B-A-B)
     if (this.checkAlternatingPattern()) {
-      this.logLoopDetected(LoopType.ALTERNATING_TOOL_PATTERN);
-      return true;
+      return this.handleDetectedLoop(
+        LoopType.ALTERNATING_TOOL_PATTERN,
+        0.8,
+        'Alternating tool pattern detected.'
+      );
     }
 
     // Check non-consecutive repetitive patterns (A-C-A-D-A)
     if (this.checkNonConsecutivePattern(toolCall.name)) {
-      this.logLoopDetected(LoopType.NON_CONSECUTIVE_TOOL_PATTERN);
-      return true;
+      return this.handleDetectedLoop(
+        LoopType.NON_CONSECUTIVE_TOOL_PATTERN,
+        0.75,
+        `Non-consecutive repetitive pattern for ${toolCall.name} detected.`
+      );
     }
 
+    this.loopWarning = false;
     return false;
   }
 
@@ -389,8 +465,9 @@ export class LoopDetectionService {
       this.toolCallRepetitionCount = 1;
     }
     
-    if (this.toolCallRepetitionCount >= TOOL_CALL_LOOP_THRESHOLD) {
-      this.logLoopDetected(LoopType.CONSECUTIVE_IDENTICAL_TOOL_CALLS);
+    const threshold = TOOL_CALL_THRESHOLDS[toolCall.name] || TOOL_CALL_THRESHOLDS['default'];
+
+    if (this.toolCallRepetitionCount >= threshold) {
       return true;
     }
     return false;
@@ -406,7 +483,7 @@ export class LoopDetectionService {
     const hasListItem = /(^|\n)\s*[*-+]\s/.test(content) || /(^|\n)\s*\d+\.\s/.test(content);
     const hasHeading = /(^|\n)#+\s/.test(content);
     const hasBlockquote = /(^|\n)>\s/.test(content);
-    const isDivider = /^[+-_=*\u2500-\u257F]+$/.test(content);
+    const isDivider = /^[+-_=*─-╿]+$/.test(content);
 
     if (numFences || hasTable || hasListItem || hasHeading || hasBlockquote || isDivider) {
       this.resetContentTracking();
@@ -422,9 +499,25 @@ export class LoopDetectionService {
     this.trackSemanticContent(content);
 
     this.truncateAndUpdate();
-    
+
     // Check both hash-based and semantic-based loops
-    return this.analyzeContentChunksForLoop() || this.analyzeSemanticContentLoop();
+    if (this.analyzeContentChunksForLoop()) {
+      return this.handleDetectedLoop(
+        LoopType.CHANTING_IDENTICAL_SENTENCES,
+        0.95,
+        'Repetitive content detected (hash-based).'
+      );
+    }
+
+    if (this.analyzeSemanticContentLoop()) {
+      return this.handleDetectedLoop(
+        LoopType.SEMANTIC_CONTENT_LOOP,
+        this.lastLoopConfidence,
+        'Semantically similar content detected.'
+      );
+    }
+
+    return false;
   }
 
   private trackSemanticContent(content: string): void {
@@ -455,7 +548,6 @@ export class LoopDetectionService {
         // high confidence when exact same chunk repeats several times
         const confidence = 0.9;
         this.updateConfidence(confidence, `Exact repeated content detected (${hashCounts[c.hash]} repeats)`);
-        this.logLoopDetected(LoopType.SEMANTIC_CONTENT_LOOP);
         return true;
       }
     }
@@ -484,7 +576,6 @@ export class LoopDetectionService {
       this.updateConfidence(confidence, `Semantic content similarity detected: ${Math.round(similarityRatio * 100)}% similar content`);
 
       if (confidence > CONFIDENCE_THRESHOLD_HIGH) {
-        this.logLoopDetected(LoopType.SEMANTIC_CONTENT_LOOP);
         return true;
       }
     }
@@ -496,6 +587,7 @@ export class LoopDetectionService {
    * Turn management with enhanced LLM checking
    */
   async turnStarted(signal: AbortSignal): Promise<boolean> {
+    this.clearTemperatureOverride(); // Ensure we start the turn with no override.
     this.turnsInCurrentPrompt++;
 
     // Adaptive checking based on confidence levels
@@ -528,14 +620,18 @@ export class LoopDetectionService {
   }
 
   private async performComprehensiveLoopCheck(signal: AbortSignal, userInitiated = false): Promise<LoopDetectionResult> {
-    const recentHistory = this.config
-      .getGeminiClient()
-      .getHistory()
-      .slice(-LLM_LOOP_CHECK_HISTORY_COUNT);
+    if (this.thinkingListener) {
+      this.thinkingListener(true);
+    }
+    try {
+      const recentHistory = this.config
+        .getGeminiClient()
+        .getHistory()
+        .slice(-LLM_LOOP_CHECK_HISTORY_COUNT);
 
-    const intensityModifier = userInitiated ? ' The user has explicitly requested a loop check, so be especially thorough.' : '';
-    
-    const prompt = `You are a sophisticated AI diagnostic agent specializing in identifying when a conversational AI is stuck in an unproductive state. Your task is to analyze the provided conversation history and determine if the assistant has ceased to make meaningful progress.${intensityModifier}
+      const intensityModifier = userInitiated ? ' The user has explicitly requested a loop check, so be especially thorough.' : '';
+
+      const prompt = `You are a sophisticated AI diagnostic agent specializing in identifying when a conversational AI is stuck in an unproductive state. Your task is to analyze the provided conversation history and determine if the assistant has ceased to make meaningful progress.${intensityModifier}
 
 An unproductive state is characterized by one or more of the following patterns over the last 5 or more assistant turns:
 
@@ -562,45 +658,43 @@ Analyze the conversation and provide:
 3. If confidence > 0.5, suggest specific actions to break the loop
 4. If file operations are involved, identify which files seem to be stuck in loops`;
 
-    const schema: Record<string, unknown> = {
-      type: 'object',
-      properties: {
-        reasoning: {
-          type: 'string',
-          description: 'Detailed reasoning about whether the conversation is looping without forward progress.'
-        },
-        confidence: {
-          type: 'number',
-          description: 'A number between 0.0 and 1.0 representing confidence that the conversation is in an unproductive state.'
-        },
-        loopType: {
-          type: 'string',
-          enum: ['repetitive_actions', 'cognitive_loop', 'file_state_loop', 'semantic_repetition', 'none'],
-          description: 'The type of loop detected, if any.'
-        },
-        suggestedActions: {
-          type: 'array',
-          items: {
+      const schema: Record<string, unknown> = {
+        type: 'object',
+        properties: {
+          reasoning: {
             type: 'string',
-            enum: Object.values(LoopBreakAction)
+            description: 'Detailed reasoning about whether the conversation is looping without forward progress.'
           },
-          description: 'Suggested actions to break the loop if confidence > 0.5'
+          confidence: {
+            type: 'number',
+            description: 'A number between 0.0 and 1.0 representing confidence that the conversation is in an unproductive state.'
+          },
+          loopType: {
+            type: 'string',
+            enum: ['repetitive_actions', 'cognitive_loop', 'file_state_loop', 'semantic_repetition', 'none'],
+            description: 'The type of loop detected, if any.'
+          },
+          suggestedActions: {
+            type: 'array',
+            items: {
+              type: 'string',
+              enum: Object.values(LoopBreakAction)
+            },
+            description: 'Suggested actions to break the loop if confidence > 0.5'
+          },
+          affectedFiles: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'File paths that seem to be stuck in loops, if applicable'
+          }
         },
-        affectedFiles: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'File paths that seem to be stuck in loops, if applicable'
-        }
-      },
-      required: ['reasoning', 'confidence']
-    };
+        required: ['reasoning', 'confidence']
+      };
 
-    const contents = [
-      ...recentHistory,
-      { role: 'user', parts: [{ text: prompt }] }
-    ];
-
-    try {
+      const contents = [
+        ...recentHistory,
+        { role: 'user', parts: [{ text: prompt }] }
+      ];
       const result = await this.config
         .getGeminiClient()
         .generateJson(contents, schema, signal, DEFAULT_GEMINI_FLASH_MODEL);
@@ -640,6 +734,10 @@ Analyze the conversation and provide:
         loopType: LoopType.LLM_DETECTED_LOOP,
         suggestedActions: []
       };
+    } finally {
+      if (this.thinkingListener) {
+        this.thinkingListener(false);
+      }
     }
   }
 
@@ -776,13 +874,11 @@ Analyze the conversation and provide:
         // ensure repeats are non-overlapping
         const lastIdx = existing[existing.length - 1];
         if (Math.abs(this.lastContentIndex - lastIdx) > Math.floor(CONTENT_CHUNK_SIZE / 2)) {
-          this.logLoopDetected(LoopType.CHANTING_IDENTICAL_SENTENCES);
           return true;
         }
       }
 
       if (this.isLoopDetectedForChunk(currentChunk, chunkHash)) {
-        this.logLoopDetected(LoopType.CHANTING_IDENTICAL_SENTENCES);
         return true;
       }
 
@@ -897,5 +993,6 @@ Analyze the conversation and provide:
     this.lastLoopConfidence = 0;
     this.consecutiveHighConfidenceChecks = 0;
     this.pendingBreakActions = [];
+    this.loopWarning = false;
   }
 }

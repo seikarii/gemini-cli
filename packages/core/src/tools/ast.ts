@@ -10,15 +10,15 @@ import {
   Kind,
   ToolInvocation,
   ToolResult,
-} from './tools';
-import { Config } from '../config/config';
-import { getSourceFile, extractIntentionMap } from '../ast/parser';
-import { ASTQuery, DictionaryQuery, ASTQuery as _ASTQuery } from '../ast/models';
+} from './tools.js';
+import { Config } from '../config/config.js';
+import { parseSourceToSourceFile, extractIntentionsFromSourceFile } from '../ast/parser.js';
+import { ASTQuery, DictionaryQuery, ASTQuery as _ASTQuery } from '../ast/models.js';
 
 // Modifier imports
-import { ASTModifier } from '../ast/modifier';
-import { ModificationSpec, ModificationOperation } from '../ast/models';
-import { findNodes } from '../ast/finder';
+import { ASTModifier } from '../ast/modifier.js';
+import { ModificationSpec, ModificationOperation } from '../ast/models.js';
+import { findNodes } from '../ast/finder.js';
 import { Node } from 'ts-morph';
 
 /**
@@ -58,30 +58,38 @@ export interface ASTReadToolParams {
 }
 
 class ASTReadToolInvocation extends BaseToolInvocation<ASTReadToolParams, ToolResult> {
-  constructor(private readonly config: Config, params: ASTReadToolParams) {
-    super(params);
+  constructor(private readonly config: Config, private readonly toolParams: ASTReadToolParams) {
+    super(toolParams);
   }
 
   getDescription(): string {
-    return `Reading AST and intentions from ${this.params.file_path}`;
+    return `Reading AST and intentions from ${this.toolParams.file_path}`;
   }
 
   async execute(): Promise<ToolResult> {
-    const { file_path } = this.params;
+    const { file_path } = this.toolParams;
     const fs = this.config.getFileSystemService();
 
     const readResult = await fs.readTextFile(file_path);
     if (!readResult.success) {
       return {
         llmContent: `Error: Could not read file: ${readResult.error}`,
+        returnDisplay: `Error: Could not read file: ${readResult.error}`,
       };
     }
 
-    const sourceFile = getSourceFile(file_path, readResult.data!);
-    const intentionMap = extractIntentionMap(sourceFile);
+    const sourceFile = parseSourceToSourceFile(file_path, readResult.data!)?.sourceFile;
+    if (!sourceFile) {
+      return {
+        llmContent: `Error: Could not parse file: ${file_path}`,
+        returnDisplay: `Error: Could not parse file: ${file_path}`,
+      };
+    }
+    const intentionMap = extractIntentionsFromSourceFile(sourceFile);
 
     return {
       llmContent: JSON.stringify(intentionMap, null, 2),
+      returnDisplay: JSON.stringify(intentionMap, null, 2),
     };
   }
 }
@@ -123,31 +131,39 @@ export interface ASTFindToolParams {
 }
 
 class ASTFindToolInvocation extends BaseToolInvocation<ASTFindToolParams, ToolResult> {
-  constructor(private readonly config: Config, params: ASTFindToolParams) {
-    super(params);
+  constructor(private readonly config: Config, private readonly toolParams: ASTFindToolParams) {
+    super(toolParams);
   }
 
   getDescription(): string {
-    return `Finding AST nodes in ${this.params.file_path}`;
+    return `Finding AST nodes in ${this.toolParams.file_path}`;
   }
 
   async execute(): Promise<ToolResult> {
-    const { file_path, query } = this.params;
+    const { file_path, query } = this.toolParams;
     const fs = this.config.getFileSystemService();
 
     const readResult = await fs.readTextFile(file_path);
     if (!readResult.success) {
       return {
         llmContent: `Error: Could not read file: ${readResult.error}`,
+        returnDisplay: `Error: Could not read file: ${readResult.error}`,
       };
     }
 
-    const sourceFile = getSourceFile(file_path, readResult.data!);
+    const sourceFile = parseSourceToSourceFile(file_path, readResult.data!)?.sourceFile;
+    if (!sourceFile) {
+      return {
+        llmContent: `Error: Could not parse file: ${file_path}`,
+        returnDisplay: `Error: Could not parse file: ${file_path}`,
+      };
+    }
     const foundNodes = findNodes(sourceFile, query as any);
 
     if (foundNodes.length === 0) {
       return {
         llmContent: 'No nodes found matching the query.',
+        returnDisplay: 'No nodes found matching the query.',
       };
     }
 
@@ -162,6 +178,7 @@ class ASTFindToolInvocation extends BaseToolInvocation<ASTFindToolParams, ToolRe
 
     return {
       llmContent: JSON.stringify(results, null, 2),
+      returnDisplay: JSON.stringify(results, null, 2),
     };
   }
 }
@@ -211,39 +228,48 @@ export interface ASTEditToolParams {
 }
 
 class ASTEditToolInvocation extends BaseToolInvocation<ASTEditToolParams, ToolResult> {
-  constructor(private readonly config: Config, params: ASTEditToolParams) {
-    super(params);
+  constructor(private readonly config: Config, private readonly toolParams: ASTEditToolParams) {
+    super(toolParams);
   }
 
   getDescription(): string {
-    return `Editing AST node in ${this.params.file_path}`;
+    return `Editing AST node in ${this.toolParams.file_path}`;
   }
 
   async execute(): Promise<ToolResult> {
-    const { file_path, query, new_text } = this.params;
-    const preview = !!(this.params as any).preview;
-    const createBackup = (this.params as any).create_backup !== false; // default true
+    const { file_path, query, new_text } = this.toolParams;
+    const preview = !!(this.toolParams as any).preview;
+    const createBackup = (this.toolParams as any).create_backup !== false; // default true
     const fs = this.config.getFileSystemService();
 
     const readResult = await fs.readTextFile(file_path);
     if (!readResult.success) {
       return {
         llmContent: `Error: Could not read file: ${readResult.error}`,
+        returnDisplay: `Error: Could not read file: ${readResult.error}`,
       };
     }
 
-    const sourceFile = getSourceFile(file_path, readResult.data!);
+    const sourceFile = parseSourceToSourceFile(file_path, readResult.data!)?.sourceFile;
+    if (!sourceFile) {
+      return {
+        llmContent: `Error: Could not parse file: ${file_path}`,
+        returnDisplay: `Error: Could not parse file: ${file_path}`,
+      };
+    }
     const foundNodes = findNodes(sourceFile, query as any);
 
     if (foundNodes.length === 0) {
       return {
         llmContent: 'Error: No nodes found matching the query. No changes made.',
+        returnDisplay: 'Error: No nodes found matching the query. No changes made.',
       };
     }
 
     if (foundNodes.length > 1) {
       return {
-        llmContent: `Error: Query is not specific enough. Found ${foundNodes.length} nodes. No changes made.`,
+        llmContent: `Error: Query is not specific enough. Found ${foundNodes.length} nodes. No changes made.`, 
+        returnDisplay: `Error: Query is not specific enough. Found ${foundNodes.length} nodes. No changes made.`, 
       };
     }
 
@@ -263,6 +289,7 @@ class ASTEditToolInvocation extends BaseToolInvocation<ASTEditToolParams, ToolRe
     if (!modResult.success) {
       return {
         llmContent: `Error applying modification: ${modResult.error ?? 'unknown error'}`,
+        returnDisplay: `Error applying modification: ${modResult.error ?? 'unknown error'}`,
       };
     }
 
@@ -273,6 +300,7 @@ class ASTEditToolInvocation extends BaseToolInvocation<ASTEditToolParams, ToolRe
       const diff = generateSimpleLineDiff(readResult.data!, newContent, file_path);
       return {
         llmContent: `Preview diff (no file written). Backup id: ${modResult.backupId ?? 'n/a'}\n\n${diff}`,
+        returnDisplay: `Preview diff (no file written). Backup id: ${modResult.backupId ?? 'n/a'}\n\n${diff}`,
       };
     }
 
@@ -281,11 +309,13 @@ class ASTEditToolInvocation extends BaseToolInvocation<ASTEditToolParams, ToolRe
     if (!writeResult.success) {
       return {
         llmContent: `Error writing file: ${writeResult.error}`,
+        returnDisplay: `Error writing file: ${writeResult.error}`,
       };
     }
 
     return {
       llmContent: `Successfully edited node in ${file_path} (backup: ${createBackup ? modResult.backupId ?? 'n/a' : 'skipped'})`,
+      returnDisplay: `Successfully edited node in ${file_path} (backup: ${createBackup ? modResult.backupId ?? 'n/a' : 'skipped'})`,
     };
   }
 }

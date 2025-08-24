@@ -58,6 +58,12 @@ export interface WriteFileToolParams {
   mode?: 'overwrite' | 'append';
 
   /**
+   * If true, bypasses the content correction logic (ensureCorrectEdit).
+   * Use with caution, primarily for simple appends to config files.
+   */
+  skip_correction?: boolean;
+
+  /**
    * Whether the proposed content was modified by the user.
    */
   modified_by_user?: boolean;
@@ -236,8 +242,7 @@ class WriteFileToolInvocation extends BaseToolInvocation<
   }
 
   async execute(abortSignal: AbortSignal): Promise<ToolResult> {
-    let { file_path, content, ai_proposed_content, modified_by_user, mode = 'overwrite' } =
-      this.params;
+    let { file_path, content, ai_proposed_content, modified_by_user, mode = 'overwrite', skip_correction } = this.params;
 
     if (mode === 'append' && !fs.existsSync(file_path)) {
         // If appending to a non-existent file, it's the same as overwriting an empty file.
@@ -267,39 +272,48 @@ class WriteFileToolInvocation extends BaseToolInvocation<
         finalContent = existingContent + '\n' + content;
     }
 
-    const correctedContentResult = await getCorrectedFileContent(
-      this.config,
-      file_path,
-      finalContent, // Use finalContent which includes appended text if necessary
-      abortSignal,
-    );
+    let fileContent = finalContent;
+    let originalContent = '';
+    let fileExists = false;
+    let isNewFile = false;
 
-    if (correctedContentResult.error) {
-      const errDetails = correctedContentResult.error;
-      const errorMsg = errDetails.code
-        ? `Error checking existing file '${file_path}': ${errDetails.message} (${errDetails.code})`
-        : `Error checking existing file: ${errDetails.message}`;
-      return {
-        llmContent: errorMsg,
-        returnDisplay: errorMsg,
-        error: {
-          message: errorMsg,
-          type: ToolErrorType.FILE_WRITE_FAILURE,
-        },
-      };
+    if (!skip_correction) {
+      const correctedContentResult = await getCorrectedFileContent(
+        this.config,
+        file_path,
+        finalContent, // Use finalContent which includes appended text if necessary
+        abortSignal,
+      );
+
+      if (correctedContentResult.error) {
+        const errDetails = correctedContentResult.error;
+        const errorMsg = errDetails.code
+          ? `Error checking existing file '${file_path}': ${errDetails.message} (${errDetails.code})`
+          : `Error checking existing file: ${errDetails.message}`;
+        return {
+          llmContent: errorMsg,
+          returnDisplay: errorMsg,
+          error: {
+            message: errorMsg,
+            type: ToolErrorType.FILE_WRITE_FAILURE,
+          },
+        };
+      }
+
+      originalContent = correctedContentResult.originalContent;
+      fileContent = correctedContentResult.correctedContent;
+      fileExists = correctedContentResult.fileExists;
+      isNewFile =
+        !fileExists ||
+        (correctedContentResult.error !== undefined &&
+          !correctedContentResult.fileExists);
+    } else {
+      // If skipping correction, assume fileContent is finalContent
+      // and determine fileExists/isNewFile based on simple fs.existsSync
+      fileExists = fs.existsSync(file_path);
+      isNewFile = !fileExists;
+      originalContent = fileExists ? fs.readFileSync(file_path, 'utf8') : '';
     }
-
-    const {
-      originalContent,
-      correctedContent: fileContent,
-      fileExists,
-    } = correctedContentResult;
-    // fileExists is true if the file existed (and was readable or unreadable but caught by readError).
-    // fileExists is false if the file did not exist (ENOENT).
-    const isNewFile =
-      !fileExists ||
-      (correctedContentResult.error !== undefined &&
-        !correctedContentResult.fileExists);
 
     try {
       const dirName = path.dirname(file_path);
@@ -468,6 +482,10 @@ export class WriteFileTool
             description: "The mode of writing. `overwrite` will replace the entire file, `append` will add to the end. Defaults to `overwrite`.",
             type: 'string',
             enum: ['overwrite', 'append'],
+          },
+          skip_correction: {
+            description: "If true, bypasses the content correction logic (ensureCorrectEdit). Use with caution, primarily for simple appends to config files.",
+            type: 'boolean',
           },
         },
         required: ['file_path', 'content'],

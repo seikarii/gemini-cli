@@ -26,7 +26,7 @@ import { ReadManyFilesTool } from '../tools/read-many-files.js';
 import { MemoryTool, setGeminiMdFilename } from '../tools/memoryTool.js';
 import { WebSearchTool } from '../tools/web-search.js';
 import { UpsertCodeBlockTool } from '../tools/upsert_code_block.js';
-import { AstFindTool } from '../tools/ast_find.js';
+import { ASTReadTool, ASTFindTool, ASTEditTool } from '../tools/ast.js';
 import { GeminiClient } from '../core/client.js';
 import { FileDiscoveryService } from '../services/fileDiscoveryService.js';
 import { GitService } from '../services/gitService.js';
@@ -110,6 +110,35 @@ export const DEFAULT_FILE_FILTERING_OPTIONS: FileFilteringOptions = {
   respectGitIgnore: true,
   respectGeminiIgnore: true,
 };
+
+/**
+ * Loop detection configuration options
+ */
+export interface LoopDetectionConfig {
+  /** Enable advanced pattern detection (alternating, non-consecutive) */
+  enableAdvancedPatterns: boolean;
+  /** Enable semantic content analysis */
+  enableSemanticAnalysis: boolean;
+  /** Enable file state tracking */
+  enableFileStateTracking: boolean;
+  /** Confidence threshold for triggering automatic actions */
+  autoActionThreshold: number;
+  /** Enable visual confidence feedback */
+  enableVisualFeedback: boolean;
+  /** LLM temperature increase when loop detected */
+  loopBreakTemperature: number;
+}
+
+// In ConfigManager or equivalent:
+export const DEFAULT_LOOP_DETECTION_CONFIG: LoopDetectionConfig = {
+  enableAdvancedPatterns: true,
+  enableSemanticAnalysis: true,
+  enableFileStateTracking: true,
+  autoActionThreshold: 0.7,
+  enableVisualFeedback: true,
+  loopBreakTemperature: 0.9,
+};
+
 export class MCPServerConfig {
   constructor(
     // For stdio transport
@@ -790,6 +819,10 @@ export class Config {
     return this.fileExclusions;
   }
 
+  getLoopDetectionConfig(): LoopDetectionConfig {
+    return DEFAULT_LOOP_DETECTION_CONFIG;
+  }
+
   async createToolRegistry(): Promise<ToolRegistry> {
     const registry = new ToolRegistry(this);
 
@@ -839,7 +872,9 @@ export class Config {
     registerCoreTool(EditTool, this);
     registerCoreTool(WriteFileTool, this);
     registerCoreTool(UpsertCodeBlockTool);
-    registerCoreTool(AstFindTool);
+    registerCoreTool(ASTReadTool, this);
+    registerCoreTool(ASTFindTool, this);
+    registerCoreTool(ASTEditTool, this);
     registerCoreTool(WebFetchTool, this);
     registerCoreTool(ReadManyFilesTool, this);
     registerCoreTool(ShellTool, this);
@@ -850,41 +885,6 @@ export class Config {
     return registry;
   }
 }
-/**
- * Loop detection configuration options
- */
-export interface LoopDetectionConfig {
-  /** Enable advanced pattern detection (alternating, non-consecutive) */
-  enableAdvancedPatterns: boolean;
-  /** Enable semantic content analysis */
-  enableSemanticAnalysis: boolean;
-  /** Enable file state tracking */
-  enableFileStateTracking: boolean;
-  /** Confidence threshold for triggering automatic actions */
-  autoActionThreshold: number;
-  /** Enable visual confidence feedback */
-  enableVisualFeedback: boolean;
-  /** LLM temperature increase when loop detected */
-  loopBreakTemperature: number;
-}
-
-// Add to main Config interface:
-export interface Config {
-  /**
-   * Loop detection configuration
-   */
-  getLoopDetectionConfig(): LoopDetectionConfig;
-}
-
-// In ConfigManager or equivalent:
-export const DEFAULT_LOOP_DETECTION_CONFIG: LoopDetectionConfig = {
-  enableAdvancedPatterns: true,
-  enableSemanticAnalysis: true,
-  enableFileStateTracking: true,
-  autoActionThreshold: 0.7,
-  enableVisualFeedback: true,
-  loopBreakTemperature: 0.9,
-};
 
 // Export model constants for use in CLI
 export { DEFAULT_GEMINI_FLASH_MODEL };

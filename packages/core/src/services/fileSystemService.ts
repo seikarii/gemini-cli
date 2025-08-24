@@ -148,7 +148,7 @@ export class StandardFileSystemService implements FileSystemService {
       }
 
       // Check for suspicious characters
-      const suspiciousChars = /[<>:\"|?*]/;
+      const suspiciousChars = /[<>:"|?*]/;
       if (suspiciousChars.test(filePath)) {
         return false;
       }
@@ -172,7 +172,7 @@ export class StandardFileSystemService implements FileSystemService {
       }
 
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -203,9 +203,9 @@ export class StandardFileSystemService implements FileSystemService {
       if (stats.size > maxSize) {
         throw new Error(`File size ${stats.size} bytes exceeds maximum allowed ${maxSize} bytes`);
       }
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-        throw error;
+        } catch (_error) {
+      if ((_error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw _error;
       }
       // File doesn't exist, which is fine for write operations
     }
@@ -258,12 +258,8 @@ export class StandardFileSystemService implements FileSystemService {
    * Get high-precision mtime for cache validation
    */
   private async getFileMtimeMs(filePath: string): Promise<number> {
-    try {
-      const stats = await fs.stat(filePath);
-      return stats.mtimeMs;
-    } catch (error) {
-      throw error; // Let caller handle the error
-    }
+        const stats = await fs.stat(filePath);
+    return stats.mtimeMs;
   }
 
   /**
@@ -410,17 +406,23 @@ export class StandardFileSystemService implements FileSystemService {
       try {
         await fs.access(filePath, fs.constants.R_OK);
         permissions.readable = true;
-      } catch {}
+            } catch {
+        /* intentional */
+      }
 
       try {
         await fs.access(filePath, fs.constants.W_OK);
         permissions.writable = true;
-      } catch {}
+            } catch {
+        /* intentional */
+      }
 
       try {
         await fs.access(filePath, fs.constants.X_OK);
         permissions.executable = true;
-      } catch {}
+            } catch {
+        /* intentional */
+      }
 
       const fileInfo: FileInfo = {
         path: filePath,
@@ -511,6 +513,8 @@ export class StandardFileSystemService implements FileSystemService {
         case 'ENFILE':
           errorMessage = 'Too many open files, retry later';
           break;
+        default:
+          break;
       }
 
       return this.createResult<string>(false, undefined, errorMessage, errorCode, {
@@ -555,7 +559,9 @@ export class StandardFileSystemService implements FileSystemService {
           // Cleanup temp file on error
           try {
             await fs.unlink(tempPath);
-          } catch {}
+                } catch {
+        /* intentional */
+      }
           throw error;
         }
       } else {
@@ -592,6 +598,8 @@ export class StandardFileSystemService implements FileSystemService {
         case 'EMFILE':
         case 'ENFILE':
           errorMessage = 'Too many open files, retry later';
+          break;
+        default:
           break;
       }
 
@@ -720,7 +728,9 @@ export class StandardFileSystemService implements FileSystemService {
         } catch (error) {
           try {
             await fs.unlink(tempPath);
-          } catch {}
+                } catch {
+        /* intentional */
+      }
           throw error;
         }
       } else {
@@ -1182,7 +1192,7 @@ export function createFileSystemService(): FileSystemService {
     if (typeof fs !== 'undefined') {
       return new StandardFileSystemService();
     }
-  } catch (error) {
+  } catch {
     // Fall through to fallback
   }
 
