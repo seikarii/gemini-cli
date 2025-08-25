@@ -63,6 +63,7 @@ import {
   type IdeContext,
   ideContext,
 } from '@google/gemini-cli-core';
+// Type-only import for GeminiAgent to satisfy AppProps typing without adding runtime import
 import {
   IdeIntegrationNudge,
   IdeIntegrationNudgeResult,
@@ -111,7 +112,9 @@ interface AppProps {
   settings: LoadedSettings;
   startupWarnings?: string[];
   version: string;
-  agent: GeminiAgent; // Added agent prop
+  // Minimal local alias for agent runtime to avoid importing types from mew-upgrade.
+  // This preserves typing spots that expect an agent without coupling the packages.
+  agent: unknown;
 }
 
 export const AppWrapper = (props: AppProps) => {

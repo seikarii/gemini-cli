@@ -4,6 +4,14 @@
   "description": "Mew Agent and TUI",
   "type": "module",
   "main": "dist/agent/gemini-agent.js",
+  "exports": {
+    "./agent/gemini-agent.js": "./dist/agent/gemini-agent.js",
+    "./agent/gemini-agent.d.ts": "./dist/agent/gemini-agent.d.ts",
+    "./mind/mental-laby.js": "./dist/mind/mental-laby.js",
+    "./mind/mental-laby.d.ts": "./dist/mind/mental-laby.d.ts",
+    "./mind/*": "./dist/mind/*",
+    "./agent/*": "./dist/agent/*"
+  },
   "scripts": {
     "start:app": "tsx src/app/index.ts",
     "start:web": "tsx src/server/webServer.ts",

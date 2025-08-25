@@ -14,9 +14,7 @@ import {
   parseAndFormatApiError,
 } from '@google/gemini-cli-core';
 import { Content, Part } from '@google/genai';
-
 import { GeminiAgent } from '@google/gemini-cli-mew-upgrade/agent/gemini-agent.js';
-
 import { ConsolePatcher } from './ui/utils/ConsolePatcher.js';
 import { handleAtCommand } from './ui/hooks/atCommandProcessor.js';
 
@@ -41,8 +39,7 @@ export async function runNonInteractive(
       }
     });
 
-    const geminiClient = config.getGeminiClient();
-
+  const geminiClient = config.getGeminiClient();
     const abortController = new AbortController();
 
     const { processedQuery, shouldProceed } = await handleAtCommand({

@@ -59,15 +59,6 @@ export function startWebServer(agent: GeminiAgent) {
     console.log(`Mew web server listening at http://localhost:${port}`);
   });
 
-  // API endpoint for agent status/logs (MVP: hardcoded status)
-  app.get('/api/agent-status', (req, res) => {
-    res.status(200).send({
-      status: 'Agent is running',
-      lastUpdated: new Date().toISOString(),
-      thoughts: 'Thinking about the project...',
-    });
-  });
-
   // Add signal handlers for graceful shutdown
   process.on('SIGINT', () => {
     console.log('SIGINT signal received: Closing web server.');

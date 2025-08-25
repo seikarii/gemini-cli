@@ -129,20 +129,9 @@ export class GeminiAgent {
       console.warn('Cannot whisper: Agent brain not initialized.');
     }
   }
-  /**
-   * Retrieves file content for the mini-editor.
-   * This is a placeholder for MVP.
-   * @param filePath The path to the file.
-   * @returns A dummy content string for now.
-   */
-  public async getFileContent(filePath: string): Promise<string> {
-    console.log(`Agent: Request to get content for ${filePath}`);
-    return `// Content of ${filePath}\n// This is dummy content for MVP.`;
-  }
 }
   
 
 // --- Main Execution (example / local test) ---
 // Example execution block removed to keep module ESM-compatible and focused on exports.
-
 

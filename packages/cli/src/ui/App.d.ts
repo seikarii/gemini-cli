@@ -10,7 +10,7 @@ interface AppProps {
     settings: LoadedSettings;
     startupWarnings?: string[];
     version: string;
-    agent: GeminiAgent;
+    agent: unknown;
 }
 export declare const AppWrapper: (props: AppProps) => import("react/jsx-runtime").JSX.Element;
 export {};

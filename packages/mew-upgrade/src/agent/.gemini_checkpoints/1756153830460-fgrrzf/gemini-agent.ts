@@ -12,7 +12,6 @@ import { MenteOmega } from '../mind/mente-omega.js';
 import type { MemoryNodeKind } from '../mind/mental-laby.js';
 import { UnifiedPersistence } from '../persistence/unified-persistence.js';
 import { createContentGenerator, ContentGenerator } from '@google/gemini-cli-core';
-import { startWebServer } from '../server/webServer.js';
 // We import runNonInteractive dynamically in the example block to avoid
 // static type resolution against the monorepo's CLI during package-local builds.
 // @ts-ignore: build/runtime uses ESM paths; keep TS import for types
@@ -83,9 +82,6 @@ export class GeminiAgent {
     // Initialize MenteOmega with the contentGenerator
     this.brain = new MenteOmega(this.contentGenerator as ContentGenerator);
 
-    // Start the web server and pass the agent instance
-    startWebServer(this);
-
     // Restore previous state from disk
     await this.persistence.restore(this.getPersistableAPI());
 
@@ -129,20 +125,9 @@ export class GeminiAgent {
       console.warn('Cannot whisper: Agent brain not initialized.');
     }
   }
-  /**
-   * Retrieves file content for the mini-editor.
-   * This is a placeholder for MVP.
-   * @param filePath The path to the file.
-   * @returns A dummy content string for now.
-   */
-  public async getFileContent(filePath: string): Promise<string> {
-    console.log(`Agent: Request to get content for ${filePath}`);
-    return `// Content of ${filePath}\n// This is dummy content for MVP.`;
-  }
 }
   
 
 // --- Main Execution (example / local test) ---
 // Example execution block removed to keep module ESM-compatible and focused on exports.
-
 

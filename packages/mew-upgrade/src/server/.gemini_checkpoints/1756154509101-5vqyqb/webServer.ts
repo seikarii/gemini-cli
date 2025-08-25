@@ -37,35 +37,8 @@ export function startWebServer(agent: GeminiAgent) {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'index.html'));
   });
 
-  // API endpoint to get file content for the mini-editor
-  app.get('/api/file-content', async (req, res) => {
-    const filePath = req.query.path as string;
-    if (filePath) {
-      try {
-        // Agent needs a method to read file content
-        // For now, let's assume agent has a method like getFileContent
-        // This will eventually use the agent's internal memory or read_file tool
-        const content = await agent.getFileContent(filePath); // Placeholder call
-        res.status(200).send({ filePath, content });
-      } catch (error: any) { // Added : any for error type
-        res.status(500).send({ message: `Error reading file: ${error.message}` });
-      }
-    } else {
-      res.status(400).send({ message: 'Missing filePath query parameter.' });
-    }
-  });
-
   const server = app.listen(port, () => {
     console.log(`Mew web server listening at http://localhost:${port}`);
-  });
-
-  // API endpoint for agent status/logs (MVP: hardcoded status)
-  app.get('/api/agent-status', (req, res) => {
-    res.status(200).send({
-      status: 'Agent is running',
-      lastUpdated: new Date().toISOString(),
-      thoughts: 'Thinking about the project...',
-    });
   });
 
   // Add signal handlers for graceful shutdown

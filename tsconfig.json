@@ -32,6 +32,7 @@
       "@google/gemini-cli": ["packages/cli/src/index.ts"],
       "@google/gemini-cli-core": ["packages/core/src/index.ts"],
       "@google/gemini-cli-core/*": ["packages/core/src/*"],
+      "@google/gemini-cli-mew-upgrade": ["packages/mew-upgrade/src/index.ts"],
       "@google/gemini-cli-mew-upgrade/*": ["packages/mew-upgrade/src/*"],
       "@google/gemini-cli-test-utils/*": ["packages/test-utils/src/*"]
     }

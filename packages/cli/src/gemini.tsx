@@ -142,6 +142,24 @@ export async function startInteractiveUI(
   // Detect and enable Kitty keyboard protocol once at startup
   await detectAndEnableKittyProtocol();
   setWindowTitle(basename(workspaceRoot), settings);
+  // Dynamically import GeminiAgent from mew-upgrade and instantiate it so we can pass the
+  // runtime agent instance into the interactive UI without static cross-package source imports.
+  // If the import fails, fall back to rendering without an agent.
+  let agentInstance: unknown = undefined;
+  try {
+    // Dynamic import: suppress static type-checking of this import specifier because the
+    // mew-upgrade package is built to dist at runtime and we want to avoid cross-project
+    // static resolution errors here.
+    const { GeminiAgent } = await import('@google/gemini-cli-mew-upgrade/agent/gemini-agent.js');
+    // Instantiate with minimal casting to avoid introducing broad 'any' usage.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    agentInstance = new (GeminiAgent as any)(config as unknown);
+  } catch (err) {
+    if (config.getDebugMode()) {
+      console.warn('Warning: failed to load GeminiAgent from mew-upgrade, continuing without agent.', err);
+    }
+  }
+
   const instance = render(
     <React.StrictMode>
       <SettingsContext.Provider value={settings}>
@@ -150,6 +168,7 @@ export async function startInteractiveUI(
           settings={settings}
           startupWarnings={startupWarnings}
           version={version}
+          agent={agentInstance}
         />
       </SettingsContext.Provider>
     </React.StrictMode>,
@@ -373,7 +392,16 @@ export async function main() {
     config,
   );
 
-  await runNonInteractive(nonInteractiveConfig, input, prompt_id);
+  // Create a local GeminiAgent and pass it to the non-interactive runner.
+  // Import is dynamic to avoid compile-time cross-package source inclusion issues.
+  // If we reached the non-interactive path earlier, the non-interactive code already
+  // dynamically imported and created an agent. Keep that behavior consistent by using
+  // a similar @ts-ignore dynamic import here when needed.
+  const { GeminiAgent } = await import('@google/gemini-cli-mew-upgrade/agent/gemini-agent.js');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const agent = new (GeminiAgent as any)(config as unknown);
+
+  await runNonInteractive(agent, nonInteractiveConfig, input, prompt_id);
   process.exit(0);
 }
 

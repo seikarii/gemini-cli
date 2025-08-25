@@ -27,9 +27,12 @@ import {
   DEFAULT_GEMINI_FLASH_MODEL,
   parseAndFormatApiError,
 } from '@google/gemini-cli-core';
-import { Content, Part } from '@google/genai';
-import { GeminiAgent } from '@google/gemini-cli-mew-upgrade/agent/gemini-agent.js';
-import type { MemoryNodeKind } from '../../../../mew-upgrade/src/mind/mental-laby.js';
+import type { PartListUnion, Part } from '@google/genai';
+import { FinishReason } from '@google/genai';
+// Avoid importing GeminiAgent type from mew-upgrade to prevent cross-package type resolution issues.
+// The agent parameter in this hook should be an instance compatible with the expected runtime shape.
+// import type { GeminiAgent } from '@google/gemini-cli-mew-upgrade/agent/gemini-agent.js';
+// Removed MemoryNodeKind import: it wasn't used in this hook and caused unresolved-module diagnostics.
 import {
   StreamingState,
   HistoryItem,
@@ -69,7 +72,7 @@ enum StreamProcessingStatus {
  * API interaction, and tool call lifecycle.
  */
 export const useGeminiStream = (
-  agent: GeminiAgent,
+  agent: unknown,
   geminiClient: GeminiClient,
   history: HistoryItem[],
   addItem: UseHistoryManagerReturn['addItem'],
@@ -793,7 +796,13 @@ export const useGeminiStream = (
           const fileContent = toolCall.response.responseParts
             .map((part) => (part as Part).text)
             .join('');
-          agent.whisper(fileContent, 'semantic'); // Ingest as semantic memory
+          // Agent is typed as unknown in this package to avoid cross-package type coupling.
+          // Cast to any and check for whisper method at runtime before calling.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const maybeAgent: any = agent as any;
+          if (maybeAgent && typeof maybeAgent.whisper === 'function') {
+            maybeAgent.whisper(fileContent, 'semantic'); // Ingest as semantic memory
+          }
         }
       }
 
@@ -849,6 +858,7 @@ export const useGeminiStream = (
       markToolsAsSubmitted,
       geminiClient,
       performMemoryRefresh,
+      agent,
     ],
   );
 
