@@ -20,61 +20,29 @@ const __dirname = path.dirname(__filename);
 
 let activeFilePath: string | null = null;
 
-// Security / hardening: limit recursion depth for directory traversal and
-// enforce a maximum file read size to avoid accidental DoS or info leaks.
-const DEFAULT_MAX_DIR_DEPTH = 6; // reasonable default for project browsing
 const MAX_ALLOWED_FILE_BYTES = 200 * 1024; // 200 KiB
 
-async function getDirectoryTree(
-  dirPath: string,
-  projectRoot: string,
-  currentDepth = 0,
-  maxDepth = DEFAULT_MAX_DIR_DEPTH,
-): Promise<DirEntry[]> {
-  // Enforce max recursion depth
-  if (currentDepth >= maxDepth) return [];
-
+async function getDirContents(dirPath: string, projectRoot: string): Promise<Omit<DirEntry, 'children'>[]> {
   let dirents;
   try {
     dirents = await fs.readdir(dirPath, { withFileTypes: true });
   } catch (e: any) {
-    // If we can't read a directory (permissions, etc.), skip it silently.
     return [];
   }
 
-  const children: DirEntry[] = [];
-
+  const children: Omit<DirEntry, 'children'>[] = [];
   for (const dirent of dirents) {
     try {
       const candidate = path.resolve(dirPath, dirent.name);
-
-      // Prevent escaping the project root (avoid reading outside the intended scope)
       const rel = path.relative(projectRoot, candidate);
       if (rel.startsWith('..') || path.isAbsolute(rel)) {
-        // Skip entries that would escape the project root
         continue;
       }
-
-      // Avoid following symbolic links to arbitrary locations; treat as file.
-      const stat = await fs.lstat(candidate);
-      if (stat.isSymbolicLink()) {
-        // Don't follow symlinks to avoid surprises; show as file entry.
-        children.push({ name: dirent.name, type: dirent.isDirectory() ? 'directory' : 'file' } as DirEntry);
-        continue;
-      }
-
-      if (dirent.isDirectory()) {
-        const subChildren = await getDirectoryTree(candidate, projectRoot, currentDepth + 1, maxDepth);
-        children.push({ name: dirent.name, type: 'directory', children: subChildren });
-      } else {
-        children.push({ name: dirent.name, type: 'file' });
-      }
+      children.push({ name: dirent.name, type: dirent.isDirectory() ? 'directory' : 'file' });
     } catch (err) {
-      // Best-effort: skip problematic entries instead of failing the whole listing
       continue;
     }
   }
-
   return children;
 }
 
@@ -131,12 +99,17 @@ export async function startWebServer(agent: GeminiAgent) {
 
   app.get('/api/file-tree', async (req, res) => {
     try {
-  const projectRoot = path.resolve(__dirname, '..', '..', '..', '..');
-  // Allow callers to request a smaller depth via query param, capped by DEFAULT_MAX_DIR_DEPTH
-  const rawDepth = parseInt(((req.query as any)['depth'] as string) || `${DEFAULT_MAX_DIR_DEPTH}`, 10);
-  const depth = Number.isFinite(rawDepth) ? Math.min(rawDepth, DEFAULT_MAX_DIR_DEPTH) : DEFAULT_MAX_DIR_DEPTH;
-  const tree = await getDirectoryTree(projectRoot, projectRoot, 0, depth);
-  return res.status(200).send(tree);
+      const projectRoot = path.resolve(__dirname, '..', '..', '..', '..');
+      const requestedPath = (req.query as any)['path'] as string || '';
+      const targetPath = path.resolve(projectRoot, requestedPath);
+
+      const rel = path.relative(projectRoot, targetPath);
+      if (rel.startsWith('..') || path.isAbsolute(rel)) {
+        return res.status(403).send({ message: 'Access to the requested path is forbidden.' });
+      }
+
+      const tree = await getDirContents(targetPath, projectRoot);
+      return res.status(200).send(tree);
     } catch (error: any) {
       return res.status(500).send({ message: `Error getting file tree: ${error.message}` });
     }

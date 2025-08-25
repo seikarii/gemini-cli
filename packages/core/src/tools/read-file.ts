@@ -5,6 +5,7 @@
  */
 
 import path from 'path';
+import fs from 'fs/promises';
 import { makeRelative, shortenPath } from '../utils/paths.js';
 import {
   BaseDeclarativeTool,
@@ -26,6 +27,7 @@ import { FileOperation } from '../telemetry/metrics.js';
 import { getProgrammingLanguage } from '../telemetry/telemetry-utils.js';
 import { logFileOperation } from '../telemetry/loggers.js';
 import { FileOperationEvent } from '../telemetry/types.js';
+import fetch from 'node-fetch';
 
 /**
  * Parameters for the ReadFile tool
@@ -46,7 +48,6 @@ export interface ReadFileToolParams {
    */
   limit?: number;
 }
-import fetch from 'node-fetch';
 
 class ReadFileToolInvocation extends BaseToolInvocation<
   ReadFileToolParams,
@@ -73,8 +74,25 @@ class ReadFileToolInvocation extends BaseToolInvocation<
 
   private async openInMewWindow(filePath: string): Promise<void> {
     try {
-      // This is a "fire and forget" request to update the Mew Window
-      fetch(`http://localhost:3000/api/file-content?path=${encodeURIComponent(filePath)}`).catch(err => {
+      const portFilePath = path.join(this.config.getTargetDir(), '.gemini', 'mew_port.txt');
+      let port = 3000;
+      try {
+        const portStr = await fs.readFile(portFilePath, 'utf8');
+        const parsedPort = parseInt(portStr, 10);
+        if (!isNaN(parsedPort)) {
+          port = parsedPort;
+        }
+      } catch (e) {
+        // Ignore error if file doesn't exist or is unreadable, default to 3000
+      }
+
+      fetch(`http://localhost:${port}/api/mew/set-active-file`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filePath }),
+      }).catch(err => {
         // Log the error but don't block the main operation
         console.error('Failed to update Mew Window:', err);
       });

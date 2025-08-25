@@ -117,3 +117,6 @@ export { IdeConnectionEvent, IdeConnectionType } from './telemetry/types.js';
 export { sessionId } from './utils/session.js';
 export * from './utils/browser.js';
 export { Storage } from './config/storage.js';
+
+// Re-export minimal @google/genai types (provided via types/genai-shims.d.ts)
+export type { Part, PartListUnion, PartUnion, FinishReason, FunctionCall, FunctionResponse } from './types/genai-shims.js';

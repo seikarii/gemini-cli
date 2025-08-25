@@ -10,32 +10,72 @@ interface FileTreeNode {
   name: string;
   type: 'file' | 'directory';
   children?: FileTreeNode[];
+  isOpen?: boolean;
+  path: string;
 }
 
-const FileTree = ({ tree, onFileSelect }: { tree: FileTreeNode[], onFileSelect: (path: string) => void }) => {
-  const handleFileClick = (node: FileTreeNode, parentPath: string) => {
-    const newPath = parentPath ? `${parentPath}/${node.name}` : node.name;
-    if (node.type === 'file') {
-      onFileSelect(newPath);
+const Directory = ({ node, onFileSelect }: { node: FileTreeNode, onFileSelect: (path: string) => void }) => {
+  const [isOpen, setIsOpen] = useState(node.isOpen || false);
+  const [children, setChildren] = useState<FileTreeNode[]>(node.children || []);
+
+  const handleToggle = async () => {
+    setIsOpen(!isOpen);
+    if (!children.length) {
+      try {
+        const response = await fetch(`/api/file-tree?path=${encodeURIComponent(node.path)}`);
+        const data = await response.json();
+        setChildren(data.map((child: any) => ({ ...child, path: `${node.path}/${child.name}` })));
+      } catch (error) {
+        console.error('Error fetching directory contents:', error);
+      }
     }
   };
 
-  const renderTree = (nodes: FileTreeNode[], path: string) => {
-    return (
-      <ul style={{ listStyleType: 'none', paddingLeft: '20px' }}>
-        {nodes.map(node => (
-          <li key={node.name}>
-            <span onClick={() => handleFileClick(node, path)} style={{ cursor: node.type === 'file' ? 'pointer' : 'default' }}>
-              {node.type === 'directory' ? '????' : '????'} {node.name}
-            </span>
-            {node.children && renderTree(node.children, path ? `${path}/${node.name}` : node.name)}
-          </li>
-        ))}
-      </ul>
-    );
-  };
+  return (
+    <div>
+      <div onClick={handleToggle} style={{ cursor: 'pointer' }}>
+        {isOpen ? '[-]' : '[+]'} {node.name}
+      </div>
+      {isOpen && (
+        <div style={{ paddingLeft: '20px' }}>
+          {children.map(child => (
+            <div key={child.name}>
+              {child.type === 'directory' ? (
+                <Directory node={child} onFileSelect={onFileSelect} />
+              ) : (
+                <div onClick={() => onFileSelect(child.path)} style={{ cursor: 'pointer' }}>
+                  [F] {child.name}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
-  return renderTree(tree, '');
+const FileTree = ({ onFileSelect }: { onFileSelect: (path: string) => void }) => {
+  const [root, setRoot] = useState<FileTreeNode | null>(null);
+
+  useEffect(() => {
+    const fetchRoot = async () => {
+      try {
+        const response = await fetch('/api/file-tree');
+        const data = await response.json();
+        setRoot({ name: '/', type: 'directory', children: data.map((child: any) => ({ ...child, path: child.name })), path: '' });
+      } catch (error) {
+        console.error('Error fetching root directory:', error);
+      }
+    };
+    fetchRoot();
+  }, []);
+
+  if (!root) {
+    return <div>Loading file tree...</div>;
+  }
+
+  return <Directory node={root} onFileSelect={onFileSelect} />;
 };
 
 export const MewApp = () => {
@@ -43,29 +83,18 @@ export const MewApp = () => {
   const [whisperInput, setWhisperInput] = useState<string>('');
   const [currentFilePath, setCurrentFilePath] = useState<string>('');
   const [fileContent, setFileContent] = useState<string>('// Load a file to see its content');
-  const [fileTree, setFileTree] = useState<FileTreeNode[]>([]);
-
-  useEffect(() => {
-    const fetchFileTree = async () => {
-      try {
-        const response = await fetch('/api/file-tree');
-        const data = await response.json();
-        setFileTree(data);
-      } catch (error) {
-        console.error('Error fetching file tree:', error);
-      }
-    };
-    fetchFileTree();
-  }, []);
+  const [activeFileFromServer, setActiveFileFromServer] = useState<string | null>(null);
 
   // Fetch agent status/logs
   useEffect(() => {
     const fetchAgentStatus = async () => {
       try {
-        // Placeholder for a real agent status endpoint
         const response = await fetch('/api/agent-status');
         const data = await response.json();
         setAgentOutput(JSON.stringify(data, null, 2)); // Display agent status
+        if (data.activeFilePath) {
+          setActiveFileFromServer(data.activeFilePath);
+        }
       } catch (error) {
         setAgentOutput(`Error fetching agent status: ${error}`);
       }
@@ -75,6 +104,32 @@ export const MewApp = () => {
     fetchAgentStatus(); // Initial fetch
     return () => clearInterval(interval);
   }, []);
+
+  const handleLoadFile = async (path?: string) => {
+    const a = path || currentFilePath;
+    if (a.trim() === '') return;
+    try {
+      const response = await fetch(`/api/file-content?path=${encodeURIComponent(a)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setFileContent(data.content);
+        setCurrentFilePath(data.filePath);
+        console.log(`Loaded file: ${data.filePath}`);
+      } else {
+        console.error('Failed to load file:', await response.text());
+        setFileContent(`Error loading file: ${a}`);
+      }
+    } catch (error) {
+      console.error('Error loading file:', error);
+      setFileContent(`Error loading file: ${a}`);
+    }
+  };
+
+  useEffect(() => {
+    if (activeFileFromServer && activeFileFromServer !== currentFilePath) {
+      handleLoadFile(activeFileFromServer);
+    }
+  }, [activeFileFromServer]);
 
   const handleWhisperSubmit = async () => {
     if (whisperInput.trim() === '') return;
@@ -97,32 +152,12 @@ export const MewApp = () => {
     }
   };
 
-  const handleLoadFile = async (path?: string) => {
-    const a = path || currentFilePath;
-    if (a.trim() === '') return;
-    try {
-      const response = await fetch(`/api/file-content?path=${encodeURIComponent(a)}`);
-      if (response.ok) {
-        const data = await response.json();
-        setFileContent(data.content);
-        setCurrentFilePath(data.filePath);
-        console.log(`Loaded file: ${data.filePath}`);
-      } else {
-        console.error('Failed to load file:', await response.text());
-        setFileContent(`Error loading file: ${a}`);
-      }
-    } catch (error) {
-      console.error('Error loading file:', error);
-      setFileContent(`Error loading file: ${a}`);
-    }
-  };
-
   return (
     <div style={{ border: '1px solid grey', padding: '10px', borderRadius: '5px', display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: 'monospace' }}>
       <h1 style={{ fontSize: '1.5em', marginBottom: '10px' }}>Mew Window</h1>
       <div style={{ display: 'flex', flexGrow: 1 }}>
         <div style={{ width: '30%', borderRight: '1px solid lightgrey', overflowY: 'auto' }}>
-          <FileTree tree={fileTree} onFileSelect={handleLoadFile} />
+          <FileTree onFileSelect={handleLoadFile} />
         </div>
         <div style={{ width: '70%', display: 'flex', flexDirection: 'column' }}>
           {/* Agent Output / Logs */}
