@@ -1,0 +1,184 @@
+"""
+LLMFallbackManager - Gestión avanzada de fallbacks para LLMs en Crisalida
+========================================================================
+
+Maneja situaciones donde los LLMs principales fallan, permitiendo conmutación
+a estrategias alternativas, lógica interna o respuestas predefinidas para
+mantener la continuidad operativa. Incluye diagnóstico extendido, logging
+robusto y trazabilidad de decisiones de fallback.
+"""
+
+import logging
+import time
+from typing import Any
+
+logger = logging.getLogger(__name__)
+
+
+class LLMFallbackManager:
+    """Gestor avanzado de fallbacks para LLMs, con diagnóstico y trazabilidad."""
+
+    def __init__(self):
+        self.internal_strategies = {
+            "coding": self._internal_coding_fallback,
+            "planning": self._internal_planning_fallback,
+            "analysis": self._internal_analysis_fallback,
+        }
+        self.last_fallback_type: str | None = None
+        self.last_fallback_result: Any | None = None
+        self.last_fallback_time: float = 0.0
+
+    async def handle_offline_mode(
+        self,
+        task_description: str,
+        context: str | None = None,
+    ) -> dict[str, Any]:
+        """Maneja tareas en modo completamente offline con diagnóstico extendido."""
+        logger.info("🔄 Procesando en modo offline - usando lógica interna")
+        time.time()
+        task_type = self._analyze_task_type(task_description)
+        if task_type in self.internal_strategies:
+            result = await self.internal_strategies[task_type](
+                task_description, context
+            )
+        else:
+            result = await self._generic_internal_fallback(task_description, context)
+        self._record_fallback("offline_mode", result)
+        return {
+            "success": True,
+            "result": result,
+            "llm_mode": False,
+            "fallback_reason": "offline_mode_enabled",
+            "internal_processing": True,
+            "diagnostics": self.get_last_fallback_diagnostics(),
+        }
+
+    async def handle_brain_failure(
+        self,
+        task_description: str,
+        context: str | None = None,
+    ) -> dict[str, Any]:
+        """Maneja falla del cerebro - usa lógica de planificación interna con diagnóstico."""
+        logger.warning("⚠️ Brain LLM unavailable - using internal planning")
+        time.time()
+        basic_plan = self._create_basic_plan(task_description)
+        self._record_fallback("brain_failure", basic_plan)
+        return {
+            "plan": basic_plan,
+            "implementation_results": [],
+            "review": "Plan created using internal heuristics",
+            "fallback_reason": "brain_unavailable",
+            "diagnostics": self.get_last_fallback_diagnostics(),
+        }
+
+    async def handle_cerebellum_failure(self, step: dict[str, Any]) -> str:
+        """Maneja falla del cerebelo - implementación básica con trazabilidad."""
+        logger.warning("⚠️ Cerebellum LLM unavailable - using basic implementation")
+        result = f"# Basic implementation for: {step['description']}\n# TODO: Implement manually"
+        self._record_fallback("cerebellum_failure", result)
+        return result
+
+    async def handle_complete_failure(
+        self,
+        task_description: str,
+        context: str | None = None,
+    ) -> dict[str, Any]:
+        """Maneja falla completa de LLMs - usa lógica de fallback genérica con diagnóstico."""
+        logger.error("❌ All LLMs unavailable - falling back to generic internal logic")
+        result = "All LLMs are currently unavailable. Please try again later."
+        self._record_fallback("complete_llm_failure", result)
+        return {
+            "success": False,
+            "result": result,
+            "fallback_reason": "complete_llm_failure",
+            "diagnostics": self.get_last_fallback_diagnostics(),
+        }
+
+    def _analyze_task_type(self, task_description: str) -> str:
+        """Analiza el tipo de tarea usando lógica simple y logging."""
+        task_lower = task_description.lower()
+        if any(
+            keyword in task_lower
+            for keyword in ["code", "program", "script", "function"]
+        ):
+            return "coding"
+        elif any(
+            keyword in task_lower
+            for keyword in ["plan", "strategy", "steps", "organize"]
+        ):
+            return "planning"
+        elif any(
+            keyword in task_lower
+            for keyword in ["analyze", "review", "examine", "study"]
+        ):
+            return "analysis"
+        return "general"
+
+    async def _internal_coding_fallback(
+        self, task_description: str, context: str | None = None
+    ) -> str:
+        """Fallback interno para tareas de programación con diagnóstico."""
+        return f"""# Internal coding fallback for: {task_description}
+# This is a basic template generated by Jano's internal logic
+# TODO: Implement the specific functionality requested
+def main():
+    # Basic implementation structure
+    pass
+if __name__ == "__main__":
+    main()
+"""
+
+    async def _internal_planning_fallback(
+        self, task_description: str, context: str | None = None
+    ) -> dict[str, Any]:
+        """Fallback interno para tareas de planificación con diagnóstico."""
+        return self._create_basic_plan(task_description)
+
+    async def _internal_analysis_fallback(
+        self, task_description: str, context: str | None = None
+    ) -> str:
+        """Fallback interno para tareas de análisis con diagnóstico."""
+        return (
+            f"Internal analysis for '{task_description}': "
+            "Based on internal heuristics, this task involves [identify key components/steps]. "
+            "Further detailed analysis requires LLM assistance."
+        )
+
+    async def _generic_internal_fallback(
+        self, task_description: str, context: str | None = None
+    ) -> str:
+        """Fallback interno genérico para tareas no categorizadas con diagnóstico."""
+        return (
+            f"Internal processing for '{task_description}': "
+            "Jano is working on this task using its core internal logic. "
+            "Results may be limited without external LLM assistance."
+        )
+
+    def _create_basic_plan(self, task_description: str) -> dict[str, Any]:
+        """Crea plan básico usando heurísticas internas y logging."""
+        return {
+            "steps": [
+                {"description": f"Analyze: {task_description}", "context": ""},
+                {"description": f"Implement: {task_description}", "context": ""},
+                {"description": f"Test: {task_description}", "context": ""},
+            ],
+            "source": "internal_heuristics",
+            "complexity": "basic",
+        }
+
+    def _record_fallback(self, fallback_type: str, result: Any):
+        """Registra el tipo y resultado del último fallback con timestamp."""
+        self.last_fallback_type = fallback_type
+        self.last_fallback_result = result
+        self.last_fallback_time = time.time()
+        logger.info(
+            f"Fallback registrado: {fallback_type} a las {self.last_fallback_time:.2f}"
+        )
+
+    def get_last_fallback_diagnostics(self) -> dict[str, Any]:
+        """Devuelve diagnóstico del último fallback realizado."""
+        return {
+            "type": self.last_fallback_type,
+            "result": self.last_fallback_result,
+            "timestamp": self.last_fallback_time,
+        }

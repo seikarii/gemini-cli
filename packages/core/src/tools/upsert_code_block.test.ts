@@ -31,9 +31,9 @@ describe('UpsertCodeBlockTool (unit)', () => {
     } as any;
 
   const tool = new UpsertCodeBlockTool();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const inv = (tool as unknown as { createInvocation: (p: any) => any }).createInvocation(params);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const abortSignal = (new (globalThis as any).AbortController()).signal;
   const res = await inv.execute(abortSignal);
     expect(res.llmContent).toBeDefined();

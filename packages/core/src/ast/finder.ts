@@ -187,8 +187,9 @@ function findByCustom(
   for (const n of sourceFile.getDescendants()) {
     try {
       if (fn(n)) found.push(n);
-    } catch {
+    } catch (_err) {
       // ignore errors in user-provided function
+      void _err;
     }
   }
   return found;

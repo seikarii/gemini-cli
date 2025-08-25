@@ -3,7 +3,6 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
 import { z } from 'zod';
 /**
  * Zod schema for validating a file context from the IDE.
@@ -24,8 +23,8 @@ export declare const FileSchema: z.ZodObject<{
         character: number;
     }>>;
 }, "strip", z.ZodTypeAny, {
-    path: string;
     timestamp: number;
+    path: string;
     cursor?: {
         line: number;
         character: number;
@@ -33,8 +32,8 @@ export declare const FileSchema: z.ZodObject<{
     isActive?: boolean | undefined;
     selectedText?: string | undefined;
 }, {
-    path: string;
     timestamp: number;
+    path: string;
     cursor?: {
         line: number;
         character: number;
@@ -61,8 +60,8 @@ export declare const IdeContextSchema: z.ZodObject<{
                 character: number;
             }>>;
         }, "strip", z.ZodTypeAny, {
-            path: string;
             timestamp: number;
+            path: string;
             cursor?: {
                 line: number;
                 character: number;
@@ -70,8 +69,8 @@ export declare const IdeContextSchema: z.ZodObject<{
             isActive?: boolean | undefined;
             selectedText?: string | undefined;
         }, {
-            path: string;
             timestamp: number;
+            path: string;
             cursor?: {
                 line: number;
                 character: number;
@@ -81,8 +80,8 @@ export declare const IdeContextSchema: z.ZodObject<{
         }>, "many">>;
     }, "strip", z.ZodTypeAny, {
         openFiles?: Array<{
-            path: string;
             timestamp: number;
+            path: string;
             cursor?: {
                 line: number;
                 character: number;
@@ -92,8 +91,8 @@ export declare const IdeContextSchema: z.ZodObject<{
         }> | undefined;
     }, {
         openFiles?: Array<{
-            path: string;
             timestamp: number;
+            path: string;
             cursor?: {
                 line: number;
                 character: number;
@@ -105,8 +104,8 @@ export declare const IdeContextSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     workspaceState?: {
         openFiles?: Array<{
-            path: string;
             timestamp: number;
+            path: string;
             cursor?: {
                 line: number;
                 character: number;
@@ -118,8 +117,8 @@ export declare const IdeContextSchema: z.ZodObject<{
 }, {
     workspaceState?: {
         openFiles?: Array<{
-            path: string;
             timestamp: number;
+            path: string;
             cursor?: {
                 line: number;
                 character: number;
@@ -154,8 +153,8 @@ export declare const IdeContextNotificationSchema: z.ZodObject<{
                     character: number;
                 }>>;
             }, "strip", z.ZodTypeAny, {
-                path: string;
                 timestamp: number;
+                path: string;
                 cursor?: {
                     line: number;
                     character: number;
@@ -163,8 +162,8 @@ export declare const IdeContextNotificationSchema: z.ZodObject<{
                 isActive?: boolean | undefined;
                 selectedText?: string | undefined;
             }, {
-                path: string;
                 timestamp: number;
+                path: string;
                 cursor?: {
                     line: number;
                     character: number;
@@ -174,8 +173,8 @@ export declare const IdeContextNotificationSchema: z.ZodObject<{
             }>, "many">>;
         }, "strip", z.ZodTypeAny, {
             openFiles?: Array<{
-                path: string;
                 timestamp: number;
+                path: string;
                 cursor?: {
                     line: number;
                     character: number;
@@ -185,8 +184,8 @@ export declare const IdeContextNotificationSchema: z.ZodObject<{
             }> | undefined;
         }, {
             openFiles?: Array<{
-                path: string;
                 timestamp: number;
+                path: string;
                 cursor?: {
                     line: number;
                     character: number;
@@ -198,8 +197,8 @@ export declare const IdeContextNotificationSchema: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         workspaceState?: {
             openFiles?: Array<{
-                path: string;
                 timestamp: number;
+                path: string;
                 cursor?: {
                     line: number;
                     character: number;
@@ -211,8 +210,8 @@ export declare const IdeContextNotificationSchema: z.ZodObject<{
     }, {
         workspaceState?: {
             openFiles?: Array<{
-                path: string;
                 timestamp: number;
+                path: string;
                 cursor?: {
                     line: number;
                     character: number;
@@ -226,8 +225,8 @@ export declare const IdeContextNotificationSchema: z.ZodObject<{
     params: {
         workspaceState?: {
             openFiles?: Array<{
-                path: string;
                 timestamp: number;
+                path: string;
                 cursor?: {
                     line: number;
                     character: number;
@@ -243,8 +242,8 @@ export declare const IdeContextNotificationSchema: z.ZodObject<{
     params: {
         workspaceState?: {
             openFiles?: Array<{
-                path: string;
                 timestamp: number;
+                path: string;
                 cursor?: {
                     line: number;
                     character: number;

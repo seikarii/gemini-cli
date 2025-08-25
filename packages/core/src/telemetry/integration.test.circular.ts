@@ -26,13 +26,13 @@ describe('Circular Reference Integration Test', () => {
     } as unknown as Config;
 
     // Simulate the structure that causes the circular reference error
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const proxyAgentLike: any = {
       sockets: {},
       options: { proxy: 'http://proxy.example.com:8080' },
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const socketLike: any = {
       _httpMessage: {
         agent: proxyAgentLike,
@@ -56,7 +56,7 @@ describe('Circular Reference Integration Test', () => {
     const logger = ClearcutLogger.getInstance(mockConfig);
 
     expect(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       logger?.enqueueLogEvent(problematicEvent as any);
     }).not.toThrow();
   });

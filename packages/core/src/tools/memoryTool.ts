@@ -183,7 +183,8 @@ class MemoryToolInvocation extends BaseToolInvocation<
   override async shouldConfirmExecute(
     _abortSignal: AbortSignal,
   ): Promise<ToolEditConfirmationDetails | false> {
-    const memoryFilePath = getGlobalMemoryFilePath();
+  void _abortSignal;
+  const memoryFilePath = getGlobalMemoryFilePath();
     const allowlistKey = memoryFilePath;
 
     if (MemoryToolInvocation.allowlist.has(allowlistKey)) {
@@ -221,7 +222,8 @@ class MemoryToolInvocation extends BaseToolInvocation<
   }
 
   async execute(_signal: AbortSignal): Promise<ToolResult> {
-    const { fact, modified_by_user, modified_content } = this.params;
+  void _signal;
+  const { fact, modified_by_user, modified_content } = this.params;
 
     try {
       if (modified_by_user && modified_content !== undefined) {
@@ -340,6 +342,7 @@ export class MemoryTool
         content = await fsAdapter.readFile(memoryFilePath, 'utf-8');
       } catch (_e) {
         // File doesn't exist, will be created with header and item.
+        void _e;
       }
 
       const headerIndex = content.indexOf(MEMORY_SECTION_HEADER);
@@ -383,10 +386,10 @@ export class MemoryTool
   }
 
   getModifyContext(_abortSignal: AbortSignal): ModifyContext<SaveMemoryParams> {
+    void _abortSignal;
     return {
-      getFilePath: (_params: SaveMemoryParams) => getGlobalMemoryFilePath(),
-      getCurrentContent: async (_params: SaveMemoryParams): Promise<string> =>
-        readMemoryFileContent(),
+      getFilePath: (_params: SaveMemoryParams) => { void _params; return getGlobalMemoryFilePath(); },
+      getCurrentContent: async (_params: SaveMemoryParams): Promise<string> => { void _params; return readMemoryFileContent(); },
       getProposedContent: async (params: SaveMemoryParams): Promise<string> => {
         const currentContent = await readMemoryFileContent();
         return computeNewContent(currentContent, params.fact);

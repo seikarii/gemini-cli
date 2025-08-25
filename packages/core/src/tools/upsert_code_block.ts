@@ -391,9 +391,9 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
     lines: string[],
   ): { startLine: number; endLine: number; indent: number } | null {
     const blockPatterns = [
-      new RegExp(`^(\\s*)def\\s+${this.params.block_name}\\s*\\(`),
-      new RegExp(`^(\s*)class\s+${this.params.block_name}\s*[:(]`),
-      new RegExp(`^(\s*)${this.params.block_name}\s*=\s*`),
+  new RegExp(`^(\\s*)def\\s+${this.params.block_name}\\s*\\(`),
+  new RegExp(`^(\\s*)class\\s+${this.params.block_name}\\s*[:(]`),
+  new RegExp(`^(\\s*)${this.params.block_name}\\s*=\\s*`),
     ];
 
     for (let i = 0; i < lines.length; i++) {

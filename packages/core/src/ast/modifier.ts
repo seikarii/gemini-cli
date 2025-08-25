@@ -69,7 +69,7 @@ export class ASTModifier {
 
     const backupId = this.createBackup(sourceText);
 
-    try {
+  try {
       // Group modifications by target nodes if possible, otherwise apply sequentially
       for (const mod of modifications) {
         const targetQuery = (mod as any).targetQuery as any;
@@ -90,11 +90,10 @@ export class ASTModifier {
       let modifiedText = sourceFile.getFullText();
       if (opts?.format) {
         try {
-          // try prettier if available
-           
-          const prettier = require('prettier');
-          const cfg = await prettier.resolveConfig(filePath).catch(() => ({}));
-          modifiedText = prettier.format(modifiedText, {
+          // try prettier if available (dynamic import to avoid require)
+          const prettier = await import('prettier');
+          const cfg = await (prettier as any).resolveConfig(filePath).catch(() => ({}));
+          modifiedText = (prettier as any).format(modifiedText, {
             ...(cfg || {}),
             filepath: filePath,
           });
@@ -109,11 +108,11 @@ export class ASTModifier {
         modifiedText,
         backupId,
       };
-    } catch (e: any) {
+    } catch (_e: any) {
       const restored = this.restoreBackup(backupId);
       return {
         success: false,
-        error: String(e),
+        error: String(_e),
         output: 'Restored from backup',
         modifiedText: restored,
         backupId,
@@ -131,7 +130,7 @@ export class ASTModifier {
         // Insert import at top
         sourceFile.insertText(0, mod.newCode.trim() + '\n');
         break;
-      case ModificationOperation.ADD_CLASS:
+      case ModificationOperation.ADD_CLASS: {
         if (!mod.newCode) throw new Error('add_class requires newCode');
         // Try to find sensible insertion point: after last import or at top
         const imports = sourceFile.getImportDeclarations();
@@ -142,6 +141,7 @@ export class ASTModifier {
           sourceFile.insertStatements(0, mod.newCode);
         }
         break;
+      }
       default:
         // unsupported at file-level; nothing to do
         break;
@@ -178,10 +178,11 @@ export class ASTModifier {
           throw new Error('modify_attribute requires attribute name');
         // Try to set property if exists
         try {
-          // @ts-ignore access internal
+          // accessing internal ts-morph API; safe for now
           (node as any)[mod.attribute] = mod.value;
-        } catch {
-          // fallback: no-op
+        } catch (_e) {
+          // intentionally ignore errors from internal access
+          void _e;
         }
         break;
 
@@ -202,10 +203,10 @@ export class ASTModifier {
           throw new Error('refactor requires attribute & value');
         try {
           // set attribute on node if possible
-          // @ts-ignore
+          // internal mutation of ts-morph node
           (node as any)[mod.attribute] = mod.value;
-        } catch {
-          // ignore
+        } catch (_e) {
+          void _e;
         }
         break;
 
@@ -245,19 +246,6 @@ export class ASTModifier {
           }
         }
         break;
-
-      case ModificationOperation.REMOVE_CLASS_METHODS:
-        if (!mod.value || !Array.isArray(mod.value))
-          throw new Error('remove_class_methods requires value:list');
-        if (Node.isClassDeclaration(node)) {
-          const cls = node as ClassDeclaration;
-          const methodNames = new Set(mod.value as string[]);
-          for (const m of cls.getMethods()) {
-            if (methodNames.has(m.getName())) (m as any).remove();
-          }
-        }
-        break;
-
       case ModificationOperation.UPDATE_METHOD_SIGNATURE:
         if (!mod.newCode)
           throw new Error('update_method_signature requires newCode');
@@ -270,7 +258,7 @@ export class ASTModifier {
         await this.insertStatementIntoFunction(
           node,
           mod.newCode,
-          Boolean(mod.metadata?.['insert_at_end']) ?? true,
+          (mod.metadata?.['insert_at_end'] ?? true) as boolean,
         );
         break;
 
@@ -373,10 +361,9 @@ export class ASTModifier {
           }
         } else {
           // sometimes ts-morph nodes (parameters, variable names) expose getName
-          // @ts-ignore
-          if (typeof n.getName === 'function' && n.getName() === oldName) {
-            // @ts-ignore
-            n.rename && (n as any).rename(newName);
+          if (typeof (n as any).getName === 'function' && (n as any).getName() === oldName) {
+            // rename is optional on some nodes
+            (n as any).rename && (n as any).rename(newName);
           }
         }
       } catch {
@@ -403,7 +390,7 @@ export class ASTModifier {
       } catch {
         // fallback: naive text replace
         node.replaceWithText(
-          node.getText().replace(/\([^\)]*\)/, `(${newSignature})`),
+          node.getText().replace(/\([^)]*\)/, `(${newSignature})`),
         );
       }
     } else {

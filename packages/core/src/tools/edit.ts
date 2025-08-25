@@ -506,6 +506,7 @@ async function autofixEdit(
   oldString: string,
   newString: string,
 ): Promise<string> {
+  void newString;
   const config = DEFAULT_AUTOFIX_CONFIG;
   const appliedFixes: string[] = [];
   let workingOldString = oldString;

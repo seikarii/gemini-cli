@@ -52,8 +52,8 @@ export async function checkFileSize(
       };
     }
     return { ok: true };
-  } catch (e: any) {
-    return { ok: false, error: `Cannot check file size: ${String(e)}` };
+  } catch (_e: any) {
+    return { ok: false, error: `Cannot check file size: ${String(_e)}` };
   }
 }
 
@@ -74,8 +74,9 @@ export async function readFileWithEncodingFallback(
         continue;
       }
       return { content, error: null };
-    } catch (_e) {
+    } catch (_err) {
       // try next encoding
+      void _err;
       continue;
     }
   }
@@ -479,7 +480,7 @@ export class ASTReader {
         parts.push(`✅ Parse Status: Success`);
       }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- defensive cast for parsed intentions
+   
   const intents: any = r.intentions || {};
       if (intents && !intents.extraction_error) {
         const fnCount = Array.isArray(intents.functions)
@@ -510,7 +511,7 @@ export class ASTReader {
 
       const output = parts.join('\n');
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- metadata shape is dynamic
+   
   const metadata: any = {
         fileInfo: r.fileInfo,
         parseError: r.parseError,
