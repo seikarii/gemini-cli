@@ -28,7 +28,7 @@ import {
   parseAndFormatApiError,
 } from '@google/gemini-cli-core';
 import { Content, Part } from '@google/genai';
-import { GeminiAgent } from '../../../../mew-upgrade/src/agent/gemini-agent.js';
+import { GeminiAgent } from '@google/gemini-cli-mew-upgrade/agent/gemini-agent.js';
 import type { MemoryNodeKind } from '../../../../mew-upgrade/src/mind/mental-laby.js';
 import {
   StreamingState,

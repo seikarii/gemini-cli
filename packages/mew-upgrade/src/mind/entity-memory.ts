@@ -53,6 +53,20 @@ export class EntityMemory {
     return this.mind.recall(cue);
   }
 
+  // Convenience export/import wrappers for persistence
+  exportState(): object {
+    // Delegate to mental laby export
+    // @ts-ignore - mental laby export shape is dynamic
+    return (this.mind as any).exportState ? (this.mind as any).exportState() : { nodes: [] };
+  }
+
+  importState(state: any): void {
+    // Delegate import to MentalLaby if available
+    if ((this.mind as any).importState) {
+      (this.mind as any).importState(state);
+    }
+  }
+
   dream(mode: string = 'MIXED'): void {
     // MentalLaby in TS doesn't have dream_cycle yet, so this is a stub
     // this.mind.dream_cycle(mode);

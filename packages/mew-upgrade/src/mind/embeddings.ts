@@ -9,12 +9,8 @@
 import * as crypto from 'crypto';
 
 // Utility function for clamping values
-function clamp(x: number, lo: number = 0.0, hi: number = 1.0): number {
-  try {
-    return Math.max(lo, Math.min(hi, x));
-  } catch (e) {
-    return lo;
-  }
+export function clamp(x: number, lo: number = 0.0, hi: number = 1.0): number {
+  return Math.max(lo, Math.min(hi, x));
 }
 
 export class HashingEmbedder {
@@ -33,26 +29,18 @@ export class HashingEmbedder {
     this.ngram = ngram;
     this.useWords = useWords;
 
-    // Generate a deterministic 16-byte key from the seed
-    const rng = new (class extends crypto.webcrypto.Crypto {
-      private seed: number;
-      constructor(seed: number) {
-        super();
-        this.seed = seed;
-      }
-      getRandomValues<T extends ArrayBufferView | null>(array: T): T {
-        if (array === null) return null;
-        const view = new DataView(array.buffer);
-        for (let i = 0; i < array.byteLength; i += 4) {
-          this.seed = (this.seed * 9301 + 49297) % 233280;
-          view.setUint32(i, this.seed, true);
-        }
-        return array;
-      }
-    })(seed);
+    // Generate a deterministic 16-byte key from the seed using a simple LCG.
+    // Avoid extending webcrypto.Crypto which is not extendable in TS.
     const keyBuffer = new Uint8Array(16);
-    rng.getRandomValues(keyBuffer);
+    let s = seed >>> 0;
+    for (let i = 0; i < keyBuffer.length; i++) {
+      // LCG constants (numerical recipes)
+      s = (s * 1664525 + 1013904223) >>> 0;
+      keyBuffer[i] = s & 0xff;
+    }
     this.key = Buffer.from(keyBuffer);
+  // reference key to satisfy linters (no-op)
+  void this.key;
   }
 
   // Main embedding method
@@ -86,7 +74,7 @@ export class HashingEmbedder {
     const eightBytes = hash.slice(0, 8);
     // Convert 8 bytes to a BigInt, then to a number (might lose precision for very large numbers)
     // For hashing, we primarily care about distribution, so this should be fine.
-    return Number(BigInt('0x' + eightBytes.toString('hex')));
+  return Number(BigInt('0x' + eightBytes.toString('hex')));
   }
 
   private _indexSign(token: string): [number, number] {
@@ -156,6 +144,19 @@ export class HashingEmbedder {
   }
 }
 
+export function cosSim(a: number[], b: number[]): number {
+  if (!a || !b || a.length !== b.length) return 0;
+  let dot = 0;
+  let na = 0;
+  let nb = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    na += a[i] * a[i];
+    nb += b[i] * b[i];
+  }
+  const denom = Math.sqrt(na) * Math.sqrt(nb);
+  return denom === 0 ? 0 : dot / denom;
+}
 
 export class ARPredictor {
   private d: number;

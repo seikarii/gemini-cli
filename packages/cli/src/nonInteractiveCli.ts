@@ -15,7 +15,7 @@ import {
 } from '@google/gemini-cli-core';
 import { Content, Part } from '@google/genai';
 
-import { GeminiAgent } from '../../mew-upgrade/src/agent/gemini-agent.js';
+import { GeminiAgent } from '@google/gemini-cli-mew-upgrade/agent/gemini-agent.js';
 
 import { ConsolePatcher } from './ui/utils/ConsolePatcher.js';
 import { handleAtCommand } from './ui/hooks/atCommandProcessor.js';

@@ -13,5 +13,7 @@ export declare class EntityMemory {
     constructor(entityId: string, mind: MentalLaby, affectBias?: number, valenceBias?: number, storageBudget?: number);
     ingest(data: any, valence?: number, arousal?: number, kind?: MemoryNodeKind, salience?: number): string;
     recall(cue: any): any;
+    exportState(): object;
+    importState(state: any): void;
     dream(mode?: string): void;
 }

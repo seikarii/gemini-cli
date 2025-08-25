@@ -3,6 +3,7 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
+export declare function clamp(x: number, lo?: number, hi?: number): number;
 export declare class HashingEmbedder {
     private d;
     private ngram;
@@ -17,6 +18,7 @@ export declare class HashingEmbedder {
     private addNumber;
     private addDict;
 }
+export declare function cosSim(a: number[], b: number[]): number;
 export declare class ARPredictor {
     private d;
     private lr;

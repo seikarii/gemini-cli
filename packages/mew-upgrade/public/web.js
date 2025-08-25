@@ -19579,9 +19579,9 @@
   var import_react = __toESM(require_react(), 1);
   var import_client = __toESM(require_client(), 1);
 
-  // src/app/MewApp.tsx
+  // src/app/MewApp.js
   var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
-  var MewApp = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { border: "1px solid grey", padding: "10px", borderRadius: "5px" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "Hello from the Mew Window!" }) });
+  var MewApp = () => (0, import_jsx_runtime.jsx)("div", { style: { border: "1px solid grey", padding: "10px", borderRadius: "5px" }, children: (0, import_jsx_runtime.jsx)("p", { children: "Hello from the Mew Window!" }) });
 
   // src/app/web.tsx
   var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);

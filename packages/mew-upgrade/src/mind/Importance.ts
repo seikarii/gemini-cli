@@ -9,8 +9,7 @@
  * Evaluates incoming data significance for selective memory storage.
  */
 
-import { HashingEmbedder } from './embeddings.js';
-import { cosSim, clamp } from './embeddings.js'; // Import from embeddings.ts
+import { HashingEmbedder, cosSim, clamp } from './embeddings.js';
 
 export interface SignificanceResult {
   importance: number; // 0.0-1.0 (higher = more important)
@@ -41,8 +40,7 @@ export function calculateDataSignificance(
   // Generate embedding for incoming data
   const dataEmbedding = hashingEmbedder.embed(incomingData);
   const missionEmbedding = hashingEmbedder.embed(currentMission);
-  const historyEmbedding = hashingEmbedder.embed(agentHistorySummary);
-  
+  // const historyEmbedding = hashingEmbedder.embed(agentHistorySummary); // not used yet
   // Calculate base components
   const missionRelevance = calculateMissionRelevance(dataEmbedding, missionEmbedding);
   const novelty = calculateNovelty(dataEmbedding, currentProjectStateEmbeddings);
@@ -60,7 +58,7 @@ export function calculateDataSignificance(
   );
   
   // Calculate emotional dimensions
-  const valence = calculateValence(incomingData, context, criticalityScore);
+  const valence = calculateValence(incomingData, criticalityScore, context);
   const arousal = calculateArousal(criticalityScore, novelty, contextualSignals);
   
   return {
@@ -214,7 +212,7 @@ function computeImportance(
 /**
  * Calculates emotional valence (positive/negative).
  */
-function calculateValence(data: any, context?: DataContext, criticality: number): number {
+function calculateValence(data: any, criticality: number, context?: DataContext): number {
   const dataStr = String(data).toLowerCase();
   let valence = 0.0;
   
@@ -248,26 +246,7 @@ function calculateArousal(criticality: number, novelty: number, contextualSignal
 
 // === Utility Functions ===
 
-function cosineSimilarity(vecA: number[], vecB: number[]): number {
-  if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
-  
-  let dotProduct = 0;
-  let normA = 0;
-  let normB = 0;
-  
-  for (let i = 0; i < vecA.length; i++) {
-    dotProduct += vecA[i] * vecB[i];
-    normA += vecA[i] * vecA[i];
-    normB += vecB[i] * vecB[i];
-  }
-  
-  const denominator = Math.sqrt(normA) * Math.sqrt(normB);
-  return denominator === 0 ? 0 : dotProduct / denominator;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
-}
+// Use clamp and cosSim from embeddings.ts
 
 function hasErrorSignals(text: string): boolean {
   const errorPatterns = [

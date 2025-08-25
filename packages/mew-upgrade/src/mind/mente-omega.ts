@@ -75,8 +75,8 @@ export class MenteOmega implements Persistable {
     const agentHistorySummary = "Agent is processing user requests and generating plans.";
 
     // Get project state embeddings from recent memories
-    const projectEmbeddings = this.memory.recall("project state", 10)
-      .map((node: MemoryNode) => node.embedding);
+  const recalled = this.memory.recall("project state") as MemoryNode[];
+  const projectEmbeddings = (recalled || []).map((node: MemoryNode) => node.embedding || []);
 
     const significance = calculateDataSignificance(
       incomingData,
