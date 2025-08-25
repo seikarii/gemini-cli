@@ -18,9 +18,9 @@ esbuild
   .build({
     entryPoints: ['packages/cli/index.ts'],
     bundle: true,
-    outfile: 'bundle/gemini.js',
-    platform: 'node',
-    format: 'esm',
+  outfile: 'bundle/gemini.cjs',
+  platform: 'node',
+  format: 'cjs',
     external: [
       '@lydell/node-pty',
       'node-pty',
@@ -29,6 +29,13 @@ esbuild
       '@lydell/node-pty-linux-x64',
       '@lydell/node-pty-win32-arm64',
       '@lydell/node-pty-win32-x64',
+  // Avoid bundling large or dynamic-require-using libs that can inject
+  // helpers (createRequire, dynamic require fallbacks) into the bundle.
+  // Externalizing them keeps the runtime behavior native and prevents
+  // duplicate identifier / dynamic-require issues.
+  'prettier',
+  'ink',
+  'signal-exit',
     ],
     alias: {
       'is-in-ci': path.resolve(
@@ -39,9 +46,7 @@ esbuild
     define: {
       'process.env.CLI_VERSION': JSON.stringify(pkg.version),
     },
-    banner: {
-      js: `import { createRequire } from 'module'; const require = createRequire(import.meta.url); globalThis.__filename = require('url').fileURLToPath(import.meta.url); globalThis.__dirname = require('path').dirname(globalThis.__filename);`,
-    },
+  // No banner required for CJS bundle; Node will provide __filename/__dirname
     loader: { '.node': 'file' },
   })
   .catch(() => process.exit(1));

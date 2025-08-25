@@ -140,6 +140,23 @@ export async function getCorrectedFileContent(
       abortSignal,
     );
     correctedContent = correctedParams.new_string;
+
+    // Safety guard: some correction flows (LLM or heuristics) may incorrectly
+    // return an empty string which would silently truncate the target file.
+    // If the caller proposed non-empty content, prefer the original proposed
+    // content instead of an empty corrected result to avoid data loss.
+    if (
+      (correctedContent === undefined || correctedContent === '') &&
+      proposedContent &&
+      proposedContent.length > 0
+    ) {
+      if (config.getDebugMode && config.getDebugMode()) {
+        console.warn(
+          `ensureCorrectEdit returned empty corrected content for ${filePath}; falling back to proposed content to avoid truncation.`,
+        );
+      }
+      correctedContent = proposedContent;
+    }
   } else {
     // This implies new file (ENOENT)
     correctedContent = await ensureCorrectFileContent(
@@ -336,10 +353,51 @@ class WriteFileToolInvocation extends BaseToolInvocation<
       if (!fs.existsSync(dirName)) {
         fs.mkdirSync(dirName, { recursive: true });
       }
+      // Create a backup of the existing file to allow restore on failure.
+      const backupPath = `${file_path}.backup`;
+      try {
+        if (fs.existsSync(file_path)) {
+          fs.copyFileSync(file_path, backupPath);
+        }
+      } catch (e) {
+        // ignore backup creation failures; proceed to write but log in debug
+        if (this.config.getDebugMode()) console.debug('Failed to create backup before write', e);
+      }
 
       await this.config
         .getFileSystemService()
         .writeTextFile(file_path, fileContent);
+
+      // Verify the write by reading file back. If mismatch, retry once and restore from backup on persistent failure.
+      try {
+        const verify = await this.config.getFileSystemService().readTextFile(file_path);
+        if (!verify.success || verify.data !== fileContent) {
+          // retry write once
+          await this.config.getFileSystemService().writeTextFile(file_path, fileContent);
+          const verify2 = await this.config.getFileSystemService().readTextFile(file_path);
+          if (!verify2.success || verify2.data !== fileContent) {
+            // restore from backup if available
+            try {
+              if (fs.existsSync(backupPath)) {
+                fs.copyFileSync(backupPath, file_path);
+              }
+            } catch (restoreErr) {
+              if (this.config.getDebugMode()) console.error('Failed to restore backup after failed write verification', restoreErr);
+            }
+            const errMsg = `File write verification failed for ${file_path}. Restored from backup if available.`;
+            return {
+              llmContent: errMsg,
+              returnDisplay: errMsg,
+              error: {
+                message: errMsg,
+                type: ToolErrorType.FILE_WRITE_FAILURE,
+              },
+            };
+          }
+        }
+      } catch (verifyErr) {
+        if (this.config.getDebugMode()) console.error('Error during write verification:', verifyErr);
+      }
       resetEditCorrectorCaches();
 
       // Generate diff for display result

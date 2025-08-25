@@ -5,7 +5,7 @@
  */
 
 import path from 'node:path';
-import { fdir } from 'fdir';
+import { promises as fs } from 'node:fs';
 import { Ignore } from './ignore.js';
 import * as cache from './crawlCache.js';
 
@@ -44,26 +44,38 @@ export async function crawl(options: CrawlOptions): Promise<string[]> {
   const posixCwd = toPosixPath(options.cwd);
   const posixCrawlDirectory = toPosixPath(options.crawlDirectory);
 
-  let results: string[];
-  try {
-    const dirFilter = options.ignore.getDirectoryFilter();
-    const api = new fdir()
-      .withRelativePaths()
-      .withPathSeparator('/') // Always use unix style paths
-      .exclude((_: string, dirPath: string) => {
-        const relativePath = path.posix.relative(posixCrawlDirectory, dirPath);
-        return dirFilter(`${relativePath}/`);
-      });
+  // Simple recursive crawler to avoid relying on external fdir API differences.
+  const dirFilter = options.ignore.getDirectoryFilter();
+  const resultsList: string[] = [];
 
-    if (options.maxDepth !== undefined) {
-      api.withMaxDepth(options.maxDepth);
+  async function walk(dir: string, depth: number) {
+    if (options.maxDepth !== undefined && depth > options.maxDepth) return;
+    let entries: string[];
+    try {
+      entries = await fs.readdir(dir);
+    } catch (_e) {
+      return;
     }
-
-    results = await api.crawl(options.crawlDirectory).withPromise();
-  } catch (_e) {
-    // The directory probably doesn't exist.
-    return [];
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry);
+      let stat;
+      try {
+        stat = await fs.stat(fullPath);
+      } catch (_e) {
+        continue;
+      }
+      const relativeDir = path.posix.relative(posixCrawlDirectory, path.posix.dirname(toPosixPath(fullPath)));
+      if (stat.isDirectory()) {
+        if (dirFilter(`${relativeDir}/`)) continue;
+        await walk(fullPath, depth + 1);
+      } else if (stat.isFile()) {
+        resultsList.push(toPosixPath(path.posix.relative(posixCrawlDirectory, toPosixPath(fullPath))));
+      }
+    }
   }
+
+  await walk(options.crawlDirectory, 0);
+  const results = resultsList;
 
   const relativeToCrawlDir = path.posix.relative(posixCwd, posixCrawlDirectory);
 

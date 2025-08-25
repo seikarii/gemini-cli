@@ -15,7 +15,8 @@ import { Config, DEFAULT_GEMINI_FLASH_MODEL } from '../config/config.js';
 // values to avoid overly aggressive loop detection in production, but tests assume
 // smaller thresholds.
 const TOOL_CALL_THRESHOLDS: Record<string, number> = {
-  read_file: 5,
+  read_file: 15,
+  replace: 15,
   default: 5,
 };
 // Number of repeated events/chunks to flag a content loop (tests expect 10)

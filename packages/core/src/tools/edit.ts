@@ -887,6 +887,45 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
               ? (correctedEdit as CorrectedEditResult).occurrences
               : this.countOccurrences(currentContent, finalOldString);
 
+          // Additional defensive guards to avoid over-broad replacements which
+          // historically have caused truncation or destructive writes when a
+          // short or overly-common snippet is used as the target. These guards
+          // are conservative: they require callers to be explicit when the
+          // match is widespread.
+          try {
+            const lineCount = (currentContent.match(/\n/g)?.length ?? 0) + 1;
+
+            // If the target occurs on (approximately) every line of the file,
+            // this is suspicious for a single-line replacement. Require explicit
+            // target occurrence or expected_replacements to proceed.
+            if (
+              totalOccurrences >= lineCount &&
+              params.target_occurrence === undefined &&
+              params.expected_replacements === undefined
+            ) {
+              error = {
+                display: `Suspicious replacement: target snippet appears on every line. Please specify target_occurrence or expected_replacements to proceed.`,
+                raw: `Suspicious replacement: final_old_string appears on ${totalOccurrences} lines (file has ${lineCount} lines) for file: ${params.file_path}`,
+                type: ToolErrorType.EDIT_PREPARATION_FAILURE,
+              };
+            }
+
+            // If the corrected old string is very short (likely punctuation or a
+            // small token) and occurs many times, block it to avoid accidental
+            // global replacements. This protects against single-character or
+            // tiny-token replacements that can drastically alter files.
+            if (!error && finalOldString.length > 0 && finalOldString.length < 4 && totalOccurrences > 3) {
+              error = {
+                display: `Suspicious replacement: target snippet is very short and occurs ${totalOccurrences} times. Provide a more specific old_string or an explicit target_occurrence.`,
+                raw: `Suspicious replacement: final_old_string (len=${finalOldString.length}) occurs ${totalOccurrences} times in ${params.file_path}`,
+                type: ToolErrorType.EDIT_PREPARATION_FAILURE,
+              };
+            }
+          } catch (guardErr) {
+            // Don't let guard logic throw; proceed optimistically if it fails
+            console.debug('Replacement guards failed unexpectedly', guardErr);
+          }
+
           // Calculate actual replacements that will be performed
           occurrences = this.calculateExpectedReplacements(
             totalOccurrences,

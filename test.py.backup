@@ -1,0 +1,21 @@
+# 1
+def saludar_mundo(): # 2
+    print("hello world") # 3
+
+# 4
+class MyClass: # 5
+    def __init__(self): # 6
+        self.greeting = "hola mundo" # 7
+# 8
+    def say_hello(self): # 9
+        print(self.greeting) # 10
+# 11
+if __name__ == "__main__": # 12
+    print("hello world") # 13
+    instance = MyClass() # 14
+    instance.say_hello() # 15
+    # otro comentario de hola mundo #16
+    hola mundo # 17
+    hola mundo # 18
+    c = "hello world" # 19
+    d = "hello world" # 20

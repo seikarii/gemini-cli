@@ -232,7 +232,7 @@ export function extractIntentionsFromSourceFile(
         try {
           // small local helper to avoid implicit-`any` callback in map
           const namedImports = imp.getNamedImports();
-          const mappedNamed = namedImports.map((spec) => {
+          const mappedNamed = namedImports.map((spec: any) => {
             const s = spec as unknown as {
               getName: () => string;
               getAliasNode?: () => { getText?: () => string } | undefined;

@@ -505,7 +505,7 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
 
     // Variables (const, let, var)
     sourceFile.getVariableStatements().forEach((stmt) => {
-      stmt.getDeclarations().forEach((decl: import('ts-morph').VariableDeclaration) => {
+  stmt.getDeclarations().forEach((decl: any) => {
         const name = decl.getName();
         blocks.push({
           name,

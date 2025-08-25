@@ -186,29 +186,40 @@ export async function ensureCorrectEdit(
   }
 
   // AST-first correction with multiple strategies
-  const astCorrectionResult = await tryASTCorrection(
-    currentContent,
-    filePath,
-    finalOldString,
-    expectedReplacements
-  );
+  // If the caller requested a specific occurrence (e.g. target_occurrence = 7)
+  // we MUST NOT apply AST-based corrections that can replace the original
+  // `old_string` with a large AST node text. Doing so collapses multiple
+  // simple repeated occurrences into a single match and breaks targeted
+  // replacements. In that case skip AST correction and rely on string-based
+  // heuristics (unescaping/trimming) which are safe for occurrence-aware ops.
+  const callerRequestedSpecificOccurrence =
+    originalParams && (originalParams as EditToolParams).target_occurrence !== undefined;
 
-  if (astCorrectionResult.success) {
-    if (astCorrectionResult.correctedOldString !== undefined && astCorrectionResult.occurrences !== undefined) {
-      finalOldString = astCorrectionResult.correctedOldString;
-      occurrences = astCorrectionResult.occurrences;
-    }
-    
-    return await finalizeResult(
-      originalParams,
+  if (!callerRequestedSpecificOccurrence) {
+    const astCorrectionResult = await tryASTCorrection(
+      currentContent,
+      filePath,
       finalOldString,
-      finalNewString,
-      occurrences,
-      newStringPotentiallyEscaped,
-      client,
-      abortSignal,
-      cacheKey
+      expectedReplacements
     );
+
+    if (astCorrectionResult.success) {
+      if (astCorrectionResult.correctedOldString !== undefined && astCorrectionResult.occurrences !== undefined) {
+        finalOldString = astCorrectionResult.correctedOldString;
+        occurrences = astCorrectionResult.occurrences;
+      }
+      
+      return await finalizeResult(
+        originalParams,
+        finalOldString,
+        finalNewString,
+        occurrences,
+        newStringPotentiallyEscaped,
+        client,
+        abortSignal,
+        cacheKey
+      );
+    }
   }
 
   // String-based corrections (unescaping, trimming)
@@ -650,15 +661,69 @@ function createResult(
   occurrences: number,
   cacheKey: string
 ): CorrectedEditResult {
+  // Helper to choose a non-empty string preference order:
+  // 1) finalNewString (result of correction) if non-empty
+  // 2) originalParams.new_string (what was requested) if non-empty
+  // 3) fallback to empty string (explicit)
+  function chooseNonEmpty(candidate: string | undefined, fallback?: string | undefined): string {
+    if (typeof candidate === 'string' && candidate.length > 0) return candidate;
+    if (typeof fallback === 'string' && fallback.length > 0) return fallback;
+    return '';
+  }
+
+  const safeNewString = chooseNonEmpty(finalNewString, originalParams.new_string as string | undefined);
+  const safeOldString = typeof finalOldString === 'string' ? finalOldString : (originalParams.old_string ?? '');
+
+  // Defensive guard: never return or cache an empty old_string because
+  // performing a replacement with an empty target can be destructive
+  // (it may match everywhere or be misinterpreted by callers). If we
+  // detect an empty old_string, return a result with occurrences=0
+  // and do not cache it so callers will avoid applying the replace.
+  if (!safeOldString || safeOldString.length === 0) {
+    try {
+      console.warn(
+        `editCorrector: blocked empty old_string for file ${originalParams.file_path}; returning occurrences=0 to avoid destructive replacements.`,
+      );
+    } catch {
+      /* ignore logging failures */
+    }
+
+    const fallbackResult: CorrectedEditResult = {
+      params: {
+        file_path: originalParams.file_path,
+        old_string: originalParams.old_string ?? '',
+        new_string: safeNewString,
+      },
+      occurrences: 0,
+    };
+
+    // Do not cache intentionally.
+    return fallbackResult;
+  }
+  // If we had to fallback to the original param because the correction
+  // returned empty, log a warning in debug modes to aid troubleshooting.
+  try {
+    if ((finalNewString === undefined || finalNewString === '') && originalParams.new_string) {
+      // Avoid noisy logging in production; rely on consumers to enable debug
+      // mode if they want detailed telemetry. Use console.warn for visibility.
+      console.warn(
+        `editCorrector: correction produced empty new_string for file ${originalParams.file_path}; falling back to original requested new_string.`,
+      );
+    }
+  } catch {
+    /* ignore logging failures */
+  }
+
   const result: CorrectedEditResult = {
     params: {
       file_path: originalParams.file_path,
-      old_string: finalOldString,
-      new_string: finalNewString,
+  old_string: safeOldString,
+      new_string: safeNewString,
     },
     occurrences,
   };
-  
+
+  // Cache the safe result
   editCorrectionCache.set(cacheKey, result);
   return result;
 }
