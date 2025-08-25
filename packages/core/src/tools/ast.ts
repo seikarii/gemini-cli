@@ -201,16 +201,14 @@ class ASTFindToolInvocation extends BaseToolInvocation<
       };
     }
 
-    const results = foundNodes.map((node: Node) => {
-      return {
+    const results = foundNodes.map((node: Node) => ({
         kind: node.getKindName(),
         text:
           node.getText().substring(0, 100) +
           (node.getText().length > 100 ? '...' : ''),
         startLine: node.getStartLineNumber(),
         endLine: node.getEndLineNumber(),
-      };
-    });
+      }));
 
     return {
       llmContent: JSON.stringify(results, null, 2),

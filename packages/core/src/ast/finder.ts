@@ -234,7 +234,7 @@ function findByXPath(
 /**
  * Evaluate parsed predicate conditions against a node.
  */
-function matchesParsedConditions(node: Node, conditions: Array<any>): boolean {
+function matchesParsedConditions(node: Node, conditions: any[]): boolean {
   if (!conditions || conditions.length === 0) return true;
   for (const cond of conditions) {
     if (cond.type === 'attribute') {

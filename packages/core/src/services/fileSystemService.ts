@@ -21,6 +21,8 @@ export interface FileSystemOptions {
   maxFileSize?: number;
   /** Whether to perform atomic writes (default: true) */
   atomicWrites?: boolean;
+  /** Whether to create a local checkpoint (backup) before overwriting an existing file (default: true) */
+  createCheckpoint?: boolean;
   /** Whether to bypass cache for this operation (default: false) */
   bypassCache?: boolean;
   /** Maximum cache size in entries (default: 1000) */
@@ -158,6 +160,7 @@ export class StandardFileSystemService implements FileSystemService {
     createDirectories: true,
     maxFileSize: 100 * 1024 * 1024, // 100MB
     atomicWrites: true,
+  createCheckpoint: true,
   };
 
   // Self-validating cache implementation
@@ -317,7 +320,7 @@ export class StandardFileSystemService implements FileSystemService {
     try {
       const currentMtimeMs = await this.getFileMtimeMs(filePath);
       return currentMtimeMs === cacheEntry.mtimeMs;
-    } catch (error) {
+  } catch (_error) {
       // If we can't stat the file, cache is invalid
       return false;
     }
@@ -638,6 +641,42 @@ export class StandardFileSystemService implements FileSystemService {
       }
 
       if (opts.atomicWrites) {
+          // If requested, create a checkpoint of the current file content before
+          // performing the atomic write. This provides a quick local rollback
+          // point in case a write becomes destructive.
+          if (opts.createCheckpoint) {
+            try {
+              // Check whether the target file exists
+              const stat = await fs.stat(filePath).catch(() => null);
+              if (stat && stat.isFile()) {
+                try {
+                  const existing = await fs.readFile(filePath, opts.encoding).catch(() => null);
+                  if (existing !== null) {
+                    const checkpointDir = path.join(
+                      path.dirname(filePath),
+                      '.gemini_checkpoints',
+                      `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                    );
+                    // Ensure checkpoint directory exists
+                    await fs.mkdir(checkpointDir, { recursive: true }).catch(() => null);
+                    const checkpointPath = path.join(checkpointDir, path.basename(filePath));
+                    // Write checkpoint using atomic semantics where possible
+                    try {
+                      await fs.writeFile(checkpointPath, existing, opts.encoding);
+                    } catch (_cpErr) {
+                      // Don't block the main write if checkpoint creation fails.
+                      // Just log debug information to console for now.
+                      console.debug('Failed to create checkpoint for', filePath);
+                    }
+                  }
+                } catch {
+                  /* ignore checkpoint read/write errors */
+                }
+              }
+            } catch {
+              /* ignore checkpoint discovery errors */
+            }
+          }
         // Atomic write: write to temporary file then rename
         const tempPath = `${filePath}.tmp.${Date.now()}.${Math.random().toString(36).substr(2, 9)}`;
 

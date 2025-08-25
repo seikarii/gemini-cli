@@ -1,4 +1,10 @@
 /**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
  * @file Defines the core data structures for the agent's procedural memory.
  * This is based on the "Film" concept from the Mew architecture.
  */

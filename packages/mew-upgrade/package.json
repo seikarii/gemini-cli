@@ -5,14 +5,17 @@
   "type": "module",
   "main": "dist/agent/gemini-agent.js",
   "scripts": {
-    "build": "tsc",
     "start:app": "tsx src/app/index.ts",
+    "start:web": "tsx src/server/webServer.ts",
+    "build:web": "esbuild src/app/web.tsx --bundle --outfile=public/web.js --loader:.js=jsx --target=es2020",
+    "build": "tsc && npm run build:web",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@google/gemini-cli-core": "file:../core",
     "ink": "^6.1.1",
-    "react": "^19.1.0"
+    "react": "^19.1.0",
+    "express": "^4.19.2"
   },
   "devDependencies": {
     "@types/react": "^19.1.8",

@@ -1,4 +1,10 @@
 /**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
  * @file Implements the UnifiedPersistence facade, providing a simple top-level API
  * for the agent to save and load its entire state.
  */
@@ -29,7 +35,7 @@ export class UnifiedPersistence {
    * It iterates through the agent's components and saves each one.
    * @param agent The main agent instance.
    */
-  public async backup(agent: Agent): Promise<void> {
+  async backup(agent: Agent): Promise<void> {
     console.log("--- Starting Agent State Backup ---");
     const components = agent.getPersistableComponents();
     for (const key in components) {
@@ -42,7 +48,7 @@ export class UnifiedPersistence {
    * Restores the entire state of the agent from storage.
    * @param agent The main agent instance.
    */
-  public async restore(agent: Agent): Promise<void> {
+  async restore(agent: Agent): Promise<void> {
     console.log("--- Starting Agent State Restore ---");
     const components = agent.getPersistableComponents();
     for (const key in components) {

@@ -27,7 +27,7 @@ export interface ParseResult {
   parseError?: string | null;
   comments: string[];
   jsdocs: string[];
-  intentions: any;
+  intentions: unknown;
   fileInfo: {
     path: string;
     sizeBytes: number;
@@ -74,7 +74,7 @@ export async function readFileWithEncodingFallback(
         continue;
       }
       return { content, error: null };
-    } catch (e) {
+    } catch (_e) {
       // try next encoding
       continue;
     }
@@ -479,7 +479,8 @@ export class ASTReader {
         parts.push(`✅ Parse Status: Success`);
       }
 
-      const intents = r.intentions || {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- defensive cast for parsed intentions
+  const intents: any = r.intentions || {};
       if (intents && !intents.extraction_error) {
         const fnCount = Array.isArray(intents.functions)
           ? intents.functions.length
@@ -509,7 +510,8 @@ export class ASTReader {
 
       const output = parts.join('\n');
 
-      const metadata: any = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- metadata shape is dynamic
+  const metadata: any = {
         fileInfo: r.fileInfo,
         parseError: r.parseError,
         intentions:
@@ -525,7 +527,7 @@ export class ASTReader {
         metadata,
         executionTime: (Date.now() - start) / 1000,
       };
-    } catch (e: any) {
+    } catch (e: unknown) {
       return {
         success: false,
         output: '',

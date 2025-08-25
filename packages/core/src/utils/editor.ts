@@ -212,8 +212,8 @@ export async function openDiff(
             stdio: 'inherit',
             encoding: 'utf8',
           });
-        } catch (e) {
-          console.error('Error in onEditorClose callback:', e);
+        } catch (_e) {
+          console.error('Error in onEditorClose callback:', _e);
         } finally {
           onEditorClose();
         }
@@ -223,7 +223,7 @@ export async function openDiff(
       default:
         throw new Error(`Unsupported editor: ${editor}`);
     }
-  } catch (error) {
-    console.error(error);
+  } catch (_error) {
+    console.error(_error);
   }
 }

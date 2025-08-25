@@ -1,4 +1,10 @@
 /**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
  * @file Implements the StateSerializer, responsible for converting in-memory state
  * to a storable format (and back). This is the lowest layer of the persistence
  * architecture.
@@ -14,7 +20,7 @@ export class StateSerializer {
    * @param state The agent's state object (e.g., the MentalLaby).
    * @returns A base64 encoded, gzipped JSON string.
    */
-  public serialize(state: object): string {
+  serialize(state: object): string {
     try {
       const jsonString = JSON.stringify(state, null, 2);
       
@@ -36,7 +42,7 @@ export class StateSerializer {
    * @param data The base64 encoded, gzipped JSON string.
    * @returns The deserialized state object.
    */
-  public deserialize(data: string): object {
+  deserialize(data: string): object {
     try {
       // Placeholder for decompression.
       // const compressed = Buffer.from(data, 'base64');

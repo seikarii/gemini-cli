@@ -1,4 +1,10 @@
 /**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
  * @file Implements the StorageManager, responsible for physical I/O.
  * This layer abstracts the storage medium (e.g., local disk, cloud storage).
  */
@@ -27,7 +33,7 @@ export class LocalStorageBackend implements StorageBackend {
    * @param filePath The absolute path to the file.
    * @param data The string data to write.
    */
-  public async write(filePath: string, data: string): Promise<void> {
+  async write(filePath: string, data: string): Promise<void> {
     try {
       const dir = path.dirname(filePath);
       await fs.mkdir(dir, { recursive: true });
@@ -48,7 +54,7 @@ export class LocalStorageBackend implements StorageBackend {
    * @param filePath The absolute path to the file.
    * @returns The content of the file as a string.
    */
-  public async read(filePath: string): Promise<string> {
+  async read(filePath: string): Promise<string> {
     try {
       return await fs.readFile(filePath, 'utf-8');
     } catch (error) {
@@ -62,7 +68,7 @@ export class LocalStorageBackend implements StorageBackend {
    * @param filePath The absolute path to the file.
    * @returns True if the file exists, false otherwise.
    */
-  public async exists(filePath: string): Promise<boolean> {
+  async exists(filePath: string): Promise<boolean> {
     try {
       await fs.access(filePath);
       return true;

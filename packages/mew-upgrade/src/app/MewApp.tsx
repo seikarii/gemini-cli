@@ -5,12 +5,9 @@
  */
 
 import React from 'react';
-import { Box, Text } from 'ink';
 
-export const MewApp = () => {
-  return (
-    <Box borderStyle="round" padding={2}>
-      <Text>Hello from the Mew Window!</Text>
-    </Box>
+export const MewApp = () => (
+    <div style={{ border: '1px solid grey', padding: '10px', borderRadius: '5px' }}>
+      <p>Hello from the Mew Window!</p>
+    </div>
   );
-};

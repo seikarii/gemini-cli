@@ -23,7 +23,7 @@ export const mewCommand: SlashCommand = {
   description: 'Launches the Mew agent window.',
   action: async (context) => {
     const projectRoot = getProjectRoot();
-    const mewAppPath = path.join(projectRoot, 'packages', 'mew-upgrade', 'src', 'app', 'index.ts');
+    const mewAppPath = path.join(projectRoot, 'mew-upgrade', 'src', 'app', 'index.ts');
 
     context.ui.addItem(
       {
@@ -34,10 +34,16 @@ export const mewCommand: SlashCommand = {
     );
 
     // We use tsx to run the TypeScript file directly
-    const child = spawn('npx', ['tsx', mewAppPath], {
-      stdio: 'ignore', // For now, ignore stdio to not clutter the main CLI
+    // Launch the web server
+    const child = spawn('npm', ['run', 'start:web', '--workspace=@google/gemini-cli-mew-upgrade'], {
+      stdio: 'inherit', // Inherit stdio to display server logs
       detached: true, // Allows the child to run independently
     });
+
+    // Open the browser
+    const open = (await import('open')).default;
+    open('http://localhost:3000');
+
 
     // This is crucial: the parent process should not wait for the detached child to exit.
     child.unref();

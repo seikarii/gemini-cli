@@ -403,9 +403,9 @@ export class ToolRegistry {
           ),
         );
       }
-    } catch (e) {
-      console.error(`Tool discovery command "${discoveryCmd}" failed:`, e);
-      throw e;
+    } catch (_e) {
+      console.error(`Tool discovery command "${discoveryCmd}" failed:`, _e);
+      throw _e;
     }
   }
 

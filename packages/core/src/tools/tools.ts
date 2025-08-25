@@ -213,11 +213,11 @@ export abstract class DeclarativeTool<
   ): ToolInvocation<TParams, TResult> | Error {
     try {
       return this.build(params);
-    } catch (e) {
-      if (e instanceof Error) {
-        return e;
+    } catch (_e) {
+      if (_e instanceof Error) {
+        return _e;
       }
-      return new Error(String(e));
+      return new Error(String(_e));
     }
   }
 

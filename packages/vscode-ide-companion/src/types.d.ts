@@ -4,4 +4,4 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import '../../../types/ambient.d.ts';
+import "@google/gemini-cli/types/ambient.d.ts";

@@ -91,7 +91,7 @@ export class ASTModifier {
       if (opts?.format) {
         try {
           // try prettier if available
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
+           
           const prettier = require('prettier');
           const cfg = await prettier.resolveConfig(filePath).catch(() => ({}));
           modifiedText = prettier.format(modifiedText, {

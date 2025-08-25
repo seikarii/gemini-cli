@@ -288,8 +288,8 @@ export class ShellExecutionService {
       });
 
       return { pid: child.pid, result };
-    } catch (e) {
-      const error = e as Error;
+    } catch (_e) {
+      const error = _e as Error;
       return {
         pid: undefined,
         result: Promise.resolve({

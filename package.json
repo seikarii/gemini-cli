@@ -97,7 +97,8 @@
     "diff-match-patch": "^1.0.5",
     "node-fetch": "^3.3.2",
     "string-similarity": "^4.0.4",
-    "strip-ansi": "^7.1.0"
+    "strip-ansi": "^7.1.0",
+    "open": "^10.1.0"
   },
   "optionalDependencies": {
     "@lydell/node-pty": "1.1.0",

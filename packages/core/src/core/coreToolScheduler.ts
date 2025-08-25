@@ -500,11 +500,11 @@ export class CoreToolScheduler {
   ): AnyToolInvocation | Error {
     try {
       return tool.build(args);
-    } catch (e) {
-      if (e instanceof Error) {
-        return e;
+    } catch (_e) {
+      if (_e instanceof Error) {
+        return _e;
       }
-      return new Error(String(e));
+      return new Error(String(_e));
     }
   }
 

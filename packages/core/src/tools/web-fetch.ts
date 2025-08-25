@@ -119,8 +119,8 @@ ${textContent}
         llmContent: resultText,
         returnDisplay: `Content for ${url} processed using fallback fetch.`,
       };
-    } catch (e) {
-      const error = e as Error;
+    } catch (_e) {
+      const error = _e as Error;
       const errorMessage = `Error during fallback fetch for ${url}: ${error.message}`;
       return {
         llmContent: `Error: ${errorMessage}`,

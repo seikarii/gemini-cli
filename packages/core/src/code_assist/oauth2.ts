@@ -120,10 +120,10 @@ async function initOauthClient(
 
       // Do not cache creds in this case; note that Compute client will handle its own refresh
       return computeClient;
-    } catch (e) {
+    } catch (_e) {
       throw new Error(
         `Could not authenticate using Cloud Shell credentials. Please select a different authentication method or ensure you are in a properly configured environment. Error: ${getErrorMessage(
-          e,
+          _e,
         )}`,
       );
     }

@@ -382,7 +382,7 @@ function findFuzzyMatchesOptimized(
     if (windowSize > lines.length) continue;
 
     // Initialize sliding window buffer
-    let windowBuffer = lines.slice(0, windowSize);
+    const windowBuffer = lines.slice(0, windowSize);
     let windowText = windowBuffer.join('\n');
     let normalizedCandidate = config.normalizeWhitespace
       ? normalizeWhitespace(windowText)

@@ -359,9 +359,9 @@ class WriteFileToolInvocation extends BaseToolInvocation<
         if (fs.existsSync(file_path)) {
           fs.copyFileSync(file_path, backupPath);
         }
-      } catch (e) {
+      } catch (_e) {
         // ignore backup creation failures; proceed to write but log in debug
-        if (this.config.getDebugMode()) console.debug('Failed to create backup before write', e);
+        if (this.config.getDebugMode()) console.debug('Failed to create backup before write', _e);
       }
 
       await this.config
@@ -381,8 +381,8 @@ class WriteFileToolInvocation extends BaseToolInvocation<
               if (fs.existsSync(backupPath)) {
                 fs.copyFileSync(backupPath, file_path);
               }
-            } catch (restoreErr) {
-              if (this.config.getDebugMode()) console.error('Failed to restore backup after failed write verification', restoreErr);
+            } catch (_restoreErr) {
+              if (this.config.getDebugMode()) console.error('Failed to restore backup after failed write verification', _restoreErr);
             }
             const errMsg = `File write verification failed for ${file_path}. Restored from backup if available.`;
             return {

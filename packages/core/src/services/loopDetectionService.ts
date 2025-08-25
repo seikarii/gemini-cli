@@ -987,8 +987,8 @@ Analyze the conversation and provide:
         reasoning,
         affectedFiles,
       };
-    } catch (e) {
-      this.config.getDebugMode() ? console.error(e) : console.debug(e);
+    } catch (_e) {
+      this.config.getDebugMode() ? console.error(_e) : console.debug(_e);
       return {
         isLoop: false,
         confidence: 0,

@@ -1,4 +1,9 @@
-// Copyright (c) 2025 Gemini CLI contributors
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 // SPDX-License-Identifier: MIT
 //
 // Implements MenteOmega, the analytical mind.

@@ -51,9 +51,9 @@ export class WorkspaceContext {
     for (const listener of [...this.onDirectoriesChangedListeners]) {
       try {
         listener();
-      } catch (e) {
+      } catch (_e) {
         // Don't let one listener break others.
-        console.error('Error in WorkspaceContext listener:', e);
+        console.error('Error in WorkspaceContext listener:', _e);
       }
     }
   }

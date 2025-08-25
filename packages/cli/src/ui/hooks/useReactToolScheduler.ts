@@ -20,7 +20,7 @@ import {
   ToolCall,
   Status as CoreStatus,
   EditorType,
-} from '@google/gemini-cli-core';
+ LoopDetectionService } from '@google/gemini-cli-core';
 import { useCallback, useState, useMemo } from 'react';
 import {
   HistoryItemToolGroup,
@@ -28,7 +28,6 @@ import {
   ToolCallStatus,
   HistoryItemWithoutId,
 } from '../types.js';
-import { LoopDetectionService } from '@google/gemini-cli-core';
 
 export type ScheduleFn = (
   request: ToolCallRequestInfo | ToolCallRequestInfo[],

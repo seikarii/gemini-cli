@@ -1,4 +1,10 @@
 /**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
  * @file Implements the ActionSystem, the agent's "body".
  * It takes plans from the mind and executes them by calling tools.
  */
@@ -44,7 +50,7 @@ export class ActionSystem {
    * Receives a plan and adds its steps to the execution queue.
    * @param plan The plan to execute.
    */
-  public submitPlan(plan: PlanDeAccion): void {
+  submitPlan(plan: PlanDeAccion): void {
     console.log(`ActionSystem: Plan ${plan.id} submitted with ${plan.steps.length} steps.`);
     this.actionQueue.push(...plan.steps);
     this.run();

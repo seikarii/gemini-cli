@@ -204,10 +204,12 @@ export async function ensureCorrectEdit(
     );
 
     if (astCorrectionResult.success) {
-      if (astCorrectionResult.correctedOldString !== undefined && astCorrectionResult.occurrences !== undefined) {
-        finalOldString = astCorrectionResult.correctedOldString;
-        occurrences = astCorrectionResult.occurrences;
-      }
+        if (astCorrectionResult.correctedOldString !== undefined && astCorrectionResult.occurrences !== undefined) {
+          // correctedOldString and occurrences are optional on the result type;
+          // narrow and cast to satisfy the compiler that they're present.
+          finalOldString = astCorrectionResult.correctedOldString as string;
+          occurrences = astCorrectionResult.occurrences as number;
+        }
       
       return await finalizeResult(
         originalParams,
@@ -231,8 +233,9 @@ export async function ensureCorrectEdit(
 
   if (stringCorrectionResult.success) {
     if (stringCorrectionResult.correctedOldString !== undefined && stringCorrectionResult.occurrences !== undefined) {
-      finalOldString = stringCorrectionResult.correctedOldString;
-      occurrences = stringCorrectionResult.occurrences;
+      // same non-null assertion as above for string-based corrections
+      finalOldString = stringCorrectionResult.correctedOldString as string;
+      occurrences = stringCorrectionResult.occurrences as number;
     }
 
     return await finalizeResult(
@@ -314,8 +317,8 @@ async function tryASTCorrection(
     }
 
     return { success: false };
-  } catch (error) {
-    console.debug('AST correction failed:', error);
+  } catch (_error) {
+    console.debug('AST correction failed:', _error);
     return { success: false };
   }
 }
@@ -329,7 +332,7 @@ function tryDirectNodeMatching(
   expectedReplacements: number,
   currentContent: string
 ): { success: boolean; correctedOldString?: string; occurrences?: number } {
-  const candidates: { node: any; text: string; specificity: number }[] = [];
+  const candidates: Array<{ node: any; text: string; specificity: number }> = [];
 
   for (const node of sourceFile.getDescendants()) {
     try {
@@ -429,7 +432,7 @@ function tryFuzzyNodeMatching(
   currentContent: string
 ): { success: boolean; correctedOldString?: string; occurrences?: number } {
   const normalizedTarget = normalizeWhitespace(oldString);
-  const candidates: { text: string; similarity: number }[] = [];
+  const candidates: Array<{ text: string; similarity: number }> = [];
 
   for (const node of sourceFile.getDescendants()) {
     try {

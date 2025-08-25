@@ -1,4 +1,10 @@
 /**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
  * @file Implements the main GeminiAgent, the central hub of the upgraded architecture.
  */
 
@@ -12,12 +18,12 @@ import { Config } from '../../cli/src/config/config';
 class TerminalConnection {
   private onRequest: ((request: string) => void) | null = null;
 
-  public onReceiveRequest(callback: (request: string) => void) {
+  onReceiveRequest(callback: (request: string) => void) {
     this.onRequest = callback;
   }
 
   // Simulate a user typing a command in the terminal
-  public simulateUserRequest(request: string) {
+  simulateUserRequest(request: string) {
     console.log(`\n--- Terminal: User entered command: "${request}" ---`);
     if (this.onRequest) {
       this.onRequest(request);
@@ -60,7 +66,7 @@ export class GeminiAgent {
   /**
    * Starts the agent's main loop and restores its state.
    */
-  public async start(): Promise<void> {
+  async start(): Promise<void> {
     console.log('--- Gemini Agent is starting up... ---');
 
     // Initialize the content generator (MenteAlfa connection) using the real config

@@ -1,4 +1,10 @@
 /**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
  * @file Implements the PersistenceService, which orchestrates the serialization
  * and storage of the agent's state.
  */
@@ -29,7 +35,7 @@ export class PersistenceService {
    * @param component The component to save (e.g., the Brain, Memory).
    * @param key A unique key for the state, used as the filename.
    */
-  public async save(component: Persistable, key: string): Promise<void> {
+  async save(component: Persistable, key: string): Promise<void> {
     try {
       const state = component.exportState();
       const serializedData = this.serializer.serialize(state);
@@ -50,7 +56,7 @@ export class PersistenceService {
    * @param key The unique key for the state to load.
    * @returns True if the state was loaded successfully, false otherwise.
    */
-  public async load(component: Persistable, key: string): Promise<boolean> {
+  async load(component: Persistable, key: string): Promise<boolean> {
     try {
       const filePath = `${this.basePath}/${key}.json.gz`;
 

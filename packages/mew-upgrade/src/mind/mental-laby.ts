@@ -1,4 +1,10 @@
 /**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
  * @file Implements the MentalLaby, the core associative memory graph.
  */
 
@@ -55,7 +61,7 @@ export class MentalLaby implements Persistable {
   /**
    * Stores a new piece of information in the memory graph.
    */
-  public store(data: any, kind: MemoryNode['kind'] = 'semantic'): string {
+  store(data: any, kind: MemoryNode['kind'] = 'semantic'): string {
     const embedding = this.createEmbedding(data);
     const similarNodes = this.findSimilarNodes(embedding, this.K_NEAREST_NEIGHBORS + 1);
 
@@ -91,7 +97,7 @@ export class MentalLaby implements Persistable {
   /**
    * Recalls information from memory based on a cue.
    */
-  public recall(cue: any, maxResults = 5): MemoryNode[] {
+  recall(cue: any, maxResults = 5): MemoryNode[] {
     if (this.nodes.size === 0) return [];
 
     const cueEmbedding = this.createEmbedding(cue);
@@ -168,7 +174,7 @@ export class MentalLaby implements Persistable {
 
   // --- Persistence --- 
 
-  public exportState(): object {
+  exportState(): object {
     const nodesArray = Array.from(this.nodes.values()).map(node => ({
       ...node,
       edges: Array.from(node.edges.entries()),
@@ -176,7 +182,7 @@ export class MentalLaby implements Persistable {
     return { nodes: nodesArray };
   }
 
-  public importState(state: any): void {
+  importState(state: any): void {
     if (state && state.nodes) {
       this.nodes.clear();
       for (const nodeData of state.nodes) {

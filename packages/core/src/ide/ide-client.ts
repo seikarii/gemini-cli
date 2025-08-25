@@ -364,8 +364,8 @@ export class IdeClient {
             'GEMINI_CLI_IDE_SERVER_STDIO_ARGS must be a JSON array string.',
           );
         }
-      } catch (e) {
-        logger.error('Failed to parse GEMINI_CLI_IDE_SERVER_STDIO_ARGS:', e);
+      } catch (_e) {
+        logger.error('Failed to parse GEMINI_CLI_IDE_SERVER_STDIO_ARGS:', _e);
       }
     }
 
