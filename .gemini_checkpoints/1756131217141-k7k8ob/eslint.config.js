@@ -44,7 +44,7 @@ export default tseslint.config(
     ],
     languageOptions: {
       globals: globals.node,
-      parser: tseslint.parser,
+      parser: typescriptEslint.parser,
       parserOptions: {
         ecmaVersion: "latest",
         sourceType: "module",

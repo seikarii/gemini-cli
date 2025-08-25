@@ -27,32 +27,18 @@ export default tseslint.config(
   {
     // Global ignores
     ignores: [
-      "bundle/**",
-      "coverage/**",
-      "node_modules/**",
-      "packages/mew-upgrade/**",
-      "test-setup.js",
-      "test-setup.d.ts",
-      "test-setup.js.map",
-      "test-setup.ts",
-      "test.py",
-      "test.py.backup",
-      "gibberish.txt",
-      "crisalida_lib/**",
-      "types/**",
-      "integration-tests/**",
+      'node_modules/*',
+      '.integration-tests/**',
+      'eslint.config.js',
+      'packages/cli/dist/**',
+      'packages/core/dist/**',
+      'packages/server/dist/**',
+      'packages/test-utils/dist/**',
+      'packages/vscode-ide-companion/dist/**',
+      'bundle/**',
+      'package/bundle/**',
+      '.integration-tests/**',
     ],
-    languageOptions: {
-      globals: globals.node,
-      parser: tseslint.parser,
-      parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module",
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-    },
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
@@ -261,18 +247,6 @@ export default tseslint.config(
     },
   },
   // Prettier config must be last
-  {
-    files: ['packages/mew-upgrade/public/**/*.{js,ts,tsx}'],
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.builtin,
-      },
-    },
-    rules: {
-      'no-undef': 'off', // Temporarily disable no-undef for these files
-    },
-  },
   prettierConfig,
   // extra settings for scripts that we run directly with node
   {

@@ -44,7 +44,7 @@ export default tseslint.config(
     ],
     languageOptions: {
       globals: globals.node,
-      parser: tseslint.parser,
+      parser: typescriptEslint.parser,
       parserOptions: {
         ecmaVersion: "latest",
         sourceType: "module",
@@ -261,18 +261,6 @@ export default tseslint.config(
     },
   },
   // Prettier config must be last
-  {
-    files: ['packages/mew-upgrade/public/**/*.{js,ts,tsx}'],
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.builtin,
-      },
-    },
-    rules: {
-      'no-undef': 'off', // Temporarily disable no-undef for these files
-    },
-  },
   prettierConfig,
   // extra settings for scripts that we run directly with node
   {
