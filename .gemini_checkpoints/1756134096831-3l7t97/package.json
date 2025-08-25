@@ -39,7 +39,7 @@
     "test:integration:sandbox:docker": "npm run build:sandbox && GEMINI_SANDBOX=docker vitest run --root ./integration-tests",
     "test:integration:sandbox:podman": "GEMINI_SANDBOX=podman vitest run --root ./integration-tests",
     "lint": "eslint . --ext .ts,.tsx --ignore-pattern '**/.gemini_checkpoints/**' && eslint integration-tests --ignore-pattern '**/.gemini_checkpoints/**'",
-    "lint:fix": "eslint . --fix --ignore-pattern '**/.gemini_checkpoints/**' && eslint integration-tests --fix --ignore-pattern '**/.gemini_checkpoints/**'",
+    "lint:fix": "eslint . --fix && eslint integration-tests --fix",
     "lint:ci": "eslint . --ext .ts,.tsx --max-warnings 0 && eslint integration-tests --max-warnings 0",
     "format": "prettier --experimental-cli --write .",
     "typecheck": "npm run typecheck --workspaces --if-present",

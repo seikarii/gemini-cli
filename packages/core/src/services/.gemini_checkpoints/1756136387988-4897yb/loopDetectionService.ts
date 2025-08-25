@@ -472,15 +472,9 @@ export class LoopDetectionService {
         );
       }
     } else {
-      // If the successful tool is the one that was failing, it means we've recovered.
-      // Reset the failure count for that specific tool.
-      if (toolName === this.lastFailedToolCallName) {
-        this.lastFailedToolCallName = null;
-        this.consecutiveFailedToolCallsCount = 0;
-      }
-      // IMPORTANT: If a *different* tool succeeds (e.g., read_file succeeds after a replace fails),
-      // we do NOTHING. We keep the failure counter and the name of the last failed tool.
-      // This allows us to detect the user's "read-fail-read-fail" death loop.
+      // Reset on successful tool call - THIS IS THE CORE OF "MODO PACIFICO"
+      this.lastFailedToolCallName = null;
+      this.consecutiveFailedToolCallsCount = 0;
     }
     return isLoop;
   }
@@ -866,13 +860,11 @@ export class LoopDetectionService {
       const result = await this.performComprehensiveLoopCheck(signal);
 
       if (result.isLoop) {
-        // Centralize loop handling to apply the new recovery/stop strategies.
-        // The LLM detecting a loop is considered a destructive, cognitive loop.
-        return this.handleDetectedLoop(
-          result.loopType,
-          result.confidence,
+        this.suggestLoopBreakActions(
+          result.suggestedActions,
           result.reasoning || 'LLM detected conversation loop',
         );
+        return true;
       }
 
       this.updateConfidence(result.confidence, result.reasoning);

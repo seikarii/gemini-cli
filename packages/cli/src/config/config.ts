@@ -40,11 +40,11 @@ import { isWorkspaceTrusted } from './trustedFolders.js';
 // Simple console logger for now - replace with actual logger if available
 const logger = {
    
-  debug: (...args: any[]) => console.debug('[DEBUG]', ...args),
-   
-  warn: (...args: any[]) => console.warn('[WARN]', ...args),
-   
-  error: (...args: any[]) => console.error('[ERROR]', ...args),
+  debug: (...args: unknown[]) => console.debug('[DEBUG]', ...args),
+
+  warn: (...args: unknown[]) => console.warn('[WARN]', ...args),
+
+  error: (...args: unknown[]) => console.error('[ERROR]', ...args),
 };
 
 export interface CliArgs {

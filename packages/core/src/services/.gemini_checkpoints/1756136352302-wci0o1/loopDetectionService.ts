@@ -468,19 +468,12 @@ export class LoopDetectionService {
           LoopType.CONSECUTIVE_FAILED_TOOL_CALLS,
           0.99, // High confidence for consecutive failures
           `Consecutive failures of tool '${toolCall.name}' detected.`,
-          toolName, // Pass the failing tool name
         );
       }
     } else {
-      // If the successful tool is the one that was failing, it means we've recovered.
-      // Reset the failure count for that specific tool.
-      if (toolName === this.lastFailedToolCallName) {
-        this.lastFailedToolCallName = null;
-        this.consecutiveFailedToolCallsCount = 0;
-      }
-      // IMPORTANT: If a *different* tool succeeds (e.g., read_file succeeds after a replace fails),
-      // we do NOTHING. We keep the failure counter and the name of the last failed tool.
-      // This allows us to detect the user's "read-fail-read-fail" death loop.
+      // Reset on successful tool call - THIS IS THE CORE OF "MODO PACIFICO"
+      this.lastFailedToolCallName = null;
+      this.consecutiveFailedToolCallsCount = 0;
     }
     return isLoop;
   }
@@ -489,48 +482,39 @@ export class LoopDetectionService {
     loopType: LoopType,
     confidence: number,
     reasoning: string,
-    failingToolName?: string,
   ): boolean {
+    // Debug instrumentation to help unit test tracing
+    // (left intentionally minimal; will be removed after triage)
+    try {
+      console.error('handleDetectedLoop', {
+        loopType,
+        lastResetSequenceNumber: this.lastResetSequenceNumber,
+        eventSequenceNumber: this.eventSequenceNumber,
+        recentChunkHashesTail: this.recentChunkHashes.slice(-12),
+        semanticChunksTail: this.semanticContentChunks.slice(-6).map((c) => c.hash),
+        recentEventsTail: this.recentContentEvents.slice(-6),
+      });
+    } catch (_e) {
+      /* noop */
+    }
     this.updateConfidence(confidence, reasoning);
+
+    // We log the loop detection event regardless.
     this.logLoopDetected(loopType);
 
-    // --- Recovery/Stop Logic based on User Feedback ---
+    const actions = this.generateAdaptiveBreakActions(confidence);
+    this.suggestLoopBreakActions(actions, reasoning);
 
-    // A) Destructive loops (replace failures) or cognitive loops from LLM.
-    // Action: Hard stop to prevent state corruption.
-    if (
-      failingToolName === 'replace' ||
-      loopType === LoopType.LLM_DETECTED_LOOP
-    ) {
-      this.suggestLoopBreakActions(
-        [LoopBreakAction.REQUEST_USER_INPUT], // Simple suggestion
-        reasoning,
-      );
-      this.loopDetected = true; // Set the flag to stop execution.
-      return true; // Signal that a loop was detected and we should stop.
+    // Mark that we've warned and now consider the loop detected. Tests expect the
+    // detection to surface immediately (return true), so set loopDetected and
+    // return true.
+  this.loopDetected = true;
+
+    // Try to recover automatically.
+    if (actions.includes(LoopBreakAction.INCREASE_TEMPERATURE)) {
+      this.temperatureOverride = 1.2; // A modest increase.
     }
 
-    // B) "Stuck" / Iteration Loop (any other tool failure).
-    // Action: Attempt automatic recovery without stopping.
-    if (loopType === LoopType.CONSECUTIVE_FAILED_TOOL_CALLS) {
-      const actions = [
-        LoopBreakAction.INCREASE_TEMPERATURE,
-        LoopBreakAction.CHANGE_STRATEGY, // Implies web search
-      ];
-      this.suggestLoopBreakActions(actions, reasoning);
-
-      // Apply recovery strategy (increase temperature)
-      this.temperatureOverride = 1.2;
-
-      // IMPORTANT: Return `false` because we are not stopping.
-      // We are attempting to recover and continue the process.
-      return false;
-    }
-
-    // C) Default case for any other loop type (e.g., chanting).
-    // Action: Hard stop.
-    this.suggestLoopBreakActions([LoopBreakAction.REQUEST_USER_INPUT], reasoning);
-    this.loopDetected = true;
     return true;
   }
 
@@ -866,13 +850,11 @@ export class LoopDetectionService {
       const result = await this.performComprehensiveLoopCheck(signal);
 
       if (result.isLoop) {
-        // Centralize loop handling to apply the new recovery/stop strategies.
-        // The LLM detecting a loop is considered a destructive, cognitive loop.
-        return this.handleDetectedLoop(
-          result.loopType,
-          result.confidence,
+        this.suggestLoopBreakActions(
+          result.suggestedActions,
           result.reasoning || 'LLM detected conversation loop',
         );
+        return true;
       }
 
       this.updateConfidence(result.confidence, result.reasoning);

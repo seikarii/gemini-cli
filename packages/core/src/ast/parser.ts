@@ -4,6 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// Shape for extracted intentions
+export interface Intentions {
+  functions: Array<Record<string, unknown>>;
+  classes: Array<Record<string, unknown>>;
+  imports: Array<Record<string, unknown>>;
+  constants: Array<Record<string, unknown>>;
+  parsingErrors: string[];
+  [key: string]: unknown;
+}
 /**
  * TypeScript port of ideas/ASTRAL_TOOLS/ast_tools/reader.py
  * - robust file reading with encoding fallbacks
@@ -52,7 +61,7 @@ export async function checkFileSize(
       };
     }
     return { ok: true };
-  } catch (_e: any) {
+  } catch (_e: unknown) {
     return { ok: false, error: `Cannot check file size: ${String(_e)}` };
   }
 }
@@ -104,7 +113,7 @@ function parseSourceToSourceFileImpl(
       overwrite: true,
     });
     return { sourceFile: sf, error: null };
-  } catch (e: any) {
+  } catch (e: unknown) {
     return { sourceFile: null, error: `Parsing failed: ${String(e)}` };
   }
 }
@@ -147,60 +156,57 @@ export function extractCommentsAndJsDoc(
   const comments: string[] = [];
   const jsdocs: string[] = [];
 
+  // Extract line and block comments via regex (best-effort)
   try {
-    // line comments //
     const lineRe = /^\s*\/\/(.*)$/gm;
-    let m;
+    let m: RegExpExecArray | null = null;
     while ((m = lineRe.exec(source)) !== null) {
       const txt = m[1].trim();
       if (txt) comments.push(txt);
     }
 
-    // block comments /* ... */
     const blockRe = /\/\*([\s\S]*?)\*\//g;
     while ((m = blockRe.exec(source)) !== null) {
       const txt = m[1].trim();
-      if (txt) {
-        // JSDoc-style starts with *
-        if (/^\*/.test(txt) || txt.startsWith('*')) {
-          // split lines and clean leading '*'
-          const cleaned = txt
-            .split('\n')
-            .map((l) => l.replace(/^\s*\*\s?/, '').trim())
-            .join('\n')
-            .trim();
-          jsdocs.push(cleaned);
-        } else {
-          comments.push(txt);
-        }
+      if (!txt) continue;
+      if (/^\*/.test(txt) || txt.startsWith('*')) {
+        const cleaned = txt
+          .split('\n')
+          .map((l) => l.replace(/^\s*\*\s?/, '').trim())
+          .join('\n')
+          .trim();
+        if (cleaned) jsdocs.push(cleaned);
+      } else {
+        comments.push(txt);
       }
     }
+  } catch (e: unknown) {
+    void e; // ignore extraction errors
+  }
 
-    // If ts-morph SourceFile available, collect JSDoc nodes defensively
-    if (sourceFile) {
-      try {
-        for (const nd of sourceFile.getDescendants()) {
-          try {
-            const js = (nd as any).getJsDocs ? (nd as any).getJsDocs() : [];
-            if (Array.isArray(js) && js.length > 0) {
-              for (const d of js) {
-                const txt =
-                  typeof d.getInnerText === 'function'
-                    ? d.getInnerText()
-                    : String(d.getText?.() ?? '');
-                if (txt) jsdocs.push(txt.trim());
-              }
+  // If ts-morph SourceFile available, collect JSDoc nodes defensively
+  if (sourceFile) {
+    try {
+      for (const nd of sourceFile.getDescendants()) {
+        try {
+          const getJsDocs = (nd as any).getJsDocs;
+          const js = typeof getJsDocs === 'function' ? getJsDocs.call(nd) ?? [] : [];
+          if (Array.isArray(js) && js.length > 0) {
+            for (const d of js) {
+              const txt =
+                typeof (d as any).getInnerText === 'function'
+                  ? (d as any).getInnerText()
+                  : String((d as any).getText?.() ?? '');
+              if (txt) jsdocs.push(txt.trim());
             }
-          } catch {
-            // ignore per-node errors
           }
+        } catch {
+          // ignore per-node errors
         }
-      } catch {
-        // ignore
       }
+    } catch {
+      // ignore
     }
-  } catch {
-    // ignore extraction failure; return what we have
   }
 
   return { comments, jsdocs };
@@ -212,8 +218,8 @@ export function extractCommentsAndJsDoc(
  */
 export function extractIntentionsFromSourceFile(
   sourceFile?: SourceFile | null,
-): any {
-  const intents: any = {
+): Intentions {
+  const intents: Intentions = {
     functions: [],
     classes: [],
     imports: [],
@@ -233,7 +239,7 @@ export function extractIntentionsFromSourceFile(
         try {
           // small local helper to avoid implicit-`any` callback in map
           const namedImports = imp.getNamedImports();
-          const mappedNamed = namedImports.map((spec: any) => {
+          const mappedNamed = namedImports.map((spec: unknown) => {
             const s = spec as unknown as {
               getName: () => string;
               getAliasNode?: () => { getText?: () => string } | undefined;
@@ -250,13 +256,13 @@ export function extractIntentionsFromSourceFile(
             defaultImport: imp.getDefaultImport()?.getText?.() ?? undefined,
             namespaceImport: imp.getNamespaceImport()?.getText?.() ?? undefined,
           });
-        } catch (e) {
-          intents.parsingErrors.push(`import node error: ${String(e)}`);
-        }
+          } catch (e: unknown) {
+            intents.parsingErrors.push(`import node error: ${String(e)}`);
+          }
       }
-    } catch (e) {
-      intents.parsingErrors.push(`imports extraction failed: ${String(e)}`);
-    }
+        } catch (e: unknown) {
+          intents.parsingErrors.push(`imports extraction failed: ${String(e)}`);
+        }
 
     // Functions
     try {

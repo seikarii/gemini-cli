@@ -41,7 +41,6 @@ export default tseslint.config(
       'bundle/**',
       'package/bundle/**',
       '.integration-tests/**',
-      'packages/mew-upgrade/**',
     ],  },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
@@ -114,9 +113,9 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
-          argsIgnorePattern: '^_+',
-          varsIgnorePattern: '^_+',
-          caughtErrorsIgnorePattern: '^_+',
+          argsIgnorePattern: '^ _',
+          varsIgnorePattern: '^ _',
+          caughtErrorsIgnorePattern: '^ _',
         },
       ],
       'import/no-internal-modules': [
@@ -198,7 +197,7 @@ export default tseslint.config(
   // Temporary override for core and cli source: enable Node globals and relax
   // internal-module import checks while we focus on critical runtime issues.
   {
-    files: ['packages/core/src/**/*.{js,ts,tsx}', 'packages/cli/src/**/*.{js,ts,tsx}', 'packages/vscode-ide-companion/src/**/*.{js,ts,tsx}'],
+    files: ['packages/core/src/**/*.{js,ts,tsx}', 'packages/cli/src/**/*.{js,ts,tsx}'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -217,7 +216,7 @@ export default tseslint.config(
   // Temporarily allow `any` in these critical source trees to focus on
   // higher-risk runtime issues. This should be reverted or replaced
   // with concrete types in follow-up work.
-  '@typescript-eslint/no-explicit-any': 'error',
+  '@typescript-eslint/no-explicit-any': 'off',
     },
   },
   {

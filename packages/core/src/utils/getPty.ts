@@ -4,29 +4,31 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type PtyImplementation = {
-   
-  module: any;
-  name: 'lydell-node-pty' | 'node-pty';
-} | null;
-
 export interface PtyProcess {
   readonly pid: number;
   onData(callback: (data: string) => void): void;
   onExit(callback: (e: { exitCode: number; signal?: number }) => void): void;
   kill(signal?: string): void;
 }
+export interface PtyModule {
+  spawn(command: string, args: string[], opts: Record<string, unknown>): PtyProcess;
+}
+
+export type PtyImplementation = {
+  module: PtyModule;
+  name: 'lydell-node-pty' | 'node-pty';
+} | null;
 
 export const getPty = async (): Promise<PtyImplementation> => {
   try {
     const lydell = '@lydell/node-pty';
     const module = await import(lydell);
-    return { module, name: 'lydell-node-pty' };
+    return { module: module as unknown as PtyModule, name: 'lydell-node-pty' };
   } catch (_e) {
     try {
       const nodePty = 'node-pty';
       const module = await import(nodePty);
-      return { module, name: 'node-pty' };
+      return { module: module as unknown as PtyModule, name: 'node-pty' };
     } catch (_e2) {
       return null;
     }

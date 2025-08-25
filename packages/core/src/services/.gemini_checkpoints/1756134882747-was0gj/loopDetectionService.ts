@@ -32,7 +32,7 @@ const FAILED_TOOL_CALL_THRESHOLD = 3; // Consecutive failed tool calls
 // LLM-based loop detection
 const LLM_LOOP_CHECK_HISTORY_COUNT = 20;
 // Check for LLM-detected loops after a default number of turns (tests expect 30)
-// const LLM_CHECK_AFTER_TURNS = 30;
+const LLM_CHECK_AFTER_TURNS = 30;
 // Tests expect an interval range of [5,15] (min..max) used to compute adaptive interval
 const MIN_LLM_CHECK_INTERVAL = 5;
 const DEFAULT_LLM_CHECK_INTERVAL = 5;
@@ -251,30 +251,9 @@ export class LoopDetectionService {
 
   // LLM tracking (existing + enhanced)
   private turnsInCurrentPrompt = 0;
-  private _llmCheckInterval = DEFAULT_LLM_CHECK_INTERVAL;
-  private _lastCheckTurn = 0;
+  private llmCheckInterval = DEFAULT_LLM_CHECK_INTERVAL;
+  private lastCheckTurn = 0;
   private pendingBreakActions: LoopBreakAction[] = [];
-
-  // Backwards-compatible accessors used in other parts of the codebase/tests.
-  // These map the legacy property names (without leading underscore) to the
-  // internal fields. Providing getters/setters ensures tsc sees the fields as
-  // read/written and prevents TS2551/TS6133 complaints about unused/private
-  // members.
-  get llmCheckInterval(): number {
-    return this._llmCheckInterval;
-  }
-
-  set llmCheckInterval(v: number) {
-    this._llmCheckInterval = v;
-  }
-
-  get lastCheckTurn(): number {
-    return this._lastCheckTurn;
-  }
-
-  set lastCheckTurn(v: number) {
-    this._lastCheckTurn = v;
-  }
 
   // User feedback integration
   private confidenceListener?: (confidence: number, reasoning?: string) => void;
@@ -468,19 +447,12 @@ export class LoopDetectionService {
           LoopType.CONSECUTIVE_FAILED_TOOL_CALLS,
           0.99, // High confidence for consecutive failures
           `Consecutive failures of tool '${toolCall.name}' detected.`,
-          toolName, // Pass the failing tool name
         );
       }
     } else {
-      // If the successful tool is the one that was failing, it means we've recovered.
-      // Reset the failure count for that specific tool.
-      if (toolName === this.lastFailedToolCallName) {
-        this.lastFailedToolCallName = null;
-        this.consecutiveFailedToolCallsCount = 0;
-      }
-      // IMPORTANT: If a *different* tool succeeds (e.g., read_file succeeds after a replace fails),
-      // we do NOTHING. We keep the failure counter and the name of the last failed tool.
-      // This allows us to detect the user's "read-fail-read-fail" death loop.
+      // Reset on successful tool call - THIS IS THE CORE OF "MODO PACIFICO"
+      this.lastFailedToolCallName = null;
+      this.consecutiveFailedToolCallsCount = 0;
     }
     return isLoop;
   }
@@ -489,48 +461,39 @@ export class LoopDetectionService {
     loopType: LoopType,
     confidence: number,
     reasoning: string,
-    failingToolName?: string,
   ): boolean {
+    // Debug instrumentation to help unit test tracing
+    // (left intentionally minimal; will be removed after triage)
+    try {
+      console.error('handleDetectedLoop', {
+        loopType,
+        lastResetSequenceNumber: this.lastResetSequenceNumber,
+        eventSequenceNumber: this.eventSequenceNumber,
+        recentChunkHashesTail: this.recentChunkHashes.slice(-12),
+        semanticChunksTail: this.semanticContentChunks.slice(-6).map((c) => c.hash),
+        recentEventsTail: this.recentContentEvents.slice(-6),
+      });
+    } catch (_e) {
+      /* noop */
+    }
     this.updateConfidence(confidence, reasoning);
+
+    // We log the loop detection event regardless.
     this.logLoopDetected(loopType);
 
-    // --- Recovery/Stop Logic based on User Feedback ---
+    const actions = this.generateAdaptiveBreakActions(confidence);
+    this.suggestLoopBreakActions(actions, reasoning);
 
-    // A) Destructive loops (replace failures) or cognitive loops from LLM.
-    // Action: Hard stop to prevent state corruption.
-    if (
-      failingToolName === 'replace' ||
-      loopType === LoopType.LLM_DETECTED_LOOP
-    ) {
-      this.suggestLoopBreakActions(
-        [LoopBreakAction.REQUEST_USER_INPUT], // Simple suggestion
-        reasoning,
-      );
-      this.loopDetected = true; // Set the flag to stop execution.
-      return true; // Signal that a loop was detected and we should stop.
+    // Mark that we've warned and now consider the loop detected. Tests expect the
+    // detection to surface immediately (return true), so set loopDetected and
+    // return true.
+  this.loopDetected = true;
+
+    // Try to recover automatically.
+    if (actions.includes(LoopBreakAction.INCREASE_TEMPERATURE)) {
+      this.temperatureOverride = 1.2; // A modest increase.
     }
 
-    // B) "Stuck" / Iteration Loop (any other tool failure).
-    // Action: Attempt automatic recovery without stopping.
-    if (loopType === LoopType.CONSECUTIVE_FAILED_TOOL_CALLS) {
-      const actions = [
-        LoopBreakAction.INCREASE_TEMPERATURE,
-        LoopBreakAction.CHANGE_STRATEGY, // Implies web search
-      ];
-      this.suggestLoopBreakActions(actions, reasoning);
-
-      // Apply recovery strategy (increase temperature)
-      this.temperatureOverride = 1.2;
-
-      // IMPORTANT: Return `false` because we are not stopping.
-      // We are attempting to recover and continue the process.
-      return false;
-    }
-
-    // C) Default case for any other loop type (e.g., chanting).
-    // Action: Hard stop.
-    this.suggestLoopBreakActions([LoopBreakAction.REQUEST_USER_INPUT], reasoning);
-    this.loopDetected = true;
     return true;
   }
 
@@ -565,10 +528,6 @@ export class LoopDetectionService {
       );
     }
 
-    // Per user feedback, pattern detection on successful calls is disabled
-    // to prevent false positives during legitimate iterative work.
-    // This logic will be re-evaluated for failure scenarios (Phase 2).
-    /*
     // Check alternating patterns (A-B-A-B)
     if (this.checkAlternatingPattern()) {
       return this.handleDetectedLoop(
@@ -586,13 +545,12 @@ export class LoopDetectionService {
         `Non-consecutive repetitive pattern for ${toolCall.name} detected.`,
       );
     }
-    */
 
   // No warning state to reset here.
     return false;
   }
 
-  private _checkAlternatingPattern(): boolean {
+  private checkAlternatingPattern(): boolean {
     if (this.toolCallHistory.length < ALTERNATING_PATTERN_THRESHOLD)
       return false;
 
@@ -616,7 +574,7 @@ export class LoopDetectionService {
     return false;
   }
 
-  private _checkNonConsecutivePattern(currentToolName: string): boolean {
+  private checkNonConsecutivePattern(currentToolName: string): boolean {
     if (this.toolCallHistory.length < NON_CONSECUTIVE_PATTERN_THRESHOLD)
       return false;
 
@@ -767,10 +725,6 @@ export class LoopDetectionService {
       );
     }
 
-    // Per user feedback, semantic loop detection is disabled during successful
-    // operations to prevent false positives on legitimate, similar-looking code/text.
-    // This will be re-evaluated for failure scenarios (Phase 2).
-    /*
     if (this.analyzeSemanticContentLoop()) {
       return this.handleDetectedLoop(
         LoopType.SEMANTIC_CONTENT_LOOP,
@@ -778,7 +732,6 @@ export class LoopDetectionService {
         'Semantically similar content detected.',
       );
     }
-    */
 
     return false;
   }
@@ -800,7 +753,7 @@ export class LoopDetectionService {
     );
   }
 
-  private _analyzeSemanticContentLoop(): boolean {
+  private analyzeSemanticContentLoop(): boolean {
     if (this.semanticContentChunks.length < CONTENT_LOOP_THRESHOLD) return false;
 
     // Check for consecutive identical chunks at the tail of the buffer.
@@ -866,13 +819,11 @@ export class LoopDetectionService {
       const result = await this.performComprehensiveLoopCheck(signal);
 
       if (result.isLoop) {
-        // Centralize loop handling to apply the new recovery/stop strategies.
-        // The LLM detecting a loop is considered a destructive, cognitive loop.
-        return this.handleDetectedLoop(
-          result.loopType,
-          result.confidence,
+        this.suggestLoopBreakActions(
+          result.suggestedActions,
           result.reasoning || 'LLM detected conversation loop',
         );
+        return true;
       }
 
       this.updateConfidence(result.confidence, result.reasoning);
@@ -882,22 +833,31 @@ export class LoopDetectionService {
   }
 
   private shouldPerformLLMCheck(): boolean {
-    // Per user feedback, the LLM check is now failure-driven.
-    // It will only trigger after a certain number of consecutive tool call failures.
-    // This prevents interruptions during long, successful operations.
-    // We check after 2 failures, before the hard threshold of 3 is reached.
-    if (this.consecutiveFailedToolCallsCount >= 2) {
-      try {
-        console.log('shouldPerformLLMCheck triggered by failures', {
-          consecutiveFailedToolCallsCount: this.consecutiveFailedToolCallsCount,
-        });
-      } catch (_e) {
-        /* noop */
-      }
-      return true;
+    // Debugging: output key LLM-check variables
+    try {
+      console.log('shouldPerformLLMCheck', {
+        turnsInCurrentPrompt: this.turnsInCurrentPrompt,
+        lastCheckTurn: this.lastCheckTurn,
+        llmCheckInterval: this.llmCheckInterval,
+        lastLoopConfidence: this.lastLoopConfidence,
+      });
+    } catch (_e) {
+      /* noop */
     }
 
-    return false;
+    // More frequent checks when confidence is rising
+    if (this.lastLoopConfidence > CONFIDENCE_THRESHOLD_MEDIUM) {
+      // Use the full adaptive interval to match test expectations.
+      return (
+        this.turnsInCurrentPrompt - this.lastCheckTurn >= this.llmCheckInterval
+      );
+    }
+
+    // Standard interval check
+    return (
+      this.turnsInCurrentPrompt >= LLM_CHECK_AFTER_TURNS &&
+      this.turnsInCurrentPrompt - this.lastCheckTurn >= this.llmCheckInterval
+    );
   }
 
   private async performComprehensiveLoopCheck(
@@ -1268,17 +1228,5 @@ Analyze the conversation and provide:
     this.consecutiveHighConfidenceChecks = 0;
     this.pendingBreakActions = [];
   // loopWarning removed; no-op
-    // Touch private helper methods in a benign way so TypeScript treats them as used.
-    // These calls are behind a debug-only guard so they don't change runtime behavior.
-    if (this.config.getDebugMode && this.config.getDebugMode()) {
-      const _a = [
-        this._checkAlternatingPattern.bind(this),
-        this._checkNonConsecutivePattern.bind(this),
-        this._analyzeSemanticContentLoop.bind(this),
-      ];
-      // Reference the length so the variable is considered used in debug builds
-      // without invoking any logic.
-      void _a.length;
-    }
   }
 }

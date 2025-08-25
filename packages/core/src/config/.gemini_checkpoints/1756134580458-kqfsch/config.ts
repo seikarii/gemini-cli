@@ -889,7 +889,7 @@ export class Config {
 // Export model constants for use in CLI
 export { DEFAULT_GEMINI_FLASH_MODEL };
 interface ToolConstructor {
-  new (...args: any[]): any;  
+  new (...args: any[]): any; // Constructor signature
   Name?: string; // Static property
   name: string; // Static property
 }

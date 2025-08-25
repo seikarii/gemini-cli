@@ -11,8 +11,7 @@ import { FileFilteringOptions } from '../config/config.js';
 // Simple console logger for now.
 // TODO: Integrate with a more robust server-side logger.
 const logger = {
-   
-  debug: (...args: any[]) => console.debug('[DEBUG] [BfsFileSearch]', ...args),
+  debug: (...args: unknown[]) => console.debug('[DEBUG] [BfsFileSearch]', ...args),
 };
 
 interface BfsFileSearchOptions {

@@ -3,6 +3,14 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
+export interface Intentions {
+    functions: Array<Record<string, unknown>>;
+    classes: Array<Record<string, unknown>>;
+    imports: Array<Record<string, unknown>>;
+    constants: Array<Record<string, unknown>>;
+    parsingErrors: string[];
+    [key: string]: unknown;
+}
 import { SourceFile } from 'ts-morph';
 /**
  * Result shape returned by readAndParseFile / ASTReader.execute
@@ -54,7 +62,7 @@ export declare function extractCommentsAndJsDoc(source: string, sourceFile?: Sou
  * Extract intentions (functions, classes, imports, constants) from a ts-morph SourceFile.
  * Defensive: isolate node-level errors to avoid complete failure.
  */
-export declare function extractIntentionsFromSourceFile(sourceFile?: SourceFile | null): any;
+export declare function extractIntentionsFromSourceFile(sourceFile?: SourceFile | null): Intentions;
 /**
  * Main orchestration: read file, parse, extract comments and intentions.
  */

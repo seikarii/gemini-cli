@@ -828,7 +828,7 @@ export class Config {
 
     // helper to create & register core tools that are enabled
      
-    const registerCoreTool = (ToolClass: ToolConstructor, ...args: unknown[]) => {
+    const registerCoreTool = (ToolClass: any, ...args: unknown[]) => {
       const className = ToolClass.name;
       const toolName = ToolClass.Name || className;
       const coreTools = this.getCoreTools();
@@ -888,8 +888,3 @@ export class Config {
 
 // Export model constants for use in CLI
 export { DEFAULT_GEMINI_FLASH_MODEL };
-interface ToolConstructor {
-  new (...args: any[]): any;  
-  Name?: string; // Static property
-  name: string; // Static property
-}

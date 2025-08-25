@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getPty, PtyImplementation } from '../utils/getPty.js';
+import { getPty, PtyImplementation, PtyModule } from '../utils/getPty.js';
 import { spawn as cpSpawn } from 'child_process';
 import { TextDecoder } from 'util';
 import os from 'os';
@@ -324,7 +324,7 @@ export class ShellExecutionService {
         ? ['/c', commandToExecute]
         : ['-c', commandToExecute];
 
-      const ptyProcess = ptyInfo?.module.spawn(shell, args, {
+  const ptyProcess = (ptyInfo?.module as unknown as PtyModule).spawn(shell, args, {
         cwd,
         name: 'xterm-color',
         cols,
@@ -338,7 +338,7 @@ export class ShellExecutionService {
         handleFlowControl: true,
       });
 
-      const result = new Promise<ShellExecutionResult>((resolve) => {
+  const result = new Promise<ShellExecutionResult>((resolve) => {
         const headlessTerminal = new Terminal({
           allowProposedApi: true,
           cols,
@@ -403,7 +403,7 @@ export class ShellExecutionService {
           );
         };
 
-        ptyProcess.onData((data: string) => {
+  ptyProcess.onData((data: string) => {
           const bufferData = Buffer.from(data, 'utf-8');
           handleOutput(bufferData);
         });

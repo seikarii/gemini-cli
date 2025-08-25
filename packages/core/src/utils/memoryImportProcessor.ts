@@ -12,12 +12,12 @@ import { marked } from 'marked';
 // Simple console logger for import processing
 const logger = {
    
-  debug: (...args: any[]) =>
+  debug: (...args: unknown[]) =>
     console.debug('[DEBUG] [ImportProcessor]', ...args),
-   
-  warn: (...args: any[]) => console.warn('[WARN] [ImportProcessor]', ...args),
-   
-  error: (...args: any[]) =>
+
+  warn: (...args: unknown[]) => console.warn('[WARN] [ImportProcessor]', ...args),
+
+  error: (...args: unknown[]) =>
     console.error('[ERROR] [ImportProcessor]', ...args),
 };
 
