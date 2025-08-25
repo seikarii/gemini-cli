@@ -19576,18 +19576,134 @@
   });
 
   // src/app/web.tsx
-  var import_react = __toESM(require_react(), 1);
+  var import_react2 = __toESM(require_react(), 1);
   var import_client = __toESM(require_client(), 1);
 
-  // src/app/MewApp.js
+  // src/app/MewApp.tsx
+  var import_react = __toESM(require_react(), 1);
   var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
-  var MewApp = () => (0, import_jsx_runtime.jsx)("div", { style: { border: "1px solid grey", padding: "10px", borderRadius: "5px" }, children: (0, import_jsx_runtime.jsx)("p", { children: "Hello from the Mew Window!" }) });
+  var MewApp = () => {
+    const [agentOutput, setAgentOutput] = (0, import_react.useState)("Waiting for agent output...");
+    const [whisperInput, setWhisperInput] = (0, import_react.useState)("");
+    const [currentFilePath, setCurrentFilePath] = (0, import_react.useState)("");
+    const [fileContent, setFileContent] = (0, import_react.useState)("// Load a file to see its content");
+    (0, import_react.useEffect)(() => {
+      const fetchAgentStatus = async () => {
+        try {
+          const response = await fetch("/api/agent-status");
+          const data = await response.json();
+          setAgentOutput(JSON.stringify(data, null, 2));
+        } catch (error) {
+          setAgentOutput(`Error fetching agent status: ${error}`);
+        }
+      };
+      const interval = setInterval(fetchAgentStatus, 3e3);
+      fetchAgentStatus();
+      return () => clearInterval(interval);
+    }, []);
+    const handleWhisperSubmit = async () => {
+      if (whisperInput.trim() === "") return;
+      try {
+        const response = await fetch("/api/whisper", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ data: whisperInput, kind: "user_input" })
+          // Default kind for now
+        });
+        if (response.ok) {
+          console.log("Whisper sent successfully!");
+          setWhisperInput("");
+        } else {
+          console.error("Failed to send whisper:", await response.text());
+        }
+      } catch (error) {
+        console.error("Error sending whisper:", error);
+      }
+    };
+    const handleLoadFile = async () => {
+      if (currentFilePath.trim() === "") return;
+      try {
+        const response = await fetch(`/api/file-content?path=${encodeURIComponent(currentFilePath)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setFileContent(data.content);
+          console.log(`Loaded file: ${data.filePath}`);
+        } else {
+          console.error("Failed to load file:", await response.text());
+          setFileContent(`Error loading file: ${currentFilePath}`);
+        }
+      } catch (error) {
+        console.error("Error loading file:", error);
+        setFileContent(`Error loading file: ${currentFilePath}`);
+      }
+    };
+    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { border: "1px solid grey", padding: "10px", borderRadius: "5px", display: "flex", flexDirection: "column", height: "100vh", fontFamily: "monospace" }, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { style: { fontSize: "1.5em", marginBottom: "10px" }, children: "Mew Window" }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flexGrow: 1, border: "1px solid lightgrey", padding: "5px", overflowY: "auto", marginBottom: "10px", backgroundColor: "#f0f0f0" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("pre", { style: { whiteSpace: "pre-wrap", wordBreak: "break-word" }, children: agentOutput }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", marginBottom: "10px" }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          "input",
+          {
+            type: "text",
+            value: whisperInput,
+            onChange: (e) => setWhisperInput(e.target.value),
+            onKeyPress: (e) => {
+              if (e.key === "Enter") handleWhisperSubmit();
+            },
+            placeholder: "Whisper to agent...",
+            style: { flexGrow: 1, padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          "button",
+          {
+            onClick: handleWhisperSubmit,
+            style: { marginLeft: "10px", padding: "8px 15px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" },
+            children: "Whisper"
+          }
+        )
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", marginBottom: "10px" }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          "input",
+          {
+            type: "text",
+            value: currentFilePath,
+            onChange: (e) => setCurrentFilePath(e.target.value),
+            onKeyPress: (e) => {
+              if (e.key === "Enter") handleLoadFile();
+            },
+            placeholder: "Enter file path to load...",
+            style: { flexGrow: 1, padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          "button",
+          {
+            onClick: handleLoadFile,
+            style: { marginLeft: "10px", padding: "8px 15px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" },
+            children: "Load File"
+          }
+        )
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+        "textarea",
+        {
+          value: fileContent,
+          readOnly: true,
+          style: { flexGrow: 2, border: "1px solid lightgrey", padding: "5px", overflowY: "auto", backgroundColor: "#e9ecef", minHeight: "150px" }
+        }
+      )
+    ] });
+  };
 
   // src/app/web.tsx
   var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
   var root = import_client.default.createRoot(document.getElementById("root"));
   root.render(
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_react.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(MewApp, {}) })
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_react2.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(MewApp, {}) })
   );
 })();
 /**

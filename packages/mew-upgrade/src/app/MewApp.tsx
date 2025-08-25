@@ -6,7 +6,7 @@
 
 // React import not required directly in this file with new JSX transform
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 export const MewApp = () => {
   const [agentOutput, setAgentOutput] = useState<string>('Waiting for agent output...');
@@ -80,8 +80,8 @@ export const MewApp = () => {
         <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{agentOutput}</pre>
       </div>
 
-      {/* Whisper Input */}
-      <div style={{ display: 'flex', marginBottom: '10px'>
+  {/* Whisper Input */}
+  <div style={{ display: 'flex', marginBottom: '10px' }}>
         <input
           type="text"
           value={whisperInput}

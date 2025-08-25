@@ -6,7 +6,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { MewApp } from './MewApp.js';
+import { MewApp } from './MewApp.tsx';
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(

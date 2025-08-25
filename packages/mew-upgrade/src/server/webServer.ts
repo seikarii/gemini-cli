@@ -39,7 +39,7 @@ export function startWebServer(agent: GeminiAgent) {
 
   // API endpoint to get file content for the mini-editor
   app.get('/api/file-content', async (req, res) => {
-    const filePath = req.query.path as string;
+    const filePath = (req.query as any)['path'] as string;
     if (filePath) {
       try {
         // Agent needs a method to read file content

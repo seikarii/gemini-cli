@@ -59,4 +59,4 @@ gha-creds-*.json
 ideas/
 
 # Ignore Gemini checkpoint folders
-.gemini_checkpoint/
+.gemini_checkpoints/
