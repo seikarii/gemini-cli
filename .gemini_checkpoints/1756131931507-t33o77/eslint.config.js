@@ -27,21 +27,33 @@ export default tseslint.config(
   {
     // Global ignores
     ignores: [
-      "**/*.d.ts",
-      "**/*.js",
-      '.gemini_checkpoints/**',
-      'node_modules/*',
-      '.integration-tests/**',
-      'eslint.config.js',
-      'packages/cli/dist/**',
-      'packages/core/dist/**',
-      'packages/server/dist/**',
-      'packages/test-utils/dist/**',
-      'packages/vscode-ide-companion/dist/**',
-      'bundle/**',
-      'package/bundle/**',
-      '.integration-tests/**',
-    ],  },
+      "bundle/**",
+      "coverage/**",
+      "node_modules/**",
+      "packages/mew-upgrade/**",
+      "test-setup.js",
+      "test-setup.d.ts",
+      "test-setup.js.map",
+      "test-setup.ts",
+      "test.py",
+      "test.py.backup",
+      "gibberish.txt",
+      "crisalida_lib/**",
+      "types/**",
+      "integration-tests/**",
+    ],
+    languageOptions: {
+      globals: globals.node,
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+  },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   reactHooks.configs['recommended-latest'],
@@ -113,9 +125,9 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
-          argsIgnorePattern: '^ _',
-          varsIgnorePattern: '^ _',
-          caughtErrorsIgnorePattern: '^ _',
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
       'import/no-internal-modules': [
@@ -162,7 +174,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['./**/*.{tsx,ts,js}'],
+    files: ['./**/*.{tsx,ts}'],
     plugins: {
       'license-header': licenseHeader,
     },
@@ -187,9 +199,9 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
-          argsIgnorePattern: '^ _',
-          varsIgnorePattern: '^ _',
-          caughtErrorsIgnorePattern: '^ _',
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
     },
@@ -197,7 +209,7 @@ export default tseslint.config(
   // Temporary override for core and cli source: enable Node globals and relax
   // internal-module import checks while we focus on critical runtime issues.
   {
-    files: ['packages/core/src/**/*.{js,ts,tsx}', 'packages/cli/src/**/*.{js,ts,tsx}'],
+    files: ['packages/core/src/**/*.{ts,tsx}', 'packages/cli/src/**/*.{ts,tsx}'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -248,6 +260,19 @@ export default tseslint.config(
       '@typescript-eslint/no-require-imports': 'off',
     },
   },
+  // Prettier config must be last
+  {
+    files: ['packages/mew-upgrade/public/**/*.{ts,tsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.builtin,
+      },
+    },
+    rules: {
+      'no-undef': 'off', // Temporarily disable no-undef for these files
+    },
+  },
   prettierConfig,
   // extra settings for scripts that we run directly with node
   {
@@ -263,9 +288,9 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
-          argsIgnorePattern: '^ _',
-          varsIgnorePattern: '^ _',
-          caughtErrorsIgnorePattern: '^ _',
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
     },

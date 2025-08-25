@@ -27,9 +27,6 @@ export default tseslint.config(
   {
     // Global ignores
     ignores: [
-      "**/*.d.ts",
-      "**/*.js",
-      '.gemini_checkpoints/**',
       'node_modules/*',
       '.integration-tests/**',
       'eslint.config.js',
@@ -41,7 +38,8 @@ export default tseslint.config(
       'bundle/**',
       'package/bundle/**',
       '.integration-tests/**',
-    ],  },
+    ],
+  },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   reactHooks.configs['recommended-latest'],

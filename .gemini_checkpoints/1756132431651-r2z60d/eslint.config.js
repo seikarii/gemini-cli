@@ -28,8 +28,6 @@ export default tseslint.config(
     // Global ignores
     ignores: [
       "**/*.d.ts",
-      "**/*.js",
-      '.gemini_checkpoints/**',
       'node_modules/*',
       '.integration-tests/**',
       'eslint.config.js',
@@ -41,7 +39,19 @@ export default tseslint.config(
       'bundle/**',
       'package/bundle/**',
       '.integration-tests/**',
-    ],  },
+    ],
+    languageOptions: {
+      globals: globals.node,
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+  },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   reactHooks.configs['recommended-latest'],
@@ -113,9 +123,9 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
-          argsIgnorePattern: '^ _',
-          varsIgnorePattern: '^ _',
-          caughtErrorsIgnorePattern: '^ _',
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
       'import/no-internal-modules': [
@@ -140,7 +150,7 @@ export default tseslint.config(
           message: 'Avoid using require(). Use ES6 imports instead.',
         },
         {
-          selector: 'ThrowStatement > Literal:not([value=/^\\w+Error:/])',
+          selector: 'ThrowStatement > Literal:not([value=/^\w+Error:/])',
           message:
             'Do not throw string literals or non-Error objects. Throw new Error("...") instead.',
         },
@@ -162,7 +172,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['./**/*.{tsx,ts,js}'],
+    files: ['./**/*.{tsx,ts}'],
     plugins: {
       'license-header': licenseHeader,
     },
@@ -175,7 +185,7 @@ export default tseslint.config(
   },
   // extra settings for scripts that we run directly with node
   {
-    files: ['./scripts/**/*.js', 'esbuild.config.js'],
+    files: ['esbuild.config.js'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -187,9 +197,9 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
-          argsIgnorePattern: '^ _',
-          varsIgnorePattern: '^ _',
-          caughtErrorsIgnorePattern: '^ _',
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
     },
@@ -197,7 +207,7 @@ export default tseslint.config(
   // Temporary override for core and cli source: enable Node globals and relax
   // internal-module import checks while we focus on critical runtime issues.
   {
-    files: ['packages/core/src/**/*.{js,ts,tsx}', 'packages/cli/src/**/*.{js,ts,tsx}'],
+    files: ['packages/core/src/**/*.{ts,tsx}', 'packages/cli/src/**/*.{ts,tsx}'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -263,9 +273,9 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
-          argsIgnorePattern: '^ _',
-          varsIgnorePattern: '^ _',
-          caughtErrorsIgnorePattern: '^ _',
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
     },

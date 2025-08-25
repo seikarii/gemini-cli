@@ -27,9 +27,6 @@ export default tseslint.config(
   {
     // Global ignores
     ignores: [
-      "**/*.d.ts",
-      "**/*.js",
-      '.gemini_checkpoints/**',
       'node_modules/*',
       '.integration-tests/**',
       'eslint.config.js',
@@ -41,7 +38,8 @@ export default tseslint.config(
       'bundle/**',
       'package/bundle/**',
       '.integration-tests/**',
-    ],  },
+    ],
+  },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   reactHooks.configs['recommended-latest'],
@@ -113,9 +111,9 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
-          argsIgnorePattern: '^ _',
-          varsIgnorePattern: '^ _',
-          caughtErrorsIgnorePattern: '^ _',
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
       'import/no-internal-modules': [
@@ -140,7 +138,7 @@ export default tseslint.config(
           message: 'Avoid using require(). Use ES6 imports instead.',
         },
         {
-          selector: 'ThrowStatement > Literal:not([value=/^\\w+Error:/])',
+          selector: 'ThrowStatement > Literal:not([value=/^\w+Error:/])',
           message:
             'Do not throw string literals or non-Error objects. Throw new Error("...") instead.',
         },
@@ -187,9 +185,9 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
-          argsIgnorePattern: '^ _',
-          varsIgnorePattern: '^ _',
-          caughtErrorsIgnorePattern: '^ _',
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
     },
@@ -263,9 +261,9 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
-          argsIgnorePattern: '^ _',
-          varsIgnorePattern: '^ _',
-          caughtErrorsIgnorePattern: '^ _',
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
     },
