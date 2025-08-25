@@ -203,8 +203,8 @@ const resumeCommand: SlashCommand = {
       i += 1;
       const text =
         item.parts
-          ?.filter((m) => !!m.text)
-          .map((m) => m.text)
+          ?.filter((m: { text?: string }) => !!m.text)
+          .map((m: { text?: string }) => m.text)
           .join('') || '';
       if (!text) {
         continue;

@@ -46,6 +46,7 @@ export interface ReadFileToolParams {
    */
   limit?: number;
 }
+import fetch from 'node-fetch';
 
 class ReadFileToolInvocation extends BaseToolInvocation<
   ReadFileToolParams,
@@ -70,7 +71,22 @@ class ReadFileToolInvocation extends BaseToolInvocation<
     return [{ path: this.params.absolute_path, line: this.params.offset }];
   }
 
+  private async openInMewWindow(filePath: string): Promise<void> {
+    try {
+      // This is a "fire and forget" request to update the Mew Window
+      fetch(`http://localhost:3000/api/file-content?path=${encodeURIComponent(filePath)}`).catch(err => {
+        // Log the error but don't block the main operation
+        console.error('Failed to update Mew Window:', err);
+      });
+    } catch (error) {
+      console.error('Error sending file to Mew Window:', error);
+    }
+  }
+
   async execute(): Promise<ToolResult> {
+    // Fire and forget to update the Mew window
+    this.openInMewWindow(this.params.absolute_path);
+
     const result = await processSingleFileContent(
       this.params.absolute_path,
       this.config.getTargetDir(),

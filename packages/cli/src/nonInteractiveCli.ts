@@ -14,12 +14,18 @@ import {
   parseAndFormatApiError,
 } from '@google/gemini-cli-core';
 import { Content, Part } from '@google/genai';
-import { GeminiAgent } from '@google/gemini-cli-mew-upgrade/agent/gemini-agent.js';
+// Avoid importing GeminiAgent type here to prevent cross-package type coupling.
+// Use a relaxed runtime type for the agent parameter.
 import { ConsolePatcher } from './ui/utils/ConsolePatcher.js';
 import { handleAtCommand } from './ui/hooks/atCommandProcessor.js';
 
+/**
+ * Agent is an opaque runtime instance supplied by mew-upgrade. We keep the
+ * parameter intentionally loose to avoid cross-package type coupling.
+ */
+type AgentLike = unknown;
 export async function runNonInteractive(
-  agent: GeminiAgent,
+  agent: AgentLike,
   config: Config,
   input: string,
   prompt_id: string,
@@ -116,7 +122,12 @@ export async function runNonInteractive(
               const fileContent = toolResponse.responseParts
                 .map((part) => (part as Part).text)
                 .join('');
-              agent.whisper(fileContent, 'semantic'); // Ingest as semantic memory
+              // Runtime-guarded whisper: agent is an opaque runtime instance and may be absent.
+              type AgentRuntime = { whisper?: (data: string, kind?: string) => void };
+              const runtimeAgent = agent as AgentRuntime | undefined;
+              if (runtimeAgent && typeof runtimeAgent.whisper === 'function') {
+                runtimeAgent.whisper(fileContent, 'semantic'); // Ingest as semantic memory
+              }
             }
             toolResponseParts.push(...toolResponse.responseParts);
           }

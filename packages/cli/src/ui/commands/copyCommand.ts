@@ -33,8 +33,8 @@ export const copyCommand: SlashCommand = {
     }
     // Extract text from the parts
     const lastAiOutput = lastAiMessage.parts
-      ?.filter((part) => part.text)
-      .map((part) => part.text)
+      ?.filter((part: { text?: string }) => part.text)
+      .map((part: { text?: string }) => part.text)
       .join('');
 
     if (lastAiOutput) {

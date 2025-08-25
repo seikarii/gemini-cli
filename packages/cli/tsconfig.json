@@ -8,7 +8,8 @@
   },
   "include": [
     "index.ts",
-    "src/**/*.ts",
+  "src/**/*.ts",
+  "src/types/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.json",
     "./package.json"

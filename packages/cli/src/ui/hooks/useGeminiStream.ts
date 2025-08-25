@@ -27,8 +27,12 @@ import {
   DEFAULT_GEMINI_FLASH_MODEL,
   parseAndFormatApiError,
 } from '@google/gemini-cli-core';
-import type { PartListUnion, Part } from '@google/genai';
+// Prefer type-only imports from @google/genai. If the upstream types are
+// not available at build time in this environment, provide minimal local
+// fallbacks to keep the consumer compiling.
+import type { Part, PartListUnion } from '@google/genai';
 import { FinishReason } from '@google/genai';
+// Use fallback types declared in src/types/genai-fallback.d.ts during build
 // Avoid importing GeminiAgent type from mew-upgrade to prevent cross-package type resolution issues.
 // The agent parameter in this hook should be an instance compatible with the expected runtime shape.
 // import type { GeminiAgent } from '@google/gemini-cli-mew-upgrade/agent/gemini-agent.js';
