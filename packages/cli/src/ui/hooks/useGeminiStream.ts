@@ -27,7 +27,9 @@ import {
   DEFAULT_GEMINI_FLASH_MODEL,
   parseAndFormatApiError,
 } from '@google/gemini-cli-core';
-import { type Part, type PartListUnion, FinishReason } from '@google/genai';
+import { Content, Part } from '@google/genai';
+import { GeminiAgent } from '../../../../mew-upgrade/src/agent/gemini-agent.js';
+import type { MemoryNodeKind } from '../../../../mew-upgrade/src/mind/mental-laby.js';
 import {
   StreamingState,
   HistoryItem,
@@ -67,6 +69,7 @@ enum StreamProcessingStatus {
  * API interaction, and tool call lifecycle.
  */
 export const useGeminiStream = (
+  agent: GeminiAgent,
   geminiClient: GeminiClient,
   history: HistoryItem[],
   addItem: UseHistoryManagerReturn['addItem'],
@@ -782,6 +785,16 @@ export const useGeminiStream = (
 
       if (geminiTools.length === 0) {
         return;
+      }
+
+      // Ingest read_file outputs into agent's memory (whisper capability)
+      for (const toolCall of geminiTools) {
+        if (toolCall.request.name === 'read_file' && toolCall.status === 'success') {
+          const fileContent = toolCall.response.responseParts
+            .map((part) => (part as Part).text)
+            .join('');
+          agent.whisper(fileContent, 'semantic'); // Ingest as semantic memory
+        }
       }
 
       // If all the tools were cancelled, don't submit a response to Gemini.

@@ -298,20 +298,20 @@ export declare const mcpServerSchema: z.ZodObject<{
     name: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     name: string;
+    args: string[];
+    command: string;
     env: {
         name: string;
         value: string;
     }[];
-    args: string[];
-    command: string;
 }, {
     name: string;
+    args: string[];
+    command: string;
     env: {
         name: string;
         value: string;
     }[];
-    args: string[];
-    command: string;
 }>;
 export declare const promptCapabilitiesSchema: z.ZodObject<{
     audio: z.ZodOptional<z.ZodBoolean>;
@@ -361,12 +361,12 @@ export declare const authMethodSchema: z.ZodObject<{
     id: z.ZodString;
     name: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    name: string;
     id: string;
+    name: string;
     description: string | null;
 }, {
-    name: string;
     id: string;
+    name: string;
     description: string | null;
 }>;
 export declare const clientResponseSchema: z.ZodUnion<[z.ZodNull, z.ZodObject<{
@@ -457,43 +457,43 @@ export declare const newSessionRequestSchema: z.ZodObject<{
         name: z.ZodString;
     }, "strip", z.ZodTypeAny, {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }, {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }>, "many">;
 }, "strip", z.ZodTypeAny, {
-    cwd: string;
     mcpServers: {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }[];
+    cwd: string;
 }, {
-    cwd: string;
     mcpServers: {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }[];
+    cwd: string;
 }>;
 export declare const loadSessionRequestSchema: z.ZodObject<{
     cwd: z.ZodString;
@@ -513,46 +513,46 @@ export declare const loadSessionRequestSchema: z.ZodObject<{
         name: z.ZodString;
     }, "strip", z.ZodTypeAny, {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }, {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }>, "many">;
     sessionId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    cwd: string;
     sessionId: string;
     mcpServers: {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }[];
+    cwd: string;
 }, {
-    cwd: string;
     sessionId: string;
     mcpServers: {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }[];
+    cwd: string;
 }>;
 export declare const initializeResponseSchema: z.ZodObject<{
     agentCapabilities: z.ZodObject<{
@@ -590,12 +590,12 @@ export declare const initializeResponseSchema: z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        name: string;
         id: string;
+        name: string;
         description: string | null;
     }, {
-        name: string;
         id: string;
+        name: string;
         description: string | null;
     }>, "many">;
     protocolVersion: z.ZodNumber;
@@ -609,8 +609,8 @@ export declare const initializeResponseSchema: z.ZodObject<{
         } | undefined;
     };
     authMethods: {
-        name: string;
         id: string;
+        name: string;
         description: string | null;
     }[];
     protocolVersion: number;
@@ -624,8 +624,8 @@ export declare const initializeResponseSchema: z.ZodObject<{
         } | undefined;
     };
     authMethods: {
-        name: string;
         id: string;
+        name: string;
         description: string | null;
     }[];
     protocolVersion: number;
@@ -754,8 +754,8 @@ export declare const contentBlockSchema: z.ZodUnion<[z.ZodObject<{
     type: z.ZodLiteral<"resource_link">;
     uri: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    name: string;
     type: "resource_link";
+    name: string;
     uri: string;
     size?: number | null | undefined;
     description?: string | null | undefined;
@@ -767,8 +767,8 @@ export declare const contentBlockSchema: z.ZodUnion<[z.ZodObject<{
         lastModified?: string | null | undefined;
     } | null | undefined;
 }, {
-    name: string;
     type: "resource_link";
+    name: string;
     uri: string;
     size?: number | null | undefined;
     description?: string | null | undefined;
@@ -977,8 +977,8 @@ export declare const toolCallContentSchema: z.ZodUnion<[z.ZodObject<{
         type: z.ZodLiteral<"resource_link">;
         uri: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -990,8 +990,8 @@ export declare const toolCallContentSchema: z.ZodUnion<[z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     }, {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -1104,8 +1104,8 @@ export declare const toolCallContentSchema: z.ZodUnion<[z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     } | {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -1162,8 +1162,8 @@ export declare const toolCallContentSchema: z.ZodUnion<[z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     } | {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -1334,8 +1334,8 @@ export declare const toolCallSchema: z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -1347,8 +1347,8 @@ export declare const toolCallSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         }, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -1461,8 +1461,8 @@ export declare const toolCallSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -1519,8 +1519,8 @@ export declare const toolCallSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -1613,8 +1613,8 @@ export declare const toolCallSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -1687,8 +1687,8 @@ export declare const toolCallSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -1876,8 +1876,8 @@ export declare const promptRequestSchema: z.ZodObject<{
         type: z.ZodLiteral<"resource_link">;
         uri: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -1889,8 +1889,8 @@ export declare const promptRequestSchema: z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     }, {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -2004,8 +2004,8 @@ export declare const promptRequestSchema: z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     } | {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -2062,8 +2062,8 @@ export declare const promptRequestSchema: z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     } | {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -2217,8 +2217,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
         type: z.ZodLiteral<"resource_link">;
         uri: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -2230,8 +2230,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     }, {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -2344,8 +2344,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     } | {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -2402,8 +2402,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     } | {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -2557,8 +2557,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
         type: z.ZodLiteral<"resource_link">;
         uri: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -2570,8 +2570,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     }, {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -2684,8 +2684,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     } | {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -2742,8 +2742,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     } | {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -2897,8 +2897,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
         type: z.ZodLiteral<"resource_link">;
         uri: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -2910,8 +2910,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     }, {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -3024,8 +3024,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     } | {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -3082,8 +3082,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     } | {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -3238,8 +3238,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -3251,8 +3251,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         }, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -3365,8 +3365,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -3423,8 +3423,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -3519,8 +3519,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -3594,8 +3594,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -3761,8 +3761,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -3774,8 +3774,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         }, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -3888,8 +3888,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -3946,8 +3946,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -4039,8 +4039,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -4114,8 +4114,8 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -4224,12 +4224,12 @@ export declare const agentResponseSchema: z.ZodUnion<[z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        name: string;
         id: string;
+        name: string;
         description: string | null;
     }, {
-        name: string;
         id: string;
+        name: string;
         description: string | null;
     }>, "many">;
     protocolVersion: z.ZodNumber;
@@ -4243,8 +4243,8 @@ export declare const agentResponseSchema: z.ZodUnion<[z.ZodObject<{
         } | undefined;
     };
     authMethods: {
-        name: string;
         id: string;
+        name: string;
         description: string | null;
     }[];
     protocolVersion: number;
@@ -4258,8 +4258,8 @@ export declare const agentResponseSchema: z.ZodUnion<[z.ZodObject<{
         } | undefined;
     };
     authMethods: {
-        name: string;
         id: string;
+        name: string;
         description: string | null;
     }[];
     protocolVersion: number;
@@ -4417,8 +4417,8 @@ export declare const requestPermissionRequestSchema: z.ZodObject<{
                 type: z.ZodLiteral<"resource_link">;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -4430,8 +4430,8 @@ export declare const requestPermissionRequestSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             }, {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -4544,8 +4544,8 @@ export declare const requestPermissionRequestSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -4602,8 +4602,8 @@ export declare const requestPermissionRequestSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -4696,8 +4696,8 @@ export declare const requestPermissionRequestSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -4770,8 +4770,8 @@ export declare const requestPermissionRequestSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -4852,8 +4852,8 @@ export declare const requestPermissionRequestSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -4934,8 +4934,8 @@ export declare const requestPermissionRequestSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -5145,8 +5145,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -5158,8 +5158,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         }, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -5272,8 +5272,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -5330,8 +5330,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -5485,8 +5485,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -5498,8 +5498,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         }, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -5612,8 +5612,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -5670,8 +5670,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -5825,8 +5825,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -5838,8 +5838,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         }, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -5952,8 +5952,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -6010,8 +6010,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -6166,8 +6166,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 type: z.ZodLiteral<"resource_link">;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -6179,8 +6179,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             }, {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -6293,8 +6293,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -6351,8 +6351,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -6447,8 +6447,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -6522,8 +6522,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -6689,8 +6689,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 type: z.ZodLiteral<"resource_link">;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -6702,8 +6702,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             }, {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -6816,8 +6816,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -6874,8 +6874,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -6967,8 +6967,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -7042,8 +7042,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -7146,8 +7146,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -7204,8 +7204,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -7262,8 +7262,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -7326,8 +7326,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -7398,8 +7398,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -7480,8 +7480,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -7538,8 +7538,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -7596,8 +7596,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -7660,8 +7660,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -7732,8 +7732,8 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -7953,8 +7953,8 @@ export declare const clientRequestSchema: z.ZodUnion<[z.ZodObject<{
                 type: z.ZodLiteral<"resource_link">;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -7966,8 +7966,8 @@ export declare const clientRequestSchema: z.ZodUnion<[z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             }, {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -8080,8 +8080,8 @@ export declare const clientRequestSchema: z.ZodUnion<[z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -8138,8 +8138,8 @@ export declare const clientRequestSchema: z.ZodUnion<[z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -8232,8 +8232,8 @@ export declare const clientRequestSchema: z.ZodUnion<[z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -8306,8 +8306,8 @@ export declare const clientRequestSchema: z.ZodUnion<[z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -8388,8 +8388,8 @@ export declare const clientRequestSchema: z.ZodUnion<[z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -8470,8 +8470,8 @@ export declare const clientRequestSchema: z.ZodUnion<[z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -8577,43 +8577,43 @@ export declare const agentRequestSchema: z.ZodUnion<[z.ZodObject<{
         name: z.ZodString;
     }, "strip", z.ZodTypeAny, {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }, {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }>, "many">;
 }, "strip", z.ZodTypeAny, {
-    cwd: string;
     mcpServers: {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }[];
+    cwd: string;
 }, {
-    cwd: string;
     mcpServers: {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }[];
+    cwd: string;
 }>, z.ZodObject<{
     cwd: z.ZodString;
     mcpServers: z.ZodArray<z.ZodObject<{
@@ -8632,46 +8632,46 @@ export declare const agentRequestSchema: z.ZodUnion<[z.ZodObject<{
         name: z.ZodString;
     }, "strip", z.ZodTypeAny, {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }, {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }>, "many">;
     sessionId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    cwd: string;
     sessionId: string;
     mcpServers: {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }[];
+    cwd: string;
 }, {
-    cwd: string;
     sessionId: string;
     mcpServers: {
         name: string;
+        args: string[];
+        command: string;
         env: {
             name: string;
             value: string;
         }[];
-        args: string[];
-        command: string;
     }[];
+    cwd: string;
 }>, z.ZodObject<{
     prompt: z.ZodArray<z.ZodUnion<[z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
@@ -8797,8 +8797,8 @@ export declare const agentRequestSchema: z.ZodUnion<[z.ZodObject<{
         type: z.ZodLiteral<"resource_link">;
         uri: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -8810,8 +8810,8 @@ export declare const agentRequestSchema: z.ZodUnion<[z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     }, {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -8925,8 +8925,8 @@ export declare const agentRequestSchema: z.ZodUnion<[z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     } | {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -8983,8 +8983,8 @@ export declare const agentRequestSchema: z.ZodUnion<[z.ZodObject<{
             lastModified?: string | null | undefined;
         } | null | undefined;
     } | {
-        name: string;
         type: "resource_link";
+        name: string;
         uri: string;
         size?: number | null | undefined;
         description?: string | null | undefined;
@@ -9140,8 +9140,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -9153,8 +9153,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         }, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -9267,8 +9267,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -9325,8 +9325,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -9480,8 +9480,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -9493,8 +9493,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         }, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -9607,8 +9607,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -9665,8 +9665,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -9820,8 +9820,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -9833,8 +9833,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         }, {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -9947,8 +9947,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -10005,8 +10005,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -10161,8 +10161,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 type: z.ZodLiteral<"resource_link">;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -10174,8 +10174,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             }, {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -10288,8 +10288,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -10346,8 +10346,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -10442,8 +10442,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -10517,8 +10517,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -10684,8 +10684,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 type: z.ZodLiteral<"resource_link">;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -10697,8 +10697,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             }, {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -10811,8 +10811,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -10869,8 +10869,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -10962,8 +10962,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -11037,8 +11037,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -11141,8 +11141,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -11199,8 +11199,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -11257,8 +11257,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -11321,8 +11321,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -11393,8 +11393,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -11475,8 +11475,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -11533,8 +11533,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -11591,8 +11591,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified?: string | null | undefined;
             } | null | undefined;
         } | {
-            name: string;
             type: "resource_link";
+            name: string;
             uri: string;
             size?: number | null | undefined;
             description?: string | null | undefined;
@@ -11655,8 +11655,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;
@@ -11727,8 +11727,8 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified?: string | null | undefined;
                 } | null | undefined;
             } | {
-                name: string;
                 type: "resource_link";
+                name: string;
                 uri: string;
                 size?: number | null | undefined;
                 description?: string | null | undefined;

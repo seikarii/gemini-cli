@@ -10,6 +10,7 @@
 
 import { Film } from './film.js';
 import { Persistable } from '../persistence/persistence-service.js';
+import { HashingEmbedder } from './embeddings.js';
 
 // --- Utility Functions ---
 
@@ -38,14 +39,16 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
 
 // --- Interfaces ---
 
+export type MemoryNodeKind = 'semantic' | 'procedural' | 'episodic';
+
 export interface MemoryNode {
   id: string;
-  kind: 'semantic' | 'procedural' | 'episodic';
+  kind: MemoryNodeKind;
   embedding: number[];
   data: Record<string, any> | Film;
-  salience: number;
   valence: number;
   arousal: number;
+  salience: number;
   lastAccessTimestamp: number;
   usageCount: number;
   edges: Map<string, { weight: number }>; // targetNodeId -> { weight }
@@ -57,11 +60,22 @@ export interface MemoryNode {
 export class MentalLaby implements Persistable {
   private nodes: Map<string, MemoryNode> = new Map();
   private readonly K_NEAREST_NEIGHBORS = 3; // Number of neighbors to link to
+  private embedder: HashingEmbedder;
+
+  constructor() {
+    this.embedder = new HashingEmbedder();
+  }
 
   /**
    * Stores a new piece of information in the memory graph.
    */
-  store(data: any, kind: MemoryNode['kind'] = 'semantic'): string {
+  store(
+    data: any,
+    kind: MemoryNodeKind = 'semantic',
+    valence: number = 0.0,
+    arousal: number = 0.0,
+    salience: number = 0.5, // Importance from SignificanceResult
+  ): string {
     const embedding = this.createEmbedding(data);
     const similarNodes = this.findSimilarNodes(embedding, this.K_NEAREST_NEIGHBORS + 1);
 
@@ -77,9 +91,9 @@ export class MentalLaby implements Persistable {
       kind,
       embedding,
       data,
-      salience: 0.5,
-      valence: 0,
-      arousal: 0.5,
+      valence,
+      arousal,
+      salience,
       lastAccessTimestamp: Date.now(),
       usageCount: 1,
       edges: new Map(),
@@ -162,14 +176,7 @@ export class MentalLaby implements Persistable {
   }
 
   private createEmbedding(data: any): number[] {
-    // Simple hashing-based embedding for MVP. A real implementation would use a model.
-    const str = JSON.stringify(data);
-    const vector = new Array(64).fill(0);
-    for (let i = 0; i < str.length; i++) {
-      const charCode = str.charCodeAt(i);
-      vector[charCode % 64] = (vector[charCode % 64] + 1) / 2;
-    }
-    return vector;
+    return this.embedder.embed(data);
   }
 
   // --- Persistence --- 

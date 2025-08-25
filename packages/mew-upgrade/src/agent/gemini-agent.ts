@@ -9,8 +9,10 @@
  */
 
 import { MenteOmega } from '../mind/mente-omega.js';
+import type { MemoryNodeKind } from '../mind/mental-laby.js';
 import { UnifiedPersistence } from '../persistence/unified-persistence.js';
 import { createContentGenerator, AuthType, ContentGenerator } from '@google/gemini-cli-core';
+import { runNonInteractive } from '../../cli/src/nonInteractiveCli.js';
 // @ts-ignore: build/runtime uses ESM paths; keep TS import for types
 import { Config } from '../../cli/src/config/config';
 
@@ -112,6 +114,21 @@ export class GeminiAgent {
   }
 }
 
+  /**
+   * Allows external information to be directly ingested into the agent's memory.
+   * This is the "whisper" capability.
+   * @param data The data to ingest.
+   * @param kind The kind of memory node (e.g., 'semantic', 'procedural', 'episodic').
+   */
+  whisper(data: any, kind?: MemoryNodeKind): void {
+    if (this.brain) {
+      this.brain.memory.ingest(data, kind);
+      console.log('Agent whispered data into memory.');
+    } else {
+      console.warn('Cannot whisper: Agent brain not initialized.');
+    }
+  }
+
 // --- Main Execution (example / local test) ---
 // Mock Config for testing purposes
 const mockConfig: Config = {
@@ -138,6 +155,9 @@ const mockConfig: Config = {
 if (typeof require !== 'undefined' && require.main === module) {
   const agent = new GeminiAgent(mockConfig);
   void agent.start();
+
+  // Simulate a non-interactive run
+  runNonInteractive(agent, mockConfig, 'What is the capital of France?', 'test-prompt-id');
 
 // Keep the process alive to see async output
 setInterval(() => {}, 1000);

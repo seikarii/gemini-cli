@@ -111,6 +111,7 @@ interface AppProps {
   settings: LoadedSettings;
   startupWarnings?: string[];
   version: string;
+  agent: GeminiAgent; // Added agent prop
 }
 
 export const AppWrapper = (props: AppProps) => {
@@ -123,14 +124,14 @@ export const AppWrapper = (props: AppProps) => {
     >
       <SessionStatsProvider>
         <VimModeProvider settings={props.settings}>
-          <App {...props} />
+          <App {...props} agent={props.agent} />
         </VimModeProvider>
       </SessionStatsProvider>
     </KeypressProvider>
   );
 };
 
-const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
+const App = ({ agent, config, settings, startupWarnings = [], version }: AppProps) => {
   const isFocused = useFocus();
   useBracketedPaste();
   const [updateInfo, setUpdateInfo] = useState<UpdateObject | null>(null);
@@ -559,6 +560,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     thought,
     cancelOngoingRequest,
   } = useGeminiStream(
+    agent,
     config.getGeminiClient(),
     history,
     addItem,

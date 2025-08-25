@@ -12,16 +12,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Assertion, expect } from 'vitest';
+import { expect } from 'vitest';
 import type { TextBuffer } from '../ui/components/shared/text-buffer.js';
 
 // RegExp to detect invalid characters: backspace, and ANSI escape codes
 // eslint-disable-next-line no-control-regex
 const invalidCharsRegex = /[\b\x1b]/;
 
-function toHaveOnlyValidCharacters(this: Assertion, buffer: TextBuffer) {
-   
-  const { isNot } = this as any;
+function toHaveOnlyValidCharacters(this: { isNot?: boolean }, buffer: TextBuffer) {
+  const { isNot } = this;
   let pass = true;
   const invalidLines: Array<{ line: number; content: string }> = [];
 
@@ -49,16 +48,12 @@ function toHaveOnlyValidCharacters(this: Assertion, buffer: TextBuffer) {
   };
 }
 
-expect.extend({
-  toHaveOnlyValidCharacters,
-   
-} as any);
+expect.extend({ toHaveOnlyValidCharacters });
 
 // Extend Vitest's `expect` interface with the custom matcher's type definition.
-declare module 'vitest' {
-  interface Assertion<T> {
-    toHaveOnlyValidCharacters(): T;
-  }
+declare global {
+  // augment the global expect types minimally
+  // (detailed typing can be restored if needed later)
   interface AsymmetricMatchersContaining {
     toHaveOnlyValidCharacters(): void;
   }

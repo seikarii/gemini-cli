@@ -15,10 +15,13 @@ import {
 } from '@google/gemini-cli-core';
 import { Content, Part } from '@google/genai';
 
+import { GeminiAgent } from '../../mew-upgrade/src/agent/gemini-agent.js';
+
 import { ConsolePatcher } from './ui/utils/ConsolePatcher.js';
 import { handleAtCommand } from './ui/hooks/atCommandProcessor.js';
 
 export async function runNonInteractive(
+  agent: GeminiAgent,
   config: Config,
   input: string,
   prompt_id: string,
@@ -111,6 +114,13 @@ export async function runNonInteractive(
           }
 
           if (toolResponse.responseParts) {
+            // Check if the tool was 'read_file' and ingest its content into memory
+            if (requestInfo.name === 'read_file') {
+              const fileContent = toolResponse.responseParts
+                .map((part) => (part as Part).text)
+                .join('');
+              agent.whisper(fileContent, 'semantic'); // Ingest as semantic memory
+            }
             toolResponseParts.push(...toolResponse.responseParts);
           }
         }

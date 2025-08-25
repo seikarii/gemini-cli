@@ -9,7 +9,9 @@
 // Implements MenteOmega, the analytical mind.
 // This class orchestrates the memory and action systems to process requests.
 
-import { MentalLaby } from './mental-laby.js';
+import { MentalLaby, MemoryNode } from './mental-laby.js';
+import { calculateDataSignificance, shouldStoreInMemory, enhanceMemoryNodeData } from './Importance.js';
+import { EntityMemory } from './entity-memory.js';
 import { ActionSystem, PlanDeAccion } from '../core/action-system.js';
 import type { ContentGenerator } from '@google/gemini-cli-core';
 import type { Content } from '@google/genai';
@@ -19,13 +21,18 @@ import type { Persistable } from '../persistence/persistence-service.js';
  * MenteOmega is the analytical, experience-driven counterpart to the creative LLM (MenteAlfa).
  * It uses memory to ground and refine plans.
  */
+import { HashingEmbedder } from './embeddings.js';
+
 export class MenteOmega implements Persistable {
-  memory: MentalLaby;
+  memory: EntityMemory; // Changed to EntityMemory
   private actions: ActionSystem;
   private menteAlfa: any; // The connection to Gemini (MenteAlfa) - use any to match different runtime client shapes
+  private hashingEmbedder: HashingEmbedder; // Added HashingEmbedder
 
   constructor(menteAlfa: ContentGenerator) {
-    this.memory = new MentalLaby();
+    const mentalLaby = new MentalLaby(); // Create MentalLaby instance
+    this.hashingEmbedder = new HashingEmbedder(); // Initialize HashingEmbedder
+    this.memory = new EntityMemory("mente_omega_entity", mentalLaby); // Initialize EntityMemory
     this.actions = new ActionSystem();
     this.menteAlfa = menteAlfa;
   }
@@ -59,8 +66,34 @@ export class MenteOmega implements Persistable {
     // 4. Submit the plan to the ActionSystem for execution.
     this.actions.submitPlan(plan);
 
-    // 5. Store the result of this interaction as a new memory.
-    this.memory.store({ request: userRequest, planId: plan.id, timestamp: Date.now() });
+    
+    // 5. Store the result of this interaction as a new memory, with significance.
+    const incomingData = { request: userRequest, planId: plan.id, timestamp: Date.now() };
+
+    // For MVP, hardcode mission and history summary
+    const currentMission = "Improve the project";
+    const agentHistorySummary = "Agent is processing user requests and generating plans.";
+
+    // Get project state embeddings from recent memories
+    const projectEmbeddings = this.memory.recall("project state", 10)
+      .map((node: MemoryNode) => node.embedding);
+
+    const significance = calculateDataSignificance(
+      incomingData,
+      projectEmbeddings,
+      currentMission,
+      agentHistorySummary,
+      this.hashingEmbedder,
+      { dataType: 'user_input', timestamp: Date.now() } // Example context
+    );
+
+    if (shouldStoreInMemory(significance)) {
+      const enhancedData = enhanceMemoryNodeData(incomingData, significance);
+      this.memory.ingest(enhancedData, significance.valence, significance.arousal, 'semantic', significance.importance);
+      console.log(`MenteOmega: Ingested new memory node with importance: ${significance.importance.toFixed(2)}`);
+    } else {
+      console.log(`MenteOmega: Data not important enough to store (importance: ${significance.importance.toFixed(2)})`);
+    }
   }
 
   private async getPlanFromMenteAlfa(context: Content[], signal?: AbortSignal): Promise<PlanDeAccion> {
