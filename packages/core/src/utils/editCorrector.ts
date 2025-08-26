@@ -20,6 +20,10 @@ import {
 import * as fs from 'fs';
 import { parseSourceToSourceFile } from '../ast/parser.js';
 import { findNodes } from '../ast/finder.js';
+import { normalizeWhitespace, countOccurrences } from './stringUtils.js';
+
+// Re-export certain utils for backwards compatibility with existing imports/tests
+export { countOccurrences };
 
 const EditModel = DEFAULT_GEMINI_FLASH_LITE_MODEL;
 const EditConfig: GenerateContentConfig = {
@@ -733,17 +737,7 @@ function createResult(
 
 // Utility functions
 
-/**
- * Normalize whitespace for fuzzy matching
- */
-function normalizeWhitespace(text: string): string {
-  return text
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .replace(/\t/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
+// normalizeWhitespace is provided by ./stringUtils.ts
 
 /**
  * Calculate string similarity using Levenshtein distance
@@ -828,17 +822,7 @@ export function unescapeStringForGeminiBug(inputString: string): string {
 /**
  * Counts non-overlapping occurrences of substr in str.
  */
-export function countOccurrences(str: string, substr: string): number {
-  if (!substr) return 0;
-  let count = 0;
-  let pos = str.indexOf(substr);
-  while (pos !== -1) {
-    count++;
-    pos = str.indexOf(substr, pos + substr.length);
-  }
-  return count;
-}
-
+// countOccurrences and normalizeWhitespace are provided by ./stringUtils.ts
 export function resetEditCorrectorCaches() {
   try {
     editCorrectionCache.clear();

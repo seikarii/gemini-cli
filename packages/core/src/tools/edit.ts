@@ -6,7 +6,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as Diff from 'diff';
+// diff module replaced by centralized diffUtils.createPatch where needed
 // Correct import for string-similarity (default import)
 import stringSimilarity from 'string-similarity';
 // Add diff-match-patch for better matching
@@ -31,7 +31,9 @@ import {
   ensureCorrectEdit,
   CorrectedEditResult,
 } from '../utils/editCorrector.js';
-import { DEFAULT_DIFF_OPTIONS, getDiffStat } from './diffOptions.js';
+import { normalizeWhitespace } from '../utils/stringUtils.js';
+import { getDiffStat } from './diffOptions.js';
+import { createPatch } from '../utils/diffUtils.js';
 import { ReadFileTool } from './read-file.js';
 import { ModifiableDeclarativeTool, ModifyContext } from './modifiable-tool.js';
 import { IDEConnectionStatus } from '../ide/ide-client.js';
@@ -270,17 +272,7 @@ const DEFAULT_AUTOFIX_CONFIG: AutofixConfig = {
   adjustIndentation: true,
 };
 
-/**
- * Normalizes whitespace in a string while preserving relative indentation
- */
-function normalizeWhitespace(text: string): string {
-  return text
-    .replace(/\r\n/g, '\n') // Normalize line endings
-    .replace(/\t/g, '  ') // Convert tabs to spaces
-    .replace(/[ ]+$/gm, '') // Remove trailing spaces
-    .replace(/^\s*\n/gm, '\n') // Remove empty lines with only whitespace
-    .trim();
-}
+// normalizeWhitespace is provided by ../utils/stringUtils.ts
 
 /**
  * Detects the indentation pattern of a text block with improved base detection
@@ -1099,15 +1091,8 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
       return false;
     }
 
-    const fileName = path.basename(this.params.file_path);
-    const fileDiff = Diff.createPatch(
-      fileName,
-      editData.currentContent ?? '',
-      editData.newContent,
-      'Current',
-      'Proposed',
-      DEFAULT_DIFF_OPTIONS,
-    );
+  const fileName = path.basename(this.params.file_path);
+  const fileDiff = createPatch(fileName, editData.currentContent ?? '', editData.newContent, 'Current', 'Proposed');
     const ideClient = this.config.getIdeClient();
     const ideConfirmation =
       this.config.getIdeMode() &&
@@ -1300,15 +1285,8 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
         displayResult = `Created ${shortenPath(makeRelative(this.params.file_path, this.config.getTargetDir()))}`;
       } else {
         // Generate diff for display, even though core logic doesn't technically need it
-        // The CLI wrapper will use this part of the ToolResult
-        const fileDiff = Diff.createPatch(
-          fileName,
-          editData.currentContent ?? '', // Should not be null here if not isNewFile
-          editData.newContent,
-          'Current',
-          'Proposed',
-          DEFAULT_DIFF_OPTIONS,
-        );
+    // The CLI wrapper will use this part of the ToolResult
+    const fileDiff = createPatch(fileName, editData.currentContent ?? '', editData.newContent, 'Current', 'Proposed');
         displayResult = {
           fileDiff,
           fileName,
@@ -1476,15 +1454,6 @@ Always use the ${ReadFileTool.Name} tool to examine the file's current content b
             type: 'number',
             description: 'End line for range-based editing (0-indexed).',
             minimum: 0,
-          },
-          end_column: {
-            type: 'number',
-            description: 'End column for range-based editing (0-indexed).',
-            minimum: 0,
-          },
-          new_content: {
-            type: 'string',
-            description: 'New content to insert for range-based editing.',
           },
         },
         required: ['file_path'],

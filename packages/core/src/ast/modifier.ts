@@ -5,17 +5,7 @@
  */
 
 import crypto from 'crypto';
-import {
-  Project,
-  SourceFile,
-  Node,
-  ClassDeclaration,
-  RenameableNode,
-  FunctionDeclaration,
-  MethodDeclaration,
-  ArrowFunction,
-  FunctionExpression,
-} from 'ts-morph';
+import { Project, SourceFile, Node, ClassDeclaration, SyntaxKind } from 'ts-morph';
 import { findNodes } from './finder.js';
 import { ModificationSpec, ModificationOperation } from './models.js';
 
@@ -294,10 +284,8 @@ export class ASTModifier {
     const block = parent.getFirstChildByKind(SyntaxKind.Block) ?? parent;
     if (Node.isSourceFile(block) || Node.isBlock(block)) {
       // find index of node among block statements
-      const statements = block.getStatements();
-      const idx = statements.findIndex(
-  (s: Node) => s.getStart() === node.getStart(),
-      );
+      const statements = (block as any).getStatements ? (block as any).getStatements() : [];
+      const idx = statements.findIndex((s: Node) => s.getStart() === node.getStart());
       if (idx >= 0) {
         if (before) (block as any).insertStatements(idx, code);
         else (block as any).insertStatements(idx + 1, code);
@@ -360,9 +348,13 @@ export class ASTModifier {
           }
         } else {
           // sometimes ts-morph nodes (parameters, variable names) expose getName
-          if (Node.isRenameableNode(n) && typeof n.getName === 'function' && n.getName() === oldName) {
+          if (Node.isRenameable(n) && typeof (n as any).getName === 'function' && (n as any).getName() === oldName) {
             // rename is optional on some nodes
-            n.rename(newName);
+            try {
+              (n as any).rename(newName);
+            } catch {
+              // ignore rename failures
+            }
           }
         }
       } catch {
@@ -379,11 +371,10 @@ export class ASTModifier {
       Node.isFunctionExpression(node)
     ) {
       try {
-        // attempt to set parameters by replacing the signature portion
-        const bodyText =
-          node.getFirstChildByKind(SyntaxKind.Block)?.getText() ?? '{}';
-        const name = (node as FunctionDeclaration | MethodDeclaration | ArrowFunction | FunctionExpression).getName();
-        const replaceText = `${name}(${newSignature}) ${bodyText}`;
+  // attempt to set parameters by replacing the signature portion
+              const bodyText = (node.getFirstChildByKind(SyntaxKind.Block) as any)?.getText?.() ?? '{}';
+              const name = ((node as any).getName && (node as any).getName()) ?? '<anonymous>';
+  const replaceText = `${name}(${newSignature}) ${bodyText}`;
         // replace whole node with new signature + body (safer than trying to mutate params)
         node.replaceWithText(replaceText);
       } catch {
@@ -403,9 +394,9 @@ export class ASTModifier {
     atEnd = true,
   ) {
     // If node is a function or method, insert into its body
-    const block = node.getFirstChildByKind(SyntaxKind.Block);
+    const block = node.getFirstChildByKind(SyntaxKind.Block) as any;
     if (block) {
-      const stmts = block.getStatements();
+      const stmts = block.getStatements ? block.getStatements() : [];
       if (atEnd) block.insertStatements(stmts.length, stmtCode);
       else block.insertStatements(0, stmtCode);
       return;

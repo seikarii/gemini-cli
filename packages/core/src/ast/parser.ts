@@ -23,7 +23,7 @@ export interface Intentions {
  */
 import fs from 'fs/promises';
 import path from 'path';
-import { Project, SourceFile, SyntaxKind, JSDocableNode, JSDoc, ImportSpecifier, ParameterDeclaration, MethodDeclaration, StringLiteral } from 'ts-morph';
+import { Project, SourceFile, SyntaxKind, JSDoc, ImportSpecifier, ParameterDeclaration, MethodDeclaration, StringLiteral } from 'ts-morph';
 
 const MAX_FILE_SIZE_MB = 50; // maximum file size to process
 
@@ -484,7 +484,7 @@ export class ASTReader {
 
    
   const intents: Intentions = r.intentions as Intentions || {};
-      if (intents && !intents.extraction_error) {
+  if (intents && !(intents as any)['extraction_error']) {
         const fnCount = Array.isArray(intents.functions)
           ? intents.functions.length
           : 0;

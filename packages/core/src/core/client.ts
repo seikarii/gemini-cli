@@ -20,7 +20,6 @@ import {
   Turn,
   ServerGeminiStreamEvent,
   GeminiEventType,
-  ChatCompressionInfo,
 } from './turn.js';
 import { Config } from '../config/config.js';
 import { UserTierId } from '../code_assist/types.js';
@@ -44,13 +43,13 @@ import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
 import { LoopDetectionService } from '../services/loopDetectionService.js';
 import { ideContext } from '../ide/ideContext.js';
 import {
-  logChatCompression,
   logNextSpeakerCheck,
+  logChatCompression,
 } from '../telemetry/loggers.js';
 import {
-  makeChatCompressionEvent,
   MalformedJsonResponseEvent,
   NextSpeakerCheckEvent,
+  makeChatCompressionEvent,
 } from '../telemetry/types.js';
 import { ClearcutLogger } from '../telemetry/clearcut-logger/clearcut-logger.js';
 import { IdeContext, File } from '../ide/ideContext.js';
@@ -65,24 +64,14 @@ function isThinkingSupported(model: string) {
  *
  * Exported for testing purposes.
  */
-export function findIndexAfterFraction(
-  history: Content[],
-  fraction: number,
-): number {
+
+export function findIndexAfterFraction(history: Content[], fraction: number): number {
   if (fraction <= 0 || fraction >= 1) {
     throw new Error('Fraction must be between 0 and 1');
   }
-
-  const contentLengths = history.map(
-    (content) => JSON.stringify(content).length,
-  );
-
-  const totalCharacters = contentLengths.reduce(
-    (sum, length) => sum + length,
-    0,
-  );
+  const contentLengths = history.map((content) => JSON.stringify(content).length);
+  const totalCharacters = contentLengths.reduce((sum, length) => sum + length, 0);
   const targetCharacters = totalCharacters * fraction;
-
   let charactersSoFar = 0;
   for (let i = 0; i < contentLengths.length; i++) {
     charactersSoFar += contentLengths[i];
@@ -99,13 +88,7 @@ const MAX_TURNS = 100;
  * Threshold for compression token count as a fraction of the model's token limit.
  * If the chat history exceeds this threshold, it will be compressed.
  */
-const COMPRESSION_TOKEN_THRESHOLD = 0.7;
 
-/**
- * The fraction of the latest chat history to keep. A value of 0.3
- * means that only the last 30% of the chat history will be kept after compression.
- */
-const COMPRESSION_PRESERVE_THRESHOLD = 0.3;
 
 export class GeminiClient {
   private chat?: GeminiChat;
@@ -139,6 +122,58 @@ export class GeminiClient {
       this.config.getSessionId(),
     );
     this.chat = await this.startChat();
+  }
+
+  async tryCompressChat(prompt_id: string, force = false): Promise<{ originalTokenCount: number; newTokenCount: number } | null> {
+    const curatedHistory = this.getChat().getHistory(true);
+    if (curatedHistory.length === 0) return null;
+
+    const model = this.config.getModel();
+    const { totalTokens: originalTokenCount } = await this.getContentGenerator().countTokens({ model, contents: curatedHistory });
+    if (originalTokenCount === undefined) return null;
+
+    const contextPercentageThreshold = this.config.getChatCompression()?.contextPercentageThreshold;
+    if (!force) {
+      const threshold = contextPercentageThreshold ?? 0.7;
+      if (originalTokenCount < threshold * tokenLimit(model)) return null;
+    }
+
+    const COMPRESSION_PRESERVE_THRESHOLD = 0.3;
+    let compressBeforeIndex = findIndexAfterFraction(curatedHistory, 1 - COMPRESSION_PRESERVE_THRESHOLD);
+    while (
+      compressBeforeIndex < curatedHistory.length &&
+      (curatedHistory[compressBeforeIndex]?.role === 'model' || isFunctionResponse(curatedHistory[compressBeforeIndex]))
+    ) {
+      compressBeforeIndex++;
+    }
+
+    const historyToCompress = curatedHistory.slice(0, compressBeforeIndex);
+    const historyToKeep = curatedHistory.slice(compressBeforeIndex);
+
+    this.getChat().setHistory(historyToCompress);
+
+    const { text: summary } = await this.getChat().sendMessage(
+      {
+        message: { text: 'First, reason in your scratchpad. Then, generate the <state_snapshot>.' },
+        config: { systemInstruction: { text: getCompressionPrompt() } },
+      },
+      prompt_id,
+    );
+
+    this.chat = await this.startChat([
+      { role: 'user', parts: [{ text: summary }] },
+      { role: 'model', parts: [{ text: 'Got it. Thanks for the additional context!' }] },
+      ...historyToKeep,
+    ]);
+
+    this.forceFullIdeContext = true;
+
+    const { totalTokens: newTokenCount } = await this.getContentGenerator().countTokens({ model: this.config.getModel(), contents: this.getChat().getHistory() });
+    if (newTokenCount === undefined) return null;
+
+    logChatCompression(this.config, makeChatCompressionEvent({ tokens_before: originalTokenCount, tokens_after: newTokenCount }));
+
+    return { originalTokenCount, newTokenCount };
   }
 
   getContentGenerator(): ContentGenerator {
@@ -469,18 +504,32 @@ export class GeminiClient {
     // Track the original model from the first call to detect model switching
     const initialModel = originalModel || this.config.getModel();
 
-    const compressed = await this.tryCompressChat(prompt_id);
+    // --- START MODIFICATION FOR 8-9 TURN LIMIT ---
+    const MAX_CONTEXT_TURNS = 9; // User-defined limit for conversational turns
 
-    if (compressed) {
-      yield { type: GeminiEventType.ChatCompressed, value: compressed };
+    let currentHistory = this.getChat().getHistory(true); // Get curated history
+
+    if (currentHistory.length > MAX_CONTEXT_TURNS) {
+      // Slice the history to keep only the last MAX_CONTEXT_TURNS
+      currentHistory = currentHistory.slice(-MAX_CONTEXT_TURNS);
+      // Update the chat's history with the limited version
+      this.getChat().setHistory(currentHistory);
     }
+    // --- END MODIFICATION FOR 8-9 TURN LIMIT ---
+
+    // The tryCompressChat is no longer needed as we are enforcing a hard turn limit.
+    // const compressed = await this.tryCompressChat(prompt_id);
+    // if (compressed) {
+    //   yield { type: GeminiEventType.ChatCompressed, value: compressed };
+    // }
 
     // Prevent context updates from being sent while a tool call is
     // waiting for a response. The Gemini API requires that a functionResponse
     // part from the user immediately follows a functionCall part from the model
     // in the conversation history . The IDE context is not discarded; it will
     // be included in the next regular message sent to the model.
-    const history = this.getHistory();
+    const history = this.getHistory(); // This will now reflect the limited history if it was sliced
+
     const lastMessage =
       history.length > 0 ? history[history.length - 1] : undefined;
     const hasPendingToolCall =
@@ -503,6 +552,7 @@ export class GeminiClient {
     }
 
     const turn = new Turn(this.getChat(), prompt_id);
+
 
     const loopDetected = await this.loopDetector.turnStarted(signal);
     if (loopDetected) {
@@ -761,107 +811,7 @@ export class GeminiClient {
     });
   }
 
-  async tryCompressChat(
-    prompt_id: string,
-    force: boolean = false,
-  ): Promise<ChatCompressionInfo | null> {
-    const curatedHistory = this.getChat().getHistory(true);
 
-    // Regardless of `force`, don't do anything if the history is empty.
-    if (curatedHistory.length === 0) {
-      return null;
-    }
-
-    const model = this.config.getModel();
-
-    const { totalTokens: originalTokenCount } =
-      await this.getContentGenerator().countTokens({
-        model,
-        contents: curatedHistory,
-      });
-    if (originalTokenCount === undefined) {
-      console.warn(`Could not determine token count for model ${model}.`);
-      return null;
-    }
-
-    const contextPercentageThreshold =
-      this.config.getChatCompression()?.contextPercentageThreshold;
-
-    // Don't compress if not forced and we are under the limit.
-    if (!force) {
-      const threshold =
-        contextPercentageThreshold ?? COMPRESSION_TOKEN_THRESHOLD;
-      if (originalTokenCount < threshold * tokenLimit(model)) {
-        return null;
-      }
-    }
-
-    let compressBeforeIndex = findIndexAfterFraction(
-      curatedHistory,
-      1 - COMPRESSION_PRESERVE_THRESHOLD,
-    );
-    // Find the first user message after the index. This is the start of the next turn.
-    while (
-      compressBeforeIndex < curatedHistory.length &&
-      (curatedHistory[compressBeforeIndex]?.role === 'model' ||
-        isFunctionResponse(curatedHistory[compressBeforeIndex]))
-    ) {
-      compressBeforeIndex++;
-    }
-
-    const historyToCompress = curatedHistory.slice(0, compressBeforeIndex);
-    const historyToKeep = curatedHistory.slice(compressBeforeIndex);
-
-    this.getChat().setHistory(historyToCompress);
-
-    const { text: summary } = await this.getChat().sendMessage(
-      {
-        message: {
-          text: 'First, reason in your scratchpad. Then, generate the <state_snapshot>.',
-        },
-        config: {
-          systemInstruction: { text: getCompressionPrompt() },
-        },
-      },
-      prompt_id,
-    );
-    this.chat = await this.startChat([
-      {
-        role: 'user',
-        parts: [{ text: summary }],
-      },
-      {
-        role: 'model',
-        parts: [{ text: 'Got it. Thanks for the additional context!' }],
-      },
-      ...historyToKeep,
-    ]);
-    this.forceFullIdeContext = true;
-
-    const { totalTokens: newTokenCount } =
-      await this.getContentGenerator().countTokens({
-        // model might change after calling `sendMessage`, so we get the newest value from config
-        model: this.config.getModel(),
-        contents: this.getChat().getHistory(),
-      });
-    if (newTokenCount === undefined) {
-      console.warn('Could not determine compressed history token count.');
-      return null;
-    }
-
-    logChatCompression(
-      this.config,
-      makeChatCompressionEvent({
-        tokens_before: originalTokenCount,
-        tokens_after: newTokenCount,
-      }),
-    );
-
-    return {
-      originalTokenCount,
-      newTokenCount,
-    };
-  }
 
   /**
    * Handles falling back to Flash model when persistent 429 errors occur for OAuth users.
@@ -911,7 +861,4 @@ export class GeminiClient {
   }
 }
 
-export const TEST_ONLY = {
-  COMPRESSION_PRESERVE_THRESHOLD,
-  COMPRESSION_TOKEN_THRESHOLD,
-};
+

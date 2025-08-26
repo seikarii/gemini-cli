@@ -13,7 +13,7 @@ import { PersistenceService, Persistable } from './persistence-service.js';
 
 // A placeholder for the main agent class.
 // It will need to expose its persistable components.
-interface Agent {
+export interface Agent {
   getPersistableComponents(): Record<string, Persistable>;
 }
 

@@ -598,8 +598,7 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
         for (const hook of this._hooks) {
           try {
             hook(context);
-          }
-          catch (e) {
+          } catch (e) {
             console.error("hook failed during inhibition", e);
           }
         }
@@ -674,8 +673,7 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
     for (const hook of this._hooks) {
       try {
         hook(trace_snapshot);
-      }
-      catch (e) {
+      } catch (e) {
         console.error("hook raised", e);
       }
     }
@@ -691,12 +689,7 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
     // try flush in background
     // TODO: Implement async task creation
     // asyncio.create_task(this._maybe_flush_eva_async());
-
-    return trace_snapshot;
-  }
-
-  _select_film(context: Record<string, any>): string | null { /* ... */ }
-
+  _select_film(context: Record<string, any>): string | null
   async _advance_film(film_id: string, ctx: Record<string, any>): Promise<Record<string, any>> {
     // TODO: Implement lock handling
     const f = this.films[film_id];
@@ -759,31 +752,939 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
     if (next_nodes.length > 0) {
       this.current = [film_id, next_nodes[0]];
     } else {
-      this.learn_from_outcome(
-        film_id,
-        _safe_float(ctx.progress, 0.0) + _safe_float(ctx.opportunity, 0.0),
-        node.cost_energy,
-      );
+      // TODO: Implement learn_from_outcome
+      // this.learn_from_outcome(
+      //   film_id,
+      //   _safe_float(ctx.progress, 0.0) + _safe_float(ctx.opportunity, 0.0),
+      //   node.cost_energy,
+      // );
       this.current = [film_id, f.entry || ""]; // Fallback to empty string if entry is undefined
     }
     node.ts_last = Date.now() / 1000;
     node.last_outcome = _safe_float(ctx.progress, 0.0);
+  _check_alarms(film_id: string | null, ctx: Record<string, any>): void {
+    if (!film_id) {
+      return;
+    }
+    const f = this.films[film_id];
+    if (!f || !f.alarms)
+  _buffer_eva(item: Record<string, any>):
+  async _maybe_flush_eva_async(): Promise<void> {
+    const now = Date.now() / 1000;
+    // TODO: Implement lock handling
+    if ((now - this._last_eva_flush_ts) < this._eva_flush_interval) {
+      return;
+    }
+    const buf = [...this._eva_buffer];
+    this._eva_buffer = [];
+    this._last_eva_flush_ts = now;
+  learn_from_outcome(
+    film_id: string,
+    reward: number,
+    cost: number = 0.0,
+  ): void {
+    if (!(film_id in this.films)) {
+      return;
+    }
 
-    return {
-      "action": node.action,
-      "cost": node.cost_energy,
-      "node_id": node_id,
-      "action_result": action_result,
+    const film = this.films[film_id];
+
+    // Calculate impact score (high reward or extreme negative reward = high impact)
+    const impact_score = Math.abs(reward);
+
+    // ONE-SHOT LEARNING: For high-impact experiences
+    if (impact_score > 0.8) { // High impact threshold
+      // Create instant high-fitness learning
+      const fitness_boost = impact_score * 2.0 if (reward > 0) else -impact_score * 1.5;
+      film.fitness = (film.fitness || 0.0) + fitness_boost;
+
+      // Create new Film based on this high-impact experience if positive
+      if (reward > 0.8) {
+        // TODO: Implement _create_one_shot_film
+        // this._create_one_shot_film(film_id, reward, impact_score);
+      }
+
+      console.info(
+        `One-shot learning applied to film ${film_id} ` +
+        `(impact: ${impact_score.toFixed(3)}, fitness boost: ${fitness_boost.toFixed(3)})`,
+      );
+    } else {
+      // Standard gradual learning
+      const learning_rate = 0.1;
+      const fitness_delta = learning_rate * (reward - cost);
+      film.fitness = (film.fitness || 0.0) + fitness_delta;
+    }
+
+    // Update film usage and timing
+    film.usage = (film.usage || 0) + 1;
+    film.last_run_ts = Date.now() / 1000;
+  _create_film_from_chaotic_solution(solution: Record<string, any>, context: Record<string, any>):
+  _create_one_shot_film(
+    source_film_id: string,
+    reward: number,
+    impact_score: number,
+  ): string
+  forget_unused_films(
+    usage_threshold: number = 3,
+    fitness_threshold: number = -0.5,
+    age_threshold_days: number = 7.0,
+  ): string[]
+  generate_complex_film(
+    base_actions: string[],
+    context: Record<string, any>,
+  ): string
+  get_learning_statistics(): Record<string, any> {
+    if (Object.keys(this.films).length === 0) {
+      return {
+        total_films: 0,
+        average_fitness: 0.0,
+        one_shot_films: 0,
+        complex_films: 0,
+        fitness_distribution: {},
+      };
+    }
+
+    const allFilms = Object.values(this.films);
+    const total_films = allFilms.length;
+    const total_fitness = allFilms.reduce((sum, f) => sum + (f.fitness || 0.0), 0);
+    const average_fitness = total_fitness / total_films;
+
+    const one_shot_films = allFilms.filter(f => f.tags && f.tags.includes("one_shot")).length;
+    const complex_films = allFilms.filter(f => f.tags && f.tags.includes("complex")).length;
+
+    const fitness_distribution = {
+      excellent: 0,
+      good: 0,
+      average: 0,
+      poor: 0,
+      terrible: 0,
     };
-  }
+    for (const film of allFilms) {
+      if ((film.fitness || 0.0) > 0.8) {
+        fitness_distribution.excellent += 1;
+      } else if ((film.fitness || 0.0) > 0.4) {
+        fitness_distribution.good += 1;
+      } else if ((film.fitness || 0.0) > 0.0) {
+        fitness_distribution.average += 1;
+      } else if ((film.fitness || 0.0) > -0.5) {
+        fitness_distribution.poor += 1;
+      } else {
+        fitness_distribution.terrible += 1;
+      }
+    }
+  get_trace(last_n: number = 20): Record<string, any>[]
+  get_film_stats(): Record<string, any> {
+    // TODO: Implement lock handling
+    const film_usage: Record<string, number> = {};
+    const epic_scores: Record<string, number> = {};
+    const fitness: Record<string, number> = {};
+    const tags: Record<string, string[]> = {};
 
+    for (const film_id in this.films) {
+      const film = this.films[film_id];
+      film_usage[film_id] = film.usage || 0;
+      epic_scores[film_id] = film.epic_score || 0.0;
+      fitness[film_id] = film.fitness || 0.0;
+      tags[film_id] = film.tags || [];
+    }
+  get_current_state():
+  _buffer_eva(item: Record<string, any>):
+  async _maybe_flush_eva_async(): Promise<void> {
+    const now = Date.now() / 1000;
+    // TODO: Implement lock handling
+    if ((now - this._last_eva_flush_ts) < this._eva_flush_interval) {
+      return;
+    }
+    const buf = [...this._eva_buffer];
+    this._eva_buffer = [];
+    this._last_eva_flush_ts = now;
+  learn_from_outcome(
+    film_id: string,
+    reward: number,
+    cost: number = 0.0,
+  ): void {
+    if (!(film_id in this.films)) {
+      return;
+    }
+
+    const film = this.films[film_id];
+
+    // Calculate impact score (high reward or extreme negative reward = high impact)
+    const impact_score = Math.abs(reward);
+
+    // ONE-SHOT LEARNING: For high-impact experiences
+    if (impact_score > 0.8) { // High impact threshold
+      // Create instant high-fitness learning
+      const fitness_boost = (reward > 0) ? impact_score * 2.0 : -impact_score * 1.5;
+      film.fitness = (film.fitness || 0.0) + fitness_boost;
+
+      // Create new Film based on this high-impact experience if positive
+      if (reward > 0.8) {
+        this._create_one_shot_film(film_id, reward, impact_score);
+      }
+
+      console.info(
+        `One-shot learning applied to film ${film_id} ` +
+        `(impact: ${impact_score.toFixed(3)}, fitness boost: ${fitness_boost.toFixed(3)})`,
+      );
+    } else {
+      // Standard gradual learning
+      const learning_rate = 0.1;
+      const fitness_delta = learning_rate * (reward - cost);
+      film.fitness = (film.fitness || 0.0) + fitness_delta;
+    }
+
+    // Update film usage and timing
+    film.usage = (film.usage || 0) + 1;
+    film.last_run_ts = Date.now() / 1000;
+  _create_film_from_chaotic_solution(solution: Record<string, any>, context: Record<string, any>):
+  _create_one_shot_film(
+    source_film_id: string,
+    reward: number,
+    impact_score: number,
+  ): string
+  forget_unused_films(
+    usage_threshold: number = 3,
+    fitness_threshold: number = -0.5,
+    age_threshold_days: number = 7.0,
+  ): string[]
+  generate_complex_film(
+    base_actions: string[],
+    context: Record<string, any>,
+  ): string
+  get_learning_statistics(): Record<string, any> {
+    if (Object.keys(this.films).length === 0) {
+      return {
+        total_films: 0,
+        average_fitness: 0.0,
+        one_shot_films: 0,
+        complex_films: 0,
+        fitness_distribution: {},
+      };
+    }
+
+    const allFilms = Object.values(this.films);
+    const total_films = allFilms.length;
+    const total_fitness = allFilms.reduce((sum, f) => sum + (f.fitness || 0.0), 0);
+    const average_fitness = total_fitness / total_films;
+
+    const one_shot_films = allFilms.filter(f => f.tags && f.tags.includes("one_shot")).length;
+    const complex_films = allFilms.filter(f => f.tags && f.tags.includes("complex")).length;
+
+    const fitness_distribution = {
+      excellent: 0,
+      good: 0,
+      average: 0,
+      poor: 0,
+      terrible: 0,
+    };
+    for (const film of allFilms) {
+      if ((film.fitness || 0.0) > 0.8) {
+        fitness_distribution.excellent += 1;
+      } else if ((film.fitness || 0.0) > 0.4) {
+        fitness_distribution.good += 1;
+      } else if ((film.fitness || 0.0) > 0.0) {
+        fitness_distribution.average += 1;
+      } else if ((film.fitness || 0.0) > -0.5) {
+        fitness_distribution.poor += 1;
+      } else {
+        fitness_distribution.terrible += 1;
+      }
+    }
+  get_trace(last_n: number = 20): Record<string, any>[]
+  get_film_stats(): Record<string, any> {
+    // TODO: Implement lock handling
+    const film_usage: Record<string, number> = {};
+    const epic_scores: Record<string, number> = {};
+    const fitness: Record<string, number> = {};
+    const tags: Record<string, string[]> = {};
+
+    for (const film_id in this.films) {
+      const film = this.films[film_id];
+      film_usage[film_id] = film.usage || 0;
+      epic_scores[film_id] = film.epic_score || 0.0;
+      fitness[film_id] = film.fitness || 0.0;
+      tags[film_id] = film.tags || [];
+    }
+  get_current_state():
+  _buffer_eva(item: Record<string, any>):
+  async _maybe_flush_eva_async(): Promise<void> {
+    const now = Date.now() / 1000;
+    // TODO: Implement lock handling
+    if ((now - this._last_eva_flush_ts) < this._eva_flush_interval) {
+      return;
+    }
+    const buf = [...this._eva_buffer];
+    this._eva_buffer = [];
+    this._last_eva_flush_ts = now;
+  learn_from_outcome(
+    film_id: string,
+    reward: number,
+    cost: number = 0.0,
+  ): void {
+    if (!(film_id in this.films)) {
+      return;
+    }
+
+    const film = this.films[film_id];
+
+    // Calculate impact score (high reward or extreme negative reward = high impact)
+    const impact_score = Math.abs(reward);
+
+    // ONE-SHOT LEARNING: For high-impact experiences
+    if (impact_score > 0.8) { // High impact threshold
+      // Create instant high-fitness learning
+      const fitness_boost = (reward > 0) ? impact_score * 2.0 : -impact_score * 1.5;
+      film.fitness = (film.fitness || 0.0) + fitness_boost;
+
+      // Create new Film based on this high-impact experience if positive
+      if (reward > 0.8) {
+        this._create_one_shot_film(film_id, reward, impact_score);
+      }
+
+      console.info(
+        `One-shot learning applied to film ${film_id} ` +
+        `(impact: ${impact_score.toFixed(3)}, fitness boost: ${fitness_boost.toFixed(3)})`,
+      );
+    } else {
+      // Standard gradual learning
+      const learning_rate = 0.1;
+      const fitness_delta = learning_rate * (reward - cost);
+      film.fitness = (film.fitness || 0.0) + fitness_delta;
+    }
+
+    // Update film usage and timing
+    film.usage = (film.usage || 0) + 1;
+    film.last_run_ts = Date.now() / 1000;
+  _create_film_from_chaotic_solution(solution: Record<string, any>, context: Record<string, any>):
+  _create_one_shot_film(
+    source_film_id: string,
+    reward: number,
+    impact_score: number,
+  ): string
+  forget_unused_films(
+    usage_threshold: number = 3,
+    fitness_threshold: number = -0.5,
+    age_threshold_days: number = 7.0,
+  ): string[]
+  generate_complex_film(
+    base_actions: string[],
+    context: Record<string, any>,
+  ): string
+  get_learning_statistics(): Record<string, any> {
+    if (Object.keys(this.films).length === 0) {
+      return {
+        total_films: 0,
+        average_fitness: 0.0,
+        one_shot_films: 0,
+        complex_films: 0,
+        fitness_distribution: {},
+      };
+    }
+
+    const allFilms = Object.values(this.films);
+    const total_films = allFilms.length;
+    const total_fitness = allFilms.reduce((sum, f) => sum + (f.fitness || 0.0), 0);
+    const average_fitness = total_fitness / total_films;
+
+    const one_shot_films = allFilms.filter(f => f.tags && f.tags.includes("one_shot")).length;
+    const complex_films = allFilms.filter(f => f.tags && f.tags.includes("complex")).length;
+
+    const fitness_distribution = {
+      excellent: 0,
+      good: 0,
+      average: 0,
+      poor: 0,
+      terrible: 0,
+    };
+    for (const film of allFilms) {
+      if ((film.fitness || 0.0) > 0.8) {
+        fitness_distribution.excellent += 1;
+      } else if ((film.fitness || 0.0) > 0.4) {
+        fitness_distribution.good += 1;
+      } else if ((film.fitness || 0.0) > 0.0) {
+        fitness_distribution.average += 1;
+      } else if ((film.fitness || 0.0) > -0.5) {
+        fitness_distribution.poor += 1;
+      } else {
+        fitness_distribution.terrible += 1;
+      }
+    }
+  get_trace(last_n: number = 20): Record<string, any>[]
+  get_film_stats(): Record<string, any> {
+    // TODO: Implement lock handling
+    const film_usage: Record<string, number> = {};
+    const epic_scores: Record<string, number> = {};
+    const fitness: Record<string, number> = {};
+    const tags: Record<string, string[]> = {};
+
+    for (const film_id in this.films) {
+      const film = this.films[film_id];
+      film_usage[film_id] = film.usage || 0;
+      epic_scores[film_id] = film.epic_score || 0.0;
+      fitness[film_id] = film.fitness || 0.0;
+      tags[film_id] = film.tags || [];
+    }
+  get_current_state():
+  _buffer_eva(item: Record<string, any>):
+  async _maybe_flush_eva_async(): Promise<void> {
+    const now = Date.now() / 1000;
+    // TODO: Implement lock handling
+    if ((now - this._last_eva_flush_ts) < this._eva_flush_interval) {
+      return;
+    }
+    const buf = [...this._eva_buffer];
+    this._eva_buffer = [];
+    this._last_eva_flush_ts = now;
+  learn_from_outcome(
+    film_id: string,
+    reward: number,
+    cost: number = 0.0,
+  ): void {
+    if (!(film_id in this.films)) {
+      return;
+    }
+
+    const film = this.films[film_id];
+
+    // Calculate impact score (high reward or extreme negative reward = high impact)
+    const impact_score = Math.abs(reward);
+
+    // ONE-SHOT LEARNING: For high-impact experiences
+    if (impact_score > 0.8) { // High impact threshold
+      // Create instant high-fitness learning
+      const fitness_boost = (reward > 0) ? impact_score * 2.0 : -impact_score * 1.5;
+      film.fitness = (film.fitness || 0.0) + fitness_boost;
+
+      // Create new Film based on this high-impact experience if positive
+      if (reward > 0.8) {
+        this._create_one_shot_film(film_id, reward, impact_score);
+      }
+
+      console.info(
+        `One-shot learning applied to film ${film_id} ` +
+        `(impact: ${impact_score.toFixed(3)}, fitness boost: ${fitness_boost.toFixed(3)})`,
+      );
+    } else {
+      // Standard gradual learning
+      const learning_rate = 0.1;
+      const fitness_delta = learning_rate * (reward - cost);
+      film.fitness = (film.fitness || 0.0) + fitness_delta;
+    }
+
+    // Update film usage and timing
+    film.usage = (film.usage || 0) + 1;
+    film.last_run_ts = Date.now() / 1000;
+  _create_film_from_chaotic_solution(solution: Record<string, any>, context: Record<string, any>):
+  _create_one_shot_film(
+    source_film_id: string,
+    reward: number,
+    impact_score: number,
+  ): string
+  forget_unused_films(
+    usage_threshold: number = 3,
+    fitness_threshold: number = -0.5,
+    age_threshold_days: number = 7.0,
+  ): string[]
+  generate_complex_film(
+    base_actions: string[],
+    context: Record<string, any>,
+  ): string
+  get_learning_statistics(): Record<string, any> {
+    if (Object.keys(this.films).length === 0) {
+      return {
+        total_films: 0,
+        average_fitness: 0.0,
+        one_shot_films: 0,
+        complex_films: 0,
+        fitness_distribution: {},
+      };
+    }
+
+    const allFilms = Object.values(this.films);
+    const total_films = allFilms.length;
+    const total_fitness = allFilms.reduce((sum, f) => sum + (f.fitness || 0.0), 0);
+    const average_fitness = total_fitness / total_films;
+
+    const one_shot_films = allFilms.filter(f => f.tags && f.tags.includes("one_shot")).length;
+    const complex_films = allFilms.filter(f => f.tags && f.tags.includes("complex")).length;
+
+    const fitness_distribution = {
+      excellent: 0,
+      good: 0,
+      average: 0,
+      poor: 0,
+      terrible: 0,
+    };
+    for (const film of allFilms) {
+      if ((film.fitness || 0.0) > 0.8) {
+        fitness_distribution.excellent += 1;
+      } else if ((film.fitness || 0.0) > 0.4) {
+        fitness_distribution.good += 1;
+      } else if ((film.fitness || 0.0) > 0.0) {
+        fitness_distribution.average += 1;
+      } else if ((film.fitness || 0.0) > -0.5) {
+        fitness_distribution.poor += 1;
+      } else {
+        fitness_distribution.terrible += 1;
+      }
+    }
+  get_trace(last_n: number = 20): Record<string, any>[]
+  get_film_stats(): Record<string, any> {
+    // TODO: Implement lock handling
+    const film_usage: Record<string, number> = {};
+    const epic_scores: Record<string, number> = {};
+    const fitness: Record<string, number> = {};
+    const tags: Record<string, string[]> = {};
+
+    for (const film_id in this.films) {
+      const film = this.films[film_id];
+      film_usage[film_id] = film.usage || 0;
+      epic_scores[film_id] = film.epic_score || 0.0;
+      fitness[film_id] = film.fitness || 0.0;
+      tags[film_id] = film.tags || [];
+    }
+  get_current_state():
+  _buffer_eva(item: Record<string, any>):
+  async _maybe_flush_eva_async(): Promise<void> {
+    const now = Date.now() / 1000;
+    // TODO: Implement lock handling
+    if ((now - this._last_eva_flush_ts) < this._eva_flush_interval) {
+      return;
+    }
+    const buf = [...this._eva_buffer];
+    this._eva_buffer = [];
+    this._last_eva_flush_ts = now;
+  learn_from_outcome(
+    film_id: string,
+    reward: number,
+    cost: number = 0.0,
+  ): void {
+    if (!(film_id in this.films)) {
+      return;
+    }
+
+    const film = this.films[film_id];
+
+    // Calculate impact score (high reward or extreme negative reward = high impact)
+    const impact_score = Math.abs(reward);
+
+    // ONE-SHOT LEARNING: For high-impact experiences
+    if (impact_score > 0.8) { // High impact threshold
+      // Create instant high-fitness learning
+      const fitness_boost = (reward > 0) ? impact_score * 2.0 : -impact_score * 1.5;
+      film.fitness = (film.fitness || 0.0) + fitness_boost;
+
+      // Create new Film based on this high-impact experience if positive
+      if (reward > 0.8) {
+        this._create_one_shot_film(film_id, reward, impact_score);
+      }
+
+      console.info(
+        `One-shot learning applied to film ${film_id} ` +
+        `(impact: ${impact_score.toFixed(3)}, fitness boost: ${fitness_boost.toFixed(3)})`,
+      );
+    } else {
+      // Standard gradual learning
+      const learning_rate = 0.1;
+      const fitness_delta = learning_rate * (reward - cost);
+      film.fitness = (film.fitness || 0.0) + fitness_delta;
+    }
+
+    // Update film usage and timing
+    film.usage = (film.usage || 0) + 1;
+    film.last_run_ts = Date.now() / 1000;
+  async step(context: Record<string, any>): Promise<Record<string, any>> {
+    await this._lock.acquire();
+    try {
+      // Recall relevant experiences from memory
+      try {
+        const recalled_experiences = this.recall_fn(context);
+        if (recalled_experiences) {
+          context["recalled_experiences"] = recalled_experiences;
+        }
+      } catch (e) {
+        console.error("Failed to recall experiences from memory", e);
+      }
+
+      const [pat_id, score] = this.patterns.match(context.sensory || context);
+      context["pattern_id"] = pat_id;
+      context["pattern_match"] = score;
+
+      const [val, arousal, dop] = this.limbic.evaluate(context);
+      context.valence = val;
+      context.arousal = arousal;
+      context.dopamine = dop;
+
+      const hz = this.freq.compute_hz(
+        arousal,
+        _safe_float(context.threat, 0.0),
+        _safe_float(context.safe, 0.0),
+      );
+      this.freq.update_parallel(
+        arousal,
+        _safe_float(context.safe, 0.0),
+      );
+      context["tick_hz"] = hz;
+      context["parallel_thoughts"] = this.freq.parallel_thoughts;
+
+      // Chaotic Cognitive Core integration
+      if (this.chaotic_core) {
+        try {
+          const chaotic_result = await (this.chaotic_core as any).think({ problem_spec: context });
+          if (chaotic_result && chaotic_result.solution) {
+            // TODO: Implement _create_film_from_chaotic_solution
+            // this._create_film_from_chaotic_solution(chaotic_result.solution, context);
+          }
+        } catch (e) {
+          console.error("ChaoticCognitiveCore.think() failed", e);
+        }
+      }
+
+      const film_id = this._select_film(context);
+
+      // potential long-running execution outside lock
+      if (film_id) {
+        const film = this.films[film_id];
+        const long_term_gain = film ? film.fitness : 0.0;
+
+        if (!this.exec.allow_action(
+          arousal,
+          long_term_gain,
+          context,
+        )) {
+          // inhibition path
+          try {
+            this.emit_event(
+              "SELF_RECALL",
+              {
+                "entity_id": this.entity_id,
+                "why": "inhibition_block",
+                "film": film_id,
+              },
+            );
+          } catch (e) {
+            console.debug("emit_event failed on inhibition (non-fatal)", e);
+          }
+          try {
+            this.ingest_fn(
+              {"conscious_call": "INHIBITION_BLOCK", "film": film_id},
+              0.0, // valence
+              arousal,
+              "conscious",
+            );
+          } catch (e) {
+            console.debug("ingest_fn failed on inhibition (non-fatal)", e);
+          }
+          this._trace.push(
+            {
+              "mode": "INHIBIT",
+              "film": film_id,
+              "hz": hz,
+              "context": structuredClone(context),
+            },
+          );
+          for (const hook of this._hooks) {
+            try {
+              hook(context);
+            }
+            catch (e) {
+              console.error("hook failed during inhibition", e);
+            }
+          }
+          return {"mode": "INHIBIT", "film": film_id, "hz": hz};
+        }
+      }
+
+      let exec_info: Record<string, any> = {};
+      if (film_id) {
+        exec_info = await this._advance_film(film_id, context);
+      }
+
+      this._check_alarms(film_id, context);
+
+      const crisis_threat_threshold = _safe_float((this.config as any).CRISIS_THREAT_THRESHOLD, 0.9);
+      const high_arousal_threshold = _safe_float((this.config as any).HIGH_AROUSAL_THRESHOLD, 0.9);
+      const progress_threshold_high = _safe_float((this.config as any).PROGRESS_THRESHOLD_HIGH, 0.8);
+
+      if ((_safe_float(context.threat, 0.0) > crisis_threat_threshold) || (arousal > high_arousal_threshold)) {
+        try {
+          this.emit_event(
+            "CRISIS",
+            {
+              "entity_id": this.entity_id,
+              "film": film_id,
+              "ctx": {
+                "threat": context.threat,
+                "arousal": arousal,
+                "valence": val,
+              },
+            },
+          );
+        } catch (e) {
+          console.debug("emit_event CRISIS failed (non-fatal)", e);
+        }
+      } else if (
+        (_safe_float(context.progress, 0.0) > progress_threshold_high) &&
+        (dop > progress_threshold_high) &&
+        (Math.random() < 0.1)
+      ) {
+        try {
+          this.emit_event(
+            "INSIGHT",
+            {
+              "entity_id": this.entity_id,
+              "film": film_id,
+              "pattern": pat_id,
+            },
+          );
+        } catch (e) {
+          console.debug("emit_event INSIGHT failed (non-fatal)", e);
+        }
+      }
+
+      const MAX_TRACE_LENGTH = 200; // Define MAX_TRACE_LENGTH
+      const trace_snapshot = {
+        "mode": film_id ? "RUN" : "IDLE",
+        "film": film_id,
+        "node": (this.current && this.current[1]) || null,
+        "hz": hz,
+        "parallel": this.freq.parallel_thoughts,
+        "affect": [val, arousal, dop],
+        "pattern": [pat_id, score],
+        "exec": exec_info,
+        "context": structuredClone(context),
+        "timestamp": Date.now() / 1000,
+      };
+      this._trace.push(trace_snapshot);
+      if (this._trace.length > MAX_TRACE_LENGTH) {
+        this._trace = this._trace.slice(-MAX_TRACE_LENGTH);
+      }
+      for (const hook of this._hooks) {
+        try {
+          hook(trace_snapshot);
+        }
+        catch (e) {
+          console.error("hook raised", e);
+        }
+      }
+
+      // buffer EVA record non-blocking
+      this._buffer_eva(
+        {
+          "entity_id": this.entity_id,
+          "event_type": "brain_step",
+          "payload": trace_snapshot,
+        },
+      );
+      // try flush in background
+      // TODO: Implement async task creation
+      // asyncio.create_task(this._maybe_flush_eva_async());
+
+      return trace_snapshot;
+  _select_film(context: Record<string, any>): string | null
+  async _advance_film(film_id: string, ctx: Record<string, any>): Promise<Record<string, any>> {
+    await this._lock.acquire();
+    try {
+      const f = this.films[film_id];
+      if (!f) {
+        return {};
+      }
+      if (this.current === null) {
+        return {};
+      }
+      let node_id = this.current[1];
+      let node = f.nodes ? f.nodes[node_id] : undefined;
+      if (node === undefined) {
+        // fallback gracefully
+        node_id = f.entry || (f.nodes && Object.keys(f.nodes).length > 0 ? Object.keys(f.nodes)[0] : "");
+        node = f.nodes ? f.nodes[node_id] : undefined;
+      }
+      if (node === undefined) {
+        return {};
+      }
+
+      let action_result: Record<string, any> = {};
+      try {
+        this.cerebellum.micro_adjust(node, ctx);
+        action_result = await this.actuator.execute_action(
+          node.action,
+          node.params || {},
+          ctx,
+        );
+      } catch (e) {
+        console.error("_advance_film execution failed", e);
+        action_result = {"progress": 0.0, "valence": 0.0};
+      }
+
+      for (const key in action_result) {
+        const value = action_result[key];
+        if (typeof value === 'number') {
+          ctx[key] = _safe_float(ctx[key], 0.0) + value;
+        } else {
+          ctx[key] = value;
+        }
+        if (["progress", "opportunity", "threat", "safe"].includes(key)) {
+          ctx[key] = clamp(ctx[key], 0.0, 1.0);
+        } else if (key === "valence") {
+          ctx[key] = clamp(ctx[key], -1.0, 1.0);
+        }
+      }
+      try {
+        this.ingest_fn(
+          {"film": film_id, "node": node_id, "act": node.action},
+          _safe_float(ctx.valence, 0.0),
+          _safe_float(ctx.arousal, 0.0),
+          "habit",
+        );
+      } catch (e) {
+        console.debug("ingest_fn failed when ingesting habit (non-fatal)", e);
+      }
+
+      const next_nodes = (f.edges || []).filter(e => e.src === node_id && e.condition(ctx)).map(e => e.dst);
+      if (next_nodes.length > 0) {
+        this.current = [film_id, next_nodes[0]];
+      } else {
+        this.learn_from_outcome(
+          film_id,
+          _safe_float(ctx.progress, 0.0) + _safe_float(ctx.opportunity, 0.0),
+          node.cost_energy,
+        );
+        this.current = [film_id, f.entry || ""]; // Fallback to empty string if entry is undefined
+      }
+      node.ts_last = Date.now() / 1000;
+      node.last_outcome = _safe_float(ctx.progress, 0.0);
+
+      return {
+        "action": node.action,
+        "cost": node.cost_energy,
+        "node_id": node_id,
+        "action_result": action_result,
+      };
   _check_alarms(film_id: string | null, ctx: Record<string, any>): void {
     // TODO: Implement lock handling
     if (!film_id) {
       return;
     }
     const f = this.films[film_id];
-    if (!f || !f.alarms) {
+    if (!f || !f.alarms)
+  _buffer_eva(item: Record<string, any>):
+  async _maybe_flush_eva_async(): Promise<void> {
+    const now = Date.now() / 1000;
+    // TODO: Implement lock handling
+    if ((now - this._last_eva_flush_ts) < this._eva_flush_interval) {
+      return;
+    }
+    const buf = [...this._eva_buffer];
+    this._eva_buffer = [];
+    this._last_eva_flush_ts = now;
+  learn_from_outcome(
+    film_id: string,
+    reward: number,
+    cost: number = 0.0,
+  ): void {
+    // TODO: Implement lock handling
+    if (!(film_id in this.films)) {
+      return;
+    }
+
+    const film = this.films[film_id];
+
+    // Calculate impact score (high reward or extreme negative reward = high impact)
+    const impact_score = Math.abs(reward);
+
+    // ONE-SHOT LEARNING: For high-impact experiences
+    if (impact_score > 0.8) { // High impact threshold
+      // Create instant high-fitness learning
+      const fitness_boost = (reward > 0) ? impact_score * 2.0 : -impact_score * 1.5;
+      film.fitness = (film.fitness || 0.0) + fitness_boost;
+
+      // Create new Film based on this high-impact experience if positive
+      if (reward > 0.8) {
+        this._create_one_shot_film(film_id, reward, impact_score);
+      }
+
+      console.info(
+        `One-shot learning applied to film ${film_id} ` +
+        `(impact: ${impact_score.toFixed(3)}, fitness boost: ${fitness_boost.toFixed(3)})`,
+      );
+    } else {
+      // Standard gradual learning
+      const learning_rate = 0.1;
+      const fitness_delta = learning_rate * (reward - cost);
+      film.fitness = (film.fitness || 0.0) + fitness_delta;
+    }
+
+    // Update film usage and timing
+    film.usage = (film.usage || 0) + 1;
+    film.last_run_ts = Date.now() / 1000;
+  _create_film_from_chaotic_solution(solution: Record<string, any>, context: Record<string, any>): void {
+    // TODO: Implement lock handling
+    try {
+      const confidence = _safe_float(solution.confidence, 0.5);
+      const chaoticCoreConfidenceThreshold = _safe_float((this.config as any).CHAOTIC_CORE_CONFIDENCE_THRESHOLD, 0.7);
+
+      if (confidence < chaoticCoreConfidenceThreshold) {
+        return;
+      }
+
+      const film_id = `chaotic_film_${gen_id()}`;
+      const action_name = `chaotic_${solution.type || "emergent"}`;
+      const node_id = `${film_id}_n0`;
+
+      const node: FilmNode = {
+        id: node_id,
+        action: action_name,
+        params: solution.details || {},
+        expected_reward: confidence,
+      };
+
+      const film: Film = {
+        id: film_id,
+        nodes: { [node_id]: node },
+        entry: node_id,
+        fitness: confidence * 1.5, // Give a higher initial fitness
+        tags: ["chaotic", `confidence_${confidence.toFixed(2)}`],
+      };
+
+      this.films[film_id] = film;
+      console.info(`Created new film from chaotic solution: ${film_id}`);
+    } catch (e) {
+      console.error("Failed to create film from chaotic solution", e);
+    }
+  }
+
+    // Update habit scores in basal ganglia
+    if (film.nodes) {
+      for (const node_id in film.nodes) {
+        const node = film.nodes[node_id];
+        const action = node.action;
+        if (action in this.habits.habit_scores) {
+          this.habits.habit_scores[action] += reward * 0.1;
+        } else {
+          this.habits.habit_scores[action] = reward * 0.1;
+        }
+      }
+    }
+  }
+
+    if (!buf.length) {
+      return;
+    }
+
+    for (const item of buf) {
+      try {
+        // Best-effort: if EVAMemoryMixin present, delegate
+        // TODO: Implement actual EVA integration logic
+        console.warn("EVA flush not fully implemented yet.", item);
+      } catch (e) {
+        console.error("flush_eva failed for item (non-fatal)", e);
+      }
+    }
+  } void {
+    // TODO: Implement lock handling
+    this._eva_buffer.push(item);
+  } {
       return;
     }
     for (const al of f.alarms) {
@@ -824,206 +1725,7 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
       }
     }
   }
-
-  _buffer_eva(item: Record<string, any>): void {
-    // TODO: Implement lock handling
-    this._eva_buffer.push(item);
-  }
-
-  async _maybe_flush_eva_async(): Promise<void> {
-    const now = Date.now() / 1000;
-    // TODO: Implement lock handling
-    if ((now - this._last_eva_flush_ts) < this._eva_flush_interval) {
-      return;
+    } finally {
+      this._lock.release();
     }
-    const buf = [...this._eva_buffer];
-    this._eva_buffer = [];
-    this._last_eva_flush_ts = now;
-
-    if (!buf.length) {
-      return;
-    }
-
-    for (const item of buf) {
-      try {
-        // Best-effort: if EVAMemoryMixin present, delegate
-        // TODO: Implement actual EVA integration logic
-        console.warn("EVA flush not fully implemented yet.", item);
-      } catch (e) {
-        console.error("flush_eva failed for item (non-fatal)", e);
-      }
-    }
-  }
-
-  learn_from_outcome(
-    film_id: string,
-    reward: number,
-    cost: number = 0.0,
-  ): void {
-    // TODO: Implement lock handling
-    if (!(film_id in this.films)) {
-      return;
-    }
-
-    const film = this.films[film_id];
-
-    // Calculate impact score (high reward or extreme negative reward = high impact)
-    const impact_score = Math.abs(reward);
-
-    // ONE-SHOT LEARNING: For high-impact experiences
-    if (impact_score > 0.8) { // High impact threshold
-      // Create instant high-fitness learning
-      const fitness_boost = (reward > 0) ? impact_score * 2.0 : -impact_score * 1.5;
-      film.fitness = (film.fitness || 0.0) + fitness_boost;
-
-      // Create new Film based on this high-impact experience if positive
-      if (reward > 0.8) {
-        // TODO: Implement _create_one_shot_film
-        // this._create_one_shot_film(film_id, reward, impact_score);
-      }
-
-      console.info(
-        `One-shot learning applied to film ${film_id} ` +
-        `(impact: ${impact_score.toFixed(3)}, fitness boost: ${fitness_boost.toFixed(3)})`,
-      );
-    } else {
-      // Standard gradual learning
-      const learning_rate = 0.1;
-      const fitness_delta = learning_rate * (reward - cost);
-      film.fitness = (film.fitness || 0.0) + fitness_delta;
-    }
-
-    // Update film usage and timing
-    film.usage = (film.usage || 0) + 1;
-    film.last_run_ts = Date.now() / 1000;
-
-    // Update habit scores in basal ganglia
-    if (film.nodes) {
-      for (const node_id in film.nodes) {
-        const node = film.nodes[node_id];
-        const action = node.action;
-        if (action in this.habits.habit_scores) {
-          this.habits.habit_scores[action] += reward * 0.1;
-        } else {
-          this.habits.habit_scores[action] = reward * 0.1;
-        }
-      }
-    }
-  }
-
-  _create_film_from_chaotic_solution(solution: Record<string, any>, context: Record<string, any>): void {
-    // TODO: Implement lock handling
-    try {
-      const confidence = _safe_float(solution.confidence, 0.5);
-      const chaoticCoreConfidenceThreshold = _safe_float((this.config as any).CHAOTIC_CORE_CONFIDENCE_THRESHOLD, 0.7);
-
-      if (confidence < chaoticCoreConfidenceThreshold) {
-        return;
-      }
-
-      const film_id = `chaotic_film_${gen_id()}`;
-      const action_name = `chaotic_${solution.type || "emergent"}`;
-      const node_id = `${film_id}_n0`;
-
-      const node: FilmNode = {
-        id: node_id,
-        action: action_name,
-        params: solution.details || {},
-        expected_reward: confidence,
-      };
-
-      const film: Film = {
-        id: film_id,
-        nodes: { [node_id]: node },
-        entry: node_id,
-        fitness: confidence * 1.5, // Give a higher initial fitness
-        tags: ["chaotic", `confidence_${confidence.toFixed(2)}`],
-      };
-
-      this.films[film_id] = film;
-      console.info(`Created new film from chaotic solution: ${film_id}`);
-    } catch (e) {
-      console.error("Failed to create film from chaotic solution", e);
-    }
-  }
-
-  _create_one_shot_film(
-    source_film_id: string,
-    reward: number,
-    impact_score: number,
-  ): string { /* ... */ return ""; }
-
-  forget_unused_films(
-    usage_threshold: number = 3,
-    fitness_threshold: number = -0.5,
-    age_threshold_days: number = 7.0,
-  ): string[] { return []; }
-
-  generate_complex_film(
-    base_actions: string[],
-    context: Record<string, any>,
-  ): string { return ""; }
-
-  get_learning_statistics(): Record<string, any> {
-    if (Object.keys(this.films).length === 0) {
-      return {
-        total_films: 0,
-        average_fitness: 0.0,
-        one_shot_films: 0,
-        complex_films: 0,
-        fitness_distribution: {},
-      };
-    }
-
-    const allFilms = Object.values(this.films);
-    const total_films = allFilms.length;
-    const total_fitness = allFilms.reduce((sum, f) => sum + (f.fitness || 0.0), 0);
-    const average_fitness = total_fitness / total_films;
-
-    const one_shot_films = allFilms.filter(f => f.tags && f.tags.includes("one_shot")).length;
-    const complex_films = allFilms.filter(f => f.tags && f.tags.includes("complex")).length;
-
-    const fitness_distribution = {
-      excellent: 0,
-      good: 0,
-      average: 0,
-      poor: 0,
-      terrible: 0,
-    };
-    for (const film of allFilms) {
-      if ((film.fitness || 0.0) > 0.8) {
-        fitness_distribution.excellent += 1;
-      } else if ((film.fitness || 0.0) > 0.4) {
-        fitness_distribution.good += 1;
-      } else if ((film.fitness || 0.0) > 0.0) {
-        fitness_distribution.average += 1;
-      } else if ((film.fitness || 0.0) > -0.5) {
-        fitness_distribution.poor += 1;
-      } else {
-        fitness_distribution.terrible += 1;
-      }
-    }
-    return { total_films, average_fitness, one_shot_films, complex_films, fitness_distribution };
-  }
-
-  get_trace(last_n: number = 20): Record<string, any>[] { return []; }
-
-  get_film_stats(): Record<string, any> {
-    // TODO: Implement lock handling
-    const film_usage: Record<string, number> = {};
-    const epic_scores: Record<string, number> = {};
-    const fitness: Record<string, number> = {};
-    const tags: Record<string, string[]> = {};
-
-    for (const film_id in this.films) {
-      const film = this.films[film_id];
-      film_usage[film_id] = film.usage || 0;
-      epic_scores[film_id] = film.epic_score || 0.0;
-      fitness[film_id] = film.fitness || 0.0;
-      tags[film_id] = film.tags || [];
-    }
-    return { film_usage, epic_scores, fitness, tags };
-  }
-
-  get_current_state(): any { return {}; }
-}
+  } 

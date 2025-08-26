@@ -5,10 +5,10 @@
  */
 
 import { EditorType, openDiff } from '../utils/editor.js';
-import os from 'os';
+import * as Diff from 'diff';
 import path from 'path';
 import fs from 'fs';
-import * as Diff from 'diff';
+import os from 'os';
 import { DEFAULT_DIFF_OPTIONS } from './diffOptions.js';
 import { isNodeError } from '../utils/errors.js';
 import { AnyDeclarativeTool, DeclarativeTool, ToolResult } from './tools.js';
@@ -27,16 +27,15 @@ export interface ModifyContext<ToolParams> {
   getCurrentContent: (params: ToolParams) => Promise<string>;
 
   getProposedContent: (params: ToolParams) => Promise<string>;
-
   createUpdatedParams: (
     oldContent: string,
-    modifiedProposedContent: string,
+    newContent: string,
     originalParams: ToolParams,
   ) => ToolParams;
 }
 
-export interface ModifyResult<ToolParams> {
-  updatedParams: ToolParams;
+export interface ModifyResult<T> {
+  updatedParams: T;
   updatedDiff: string;
 }
 
