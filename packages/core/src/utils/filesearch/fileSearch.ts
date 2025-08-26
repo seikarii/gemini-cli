@@ -6,7 +6,7 @@
 
 import path from 'node:path';
 import picomatch from 'picomatch';
-import { Ignore, loadIgnoreRules } from './ignore.js';
+import { Ignore, loadIgnoreRulesAsync } from './ignore.js';
 import { ResultCache } from './result-cache.js';
 import { crawl } from './crawler.js';
 import { AsyncFzf, FzfResultItem } from 'fzf';
@@ -98,7 +98,7 @@ class RecursiveFileSearch implements FileSearch {
   constructor(private readonly options: FileSearchOptions) {}
 
   async initialize(): Promise<void> {
-    this.ignore = loadIgnoreRules(this.options);
+  this.ignore = await loadIgnoreRulesAsync(this.options);
     this.allFiles = await crawl({
       crawlDirectory: this.options.projectRoot,
       cwd: this.options.projectRoot,
@@ -188,7 +188,7 @@ class DirectoryFileSearch implements FileSearch {
   constructor(private readonly options: FileSearchOptions) {}
 
   async initialize(): Promise<void> {
-    this.ignore = loadIgnoreRules(this.options);
+  this.ignore = await loadIgnoreRulesAsync(this.options);
   }
 
   async search(

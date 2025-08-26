@@ -5,6 +5,7 @@
  */
 
 import fs from 'node:fs';
+import { promises as fsp } from 'node:fs';
 import path from 'node:path';
 import ignore from 'ignore';
 import picomatch from 'picomatch';
@@ -31,6 +32,51 @@ export function loadIgnoreRules(options: LoadIgnoreRulesOptions): Ignore {
     const geminiignorePath = path.join(options.projectRoot, '.geminiignore');
     if (fs.existsSync(geminiignorePath)) {
       ignorer.add(fs.readFileSync(geminiignorePath, 'utf8'));
+    }
+  }
+
+  const ignoreDirs = ['.git', ...options.ignoreDirs];
+  ignorer.add(
+    ignoreDirs.map((dir) => {
+      if (dir.endsWith('/')) {
+        return dir;
+      }
+      return `${dir}/`;
+    }),
+  );
+
+  return ignorer;
+}
+
+/**
+ * Async variant of `loadIgnoreRules` which performs non-blocking file I/O.
+ * This is intended for use in hot-path initialization where blocking the
+ * event loop is undesirable. The existing synchronous `loadIgnoreRules`
+ * is preserved for tests and callers that need a sync API.
+ */
+export async function loadIgnoreRulesAsync(
+  options: LoadIgnoreRulesOptions,
+): Promise<Ignore> {
+  const ignorer = new Ignore();
+
+  if (options.useGitignore) {
+    const gitignorePath = path.join(options.projectRoot, '.gitignore');
+    try {
+      const content = await fsp.readFile(gitignorePath, 'utf8');
+      ignorer.add(content);
+    } catch (_err) {
+      // Ignore missing file or read errors; behavior mirrors the sync
+      // implementation which simply skips non-existing files.
+    }
+  }
+
+  if (options.useGeminiignore) {
+    const geminiignorePath = path.join(options.projectRoot, '.geminiignore');
+    try {
+      const content = await fsp.readFile(geminiignorePath, 'utf8');
+      ignorer.add(content);
+    } catch (_err) {
+      // no-op if unreadable / absent
     }
   }
 

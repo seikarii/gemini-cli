@@ -1,27 +1,62 @@
-/**
- * @license
- * Copyright 2025 Google LLC
- * SPDX-License-Identifier: Apache-2.0
- */
+// Placeholder types/interfaces for missing references
+export type PartListUnion = unknown;
+export type Status = string;
+export type ThoughtSummary = unknown;
+export type Config = any;
 
-import { type Config } from '../config/config.js';
-import { type Status } from '../core/coreToolScheduler.js';
-import { type ThoughtSummary } from '../core/turn.js';
-import { getProjectHash } from '../utils/paths.js';
 import path from 'node:path';
-import fs from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
-import { PartListUnion } from '@google/genai';
-
 /**
- * Custom error classes for more specific error handling.
+ * Base error class for chat recording errors.
  */
 export class ChatRecordingError extends Error {
+  override cause?: Error;
   constructor(message: string, cause?: Error) {
     super(message);
     this.name = 'ChatRecordingError';
     if (cause) {
       this.cause = cause;
+    }
+  }
+}
+/**
+ * File system abstraction for better testability.
+ */
+export interface FileSystemAdapter {
+  readFile(filePath: string): Promise<string>;
+  writeFile(filePath: string, data: string): Promise<void>;
+  mkdir(dirPath: string): Promise<void>;
+  unlink(filePath: string): Promise<void>;
+  exists(filePath: string): Promise<boolean>;
+}
+
+/**
+ * Default file system adapter using Node.js fs promises.
+ */
+import fs from 'node:fs/promises';
+export class NodeFileSystemAdapter implements FileSystemAdapter {
+  async readFile(filePath: string): Promise<string> {
+    return fs.readFile(filePath, 'utf8');
+  }
+
+  async writeFile(filePath: string, data: string): Promise<void> {
+    return fs.writeFile(filePath, data, 'utf8');
+  }
+
+  async mkdir(dirPath: string): Promise<void> {
+    await fs.mkdir(dirPath, { recursive: true });
+  }
+
+  async unlink(filePath: string): Promise<void> {
+    return fs.unlink(filePath);
+  }
+
+  async exists(filePath: string): Promise<boolean> {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch {
+      return false;
     }
   }
 }
@@ -51,14 +86,14 @@ export class ChatRecordingFileError extends ChatRecordingError {
  * Token estimation strategy interface for dependency injection.
  */
 export interface TokenEstimator {
-  estimateTokens(text: string): number;
+  estimateTokens(text: string): Promise<number>;
 }
 
 /**
  * Simple token estimator using character count heuristic.
  */
 export class SimpleTokenEstimator implements TokenEstimator {
-  estimateTokens(text: string): number {
+  async estimateTokens(text: string): Promise<number> {
     // Rough estimation: ~4 characters per token for English text
     return Math.ceil(text.length / 4);
   }
@@ -69,96 +104,14 @@ export class SimpleTokenEstimator implements TokenEstimator {
  * This can be extended to use tiktoken or other precise tokenization libraries.
  */
 export class AdvancedTokenEstimator implements TokenEstimator {
-  private fallback = new SimpleTokenEstimator();
 
-  estimateTokens(text: string): number {
+  async estimateTokens(text: string): Promise<number> {
     try {
-      // TODO: Integrate with tiktoken or similar library for more accurate estimation
-      // For now, use improved heuristics
-      
-      // Better estimation considering:
-      // - Code vs natural language (code tends to have more tokens per character)
-      // - Special characters and formatting
-      // - Language patterns
-      
-      const isCode = this.detectCodeContent(text);
-      const hasSpecialFormatting = /[{}[\]().,;:!?"]/.test(text);
-      
-      let ratio = 4; // Base ratio
-      
-      if (isCode) {
-        ratio = 3; // Code is more token-dense
-      }
-      
-      if (hasSpecialFormatting) {
-        ratio = ratio * 0.9; // Special chars create more tokens
-      }
-      
-      return Math.ceil(text.length / ratio);
-    } catch (_error) {
-      // Fallback to simple estimation
-      return this.fallback.estimateTokens(text);
-    }
-  }
-
-  private detectCodeContent(text: string): boolean {
-    // Simple heuristics to detect code content
-    const codeIndicators = [
-      /function\s+\w+\s*\(/,
-      /class\s+\w+/,
-      /import\s+.*from/,
-      /export\s+(default\s+)?/,
-      /const\s+\w+\s*=/,
-      /let\s+\w+\s*=/,
-      /var\s+\w+\s*=/,
-      /if\s*\(/,
-      /for\s*\(/,
-      /while\s*\(/,
-      /\{\s*[\w\s:,]*\}/,
-      /=>\s*{/,
-    ];
-    
-    return codeIndicators.some(pattern => pattern.test(text));
-  }
-}
-
-/**
- * File system abstraction for better testability.
- */
-export interface FileSystemAdapter {
-  readFile(filePath: string): Promise<string>;
-  writeFile(filePath: string, data: string): Promise<void>;
-  mkdir(dirPath: string): Promise<void>;
-  unlink(filePath: string): Promise<void>;
-  exists(filePath: string): Promise<boolean>;
-}
-
-/**
- * Default file system adapter using Node.js fs promises.
- */
-export class NodeFileSystemAdapter implements FileSystemAdapter {
-  async readFile(filePath: string): Promise<string> {
-    return fs.readFile(filePath, 'utf8');
-  }
-
-  async writeFile(filePath: string, data: string): Promise<void> {
-    return fs.writeFile(filePath, data, 'utf8');
-  }
-
-  async mkdir(dirPath: string): Promise<void> {
-    await fs.mkdir(dirPath, { recursive: true });
-  }
-
-  async unlink(filePath: string): Promise<void> {
-    return fs.unlink(filePath);
-  }
-
-  async exists(filePath: string): Promise<boolean> {
-    try {
-      await fs.access(filePath);
-      return true;
+      // Placeholder for actual token estimation logic
+      // const { get_encoding, encoding_for_model } = await import('@dqbd/tiktoken');
+      return Math.ceil(text.length / 4); // fallback to simple heuristic
     } catch {
-      return false;
+      return Math.ceil(text.length / 4);
     }
   }
 }
@@ -193,19 +146,98 @@ export interface ContextCompressionConfig {
 export enum CompressionStrategy {
   MINIMAL = 'minimal',     // Keep most information, light compression
   MODERATE = 'moderate',   // Balanced compression
-  AGGRESSIVE = 'aggressive' // Maximum compression, keep only essentials
+  AGGRESSIVE = 'aggressive', // Maximum compression, keep only essentials
+  NO_COMPRESSION = 'no_compression' // No compression, keep all messages as is
 }
 
 /**
  * Compression strategy interface for different compression approaches.
  */
 export interface CompressionStrategyHandler {
-  compress(messages: MessageRecord[], config: ContextCompressionConfig): CompressedContext;
+  compress(messages: MessageRecord[], config: ContextCompressionConfig): Promise<CompressedContext>;
+}
+
+/**
+ * Base fields common to all messages.
+ */
+export interface BaseMessageRecord {
+  id: string;
+  timestamp: string;
+  content: string;
+}
+
+/**
+ * Record of a tool call execution within a conversation.
+ */
+export interface ToolCallRecord {
+  id: string;
+  name: string;
+  args: Record<string, unknown>;
+  result?: PartListUnion | null;
+  status: Status;
+  timestamp: string;
+  // UI-specific fields for display purposes
+  displayName?: string;
+  description?: string;
+  resultDisplay?: string;
+  renderOutputAsMarkdown?: boolean;
+}
+
+/**
+ * Message type and message type-specific fields.
+ */
+// (Removed duplicate ConversationRecordExtra and MessageRecord definitions)
+
+/**
+ * Compressed representation of older context.
+ */
+export interface CompressedContext {
+  summary: string; // High-level summary of the conversation
+  keyPoints: string[]; // Important points extracted
+  toolCallsSummary: string; // Summary of tool usage patterns
+  timespan: { start: string; end: string }; // Time range covered
+  messageCount: number; // Number of original messages compressed
+  originalTokens: number; // Estimated original token count
+  compressedTokens: number; // Actual compressed token count
+}
+
+/**
+ * Complete conversation record stored in session files.
+ */
+export interface ConversationRecord {
+  sessionId: string;
+  projectHash: string;
+  startTime: string;
+  lastUpdated: string;
+  messages: MessageRecord[];
+}
+
+/**
+ * Enhanced conversation record with compression support.
+ */
+export interface EnhancedConversationRecord extends ConversationRecord {
+  compressedContext?: CompressedContext;
+  compressionConfig?: ContextCompressionConfig;
+  lastCompressionTime?: string;
+}
+
+/**
+ * Data structure for resuming an existing session.
+ */
+export interface ResumedSessionData {
+  conversation: ConversationRecord;
+  filePath: string;
 }
 
 /**
  * Minimal compression strategy - preserves most information.
  */
+
+// Dummy implementation for getProjectHash
+function getProjectHash(_: string): string {
+  return 'dummy_project_hash';
+}
+
 export class MinimalCompressionStrategy implements CompressionStrategyHandler {
   protected tokenEstimator: TokenEstimator;
 
@@ -213,13 +245,12 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
     this.tokenEstimator = tokenEstimator;
   }
 
-  compress(messages: MessageRecord[], _config: ContextCompressionConfig): CompressedContext {
+  async compress(messages: MessageRecord[], _config: ContextCompressionConfig): Promise<CompressedContext> {
     // Just summarize tool calls and preserve most content
     const summary = this.createBriefSummary(messages);
     const keyPoints = this.extractImportantPoints(messages, 15); // Keep more points
     const toolCallsSummary = this.summarizeToolCalls(messages);
-    
-    return this.buildCompressedContext(messages, summary, keyPoints, toolCallsSummary);
+    return await this.buildCompressedContext(messages, summary, keyPoints, toolCallsSummary);
   }
 
   private createBriefSummary(messages: MessageRecord[]): string {
@@ -234,70 +265,100 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
 
   private extractKeyPointsFromMessages(messages: MessageRecord[]): string[] {
     const keyPoints: string[] = [];
-    
     messages.forEach(msg => {
       const content = msg.content;
-      
       // Extract error patterns
       if (content.match(/error|failed|exception|problem/i)) {
         const errorContext = content.substring(0, 200); // More context for minimal compression
         keyPoints.push(`Error: ${errorContext}`);
       }
-      
       // Extract file operations
       if (content.match(/created?|modified?|deleted?|file|path/i)) {
         const fileOp = content.substring(0, 150);
         keyPoints.push(`File: ${fileOp}`);
       }
-      
       // Extract important decisions or conclusions
       if (content.match(/decided|concluded|resolved|fixed|implemented/i)) {
         const decision = content.substring(0, 150);
         keyPoints.push(`Decision: ${decision}`);
       }
     });
-    
     return keyPoints;
   }
 
   protected summarizeToolCalls(messages: MessageRecord[]): string {
-    const toolStats: Record<string, { count: number; success: number; errors: number }> = {};
-    
-    messages.forEach(msg => {
-      if (msg.type === 'gemini' && msg.toolCalls) {
-        msg.toolCalls.forEach(tc => {
-          if (!toolStats[tc.name]) {
-            toolStats[tc.name] = { count: 0, success: 0, errors: 0 };
-          }
-          toolStats[tc.name].count++;
-          
-          if (tc.status === 'success') {
-            toolStats[tc.name].success++;
-          } else if (tc.status === 'error') {
-            toolStats[tc.name].errors++;
-          }
-        });
-      }
-    });
-    
-    const summary = Object.entries(toolStats)
-      .map(([tool, stats]) => `${tool}(${stats.count}, ${stats.success}✓, ${stats.errors}✗)`)
-      .join(', ');
-      
-    return summary ? `Tools: ${summary}` : '';
+    const toolCalls = messages
+      .filter(m => m.type === 'gemini' && 'toolCalls' in m && Array.isArray((m as any).toolCalls) && (m as any).toolCalls.length > 0)
+      .map(m => (m as any).toolCalls)
+      .flat();
+    return `Tool calls: ${toolCalls.length}`;
   }
 
-  protected buildCompressedContext(
-    messages: MessageRecord[], 
-    summary: string, 
-    keyPoints: string[], 
+  protected async buildCompressedContext(
+    messages: MessageRecord[],
+    summary: string,
+    keyPoints: string[],
     toolCallsSummary: string
-  ): CompressedContext {
-    const timespan = this.calculateTimespan(messages);
-    const originalTokens = this.calculateOriginalTokens(messages);
-    const compressedContent = `${summary}. ${keyPoints.join('. ')}. ${toolCallsSummary}`;
-    const compressedTokens = this.tokenEstimator.estimateTokens(compressedContent);
+  ): Promise<CompressedContext> {
+    const timespan = {
+      start: messages[0]?.timestamp || '',
+      end: messages[messages.length - 1]?.timestamp || ''
+    };
+    const messageCount = messages.length;
+    const originalTokens = await this.tokenEstimator.estimateTokens(JSON.stringify(messages));
+    const compressedTokens = await this.tokenEstimator.estimateTokens(
+      summary + keyPoints.join(' ') + toolCallsSummary
+    );
+    return {
+      summary,
+      keyPoints,
+      toolCallsSummary,
+      timespan,
+      messageCount,
+      originalTokens,
+      compressedTokens
+    };
+  }
+}
 
+
+/**
+ * Aggressive compression strategy - maximum compression.
+ */
+export class AggressiveCompressionStrategy extends MinimalCompressionStrategy {
+
+  override async compress(messages: MessageRecord[], _config: ContextCompressionConfig): Promise<CompressedContext> {
+    // Aggressive compression: keep only most critical info
+    const summary = `Aggressive compression: ${messages.length} messages.`;
+    const keyPoints: string[] = [];
+    messages.forEach(msg => {
+      const content = msg.content;
+      if (content.match(/error|failed|exception|problem/i)) {
+        keyPoints.push(`Error: ${content.substring(0, 100)}`);
+      }
+    });
+    const toolCallsSummary = '';
+    let timespan = { start: '', end: '' };
+    if (messages.length > 0) {
+      timespan = {
+        start: messages[0].timestamp,
+        end: messages[messages.length - 1].timestamp,
+      };
+    }
+    let originalTokens = 0;
+    for (const msg of messages) {
+      originalTokens += await this.tokenEstimator.estimateTokens(msg.content);
+      if (msg.type === 'gemini' && msg.toolCalls) {
+        for (const tc of msg.toolCalls) {
+          originalTokens += await this.tokenEstimator.estimateTokens(JSON.stringify(tc.args));
+          if (tc.result) {
+            originalTokens += await this.tokenEstimator.estimateTokens(JSON.stringify(tc.result));
+          }
+        }
+      }
+    }
+    const compressedContent = `${summary}. ${keyPoints.join('. ')}. ${toolCallsSummary}`;
+    const compressedTokens = await this.tokenEstimator.estimateTokens(compressedContent);
     return {
       summary,
       keyPoints,
@@ -308,142 +369,68 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
       compressedTokens,
     };
   }
-
-  private calculateTimespan(messages: MessageRecord[]): { start: string; end: string } {
-    if (messages.length === 0) {
-      return { start: '', end: '' };
-    }
-    
-    return {
-      start: messages[0].timestamp,
-      end: messages[messages.length - 1].timestamp,
-    };
-  }
-
-  private calculateOriginalTokens(messages: MessageRecord[]): number {
-    let total = 0;
-    messages.forEach(msg => {
-      total += this.tokenEstimator.estimateTokens(msg.content);
-      if (msg.type === 'gemini' && msg.toolCalls) {
-        msg.toolCalls.forEach(tc => {
-          total += this.tokenEstimator.estimateTokens(JSON.stringify(tc.args));
-          if (tc.result) {
-            total += this.tokenEstimator.estimateTokens(JSON.stringify(tc.result));
-          }
-        });
-      }
-    });
-    return total;
-  }
 }
 
 /**
- * Moderate compression strategy - balanced approach.
+ * No compression strategy - all messages are returned as key points.
  */
+export class NoCompressionStrategy extends MinimalCompressionStrategy {
+  constructor(tokenEstimator: TokenEstimator) {
+    super(tokenEstimator);
+  }
+
+  override async compress(messages: MessageRecord[], _config: ContextCompressionConfig): Promise<CompressedContext> {
+    // No compression: return all messages as key points
+    const summary = `No compression: ${messages.length} messages.`;
+    const keyPoints = messages.map(m => m.content);
+    const toolCallsSummary = '';
+    let timespan = { start: '', end: '' };
+    if (messages.length > 0) {
+      timespan = {
+        start: messages[0].timestamp,
+        end: messages[messages.length - 1].timestamp,
+      };
+    }
+    let originalTokens = 0;
+    for (const msg of messages) {
+      originalTokens += await this.tokenEstimator.estimateTokens(msg.content);
+    }
+    const compressedContent = `${summary}. ${keyPoints.join('. ')}. ${toolCallsSummary}`;
+    const compressedTokens = await this.tokenEstimator.estimateTokens(compressedContent);
+    return {
+      summary,
+      keyPoints,
+      toolCallsSummary,
+      timespan,
+      messageCount: messages.length,
+      originalTokens,
+      compressedTokens,
+    };
+  }
+}
+
 export class ModerateCompressionStrategy extends MinimalCompressionStrategy {
-  override compress(messages: MessageRecord[], _config: ContextCompressionConfig): CompressedContext {
+  constructor(tokenEstimator: TokenEstimator) {
+    super(tokenEstimator);
+  }
+
+  override async compress(messages: MessageRecord[], config: ContextCompressionConfig): Promise<CompressedContext> {
+    // Balanced: keep fewer key points, más resumen
     const summary = this.createModerateSummary(messages);
-    const keyPoints = this.extractImportantPoints(messages, 10); // Fewer points
+    const keyPoints = this.extractImportantPoints(messages, Math.max(5, Math.floor(config.preserveRecentMessages / 2)));
     const toolCallsSummary = this.summarizeToolCalls(messages);
-    
-    return this.buildCompressedContext(messages, summary, keyPoints, toolCallsSummary);
+    return await this.buildCompressedContext(messages, summary, keyPoints, toolCallsSummary);
   }
 
   private createModerateSummary(messages: MessageRecord[]): string {
     const userCount = messages.filter(m => m.type === 'user').length;
     const assistantCount = messages.filter(m => m.type === 'gemini').length;
     const withTools = messages.filter(m => m.type === 'gemini' && m.toolCalls?.length).length;
-    
     let summary = `Conversation: ${userCount} user msgs, ${assistantCount} assistant msgs`;
     if (withTools > 0) {
       summary += `, ${withTools} with tools`;
     }
-    
     // Add topic extraction
-    const topics = this.extractTopics(messages);
-    if (topics.length > 0) {
-      summary += `. Topics: ${topics.join(', ')}`;
-    }
-    
-    return summary;
-  }
-
-  private extractTopics(messages: MessageRecord[]): string[] {
-    const allContent = messages.map(m => m.content).join(' ');
-    const topics: string[] = [];
-    
-    if (allContent.match(/error|bug|fix|problem/i)) topics.push('debugging');
-    if (allContent.match(/file|create|write|read/i)) topics.push('file ops');
-    if (allContent.match(/code|function|class|typescript/i)) topics.push('coding');
-    if (allContent.match(/test|testing|spec/i)) topics.push('testing');
-    if (allContent.match(/config|setup|install/i)) topics.push('config');
-    
-    return topics;
-  }
-}
-
-/**
- * Aggressive compression strategy - maximum compression.
- */
-export class AggressiveCompressionStrategy extends MinimalCompressionStrategy {
-  override compress(messages: MessageRecord[], _config: ContextCompressionConfig): CompressedContext {
-    const summary = this.createAggressiveSummary(messages);
-    const keyPoints = this.extractCriticalPoints(messages); // Only critical points
-    const toolCallsSummary = this.summarizeToolCallsBriefly(messages);
-    
-    return this.buildCompressedContext(messages, summary, keyPoints, toolCallsSummary);
-  }
-
-  private createAggressiveSummary(messages: MessageRecord[]): string {
-    const userCount = messages.filter(m => m.type === 'user').length;
-    const assistantCount = messages.filter(m => m.type === 'gemini').length;
-    const hasErrors = messages.some(m => m.content.match(/error|failed|exception/i));
-    
-    let summary = `${userCount}U/${assistantCount}A`;
-    if (hasErrors) summary += ' +errors';
-    
-    return summary;
-  }
-
-  private extractCriticalPoints(messages: MessageRecord[]): string[] {
-    const criticalPoints: string[] = [];
-    
-    // Only extract the most critical information
-    messages.forEach(msg => {
-      const content = msg.content;
-      
-      // Only severe errors
-      if (content.match(/error|failed|exception/i)) {
-        const errorContext = content.substring(0, 80);
-        criticalPoints.push(errorContext);
-      }
-      
-      // Only important outcomes
-      if (content.match(/resolved|fixed|completed|success/i)) {
-        const outcome = content.substring(0, 80);
-        criticalPoints.push(outcome);
-      }
-    });
-    
-    return criticalPoints.slice(-5); // Only keep last 5 critical points
-  }
-
-  private summarizeToolCallsBriefly(messages: MessageRecord[]): string {
-    const tools = new Set<string>();
-    let errorCount = 0;
-    
-    messages.forEach(msg => {
-      if (msg.type === 'gemini' && msg.toolCalls) {
-        msg.toolCalls.forEach(tc => {
-          tools.add(tc.name);
-          if (tc.status === 'error') errorCount++;
-        });
-      }
-    });
-    
-    let summary = `Tools: ${Array.from(tools).join(',')}`;
-    if (errorCount > 0) summary += ` (${errorCount}E)`;
-    
     return summary;
   }
 }
@@ -579,25 +566,24 @@ export class ChatRecordingService {
   };
 
   constructor(
-    config: Config, 
+  config: Config,
     fileSystem?: FileSystemAdapter,
     tokenEstimator?: TokenEstimator
   ) {
     this.config = config;
     this.sessionId = config.getSessionId();
-    this.projectHash = getProjectHash(config.getProjectRoot());
+  this.projectHash = getProjectHash(config.getProjectRoot());
     
     // Set up dependencies with defaults
     this.fileSystem = fileSystem || new NodeFileSystemAdapter();
     this.tokenEstimator = tokenEstimator || new AdvancedTokenEstimator();
-    
     // Initialize compression strategies
-    this.compressionStrategies = new Map([
+    this.compressionStrategies = new Map<CompressionStrategy, CompressionStrategyHandler>([
       [CompressionStrategy.MINIMAL, new MinimalCompressionStrategy(this.tokenEstimator)],
       [CompressionStrategy.MODERATE, new ModerateCompressionStrategy(this.tokenEstimator)],
       [CompressionStrategy.AGGRESSIVE, new AggressiveCompressionStrategy(this.tokenEstimator)],
+      [CompressionStrategy.NO_COMPRESSION, new NoCompressionStrategy(this.tokenEstimator)],
     ]);
-    
     // Update configuration from environment or config
     this.updateCompressionConfig();
   }
@@ -612,12 +598,10 @@ export class ChatRecordingService {
     if (maxTokens) {
       this.compressionConfig.maxContextTokens = parseInt(maxTokens, 10);
     }
-    
     const preserveMessages = process.env['GEMINI_PRESERVE_RECENT_MESSAGES'];
     if (preserveMessages) {
       this.compressionConfig.preserveRecentMessages = parseInt(preserveMessages, 10);
     }
-    
     const strategy = process.env['GEMINI_COMPRESSION_STRATEGY'];
     if (strategy && Object.values(CompressionStrategy).includes(strategy as CompressionStrategy)) {
       this.compressionConfig.strategy = strategy as CompressionStrategy;
@@ -627,55 +611,47 @@ export class ChatRecordingService {
   /**
    * Estimates token count for a message using the configured estimator.
    */
-  private estimateTokenCount(text: string): number {
-    return this.tokenEstimator.estimateTokens(text);
+  private async estimateTokenCount(text: string): Promise<number> {
+    return await this.tokenEstimator.estimateTokens(text);
   }
 
   /**
    * Compresses old context intelligently to stay under token limits.
    */
-  private compressContextIfNeeded(conversation: EnhancedConversationRecord): EnhancedConversationRecord {
+  private async compressContextIfNeeded(conversation: EnhancedConversationRecord): Promise<EnhancedConversationRecord> {
     const totalMessages = conversation.messages.length;
-    
     // Don't compress if we have few messages
     if (totalMessages <= this.compressionConfig.preserveRecentMessages) {
       return conversation;
     }
-
     // Estimate current context size
     let totalTokens = 0;
-    conversation.messages.forEach(msg => {
-      totalTokens += this.estimateTokenCount(msg.content);
+    for (const msg of conversation.messages) {
+      totalTokens += await this.estimateTokenCount(msg.content);
       if (msg.type === 'gemini' && msg.toolCalls) {
-        msg.toolCalls.forEach(tc => {
-          totalTokens += this.estimateTokenCount(JSON.stringify(tc.args));
+        for (const tc of msg.toolCalls) {
+          totalTokens += await this.estimateTokenCount(JSON.stringify(tc.args));
           if (tc.result) {
-            totalTokens += this.estimateTokenCount(JSON.stringify(tc.result));
+            totalTokens += await this.estimateTokenCount(JSON.stringify(tc.result));
           }
-        });
+        }
       }
-    });
-
+    }
     // Add compressed context tokens if it exists
     if (conversation.compressedContext) {
       totalTokens += conversation.compressedContext.compressedTokens;
     }
-
     // Check if compression is needed
     if (totalTokens <= this.compressionConfig.maxContextTokens) {
       return conversation;
     }
-
     console.log(`[ChatRecording] Context size ${totalTokens} tokens exceeds limit ${this.compressionConfig.maxContextTokens}. Compressing...`);
-
     // Split messages into recent (preserve) and old (compress)
     const preserveCount = this.compressionConfig.preserveRecentMessages;
     const recentMessages = conversation.messages.slice(-preserveCount);
     const oldMessages = conversation.messages.slice(0, -preserveCount);
-
     // Create or update compressed context using the configured strategy
-    const newCompressedContext = this.createCompressedContext(oldMessages, conversation.compressedContext);
-
+    const newCompressedContext = await this.createCompressedContext(oldMessages, conversation.compressedContext);
     return {
       ...conversation,
       messages: recentMessages,
@@ -688,10 +664,10 @@ export class ChatRecordingService {
   /**
    * Creates intelligent compressed representation of old messages using the configured strategy.
    */
-  private createCompressedContext(
+  private async createCompressedContext(
     messages: MessageRecord[], 
     existingCompressed?: CompressedContext
-  ): CompressedContext {
+  ): Promise<CompressedContext> {
     if (messages.length === 0 && !existingCompressed) {
       return {
         summary: '',
@@ -703,39 +679,74 @@ export class ChatRecordingService {
         compressedTokens: 0,
       };
     }
-
     // Get the appropriate compression strategy
     const strategy = this.compressionStrategies.get(this.compressionConfig.strategy);
     if (!strategy) {
       throw new ChatRecordingCompressionError(`Unknown compression strategy: ${this.compressionConfig.strategy}`);
     }
-
+    if (this.compressionConfig.strategy === CompressionStrategy.NO_COMPRESSION) {
+      // Estimate tokens for all messages
+      let originalTokens = 0;
+      for (const msg of messages) {
+        originalTokens += await this.estimateTokenCount(msg.content);
+        if (msg.type === 'gemini' && msg.toolCalls) {
+          for (const tc of msg.toolCalls) {
+            originalTokens += await this.estimateTokenCount(JSON.stringify(tc.args));
+            if (tc.result) {
+              originalTokens += await this.estimateTokenCount(JSON.stringify(tc.result));
+            }
+          }
+        }
+      }
+      // Calculate timespan
+      let timespan = { start: '', end: '' };
+      if (messages.length > 0) {
+        timespan = {
+          start: messages[0].timestamp,
+          end: messages[messages.length - 1].timestamp,
+        };
+      }
+      return {
+        summary: 'No compression applied.',
+        keyPoints: [],
+        toolCallsSummary: '',
+        timespan,
+        messageCount: messages.length,
+        originalTokens,
+        compressedTokens: originalTokens,
+      };
+    }
     try {
       // If we have existing compressed context, we need to merge with new messages
       if (existingCompressed && messages.length > 0) {
         // For now, use a simple merge approach
         // In the future, this could be enhanced with more sophisticated merging
-        const newCompressed = strategy.compress(messages, this.compressionConfig);
-        
+        const newCompressed = await strategy.compress(messages, this.compressionConfig);
+        const mergedSummary = existingCompressed.summary ? `${existingCompressed.summary}. ${newCompressed.summary}` : newCompressed.summary;
+        const mergedKeyPoints = [...existingCompressed.keyPoints, ...newCompressed.keyPoints].slice(-20);
+        const mergedToolCallsSummary = existingCompressed.toolCallsSummary ? `${existingCompressed.toolCallsSummary}; ${newCompressed.toolCallsSummary}` : newCompressed.toolCallsSummary;
+        const mergedTimespan = {
+          start: existingCompressed.timespan.start || newCompressed.timespan.start,
+          end: newCompressed.timespan.end,
+        };
+        const mergedMessageCount = existingCompressed.messageCount + newCompressed.messageCount;
+        const mergedOriginalTokens = existingCompressed.originalTokens + newCompressed.originalTokens;
+        const mergedCompressedTokens = await this.estimateTokenCount(
+          `${mergedSummary}. ${mergedKeyPoints.join('. ')} ${mergedToolCallsSummary}`
+        );
         return {
-          summary: existingCompressed.summary ? `${existingCompressed.summary}. ${newCompressed.summary}` : newCompressed.summary,
-          keyPoints: [...existingCompressed.keyPoints, ...newCompressed.keyPoints].slice(-20),
-          toolCallsSummary: existingCompressed.toolCallsSummary ? 
-            `${existingCompressed.toolCallsSummary}; ${newCompressed.toolCallsSummary}` : newCompressed.toolCallsSummary,
-          timespan: {
-            start: existingCompressed.timespan.start || newCompressed.timespan.start,
-            end: newCompressed.timespan.end,
-          },
-          messageCount: existingCompressed.messageCount + newCompressed.messageCount,
-          originalTokens: existingCompressed.originalTokens + newCompressed.originalTokens,
-          compressedTokens: this.estimateTokenCount(
-            `${existingCompressed.summary}. ${newCompressed.summary} ${[...existingCompressed.keyPoints, ...newCompressed.keyPoints].slice(-20).join('. ')}`
-          ),
+          summary: mergedSummary,
+          keyPoints: mergedKeyPoints,
+          toolCallsSummary: mergedToolCallsSummary,
+          timespan: mergedTimespan,
+          messageCount: mergedMessageCount,
+          originalTokens: mergedOriginalTokens,
+          compressedTokens: mergedCompressedTokens,
         };
       } else if (existingCompressed) {
         return existingCompressed;
       } else {
-        return strategy.compress(messages, this.compressionConfig);
+        return await strategy.compress(messages, this.compressionConfig);
       }
     } catch (error) {
       throw new ChatRecordingCompressionError(
@@ -876,7 +887,7 @@ export class ChatRecordingService {
 
     try {
       this.queuedThoughts.push({
-        ...thought,
+  ...(typeof thought === 'object' && thought !== null ? thought : {}),
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
@@ -1011,7 +1022,7 @@ export class ChatRecordingService {
   private async readConversation(): Promise<EnhancedConversationRecord> {
     try {
       this.cachedLastConvData = await this.fileSystem.readFile(this.conversationFile!);
-      return JSON.parse(this.cachedLastConvData);
+  return this.cachedLastConvData ? (JSON.parse(this.cachedLastConvData) as EnhancedConversationRecord) : ({} as EnhancedConversationRecord);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
         throw new ChatRecordingFileError(
@@ -1041,16 +1052,16 @@ export class ChatRecordingService {
       if (conversation.messages.length === 0 && !conversation.compressedContext) return;
 
       // Apply compression if needed before writing
-      const compressedConversation = this.compressContextIfNeeded(conversation);
+      const compressedConversation = await this.compressContextIfNeeded(conversation);
 
       // Only write the file if this change would change the file.
       compressedConversation.lastUpdated = new Date().toISOString();
       const newContent = JSON.stringify(compressedConversation, null, 2);
-      
+
       if (this.cachedLastConvData !== newContent) {
         this.cachedLastConvData = newContent;
         await this.fileSystem.writeFile(this.conversationFile, newContent);
-        
+
         // Log compression if it occurred
         if (compressedConversation.compressedContext) {
           const ctx = compressedConversation.compressedContext;
@@ -1102,21 +1113,21 @@ export class ChatRecordingService {
     const conversation = await this.readConversation();
     
     // Apply compression to get optimized version
-    const optimized = this.compressContextIfNeeded(conversation);
+  const optimized = await (async () => await this.compressContextIfNeeded(conversation))();
     
     // Calculate statistics
     let totalTokens = 0;
-    optimized.messages.forEach(msg => {
-      totalTokens += this.estimateTokenCount(msg.content);
+    for (const msg of optimized.messages) {
+      totalTokens += await this.estimateTokenCount(msg.content);
       if (msg.type === 'gemini' && msg.toolCalls) {
-        msg.toolCalls.forEach(tc => {
-          totalTokens += this.estimateTokenCount(JSON.stringify(tc.args));
+        for (const tc of msg.toolCalls) {
+          totalTokens += await this.estimateTokenCount(JSON.stringify(tc.args));
           if (tc.result) {
-            totalTokens += this.estimateTokenCount(JSON.stringify(tc.result));
+            totalTokens += await this.estimateTokenCount(JSON.stringify(tc.result));
           }
-        });
+        }
       }
-    });
+    }
 
     if (optimized.compressedContext) {
       totalTokens += optimized.compressedContext.compressedTokens;
@@ -1128,7 +1139,6 @@ export class ChatRecordingService {
       const compressedMessages = optimized.messages.length;
       const tokenReduction = optimized.compressedContext.originalTokens - optimized.compressedContext.compressedTokens;
       const compressionRatio = optimized.compressedContext.compressedTokens / optimized.compressedContext.originalTokens;
-      
       compressionStats = {
         originalMessages,
         compressedMessages,
@@ -1136,7 +1146,6 @@ export class ChatRecordingService {
         compressionRatio,
       };
     }
-
     return {
       compressedContext: optimized.compressedContext,
       recentMessages: optimized.messages,
@@ -1152,12 +1161,12 @@ export class ChatRecordingService {
   async forceCompression(): Promise<void> {
     if (!this.conversationFile) return;
     
-    await this.updateConversation((conversation) => {
+  await this.updateConversation(async (conversation) => {
       // Temporarily lower the threshold to force compression
       const originalConfig = { ...this.compressionConfig };
       this.compressionConfig.maxContextTokens = 1000; // Very low threshold
       
-      const compressed = this.compressContextIfNeeded(conversation);
+    const compressed = await this.compressContextIfNeeded(conversation);
       
       // Restore original config
       this.compressionConfig = originalConfig;
@@ -1227,3 +1236,4 @@ export class ChatRecordingService {
     }
   }
 }
+

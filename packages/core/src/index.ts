@@ -57,7 +57,8 @@ export * from './utils/ignorePatterns.js';
 // Export services
 export * from './services/fileDiscoveryService.js';
 export * from './services/gitService.js';
-export * from './services/chatRecordingService.js';
+// Remove ambiguous export to resolve TS2308
+
 export * from './services/fileSystemService.js';
 export * from './services/loopDetectionService.js';
 
@@ -120,3 +121,8 @@ export { Storage } from './config/storage.js';
 
 // Re-export minimal @google/genai types (provided via types/genai-shims.d.ts)
 export type { Part, PartListUnion, PartUnion, FinishReason, FunctionCall, FunctionResponse } from './types/genai-shims.js';
+
+// Explicitly re-export ambiguous members to resolve TS2308
+export { Config } from './config/config.js';
+export { Status } from './core/coreToolScheduler.js';
+export { ThoughtSummary } from './core/turn.js';

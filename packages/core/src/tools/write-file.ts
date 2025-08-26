@@ -5,6 +5,7 @@
  */
 
 import fs from 'fs';
+import { promises as fsp } from 'fs';
 import path from 'path';
 import * as Diff from 'diff';
 import { Config, ApprovalMode } from '../config/config.js';
@@ -268,7 +269,7 @@ class WriteFileToolInvocation extends BaseToolInvocation<
       skip_correction,
     } = this.params;
 
-    if (mode === 'append' && !fs.existsSync(file_path)) {
+  if (mode === 'append' && !(await (async () => { try { await fsp.stat(file_path); return true; } catch { return false; } })())) {
       // If appending to a non-existent file, it's the same as overwriting an empty file.
       mode = 'overwrite';
     }
@@ -277,8 +278,7 @@ class WriteFileToolInvocation extends BaseToolInvocation<
     if (
       mode === 'overwrite' &&
       !content &&
-      fs.existsSync(file_path) &&
-      fs.statSync(file_path).size > 0
+      (await (async () => { try { const s = await fsp.stat(file_path); return s.size > 0; } catch { return false; } })())
     ) {
       const errorMsg = `Attempted to overwrite a non-empty file with empty content. Operation aborted to prevent data loss.`;
       return {
@@ -343,21 +343,21 @@ class WriteFileToolInvocation extends BaseToolInvocation<
     } else {
       // If skipping correction, assume fileContent is finalContent
       // and determine fileExists/isNewFile based on simple fs.existsSync
-      fileExists = fs.existsSync(file_path);
-      isNewFile = !fileExists;
-      originalContent = fileExists ? fs.readFileSync(file_path, 'utf8') : '';
+  fileExists = await (async () => { try { await fsp.stat(file_path); return true; } catch { return false; } })();
+  isNewFile = !fileExists;
+  originalContent = fileExists ? await fsp.readFile(file_path, 'utf8') : '';
     }
 
     try {
       const dirName = path.dirname(file_path);
-      if (!fs.existsSync(dirName)) {
-        fs.mkdirSync(dirName, { recursive: true });
+      if (!(await (async () => { try { await fsp.stat(dirName); return true; } catch { return false; } })())) {
+        await fsp.mkdir(dirName, { recursive: true });
       }
       // Create a backup of the existing file to allow restore on failure.
       const backupPath = `${file_path}.backup`;
       try {
-        if (fs.existsSync(file_path)) {
-          fs.copyFileSync(file_path, backupPath);
+        if (await (async () => { try { await fsp.stat(file_path); return true; } catch { return false; } })()) {
+          await fsp.copyFile(file_path, backupPath);
         }
       } catch (_e) {
         // ignore backup creation failures; proceed to write but log in debug
@@ -378,9 +378,9 @@ class WriteFileToolInvocation extends BaseToolInvocation<
           if (!verify2.success || verify2.data !== fileContent) {
             // restore from backup if available
             try {
-              if (fs.existsSync(backupPath)) {
-                fs.copyFileSync(backupPath, file_path);
-              }
+              if (await (async () => { try { await fsp.stat(backupPath); return true; } catch { return false; } })()) {
+                  await fsp.copyFile(backupPath, file_path);
+                }
             } catch (_restoreErr) {
               if (this.config.getDebugMode()) console.error('Failed to restore backup after failed write verification', _restoreErr);
             }

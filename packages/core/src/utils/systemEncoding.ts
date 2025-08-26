@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { execSync } from 'child_process';
+import { exec } from 'child_process';
 import os from 'os';
 import { detect as chardetDetect } from 'chardet';
 
@@ -29,7 +29,15 @@ export function resetEncodingCache(): void {
 export function getCachedEncodingForBuffer(buffer: Buffer): string {
   // Cache system encoding detection since it's system-wide
   if (cachedSystemEncoding === undefined) {
-    cachedSystemEncoding = getSystemEncoding();
+    // Start async detection in background and mark as "checked but not found" (null)
+    cachedSystemEncoding = null;
+    void detectSystemEncodingAsync()
+      .then((enc) => {
+        cachedSystemEncoding = enc;
+      })
+      .catch(() => {
+        cachedSystemEncoding = null;
+      });
   }
 
   // If we have a cached system encoding, use it
@@ -50,10 +58,34 @@ export function getCachedEncodingForBuffer(buffer: Buffer): string {
  * @returns The system encoding as a string, or null if detection fails.
  */
 export function getSystemEncoding(): string | null {
+  // This synchronous helper tries to derive encoding from environment variables.
+  // For any heavier system queries we perform detection in background.
+  const env = process.env;
+  const locale = env['LC_ALL'] || env['LC_CTYPE'] || env['LANG'] || '';
+
+  if (locale) {
+    const match = locale.match(/\.(.+)/); // e.g., "en_US.UTF-8"
+    if (match && match[1]) {
+      return match[1].toLowerCase();
+    }
+    if (!locale.includes('.')) {
+      return locale.toLowerCase();
+    }
+  }
+
+  return null;
+}
+
+async function detectSystemEncodingAsync(): Promise<string | null> {
   // Windows
   if (os.platform() === 'win32') {
     try {
-      const output = execSync('chcp', { encoding: 'utf8' });
+      const output = await new Promise<string>((resolve, reject) => {
+        exec('chcp', { encoding: 'utf8' }, (err, stdout) => {
+          if (err) return reject(err);
+          resolve(String(stdout));
+        });
+      });
       const match = output.match(/:\s*(\d+)/);
       if (match) {
         const codePage = parseInt(match[1], 10);
@@ -61,48 +93,38 @@ export function getSystemEncoding(): string | null {
           return windowsCodePageToEncoding(codePage);
         }
       }
-      // Only warn if we can't parse the output format, not if windowsCodePageToEncoding fails
-      throw new Error(
-        `Unable to parse Windows code page from 'chcp' output "${output.trim()}". `,
-      );
+      console.warn(`Unable to parse Windows code page from 'chcp' output "${output.trim()}".`);
     } catch (error) {
-      console.warn(
-        `Failed to get Windows code page using 'chcp' command: ${error instanceof Error ? error.message : String(error)}. ` +
-          `Will attempt to detect encoding from command output instead.`,
-      );
+      console.warn(`Failed to get Windows code page using 'chcp' command: ${error instanceof Error ? error.message : String(error)}.`);
     }
     return null;
   }
 
-  // Unix-like
-  // Use environment variables LC_ALL, LC_CTYPE, and LANG to determine the
-  // system encoding. However, these environment variables might not always
-  // be set or accurate. Handle cases where none of these variables are set.
+  // Unix-like: prefer 'locale charmap' if env vars didn't help
   const env = process.env;
   let locale = env['LC_ALL'] || env['LC_CTYPE'] || env['LANG'] || '';
-
-  // Fallback to querying the system directly when environment variables are missing
-  if (!locale) {
-    try {
-      locale = execSync('locale charmap', { encoding: 'utf8' })
-        .toString()
-        .trim();
-    } catch (_e) {
-      console.warn('Failed to get locale charmap.');
-      return null;
-    }
+  if (locale) {
+    const match = locale.match(/\.(.+)/);
+    if (match && match[1]) return match[1].toLowerCase();
+    if (!locale.includes('.')) return locale.toLowerCase();
   }
 
-  const match = locale.match(/\.(.+)/); // e.g., "en_US.UTF-8"
-  if (match && match[1]) {
-    return match[1].toLowerCase();
+  try {
+    const out = await new Promise<string>((resolve, reject) => {
+      exec('locale charmap', { encoding: 'utf8' }, (err, stdout) => {
+        if (err) return reject(err);
+        resolve(String(stdout));
+      });
+    });
+    locale = out.trim();
+  } catch (_err) {
+    console.warn('Failed to get locale charmap.');
+    return null;
   }
 
-  // Handle cases where locale charmap returns just the encoding name (e.g., "UTF-8")
-  if (locale && !locale.includes('.')) {
-    return locale.toLowerCase();
-  }
-
+  const match = locale.match(/\.(.+)/);
+  if (match && match[1]) return match[1].toLowerCase();
+  if (locale && !locale.includes('.')) return locale.toLowerCase();
   return null;
 }
 
