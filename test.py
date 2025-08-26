@@ -21,3 +21,4 @@ HOLA MUNDO
 
 EDITADO POR GEMINI
 NEW LINE ADDED BY GEMINI
+# This is a test edit by Gemini CLI

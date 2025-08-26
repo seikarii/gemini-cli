@@ -7,7 +7,7 @@
 import * as path from 'node:path';
 import * as os from 'os';
 import * as crypto from 'crypto';
-import * as fs from 'fs';
+import * as fsPromises from 'node:fs/promises';
 
 export const GEMINI_DIR = '.gemini';
 export const GOOGLE_ACCOUNTS_FILENAME = 'google_accounts.json';
@@ -18,6 +18,19 @@ export class Storage {
 
   constructor(targetDir: string) {
     this.targetDir = targetDir;
+  }
+
+  /**
+   * Async factory that ensures project temp dirs exist before returning Storage
+   */
+  static async create(targetDir: string): Promise<Storage> {
+    const s = new Storage(targetDir);
+    try {
+      await s.ensureProjectTempDirExists();
+    } catch (_e) {
+      // Best-effort: ignore errors creating temp dir here and let callers handle if needed
+    }
+    return s;
   }
 
   static getGlobalGeminiDir(): string {
@@ -66,8 +79,8 @@ export class Storage {
     return path.join(tempDir, hash);
   }
 
-  ensureProjectTempDirExists(): void {
-    fs.mkdirSync(this.getProjectTempDir(), { recursive: true });
+  async ensureProjectTempDirExists(): Promise<void> {
+    await fsPromises.mkdir(this.getProjectTempDir(), { recursive: true });
   }
 
   static getOAuthCredsPath(): string {

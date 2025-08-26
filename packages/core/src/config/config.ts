@@ -308,7 +308,7 @@ export class Config {
   private readonly skipNextSpeakerCheck: boolean;
   private readonly enablePromptCompletion: boolean = false;
   private initialized: boolean = false;
-  readonly storage: Storage;
+  storage: Storage;
   private readonly fileExclusions: FileExclusions;
 
   constructor(params: ConfigParameters) {
@@ -380,7 +380,9 @@ export class Config {
     this.useRipgrep = params.useRipgrep ?? false;
     this.shouldUseNodePtyShell = params.shouldUseNodePtyShell ?? false;
     this.skipNextSpeakerCheck = params.skipNextSpeakerCheck ?? false;
-    this.storage = new Storage(this.targetDir);
+  // Create a synchronous Storage instance for code that expects it immediately.
+  // The real async initialization (ensuring directories exist) happens in initialize().
+  this.storage = new Storage(this.targetDir);
     this.enablePromptCompletion = params.enablePromptCompletion ?? false;
     this.fileExclusions = new FileExclusions(this);
 
@@ -401,6 +403,12 @@ export class Config {
       throw Error('Config was already initialized');
     }
     this.initialized = true;
+    // Ensure storage directories exist and replace with an initialized instance.
+    try {
+      this.storage = await Storage.create(this.targetDir);
+    } catch {
+      // If storage creation fails, keep the sync instance; callers should handle errors when needed.
+    }
     // Initialize centralized FileDiscoveryService
     this.getFileService();
     if (this.getCheckpointingEnabled()) {
