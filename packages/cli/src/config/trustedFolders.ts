@@ -5,6 +5,7 @@
  */
 
 import * as fs from 'fs';
+import { promises as fsp } from 'fs';
 import * as path from 'path';
 import { homedir } from 'os';
 import { getErrorMessage, isWithinRoot } from '@google/gemini-cli-core';
@@ -96,15 +97,15 @@ export function saveTrustedFolders(
   try {
     // Ensure the directory exists
     const dirPath = path.dirname(trustedFoldersFile.path);
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
-    }
-
-    fs.writeFileSync(
-      trustedFoldersFile.path,
-      JSON.stringify(trustedFoldersFile.config, null, 2),
-      'utf-8',
-    );
+    // Use non-blocking writes to avoid blocking the event loop in long-running processes.
+    void fsp.mkdir(dirPath, { recursive: true }).catch(() => {});
+    void fsp
+      .writeFile(
+        trustedFoldersFile.path,
+        JSON.stringify(trustedFoldersFile.config, null, 2),
+        'utf-8',
+      )
+      .catch((err) => console.error('Error saving trusted folders file:', err));
   } catch (error) {
     console.error('Error saving trusted folders file:', error);
   }

@@ -24,7 +24,7 @@ import { formatMemoryUsage } from '../utils/formatters.js';
 import crypto from 'crypto';
 import path from 'path';
 import os from 'os';
-import fs from 'fs';
+import { promises as fsp } from 'fs';
 
 export const OUTPUT_UPDATE_INTERVAL_MS = 1000;
 const MAX_OUTPUT_LENGTH = 10000;
@@ -193,7 +193,7 @@ export const useShellCommandProcessor = (
           executionPid = pid;
 
           result
-            .then((result: ShellExecutionResult) => {
+            .then(async (result: ShellExecutionResult) => {
               setPendingHistoryItem(null);
 
               let mainContent: string;
@@ -223,11 +223,15 @@ export const useShellCommandProcessor = (
                 finalOutput = `Command exited with code ${result.exitCode}.\n${finalOutput}`;
               }
 
-              if (pwdFilePath && fs.existsSync(pwdFilePath)) {
-                const finalPwd = fs.readFileSync(pwdFilePath, 'utf8').trim();
-                if (finalPwd && finalPwd !== targetDir) {
-                  const warning = `WARNING: shell mode is stateless; the directory change to '${finalPwd}' will not persist.`;
-                  finalOutput = `${warning}\n\n${finalOutput}`;
+              if (pwdFilePath) {
+                try {
+                  const finalPwd = (await fsp.readFile(pwdFilePath, 'utf8')).trim();
+                  if (finalPwd && finalPwd !== targetDir) {
+                    const warning = `WARNING: shell mode is stateless; the directory change to '${finalPwd}' will not persist.`;
+                    finalOutput = `${warning}\n\n${finalOutput}`;
+                  }
+                } catch {
+                  // ignore if file missing or unreadable
                 }
               }
 
@@ -265,10 +269,10 @@ export const useShellCommandProcessor = (
                 userMessageTimestamp,
               );
             })
-            .finally(() => {
+              .finally(() => {
               abortSignal.removeEventListener('abort', abortHandler);
-              if (pwdFilePath && fs.existsSync(pwdFilePath)) {
-                fs.unlinkSync(pwdFilePath);
+              if (pwdFilePath) {
+                void fsp.unlink(pwdFilePath).catch(() => {});
               }
               resolve();
             });
@@ -285,8 +289,8 @@ export const useShellCommandProcessor = (
           );
 
           // Perform cleanup here as well
-          if (pwdFilePath && fs.existsSync(pwdFilePath)) {
-            fs.unlinkSync(pwdFilePath);
+          if (pwdFilePath) {
+            void fsp.unlink(pwdFilePath).catch(() => {});
           }
 
           resolve(); // Resolve the promise to unblock `onExec`

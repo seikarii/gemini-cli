@@ -7,7 +7,7 @@
 import { EditorType, openDiff } from '../utils/editor.js';
 import * as Diff from 'diff';
 import path from 'path';
-import fs from 'fs';
+import { promises as fsp } from 'fs';
 import os from 'os';
 import { DEFAULT_DIFF_OPTIONS } from './diffOptions.js';
 import { isNodeError } from '../utils/errors.js';
@@ -48,16 +48,20 @@ export function isModifiableDeclarativeTool(
   return 'getModifyContext' in tool;
 }
 
-function createTempFilesForModify(
+async function createTempFilesForModify(
   currentContent: string,
   proposedContent: string,
   file_path: string,
-): { oldPath: string; newPath: string } {
+): Promise<{ oldPath: string; newPath: string }> {
   const tempDir = os.tmpdir();
   const diffDir = path.join(tempDir, 'gemini-cli-tool-modify-diffs');
 
-  if (!fs.existsSync(diffDir)) {
-    fs.mkdirSync(diffDir, { recursive: true });
+  // Ensure the diff directory exists (recursive handles existing case).
+  try {
+    await fsp.mkdir(diffDir, { recursive: true });
+  } catch (err: unknown) {
+    // Re-throw unless it's a benign EEXIST race or similar.
+    if (!isNodeError(err) || (err as NodeJS.ErrnoException).code !== 'EEXIST') throw err;
   }
 
   const ext = path.extname(file_path);
@@ -72,32 +76,32 @@ function createTempFilesForModify(
     `gemini-cli-modify-${fileName}-new-${timestamp}${ext}`,
   );
 
-  fs.writeFileSync(tempOldPath, currentContent, 'utf8');
-  fs.writeFileSync(tempNewPath, proposedContent, 'utf8');
+  await fsp.writeFile(tempOldPath, currentContent, 'utf8');
+  await fsp.writeFile(tempNewPath, proposedContent, 'utf8');
 
   return { oldPath: tempOldPath, newPath: tempNewPath };
 }
 
-function getUpdatedParams<ToolParams>(
+async function getUpdatedParams<ToolParams>(
   tmpOldPath: string,
   tempNewPath: string,
   originalParams: ToolParams,
   modifyContext: ModifyContext<ToolParams>,
-): { updatedParams: ToolParams; updatedDiff: string } {
+): Promise<{ updatedParams: ToolParams; updatedDiff: string }> {
   let oldContent = '';
   let newContent = '';
 
   try {
-    oldContent = fs.readFileSync(tmpOldPath, 'utf8');
-  } catch (err) {
-    if (!isNodeError(err) || err.code !== 'ENOENT') throw err;
+    oldContent = await fsp.readFile(tmpOldPath, 'utf8');
+  } catch (err: unknown) {
+    if (!isNodeError(err) || (err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
     oldContent = '';
   }
 
   try {
-    newContent = fs.readFileSync(tempNewPath, 'utf8');
-  } catch (err) {
-    if (!isNodeError(err) || err.code !== 'ENOENT') throw err;
+    newContent = await fsp.readFile(tempNewPath, 'utf8');
+  } catch (err: unknown) {
+    if (!isNodeError(err) || (err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
     newContent = '';
   }
 
@@ -118,17 +122,17 @@ function getUpdatedParams<ToolParams>(
   return { updatedParams, updatedDiff };
 }
 
-function deleteTempFiles(oldPath: string, newPath: string): void {
+async function deleteTempFiles(oldPath: string, newPath: string): Promise<void> {
   try {
-    fs.unlinkSync(oldPath);
-  } catch {
-    console.error(`Error deleting temp diff file: ${oldPath}`);
+    await fsp.unlink(oldPath);
+  } catch (err: unknown) {
+    console.error(`Error deleting temp diff file: ${oldPath}`, err);
   }
 
   try {
-    fs.unlinkSync(newPath);
-  } catch {
-    console.error(`Error deleting temp diff file: ${newPath}`);
+    await fsp.unlink(newPath);
+  } catch (err: unknown) {
+    console.error(`Error deleting temp diff file: ${newPath}`, err);
   }
 }
 
@@ -147,7 +151,7 @@ export async function modifyWithEditor<ToolParams>(
   const proposedContent =
     await modifyContext.getProposedContent(originalParams);
 
-  const { oldPath, newPath } = createTempFilesForModify(
+  const { oldPath, newPath } = await createTempFilesForModify(
     currentContent,
     proposedContent,
     modifyContext.getFilePath(originalParams),
@@ -155,7 +159,7 @@ export async function modifyWithEditor<ToolParams>(
 
   try {
     await openDiff(oldPath, newPath, editorType, onEditorClose);
-    const result = getUpdatedParams(
+    const result = await getUpdatedParams(
       oldPath,
       newPath,
       originalParams,
@@ -164,6 +168,6 @@ export async function modifyWithEditor<ToolParams>(
 
     return result;
   } finally {
-    deleteTempFiles(oldPath, newPath);
+    await deleteTempFiles(oldPath, newPath);
   }
 }

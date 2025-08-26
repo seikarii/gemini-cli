@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { spawnSync } from 'child_process';
-import fs from 'fs';
+import { spawn } from 'child_process';
+import { promises as fsp } from 'fs';
 import os from 'os';
 import pathMod from 'path';
 import { useState, useCallback, useEffect, useMemo, useReducer } from 'react';
@@ -1742,23 +1742,29 @@ export function useTextBuffer({
         process.env['VISUAL'] ??
         process.env['EDITOR'] ??
         (process.platform === 'win32' ? 'notepad' : 'vi');
-      const tmpDir = fs.mkdtempSync(pathMod.join(os.tmpdir(), 'gemini-edit-'));
+      const tmpDir = await fsp.mkdtemp(pathMod.join(os.tmpdir(), 'gemini-edit-'));
       const filePath = pathMod.join(tmpDir, 'buffer.txt');
-      fs.writeFileSync(filePath, text, 'utf8');
+      await fsp.writeFile(filePath, text, 'utf8');
 
       dispatch({ type: 'create_undo_snapshot' });
 
       const wasRaw = stdin?.isRaw ?? false;
+
+      const spawnEditor = (cmd: string, args: string[]): Promise<{ code: number | null; signal: NodeJS.Signals | null }> =>
+        new Promise((resolve, reject) => {
+          const child = spawn(cmd, args, { stdio: 'inherit' });
+          child.on('error', (err) => reject(err));
+          child.on('exit', (code, signal) => resolve({ code, signal }));
+        });
+
       try {
         setRawMode?.(false);
-        const { status, error } = spawnSync(editor, [filePath], {
-          stdio: 'inherit',
-        });
-        if (error) throw error;
-        if (typeof status === 'number' && status !== 0)
-          throw new Error(`External editor exited with status ${status}`);
+        const { code, signal } = await spawnEditor(editor, [filePath]);
+        if (signal) throw new Error(`External editor terminated by signal ${signal}`);
+        if (typeof code === 'number' && code !== 0)
+          throw new Error(`External editor exited with status ${code}`);
 
-        let newText = fs.readFileSync(filePath, 'utf8');
+        let newText = await fsp.readFile(filePath, 'utf8');
         newText = newText.replace(/\r\n?/g, '\n');
         dispatch({ type: 'set_text', payload: newText, pushToUndo: false });
       } catch (err) {
@@ -1766,12 +1772,12 @@ export function useTextBuffer({
       } finally {
         if (wasRaw) setRawMode?.(true);
         try {
-          fs.unlinkSync(filePath);
+          await fsp.unlink(filePath);
         } catch {
           /* ignore */
         }
         try {
-          fs.rmdirSync(tmpDir);
+          await fsp.rmdir(tmpDir);
         } catch {
           /* ignore */
         }

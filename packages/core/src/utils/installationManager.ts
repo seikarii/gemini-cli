@@ -5,6 +5,7 @@
  */
 
 import * as fs from 'fs';
+import { promises as fsp } from 'fs';
 import { randomUUID } from 'crypto';
 import * as path from 'node:path';
 import { Storage } from '../config/storage.js';
@@ -28,8 +29,9 @@ export class InstallationManager {
   private writeInstallationIdToFile(installationId: string) {
     const installationIdFile = this.getInstallationIdPath();
     const dir = path.dirname(installationIdFile);
-    fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(installationIdFile, installationId, 'utf-8');
+  // Use non-blocking writes so callers don't block the event loop when persisting the ID.
+  void fsp.mkdir(dir, { recursive: true }).catch(() => {});
+  void fsp.writeFile(installationIdFile, installationId, 'utf-8').catch(() => {});
   }
 
   /**
