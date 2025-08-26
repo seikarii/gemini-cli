@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import fs from 'fs';
+// import fs from 'fs';
 import path from 'path';
 import {
   BaseDeclarativeTool,
@@ -137,17 +137,16 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
    */
   async execute(_signal: AbortSignal): Promise<ToolResult> {
     try {
-      const stats = fs.statSync(this.params.path);
-      if (!stats) {
-        // fs.statSync throws on non-existence, so this check might be redundant
-        // but keeping for clarity. Error message adjusted.
+      // Centralized file info and directory listing
+      const fileInfoResult = await this.config.getFileSystemService().getFileInfo(this.params.path);
+      if (!fileInfoResult.success || !fileInfoResult.data || !fileInfoResult.data.exists) {
         return this.errorResult(
           `Error: Directory not found or inaccessible: ${this.params.path}`,
           `Directory not found or inaccessible.`,
           ToolErrorType.FILE_NOT_FOUND,
         );
       }
-      if (!stats.isDirectory()) {
+      if (!fileInfoResult.data.isDirectory) {
         return this.errorResult(
           `Error: Path is not a directory: ${this.params.path}`,
           `Path is not a directory.`,
@@ -155,7 +154,8 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
         );
       }
 
-      const files = fs.readdirSync(this.params.path);
+      const listResult = await this.config.getFileSystemService().listDirectory(this.params.path);
+      const files = listResult.success && listResult.data ? listResult.data : [];
 
       const defaultFileIgnores =
         this.config.getFileFilteringOptions() ?? DEFAULT_FILE_FILTERING_OPTIONS;
@@ -213,14 +213,15 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
         }
 
         try {
-          const stats = fs.statSync(fullPath);
-          const isDir = stats.isDirectory();
+          const fileInfoResult = await this.config.getFileSystemService().getFileInfo(fullPath);
+          if (!fileInfoResult.success || !fileInfoResult.data) continue;
+          const isDir = fileInfoResult.data.isDirectory;
           entries.push({
             name: file,
             path: fullPath,
             isDirectory: isDir,
-            size: isDir ? 0 : stats.size,
-            modifiedTime: stats.mtime,
+            size: isDir ? 0 : fileInfoResult.data.size,
+            modifiedTime: fileInfoResult.data.modified,
           });
         } catch (error) {
           // Log error internally but don't fail the whole listing

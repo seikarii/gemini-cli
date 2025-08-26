@@ -5,7 +5,7 @@
  */
 
 import path from 'path';
-import fs from 'fs/promises';
+// import fs from 'fs/promises';
 import { makeRelative, shortenPath } from '../utils/paths.js';
 import {
   BaseDeclarativeTool,
@@ -123,7 +123,9 @@ class ReadFileToolInvocation extends BaseToolInvocation<
     // Try to read port from file first
     try {
       const portFilePath = path.join(this.config.getTargetDir(), '.gemini', 'mew_port.txt');
-      const portStr = await fs.readFile(portFilePath, 'utf8');
+  const portResult = await this.config.getFileSystemService().readTextFile(portFilePath);
+  if (!portResult.success || typeof portResult.data !== 'string') throw new Error(portResult.error || 'Error reading port file');
+  const portStr = portResult.data;
       const parsedPort = parseInt(portStr.trim(), 10);
       if (!isNaN(parsedPort) && parsedPort > 0 && parsedPort < 65536) {
         const isAvailable = await this.checkPortAvailability(parsedPort);

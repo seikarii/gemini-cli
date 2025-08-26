@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import * as fs from 'fs';
-import { promises as fsp } from 'fs';
+// import * as fs from 'fs';
+// import { promises as fsp } from 'fs';
 import * as path from 'path';
 // diff module replaced by centralized diffUtils.createPatch where needed
 // Correct import for string-similarity (default import)
@@ -1222,17 +1222,11 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
       // If target file exists but is not writable, return FILE_WRITE_FAILURE to match expected behavior
       try {
         // Check if file exists and is writable. If it doesn't exist, creation is allowed.
-        try {
-          // If file exists, ensure it's writable
-          await fsp.access(this.params.file_path, fs.constants.F_OK);
-          await fsp.access(this.params.file_path, fs.constants.W_OK);
-        } catch (accessErr: unknown) {
-          // If the file does not exist, accessErr.code === 'ENOENT' -> allowed
-          const accessErrCode = (accessErr as NodeJS.ErrnoException | undefined)?.code;
-          if (accessErrCode === 'ENOENT') {
-            // file doesn't exist, creation will proceed
-          } else {
-            // File exists but is not writable or another error occurred
+        // Centralized permission and existence check
+        const fileInfoResult = await this.config.getFileSystemService().getFileInfo(this.params.file_path);
+        if (fileInfoResult.success && fileInfoResult.data) {
+          const info = fileInfoResult.data;
+          if (info.exists && !info.permissions.writable) {
             return {
               llmContent: `Error executing edit: Permission denied writing to file: ${this.params.file_path}`,
               returnDisplay: `Error writing file: Permission denied writing to file: ${this.params.file_path}`,
@@ -1377,8 +1371,8 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
   private async ensureParentDirectoriesExist(filePath: string): Promise<void> {
     const dirName = path.dirname(filePath);
     try {
-      // mkdir with { recursive: true } is idempotent and safe to call even if the dir exists
-      await fsp.mkdir(dirName, { recursive: true });
+      // Use centralized file system service
+      await this.config.getFileSystemService().createDirectory(dirName, { recursive: true });
     } catch (err: unknown) {
       // If another process created the directory concurrently, ignore EEXIST.
       const errCode = (err as NodeJS.ErrnoException | undefined)?.code;

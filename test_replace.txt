@@ -4,4 +4,4 @@ Let's test the replace tool.
 First replacement successful.
 Second replacement successful.
 Duplicate string replacement successful.
-Duplicate string.
+This is a new string.
