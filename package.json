@@ -97,7 +97,8 @@
     "@lvce-editor/ripgrep": "^2.1.0",
     "diff-match-patch": "^1.0.5",
     "fast-uri": "^3.1.0",
-    "node-fetch": "^3.3.2",
+    "mime": "^3.0.0",
+    "node-fetch": "^2.7.0",
     "open": "^10.1.0",
     "string-similarity": "^4.0.4",
     "strip-ansi": "^7.1.0"

@@ -21,9 +21,15 @@
   },
   "dependencies": {
     "@google/gemini-cli-core": "file:../core",
-    "express": "^4.19.2",
+    "array-flatten": "^1.1.1",
+    "destroy": "^1.2.0",
+    "express": "^4.21.2",
     "ink": "^6.1.1",
-    "react": "^19.1.0"
+    "methods": "^1.1.2",
+    "path-to-regexp": "^0.1.12",
+    "qs": "^6.13.0",
+    "react": "^19.1.0",
+    "utils-merge": "^1.0.1"
   },
   "devDependencies": {
     "@types/react": "^19.1.8",

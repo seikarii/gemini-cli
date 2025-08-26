@@ -98,13 +98,13 @@ class ReadFileToolInvocation extends BaseToolInvocation<
           'Content-Type': 'application/json',
         },
         body: body,
-      }).then(async response => {
+  }).then(async (response: any) => {
         console.log(`[read_file] Received response status: ${response.status}`);
         if (!response.ok) {
           const errorText = await response.text();
           console.error(`[read_file] Server error: ${errorText}`);
         }
-      }).catch(err => {
+      }).catch((err: any) => {
         console.error('[read_file] Failed to update Mew Window (fetch error):', err);
       });
     } catch (error) {
