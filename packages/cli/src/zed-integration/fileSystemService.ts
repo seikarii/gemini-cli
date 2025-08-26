@@ -9,6 +9,8 @@ import {
   FileSystemService,
   FileInfo,
   FileSystemOptions,
+  BatchOperationResult,
+  FileSystemMetrics,
 } from '@google/gemini-cli-core';
 import * as acp from './acp.js';
 
@@ -146,5 +148,32 @@ export class AcpFileSystemService implements FileSystemService {
 
   getCacheStats(): { size: number; hitRate: number; totalRequests: number } {
     return this.fallback.getCacheStats();
+  }
+
+  // New batch and performance methods
+  async batchReadTextFiles(
+    filePaths: string[],
+    options?: FileSystemOptions,
+  ): Promise<BatchOperationResult<string>> {
+    return this.fallback.batchReadTextFiles(filePaths, options);
+  }
+
+  async batchWriteTextFiles(
+    operations: Array<{ path: string; content: string }>,
+    options?: FileSystemOptions,
+  ): Promise<BatchOperationResult<void>> {
+    return this.fallback.batchWriteTextFiles(operations, options);
+  }
+
+  getPerformanceMetrics(): FileSystemMetrics {
+    return this.fallback.getPerformanceMetrics();
+  }
+
+  resetPerformanceMetrics(): void {
+    return this.fallback.resetPerformanceMetrics();
+  }
+
+  optimizeCache(): void {
+    return this.fallback.optimizeCache();
   }
 }

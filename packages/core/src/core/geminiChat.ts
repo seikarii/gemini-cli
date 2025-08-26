@@ -35,13 +35,19 @@ import {
 interface ContentRetryOptions {
   /** Total number of attempts to make (1 initial + N retries). */
   maxAttempts: number;
-  /** The base delay in milliseconds for linear backoff. */
+  /** The base delay in milliseconds for exponential backoff. */
   initialDelayMs: number;
+  /** Maximum delay cap in milliseconds. */
+  maxDelayMs: number;
+  /** Multiplier for exponential backoff. */
+  backoffMultiplier: number;
 }
 
 const INVALID_CONTENT_RETRY_OPTIONS: ContentRetryOptions = {
   maxAttempts: 3, // 1 initial call + 2 retries
   initialDelayMs: 500,
+  maxDelayMs: 10000, // 10 seconds max
+  backoffMultiplier: 2,
 };
 /**
  * Returns true if the response is valid, false otherwise.
@@ -88,19 +94,34 @@ function validateHistory(history: Content[]) {
 
 /**
  * Extracts the curated (valid) history from a comprehensive history.
+ * Uses memoization to avoid recomputing for unchanged histories.
  *
  * @remarks
  * The model may sometimes generate invalid or empty contents(e.g., due to safety
  * filters or recitation). Extracting valid turns from the history
  * ensures that subsequent requests could be accepted by the model.
  */
-function extractCuratedHistory(comprehensiveHistory: Content[]): Content[] {
+function extractCuratedHistory(
+  comprehensiveHistory: Content[],
+  cache?: { lastHistoryHash: string; curatedHistory: Content[] }
+): Content[] {
   if (comprehensiveHistory === undefined || comprehensiveHistory.length === 0) {
     return [];
   }
+
+  // Performance optimization: Use memoization for large histories
+  if (cache && comprehensiveHistory.length > 10) {
+    const currentHash = JSON.stringify(comprehensiveHistory.map(c => ({ role: c.role, partsLength: c.parts?.length || 0 })));
+    if (cache.lastHistoryHash === currentHash) {
+      return cache.curatedHistory;
+    }
+  }
+
+  const startTime = performance.now();
   const curatedHistory: Content[] = [];
   const length = comprehensiveHistory.length;
   let i = 0;
+  
   while (i < length) {
     if (comprehensiveHistory[i].role === 'user') {
       curatedHistory.push(comprehensiveHistory[i]);
@@ -120,6 +141,19 @@ function extractCuratedHistory(comprehensiveHistory: Content[]): Content[] {
       }
     }
   }
+
+  // Update cache for future calls
+  if (cache && comprehensiveHistory.length > 10) {
+    const currentHash = JSON.stringify(comprehensiveHistory.map(c => ({ role: c.role, partsLength: c.parts?.length || 0 })));
+    cache.lastHistoryHash = currentHash;
+    cache.curatedHistory = curatedHistory;
+  }
+
+  const endTime = performance.now();
+  if (endTime - startTime > 100) { // Log if extraction takes >100ms
+    console.debug(`History extraction took ${endTime - startTime}ms for ${comprehensiveHistory.length} items`);
+  }
+
   return curatedHistory;
 }
 
@@ -145,6 +179,16 @@ export class GeminiChat {
   // A promise to represent the current state of the message being sent to the
   // model.
   private sendPromise: Promise<void> = Promise.resolve();
+  
+  // Cache for memoizing curated history extraction
+  private historyCache: { lastHistoryHash: string; curatedHistory: Content[] } = {
+    lastHistoryHash: '',
+    curatedHistory: []
+  };
+  
+  // Performance tracking
+  private retryCount = 0;
+  private lastPerformanceCheck = Date.now();
 
   constructor(
     private readonly config: Config,
@@ -158,11 +202,22 @@ export class GeminiChat {
   /**
    * Handles falling back to Flash model when persistent 429 errors occur for OAuth users.
    * Uses a fallback handler if provided by the config; otherwise, returns null.
+   * Enhanced with better retry tracking and performance monitoring.
    */
   private async handleFlashFallback(
     authType?: string,
     error?: unknown,
   ): Promise<string | null> {
+    // Track retry attempts for monitoring
+    this.retryCount++;
+    
+    // Performance check: warn if excessive retries
+    const now = Date.now();
+    if (this.retryCount > 10 && now - this.lastPerformanceCheck > 60000) { // Every minute
+      console.warn(`High retry count detected: ${this.retryCount} retries in the last period`);
+      this.lastPerformanceCheck = now;
+    }
+
     // Only handle fallback for OAuth users
     if (authType !== AuthType.LOGIN_WITH_GOOGLE) {
       return null;
@@ -207,6 +262,7 @@ export class GeminiChat {
   }
   /**
    * Sends a message to the model and returns the response.
+   * Enhanced with improved retry logic and performance monitoring.
    *
    * @remarks
    * This method will wait for the previous message to be processed before
@@ -261,11 +317,14 @@ export class GeminiChat {
 
       response = await retryWithBackoff(apiCall, {
         shouldRetry: (error: unknown) => {
-          // Check for known error messages and codes.
+          // Enhanced error classification for better retry decisions
           if (error instanceof Error && error.message) {
             if (isSchemaDepthError(error.message)) return false;
             if (error.message.includes('429')) return true;
             if (error.message.match(/5\d{2}/)) return true;
+            // Add more specific error patterns
+            if (error.message.includes('timeout')) return true;
+            if (error.message.includes('network')) return true;
           }
           return false; // Don't retry other errors by default
         },
@@ -274,26 +333,7 @@ export class GeminiChat {
         authType: this.config.getContentGeneratorConfig()?.authType,
       });
 
-      this.sendPromise = (async () => {
-        const outputContent = response.candidates?.[0]?.content;
-        // Because the AFC input contains the entire curated chat history in
-        // addition to the new user input, we need to truncate the AFC history
-        // to deduplicate the existing chat history.
-        const fullAutomaticFunctionCallingHistory =
-          response.automaticFunctionCallingHistory;
-        const index = this.getHistory(true).length;
-        let automaticFunctionCallingHistory: Content[] = [];
-        if (fullAutomaticFunctionCallingHistory != null) {
-          automaticFunctionCallingHistory =
-            fullAutomaticFunctionCallingHistory.slice(index) ?? [];
-        }
-        const modelOutput = outputContent ? [outputContent] : [];
-        this.recordHistory(
-          userContent,
-          modelOutput,
-          automaticFunctionCallingHistory,
-        );
-      })();
+      this.sendPromise = this.processResponseAndUpdateHistory(response, userContent);
       await this.sendPromise.catch(() => {
         // Resets sendPromise to avoid subsequent calls failing
         this.sendPromise = Promise.resolve();
@@ -303,6 +343,34 @@ export class GeminiChat {
       this.sendPromise = Promise.resolve();
       throw error;
     }
+  }
+
+  /**
+   * Optimized method to process response and update history.
+   * Separated for better maintainability and error handling.
+   */
+  private async processResponseAndUpdateHistory(
+    response: GenerateContentResponse,
+    userContent: Content
+  ): Promise<void> {
+    const outputContent = response.candidates?.[0]?.content;
+    // Because the AFC input contains the entire curated chat history in
+    // addition to the new user input, we need to truncate the AFC history
+    // to deduplicate the existing chat history.
+    const fullAutomaticFunctionCallingHistory =
+      response.automaticFunctionCallingHistory;
+    const index = this.getHistory(true).length;
+    let automaticFunctionCallingHistory: Content[] = [];
+    if (fullAutomaticFunctionCallingHistory != null) {
+      automaticFunctionCallingHistory =
+        fullAutomaticFunctionCallingHistory.slice(index) ?? [];
+    }
+    const modelOutput = outputContent ? [outputContent] : [];
+    this.recordHistory(
+      userContent,
+      modelOutput,
+      automaticFunctionCallingHistory,
+    );
   }
 
   /**
@@ -378,13 +446,14 @@ export class GeminiChat {
               // Check if we have more attempts left.
               if (attempt < INVALID_CONTENT_RETRY_OPTIONS.maxAttempts - 1) {
                 recordContentRetry(self.config);
-                await new Promise((res) =>
-                  setTimeout(
-                    res,
-                    INVALID_CONTENT_RETRY_OPTIONS.initialDelayMs *
-                      (attempt + 1),
-                  ),
-                );
+                // Exponential backoff with jitter
+                const delay = Math.min(
+                  INVALID_CONTENT_RETRY_OPTIONS.initialDelayMs * 
+                  Math.pow(INVALID_CONTENT_RETRY_OPTIONS.backoffMultiplier, attempt),
+                  INVALID_CONTENT_RETRY_OPTIONS.maxDelayMs
+                ) + Math.random() * 100; // Add jitter
+                
+                await new Promise((res) => setTimeout(res, delay));
                 continue;
               }
             }
@@ -454,7 +523,7 @@ export class GeminiChat {
   }
 
   /**
-   * Returns the chat history.
+   * Returns the chat history with optimized cloning strategy.
    *
    * @remarks
    * The history is a list of contents alternating between user and model.
@@ -477,29 +546,65 @@ export class GeminiChat {
    *     chat session.
    */
   getHistory(curated: boolean = false): Content[] {
+    const startTime = performance.now();
+    
     const history = curated
-      ? extractCuratedHistory(this.history)
+      ? extractCuratedHistory(this.history, this.historyCache)
       : this.history;
-    // Deep copy the history to avoid mutating the history outside of the
-    // chat session.
-    return structuredClone(history);
+    
+    // Optimize cloning strategy based on history size
+    let result: Content[];
+    if (history.length > 100) {
+      // For large histories, use more efficient serialization
+      result = JSON.parse(JSON.stringify(history));
+    } else {
+      // For smaller histories, use structuredClone which is more feature-complete
+      result = structuredClone(history);
+    }
+    
+    const endTime = performance.now();
+    if (endTime - startTime > 50) { // Log if cloning takes >50ms
+      console.debug(`History cloning took ${endTime - startTime}ms for ${history.length} items`);
+    }
+    
+    return result;
   }
 
   /**
-   * Clears the chat history.
+   * Clears the chat history and resets performance counters.
    */
   clearHistory(): void {
     this.history = [];
+    // Reset cache when history is cleared
+    this.historyCache = {
+      lastHistoryHash: '',
+      curatedHistory: []
+    };
+    // Reset performance counters
+    this.retryCount = 0;
+    this.lastPerformanceCheck = Date.now();
   }
 
   /**
-   * Adds a new entry to the chat history.
+   * Adds a new entry to the chat history and invalidates cache.
    */
   addHistory(content: Content): void {
     this.history.push(content);
+    // Invalidate cache when history changes
+    this.historyCache.lastHistoryHash = '';
   }
+  
+  /**
+   * Sets the entire history and invalidates cache.
+   */
   setHistory(history: Content[]): void {
+    validateHistory(history);
     this.history = history;
+    // Invalidate cache when history is replaced
+    this.historyCache = {
+      lastHistoryHash: '',
+      curatedHistory: []
+    };
   }
 
   setTools(tools: Tool[]): void {
@@ -515,15 +620,23 @@ export class GeminiChat {
     ) {
       const tools = this.config.getToolRegistry().getAllTools();
       const cyclicSchemaTools: string[] = [];
-      for (const tool of tools) {
-        if (
-          (tool.schema.parametersJsonSchema &&
-            hasCycleInSchema(tool.schema.parametersJsonSchema)) ||
-          (tool.schema.parameters && hasCycleInSchema(tool.schema.parameters))
-        ) {
-          cyclicSchemaTools.push(tool.displayName);
+      
+      // Optimize tool checking for large tool sets
+      const toolCheckPromises = tools.map(async (tool) => {
+        const hasParametersJsonSchemaCycle = tool.schema.parametersJsonSchema && 
+          hasCycleInSchema(tool.schema.parametersJsonSchema);
+        const hasParametersCycle = tool.schema.parameters && 
+          hasCycleInSchema(tool.schema.parameters);
+        
+        if (hasParametersJsonSchemaCycle || hasParametersCycle) {
+          return tool.displayName;
         }
-      }
+        return null;
+      });
+      
+      const results = await Promise.all(toolCheckPromises);
+      cyclicSchemaTools.push(...results.filter(Boolean) as string[]);
+      
       if (cyclicSchemaTools.length > 0) {
         const extraDetails =
           `\n\nThis error was probably caused by cyclic schema references in one of the following tools, try disabling them with excludeTools:\n\n - ` +
@@ -541,9 +654,13 @@ export class GeminiChat {
     const modelResponseParts: Part[] = [];
     let isStreamInvalid = false;
     let hasReceivedAnyChunk = false;
+    let chunkCount = 0;
+    const startTime = performance.now();
 
     for await (const chunk of streamResponse) {
       hasReceivedAnyChunk = true;
+      chunkCount++;
+      
       if (isValidResponse(chunk)) {
         const content = chunk.candidates?.[0]?.content;
         if (content) {
@@ -559,11 +676,19 @@ export class GeminiChat {
       yield chunk; // Yield every chunk to the UI immediately.
     }
 
+    const endTime = performance.now();
+    const processingTime = endTime - startTime;
+    
+    // Performance monitoring for large streams
+    if (chunkCount > 100 || processingTime > 5000) {
+      console.debug(`Processed ${chunkCount} chunks in ${processingTime}ms`);
+    }
+
     // Now that the stream is finished, make a decision.
     // Throw an error if the stream was invalid OR if it was completely empty.
     if (isStreamInvalid || !hasReceivedAnyChunk) {
       throw new EmptyStreamError(
-        'Model stream was invalid or completed without valid content.',
+        `Model stream was invalid or completed without valid content. Chunks: ${chunkCount}, Invalid: ${isStreamInvalid}`,
       );
     }
 
@@ -587,7 +712,7 @@ export class GeminiChat {
       automaticFunctionCallingHistory.length > 0
     ) {
       newHistoryEntries.push(
-        ...extractCuratedHistory(automaticFunctionCallingHistory),
+        ...extractCuratedHistory(automaticFunctionCallingHistory, this.historyCache),
       );
     } else {
       // Guard for streaming calls where the user input might already be in the history.
@@ -623,7 +748,15 @@ export class GeminiChat {
         const lastContent =
           consolidatedOutputContents[consolidatedOutputContents.length - 1];
         if (this.hasTextContent(lastContent) && this.hasTextContent(content)) {
-          lastContent.parts[0].text += content.parts[0].text || '';
+          // Optimize text concatenation for large texts
+          const existingText = lastContent.parts[0].text || '';
+          const newText = content.parts[0].text || '';
+          if (existingText.length + newText.length > 10000) {
+            // Use array join for large text concatenation
+            lastContent.parts[0].text = [existingText, newText].join('');
+          } else {
+            lastContent.parts[0].text = existingText + newText;
+          }
           if (content.parts.length > 1) {
             lastContent.parts.push(...content.parts.slice(1));
           }
@@ -635,6 +768,9 @@ export class GeminiChat {
 
     // Part 4: Add the new turn (user and model parts) to the main history.
     this.history.push(...newHistoryEntries, ...consolidatedOutputContents);
+    
+    // Invalidate cache since history has changed
+    this.historyCache.lastHistoryHash = '';
   }
 
   private hasTextContent(

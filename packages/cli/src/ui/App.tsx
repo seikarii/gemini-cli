@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef, memo } from 'react';
 import {
   Box,
   DOMElement,
@@ -103,6 +103,93 @@ import { setUpdateHandler } from '../utils/handleAutoUpdate.js';
 import { appEvents, AppEvent } from '../utils/events.js';
 import { isNarrowWidth } from './utils/isNarrowWidth.js';
 
+// Performance optimization hooks
+const useDebouncedEffect = (effect: React.EffectCallback, deps: React.DependencyList, delay: number) => {
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      effect();
+    }, delay);
+    return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effect, delay, ...deps]);
+};
+
+// Optimized user messages hook with debouncing and caching
+const useOptimizedUserMessages = (history: HistoryItem[], logger: unknown) => {
+  const [userMessages, setUserMessages] = useState<string[]>([]);
+  const fetchCounterRef = useRef(0);
+  const cacheRef = useRef<{
+    historyLength: number;
+    loggerTimestamp: number;
+    messages: string[];
+  }>({ historyLength: 0, loggerTimestamp: 0, messages: [] });
+
+  const fetchUserMessages = useCallback(() => {
+    const currentFetch = ++fetchCounterRef.current;
+    
+    // Cache optimization - avoid refetch if history hasn't changed significantly
+    const currentHistoryLength = history.length;
+    if (
+      cacheRef.current.historyLength === currentHistoryLength &&
+      Date.now() - cacheRef.current.loggerTimestamp < 5000 // 5 second cache
+    ) {
+      return;
+    }
+    
+    const fetchAsync = async () => {
+      try {
+        const pastMessagesRaw = await (logger as { getPreviousUserMessages?: () => Promise<string[]> })?.getPreviousUserMessages?.() || [];
+
+        if (currentFetch !== fetchCounterRef.current) return;
+
+        const currentSessionUserMessages = history
+          .filter(
+            (item): item is HistoryItem & { type: 'user'; text: string } =>
+              item.type === 'user' &&
+              typeof item.text === 'string' &&
+              item.text.trim() !== '',
+          )
+          .map((item) => item.text)
+          .reverse();
+
+        const combinedMessages = [
+          ...currentSessionUserMessages,
+          ...pastMessagesRaw,
+        ];
+
+        const deduplicatedMessages: string[] = [];
+        if (combinedMessages.length > 0) {
+          deduplicatedMessages.push(combinedMessages[0]);
+          for (let i = 1; i < combinedMessages.length; i++) {
+            if (combinedMessages[i] !== combinedMessages[i - 1]) {
+              deduplicatedMessages.push(combinedMessages[i]);
+            }
+          }
+        }
+
+        const finalMessages = deduplicatedMessages.reverse();
+        
+        // Update cache
+        cacheRef.current = {
+          historyLength: currentHistoryLength,
+          loggerTimestamp: Date.now(),
+          messages: finalMessages,
+        };
+        
+        setUserMessages(finalMessages);
+      } catch (error) {
+        console.error('Error fetching user messages:', error);
+      }
+    };
+    
+    fetchAsync();
+  }, [history, logger]);
+
+  useDebouncedEffect(fetchUserMessages, [history, logger], 300);
+
+  return userMessages;
+};
+
 const CTRL_EXIT_PROMPT_DURATION_MS = 1000;
 // Maximum number of queued messages to display in UI to prevent performance issues
 const MAX_DISPLAYED_QUEUED_MESSAGES = 3;
@@ -147,16 +234,24 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
   useEffect(() => {
     registerCleanup(() => config.getIdeClient().disconnect());
   }, [config]);
-  const shouldShowIdePrompt =
+  // Memoized stable callback to prevent unnecessary re-renders
+  const stableAddItem = useCallback((item: Omit<HistoryItem, "id">, timestamp: number) => {
+    addItem(item, timestamp);
+  }, [addItem]);
+
+  const shouldShowIdePrompt = useMemo(() => 
     currentIDE &&
     !config.getIdeMode() &&
     !settings.merged.hasSeenIdeIntegrationNudge &&
-    !idePromptAnswered;
+    !idePromptAnswered,
+    [currentIDE, config, settings.merged.hasSeenIdeIntegrationNudge, idePromptAnswered]
+  );
 
+  // Optimized update handler effect with stable callback
   useEffect(() => {
-    const cleanup = setUpdateHandler(addItem, setUpdateInfo);
+    const cleanup = setUpdateHandler(stableAddItem, setUpdateInfo);
     return cleanup;
-  }, [addItem]);
+  }, [stableAddItem]);
 
   const {
     consoleMessages,
@@ -164,22 +259,26 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
     clearConsoleMessages: clearConsoleMessagesState,
   } = useConsoleMessages();
 
+  // Optimized console patcher with stable dependencies
+  const debugMode = useMemo(() => config.getDebugMode(), [config]);
   useEffect(() => {
     const consolePatcher = new ConsolePatcher({
       onNewMessage: handleNewMessage,
-      debugMode: config.getDebugMode(),
+      debugMode,
     });
     consolePatcher.patch();
     registerCleanup(consolePatcher.cleanup);
-  }, [handleNewMessage, config]);
+  }, [handleNewMessage, debugMode]);
 
   const { stats: sessionStats } = useSessionStats();
   const [staticNeedsRefresh, setStaticNeedsRefresh] = useState(false);
   const [staticKey, setStaticKey] = useState(0);
+  
+  // Memoized refresh function to prevent unnecessary re-renders
   const refreshStatic = useCallback(() => {
     stdout.write(ansiEscapes.clearTerminal);
     setStaticKey((prev) => prev + 1);
-  }, [setStaticKey, stdout]);
+  }, [stdout]);
 
   const [geminiMdFileCount, setGeminiMdFileCount] = useState<number>(0);
   const [debugMessage, setDebugMessage] = useState<string>('');
@@ -189,9 +288,9 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
   const [footerHeight, setFooterHeight] = useState<number>(0);
   const [corgiMode, setCorgiMode] = useState(false);
   const [isTrustedFolderState, setIsTrustedFolder] = useState(
-    config.isTrustedFolder(),
+    () => config.isTrustedFolder(), // Lazy initial state
   );
-  const [currentModel, setCurrentModel] = useState(config.getModel());
+  const [currentModel, setCurrentModel] = useState(() => config.getModel()); // Lazy initial state
   const [shellModeActive, setShellModeActive] = useState(false);
   const [showErrorDetails, setShowErrorDetails] = useState<boolean>(false);
   const [showToolDescriptions, setShowToolDescriptions] =
@@ -368,7 +467,7 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
     }
   }, [config, addItem, settings.merged]);
 
-  // Watch for model changes (e.g., from Flash fallback)
+  // Optimized model change detection with debouncing
   useEffect(() => {
     const checkModelChange = () => {
       const configModel = config.getModel();
@@ -377,39 +476,43 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
       }
     };
 
-    // Check immediately and then periodically
-    checkModelChange();
-    const interval = setInterval(checkModelChange, 1000); // Check every second
-
+    checkModelChange(); // Check immediately
+    const interval = setInterval(checkModelChange, 2000); // Reduced frequency
     return () => clearInterval(interval);
   }, [config, currentModel]);
 
-  // Set up Flash fallback handler
+  // Optimized Flash fallback handler with stable dependencies
+  // Safely read authType from the content generator config. getContentGeneratorConfig
+  // may return undefined at runtime; use optional chaining and a safe fallback to
+  // avoid runtime exceptions when accessing `.authType`.
+  const authType = useMemo<string | undefined>(
+    () => config.getContentGeneratorConfig()?.authType ?? undefined,
+    [config],
+  );
+  
+  const isPaidTier = useMemo(() => 
+    userTier === UserTierId.LEGACY || userTier === UserTierId.STANDARD,
+    [userTier]
+  );
+
   useEffect(() => {
     const flashFallbackHandler = async (
-      currentModel: string,
+      currentModelParam: string,
       fallbackModel: string,
       error?: unknown,
     ): Promise<boolean> => {
       let message: string;
 
-      if (
-        config.getContentGeneratorConfig().authType ===
-        AuthType.LOGIN_WITH_GOOGLE
-      ) {
-        // Use actual user tier if available; otherwise, default to FREE tier behavior (safe default)
-        const isPaidTier =
-          userTier === UserTierId.LEGACY || userTier === UserTierId.STANDARD;
-
+      if (authType === AuthType.LOGIN_WITH_GOOGLE) {
         // Check if this is a Pro quota exceeded error
         if (error && isProQuotaExceededError(error)) {
           if (isPaidTier) {
-            message = `⚡ You have reached your daily ${currentModel} quota limit.
-⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
-⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;
+            message = `⚡ You have reached your daily ${currentModelParam} quota limit.
+⚡ Automatically switching from ${currentModelParam} to ${fallbackModel} for the remainder of this session.
+⚡ To continue accessing the ${currentModelParam} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;
           } else {
-            message = `⚡ You have reached your daily ${currentModel} quota limit.
-⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
+            message = `⚡ You have reached your daily ${currentModelParam} quota limit.
+⚡ Automatically switching from ${currentModelParam} to ${fallbackModel} for the remainder of this session.
 ⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist
 ⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key
 ⚡ You can switch authentication methods by typing /auth`;
@@ -417,11 +520,11 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
         } else if (error && isGenericQuotaExceededError(error)) {
           if (isPaidTier) {
             message = `⚡ You have reached your daily quota limit.
-⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
-⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;
+⚡ Automatically switching from ${currentModelParam} to ${fallbackModel} for the remainder of this session.
+⚡ To continue accessing the ${currentModelParam} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;
           } else {
             message = `⚡ You have reached your daily quota limit.
-⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
+⚡ Automatically switching from ${currentModelParam} to ${fallbackModel} for the remainder of this session.
 ⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist
 ⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key
 ⚡ You can switch authentication methods by typing /auth`;
@@ -429,13 +532,13 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
         } else {
           if (isPaidTier) {
             // Default fallback message for other cases (like consecutive 429s)
-            message = `⚡ Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.
-⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit
-⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;
+            message = `⚡ Automatically switching from ${currentModelParam} to ${fallbackModel} for faster responses for the remainder of this session.
+⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModelParam} quota limit
+⚡ To continue accessing the ${currentModelParam} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;
           } else {
             // Default fallback message for other cases (like consecutive 429s)
-            message = `⚡ Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.
-⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit
+            message = `⚡ Automatically switching from ${currentModelParam} to ${fallbackModel} for faster responses for the remainder of this session.
+⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModelParam} quota limit
 ⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist
 ⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key
 ⚡ You can switch authentication methods by typing /auth`;
@@ -462,13 +565,13 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
       config.setFallbackMode(true);
       logFlashFallback(
         config,
-        new FlashFallbackEvent(config.getContentGeneratorConfig().authType!),
+        new FlashFallbackEvent(authType ?? 'unknown'),
       );
       return true; // Continue with current prompt
     };
 
     config.setFlashFallbackHandler(flashFallbackHandler);
-  }, [config, addItem, userTier]);
+  }, [config, addItem, authType, isPaidTier]);
 
   // Terminal and UI setup
   const { rows: terminalHeight, columns: terminalWidth } = useTerminalSize();
@@ -476,12 +579,19 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
   const { stdin, setRawMode } = useStdin();
   const isInitialMount = useRef(true);
 
-  const widthFraction = 0.9;
-  const inputWidth = Math.max(
-    20,
-    Math.floor(terminalWidth * widthFraction) - 3,
-  );
-  const suggestionsWidth = Math.max(20, Math.floor(terminalWidth * 0.8));
+  // Memoized width calculations to prevent re-computation on each render
+  const widthCalculations = useMemo(() => {
+    const widthFraction = 0.9;
+    const inputWidth = Math.max(
+      20,
+      Math.floor(terminalWidth * widthFraction) - 3,
+    );
+    const suggestionsWidth = Math.max(20, Math.floor(terminalWidth * 0.8));
+    
+    return { inputWidth, suggestionsWidth };
+  }, [terminalWidth]);
+
+  const { inputWidth, suggestionsWidth } = widthCalculations;
 
   // Utility callbacks
   const isValidPath = useCallback((filePath: string): boolean => {
@@ -550,8 +660,6 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
     shellModeActive,
   });
 
-  const [userMessages, setUserMessages] = useState<string[]>([]);
-
   // Stable reference for cancel handler to avoid circular dependency
   const cancelHandlerRef = useRef<() => void>(() => {});
 
@@ -586,6 +694,11 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
       streamingState,
       submitQuery,
     });
+
+  const logger = useLogger(config.storage);
+  
+  // Replace the original fetchUserMessages with the optimized version
+  const userMessages = useOptimizedUserMessages(history, logger);
 
   // Update the cancel handler with message queue support
   cancelHandlerRef.current = useCallback(() => {
@@ -752,43 +865,7 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
     }
   }, [config, config.getGeminiMdFileCount]);
 
-  const logger = useLogger(config.storage);
-
-  useEffect(() => {
-    const fetchUserMessages = async () => {
-      const pastMessagesRaw = (await logger?.getPreviousUserMessages()) || []; // Newest first
-
-      const currentSessionUserMessages = history
-        .filter(
-          (item): item is HistoryItem & { type: 'user'; text: string } =>
-            item.type === 'user' &&
-            typeof item.text === 'string' &&
-            item.text.trim() !== '',
-        )
-        .map((item) => item.text)
-        .reverse(); // Newest first, to match pastMessagesRaw sorting
-
-      // Combine, with current session messages being more recent
-      const combinedMessages = [
-        ...currentSessionUserMessages,
-        ...pastMessagesRaw,
-      ];
-
-      // Deduplicate consecutive identical messages from the combined list (still newest first)
-      const deduplicatedMessages: string[] = [];
-      if (combinedMessages.length > 0) {
-        deduplicatedMessages.push(combinedMessages[0]); // Add the newest one unconditionally
-        for (let i = 1; i < combinedMessages.length; i++) {
-          if (combinedMessages[i] !== combinedMessages[i - 1]) {
-            deduplicatedMessages.push(combinedMessages[i]);
-          }
-        }
-      }
-      // Reverse to oldest first for useInputHistory
-      setUserMessages(deduplicatedMessages.reverse());
-    };
-    fetchUserMessages();
-  }, [history, logger]);
+  // Replace the original fetchUserMessages with the optimized version
 
   const isInputActive =
     (streamingState === StreamingState.Idle ||
@@ -819,6 +896,33 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
     [terminalHeight, footerHeight],
   );
 
+  // Memoized layout calculations for UI rendering
+  const layoutCalculations = useMemo(() => {
+    const mainAreaWidth = Math.floor(terminalWidth * 0.9);
+    const debugConsoleMaxHeight = Math.floor(Math.max(terminalHeight * 0.2, 5));
+    // Arbitrary threshold to ensure that items in the static area are large
+    // enough but not too large to make the terminal hard to use.
+    const staticAreaMaxItemHeight = Math.max(terminalHeight * 4, 100);
+    
+    return { mainAreaWidth, debugConsoleMaxHeight, staticAreaMaxItemHeight };
+  }, [terminalWidth, terminalHeight]);
+
+  // Memoized placeholder text
+  const placeholder = useMemo(() => 
+    vimModeEnabled
+      ? "  Press 'i' for INSERT mode and 'Esc' for NORMAL mode."
+      : '  Type your message or @path/to/file',
+    [vimModeEnabled]
+  );
+
+  // Memoized filtered console messages
+  const filteredConsoleMessages = useMemo(() => {
+    if (config.getDebugMode()) {
+      return consoleMessages;
+    }
+    return consoleMessages.filter((msg) => msg.type !== 'debug');
+  }, [consoleMessages, config]);
+
   useEffect(() => {
     // skip refreshing Static during first mount
     if (isInitialMount.current) {
@@ -844,13 +948,6 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
     }
   }, [streamingState, refreshStatic, staticNeedsRefresh]);
 
-  const filteredConsoleMessages = useMemo(() => {
-    if (config.getDebugMode()) {
-      return consoleMessages;
-    }
-    return consoleMessages.filter((msg) => msg.type !== 'debug');
-  }, [consoleMessages, config]);
-
   const branchName = useGitBranchName(config.getTargetDir());
 
   const contextFileNames = useMemo(() => {
@@ -861,8 +958,11 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
     return getAllGeminiMdFilenames();
   }, [settings.merged.contextFileName]);
 
+  // Memoized initial prompt to prevent re-computation
   const initialPrompt = useMemo(() => config.getQuestion(), [config]);
-  const geminiClient = config.getGeminiClient();
+  
+  // Memoized gemini client reference for stability
+  const geminiClient = useMemo(() => config.getGeminiClient(), [config]);
 
   useEffect(() => {
     if (
@@ -908,14 +1008,7 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
     );
   }
 
-  const mainAreaWidth = Math.floor(terminalWidth * 0.9);
-  const debugConsoleMaxHeight = Math.floor(Math.max(terminalHeight * 0.2, 5));
-  // Arbitrary threshold to ensure that items in the static area are large
-  // enough but not too large to make the terminal hard to use.
-  const staticAreaMaxItemHeight = Math.max(terminalHeight * 4, 100);
-  const placeholder = vimModeEnabled
-    ? "  Press 'i' for INSERT mode and 'Esc' for NORMAL mode."
-    : '  Type your message or @path/to/file';
+  const { mainAreaWidth, debugConsoleMaxHeight, staticAreaMaxItemHeight } = layoutCalculations;
 
   return (
     <StreamingContext.Provider value={streamingState}>
@@ -1292,3 +1385,13 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
     </StreamingContext.Provider>
   );
 };
+
+// Memoize the main App component to prevent unnecessary re-renders when props haven't changed
+export const MemoizedApp = memo(App, (prevProps: AppProps, nextProps: AppProps) => 
+  prevProps.config === nextProps.config &&
+  prevProps.settings === nextProps.settings &&
+  prevProps.version === nextProps.version &&
+  JSON.stringify(prevProps.startupWarnings) === JSON.stringify(nextProps.startupWarnings)
+);
+
+export default MemoizedApp;

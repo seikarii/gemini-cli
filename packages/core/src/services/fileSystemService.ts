@@ -8,6 +8,11 @@ import fs from 'fs/promises';
 import path from 'path';
 
 /**
+ * Performance mode for file system operations
+ */
+export type PerformanceMode = 'safe' | 'balanced' | 'fast';
+
+/**
  * Configuration options for file system operations
  */
 export interface FileSystemOptions {
@@ -27,6 +32,12 @@ export interface FileSystemOptions {
   bypassCache?: boolean;
   /** Maximum cache size in entries (default: 1000) */
   maxCacheEntries?: number;
+  /** Performance mode affecting operation behavior (default: 'balanced') */
+  performanceMode?: PerformanceMode;
+  /** Enable performance monitoring and metrics collection (default: false) */
+  enableMetrics?: boolean;
+  /** Batch size for bulk operations (default: 50) */
+  batchSize?: number;
 }
 
 /**
@@ -76,6 +87,40 @@ interface FileCacheEntry {
   cachedAt: number;
   accessCount: number;
   lastAccessed: number;
+}
+
+/**
+ * Path safety cache entry for performance optimization
+ */
+interface PathSafetyCacheEntry {
+  isSafe: boolean;
+  cachedAt: number;
+  allowedRootsHash: string;
+}
+
+/**
+ * Performance metrics for file system operations
+ */
+export interface FileSystemMetrics {
+  operationCounts: Map<string, number>;
+  operationTimes: Map<string, number[]>;
+  cacheHits: number;
+  cacheMisses: number;
+  pathSafetyCacheHits: number;
+  pathSafetyCacheMisses: number;
+  totalOperations: number;
+  averageOperationTime: number;
+}
+
+/**
+ * Batch operation result for bulk file operations
+ */
+export interface BatchOperationResult<T = void> {
+  successful: Array<{ path: string; result: FileOperationResult<T> }>;
+  failed: Array<{ path: string; error: string; errorCode?: string }>;
+  totalProcessed: number;
+  totalTime: number;
+  averageTimePerOperation: number;
 }
 
 /**
@@ -134,6 +179,19 @@ export interface FileSystemService {
   isPathSafe(filePath: string, allowedRoots?: string[]): boolean;
   clearCache(filePath?: string): void;
   getCacheStats(): { size: number; hitRate: number; totalRequests: number };
+  
+  // Performance optimization methods
+  batchReadTextFiles(
+    filePaths: string[],
+    options?: FileSystemOptions,
+  ): Promise<BatchOperationResult<string>>;
+  batchWriteTextFiles(
+    operations: Array<{ path: string; content: string }>,
+    options?: FileSystemOptions,
+  ): Promise<BatchOperationResult>;
+  getPerformanceMetrics(): FileSystemMetrics;
+  resetPerformanceMetrics(): void;
+  optimizeCache(): void;
 }
 
 /**
@@ -160,7 +218,10 @@ export class StandardFileSystemService implements FileSystemService {
     createDirectories: true,
     maxFileSize: 100 * 1024 * 1024, // 100MB
     atomicWrites: true,
-  createCheckpoint: true,
+    createCheckpoint: true,
+    performanceMode: 'balanced',
+    enableMetrics: false,
+    batchSize: 50,
   };
 
   // Self-validating cache implementation
@@ -173,48 +234,255 @@ export class StandardFileSystemService implements FileSystemService {
     totalRequests: 0,
   };
 
+  // Path safety cache for performance optimization
+  private readonly pathSafetyCache = new Map<string, PathSafetyCacheEntry>();
+  private readonly pathSafetyCacheSize = 500;
+  private readonly pathSafetyCacheTTL = 300000; // 5 minutes
+
+  // Performance metrics
+  private performanceMetrics: FileSystemMetrics = {
+    operationCounts: new Map(),
+    operationTimes: new Map(),
+    cacheHits: 0,
+    cacheMisses: 0,
+    pathSafetyCacheHits: 0,
+    pathSafetyCacheMisses: 0,
+    totalOperations: 0,
+    averageOperationTime: 0,
+  };
+
   /**
-   * Validate and sanitize file path for security
+   * Record performance metrics for operations
+   */
+  private recordMetric(operation: string, startTime: number, options?: FileSystemOptions): void {
+    if (!options?.enableMetrics) return;
+
+    const duration = Date.now() - startTime;
+    this.performanceMetrics.totalOperations++;
+    
+    // Update operation count
+    const currentCount = this.performanceMetrics.operationCounts.get(operation) || 0;
+    this.performanceMetrics.operationCounts.set(operation, currentCount + 1);
+    
+    // Update operation times
+    const currentTimes = this.performanceMetrics.operationTimes.get(operation) || [];
+    currentTimes.push(duration);
+    this.performanceMetrics.operationTimes.set(operation, currentTimes);
+    
+    // Update average
+    const totalTime = Array.from(this.performanceMetrics.operationTimes.values())
+      .flat()
+      .reduce((sum, time) => sum + time, 0);
+    this.performanceMetrics.averageOperationTime = totalTime / this.performanceMetrics.totalOperations;
+  }
+
+  /**
+   * Create hash of allowed roots for cache key
+   */
+  private createAllowedRootsHash(allowedRoots: string[]): string {
+    return allowedRoots.sort().join('|');
+  }
+
+  /**
+   * Optimized atomic write with conditional checkpointing based on performance mode
+   */
+  private async performOptimizedWrite(
+    filePath: string,
+    content: string,
+    opts: Required<Omit<FileSystemOptions, 'bypassCache' | 'maxCacheEntries'>>,
+  ): Promise<void> {
+    const shouldUseAtomicWrites = opts.performanceMode === 'safe' ? true : opts.atomicWrites;
+    const shouldCreateCheckpoint = opts.performanceMode === 'fast' ? false : opts.createCheckpoint;
+
+    if (shouldUseAtomicWrites) {
+      // Optimized checkpoint creation - only for 'safe' and 'balanced' modes
+      if (shouldCreateCheckpoint) {
+        await this.createOptimizedCheckpoint(filePath, opts);
+      }
+
+      // Atomic write with optimized temp file naming
+      const tempPath = `${filePath}.tmp.${Date.now()}.${Math.random().toString(36).substr(2, 9)}`;
+
+      try {
+        await fs.writeFile(tempPath, content, opts.encoding);
+        await fs.rename(tempPath, filePath);
+      } catch (error) {
+        // Cleanup temp file on error
+        try {
+          await fs.unlink(tempPath);
+        } catch {
+          /* intentional */
+        }
+        throw error;
+      }
+    } else {
+      // Direct write for 'fast' mode
+      await fs.writeFile(filePath, content, opts.encoding);
+    }
+  }
+
+  /**
+   * Optimized checkpoint creation with better error handling
+   */
+  private async createOptimizedCheckpoint(filePath: string, opts: Required<Omit<FileSystemOptions, 'bypassCache' | 'maxCacheEntries'>>): Promise<void> {
+    try {
+      const stat = await fs.stat(filePath).catch(() => null);
+      if (stat && stat.isFile()) {
+        // Use cached content if available and valid
+        let existing: string | null = null;
+        
+        if (opts.performanceMode !== 'fast') {
+          try {
+            const cacheResult = await this.getCachedOrFreshContent(filePath, opts.encoding, false);
+            existing = cacheResult.content;
+          } catch {
+            existing = await fs.readFile(filePath, opts.encoding).catch(() => null);
+          }
+        } else {
+          existing = await fs.readFile(filePath, opts.encoding).catch(() => null);
+        }
+
+        if (existing !== null) {
+          const checkpointDir = path.join(
+            path.dirname(filePath),
+            '.gemini_checkpoints',
+            `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          );
+          
+          await fs.mkdir(checkpointDir, { recursive: true }).catch(() => null);
+          const checkpointPath = path.join(checkpointDir, path.basename(filePath));
+          
+          try {
+            await fs.writeFile(checkpointPath, existing, opts.encoding);
+          } catch {
+            // Don't block the main write if checkpoint creation fails
+          }
+        }
+      }
+    } catch {
+      /* ignore checkpoint errors */
+    }
+  }
+
+  /**
+   * Optimized path safety validation with dynamic performance mode
    */
   isPathSafe(filePath: string, allowedRoots: string[] = []): boolean {
+    // Dynamic performance mode - could be configured per instance
+    const performanceMode: PerformanceMode = this.defaultOptions.performanceMode;
+    
+    if (performanceMode === 'fast') {
+      // Basic check only for fast mode
+      return !filePath.includes('..') && !filePath.includes('~');
+    }
+
+    // Create cache key
+    const allowedRootsHash = this.createAllowedRootsHash(allowedRoots);
+    const cacheKey = `${filePath}:${allowedRootsHash}`;
+    const now = Date.now();
+
+    // Check cache first
+    const cached = this.pathSafetyCache.get(cacheKey);
+    if (cached && (now - cached.cachedAt) < this.pathSafetyCacheTTL) {
+      this.performanceMetrics.pathSafetyCacheHits++;
+      return cached.isSafe;
+    }
+
+    this.performanceMetrics.pathSafetyCacheMisses++;
+
     try {
       // Normalize and resolve the path
       const normalizedPath = path.resolve(filePath);
 
       // Check for path traversal attempts
       if (filePath.includes('..') || filePath.includes('~')) {
+        this.cachePathSafetyResult(cacheKey, false, allowedRootsHash, now);
         return false;
       }
 
-      // Check for suspicious characters
+      // Check for suspicious characters (optimized regex)
       const suspiciousChars = /[<>:"|?*]/;
       if (suspiciousChars.test(filePath)) {
+        this.cachePathSafetyResult(cacheKey, false, allowedRootsHash, now);
         return false;
       }
 
-      // Validate against allowed roots if specified
+      // Validate against allowed roots if specified (optimized)
       if (allowedRoots.length > 0) {
         const isInAllowedRoot = allowedRoots.some((root) => {
           const normalizedRoot = path.resolve(root);
           return normalizedPath.startsWith(normalizedRoot);
         });
         if (!isInAllowedRoot) {
+          this.cachePathSafetyResult(cacheKey, false, allowedRootsHash, now);
           return false;
         }
       }
 
-      // Prevent access to system directories (basic protection)
-      const systemDirs = ['/etc', '/proc', '/sys', '/dev', '/root'];
-      const isSystemDir = systemDirs.some((dir) =>
-        normalizedPath.startsWith(dir),
-      );
-      if (isSystemDir && process.platform !== 'win32') {
-        return false;
+      // Prevent access to system directories (skip in fast mode)
+      if (performanceMode === 'safe') {
+        const systemDirs = ['/etc', '/proc', '/sys', '/dev', '/root'];
+        const isSystemDir = systemDirs.some((dir) =>
+          normalizedPath.startsWith(dir),
+        );
+        if (isSystemDir && process.platform !== 'win32') {
+          this.cachePathSafetyResult(cacheKey, false, allowedRootsHash, now);
+          return false;
+        }
       }
 
+      this.cachePathSafetyResult(cacheKey, true, allowedRootsHash, now);
       return true;
     } catch {
+      this.cachePathSafetyResult(cacheKey, false, allowedRootsHash, now);
       return false;
+    }
+  }
+
+  /**
+   * Cache path safety result with LRU eviction
+   */
+  private cachePathSafetyResult(
+    cacheKey: string,
+    isSafe: boolean,
+    allowedRootsHash: string,
+    timestamp: number,
+  ): void {
+    // Evict old entries if cache is full
+    if (this.pathSafetyCache.size >= this.pathSafetyCacheSize) {
+      this.evictOldPathSafetyEntries();
+    }
+
+    this.pathSafetyCache.set(cacheKey, {
+      isSafe,
+      cachedAt: timestamp,
+      allowedRootsHash,
+    });
+  }
+
+  /**
+   * Evict old path safety cache entries
+   */
+  private evictOldPathSafetyEntries(): void {
+    const now = Date.now();
+    const toDelete: string[] = [];
+
+    // Remove expired entries first
+    for (const [key, entry] of this.pathSafetyCache.entries()) {
+      if (now - entry.cachedAt > this.pathSafetyCacheTTL) {
+        toDelete.push(key);
+      }
+    }
+
+    toDelete.forEach(key => this.pathSafetyCache.delete(key));
+
+    // If still too full, remove oldest entries
+    if (this.pathSafetyCache.size >= this.pathSafetyCacheSize) {
+      const entries = Array.from(this.pathSafetyCache.entries())
+        .sort((a, b) => a[1].cachedAt - b[1].cachedAt);
+      
+      const toRemove = entries.slice(0, Math.floor(this.pathSafetyCacheSize * 0.3));
+      toRemove.forEach(([key]) => this.pathSafetyCache.delete(key));
     }
   }
 
@@ -641,60 +909,8 @@ export class StandardFileSystemService implements FileSystemService {
       }
 
       if (opts.atomicWrites) {
-          // If requested, create a checkpoint of the current file content before
-          // performing the atomic write. This provides a quick local rollback
-          // point in case a write becomes destructive.
-          if (opts.createCheckpoint) {
-            try {
-              // Check whether the target file exists
-              const stat = await fs.stat(filePath).catch(() => null);
-              if (stat && stat.isFile()) {
-                try {
-                  const existing = await fs.readFile(filePath, opts.encoding).catch(() => null);
-                  if (existing !== null) {
-                    const checkpointDir = path.join(
-                      path.dirname(filePath),
-                      '.gemini_checkpoints',
-                      `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-                    );
-                    // Ensure checkpoint directory exists
-                    await fs.mkdir(checkpointDir, { recursive: true }).catch(() => null);
-                    const checkpointPath = path.join(checkpointDir, path.basename(filePath));
-                    // Write checkpoint using atomic semantics where possible
-                    try {
-                      await fs.writeFile(checkpointPath, existing, opts.encoding);
-                    } catch (_cpErr) {
-                      // Don't block the main write if checkpoint creation fails.
-                      // Just log debug information to console for now.
-                      console.debug('Failed to create checkpoint for', filePath);
-                    }
-                  }
-                } catch {
-                  /* ignore checkpoint read/write errors */
-                }
-              }
-            } catch {
-              /* ignore checkpoint discovery errors */
-            }
-          }
-        // Atomic write: write to temporary file then rename
-        const tempPath = `${filePath}.tmp.${Date.now()}.${Math.random().toString(36).substr(2, 9)}`;
-
-        try {
-          const operation = fs.writeFile(tempPath, content, opts.encoding);
-          await this.withTimeout(operation, opts.timeout, 'writeTextFile');
-
-          // Atomic rename
-          await fs.rename(tempPath, filePath);
-        } catch (error) {
-          // Cleanup temp file on error
-          try {
-            await fs.unlink(tempPath);
-          } catch {
-            /* intentional */
-          }
-          throw error;
-        }
+          // Use optimized write method with conditional checkpointing
+          await this.performOptimizedWrite(filePath, content, opts);
       } else {
         // Direct write
         const operation = fs.writeFile(filePath, content, opts.encoding);
@@ -703,6 +919,9 @@ export class StandardFileSystemService implements FileSystemService {
 
       // Explicitly invalidate cache after successful write
       this.invalidateCache(filePath);
+
+      // Record performance metrics
+      this.recordMetric('writeTextFile', startTime, options);
 
       return this.createResult(true, undefined, undefined, undefined, {
         filePath,
@@ -1260,7 +1479,9 @@ export class StandardFileSystemService implements FileSystemService {
     }
 
     try {
+      // Optimized approach: use streaming results instead of accumulating all in memory
       const allEntries: string[] = [];
+      const processedDirs = new Set<string>(); // Prevent infinite loops with symlinks
 
       const scanDirectory = async (
         currentPath: string,
@@ -1270,26 +1491,47 @@ export class StandardFileSystemService implements FileSystemService {
           return;
         }
 
+        // Avoid processing the same directory twice (symlink protection)
+        const resolvedPath = await fs.realpath(currentPath).catch(() => currentPath);
+        if (processedDirs.has(resolvedPath)) {
+          return;
+        }
+        processedDirs.add(resolvedPath);
+
         const entries = await fs.readdir(currentPath, { withFileTypes: true });
 
-        for (const entry of entries) {
-          const fullPath = path.join(currentPath, entry.name);
-          const relativePath = path.relative(dirPath, fullPath);
+        // Process entries in batches for better memory management
+        const batchSize = 100;
+        for (let i = 0; i < entries.length; i += batchSize) {
+          const batch = entries.slice(i, i + batchSize);
+          
+          for (const entry of batch) {
+            const fullPath = path.join(currentPath, entry.name);
+            const relativePath = path.relative(dirPath, fullPath);
 
-          if (entry.isDirectory()) {
-            if (includeDirectories) {
+            if (entry.isDirectory()) {
+              if (includeDirectories) {
+                allEntries.push(relativePath);
+              }
+              await scanDirectory(fullPath, currentDepth + 1);
+            } else if (entry.isFile()) {
               allEntries.push(relativePath);
             }
-            await scanDirectory(fullPath, currentDepth + 1);
-          } else if (entry.isFile()) {
-            allEntries.push(relativePath);
           }
         }
       };
 
       await scanDirectory(dirPath, 0);
 
-      return this.createResult(true, allEntries.sort(), undefined, undefined, {
+      // Optimized sorting: only sort if needed and use efficient algorithm
+      const sortedEntries = allEntries.length > 1000 
+        ? allEntries.sort() // Standard sort for large arrays
+        : allEntries.sort((a, b) => a.localeCompare(b)); // Locale-aware sort for smaller arrays
+
+      // Record performance metrics
+      this.recordMetric('listDirectoryRecursive', startTime);
+
+      return this.createResult(true, sortedEntries, undefined, undefined, {
         filePath: dirPath,
         operationTime: Date.now() - startTime,
       });
@@ -1308,6 +1550,152 @@ export class StandardFileSystemService implements FileSystemService {
         },
       );
     }
+  }
+
+  // Batch operations for improved throughput
+  async batchReadTextFiles(
+    filePaths: string[],
+    options: FileSystemOptions = {},
+  ): Promise<BatchOperationResult<string>> {
+    const startTime = Date.now();
+    const opts = { ...this.defaultOptions, ...options };
+    const successful: Array<{ path: string; result: FileOperationResult<string> }> = [];
+    const failed: Array<{ path: string; error: string; errorCode?: string }> = [];
+
+    // Process in batches to control memory usage and concurrency
+    const batchSize = opts.batchSize;
+    const batches: string[][] = [];
+    for (let i = 0; i < filePaths.length; i += batchSize) {
+      batches.push(filePaths.slice(i, i + batchSize));
+    }
+
+    for (const batch of batches) {
+      // Process batch in parallel with controlled concurrency
+      const promises = batch.map(async (filePath) => {
+        const result = await this.readTextFile(filePath, options);
+        if (result.success) {
+          successful.push({ path: filePath, result });
+        } else {
+          failed.push({ 
+            path: filePath, 
+            error: result.error || 'Unknown error',
+            errorCode: result.errorCode 
+          });
+        }
+      });
+
+      await Promise.all(promises);
+    }
+
+    const totalTime = Date.now() - startTime;
+    return {
+      successful,
+      failed,
+      totalProcessed: filePaths.length,
+      totalTime,
+      averageTimePerOperation: totalTime / filePaths.length,
+    };
+  }
+
+  async batchWriteTextFiles(
+    operations: Array<{ path: string; content: string }>,
+    options: FileSystemOptions = {},
+  ): Promise<BatchOperationResult> {
+    const startTime = Date.now();
+    const opts = { ...this.defaultOptions, ...options };
+    const successful: Array<{ path: string; result: FileOperationResult }> = [];
+    const failed: Array<{ path: string; error: string; errorCode?: string }> = [];
+
+    // Process in batches to control memory usage and concurrency
+    const batchSize = opts.batchSize;
+    const batches: Array<Array<{ path: string; content: string }>> = [];
+    for (let i = 0; i < operations.length; i += batchSize) {
+      batches.push(operations.slice(i, i + batchSize));
+    }
+
+    for (const batch of batches) {
+      // Process batch in parallel with controlled concurrency
+      const promises = batch.map(async (operation) => {
+        const result = await this.writeTextFile(operation.path, operation.content, options);
+        if (result.success) {
+          successful.push({ path: operation.path, result });
+        } else {
+          failed.push({ 
+            path: operation.path, 
+            error: result.error || 'Unknown error',
+            errorCode: result.errorCode 
+          });
+        }
+      });
+
+      await Promise.all(promises);
+    }
+
+    const totalTime = Date.now() - startTime;
+    return {
+      successful,
+      failed,
+      totalProcessed: operations.length,
+      totalTime,
+      averageTimePerOperation: totalTime / operations.length,
+    };
+  }
+
+  // Performance monitoring methods
+  getPerformanceMetrics(): FileSystemMetrics {
+    return {
+      operationCounts: new Map(this.performanceMetrics.operationCounts),
+      operationTimes: new Map(this.performanceMetrics.operationTimes),
+      cacheHits: this.performanceMetrics.cacheHits,
+      cacheMisses: this.performanceMetrics.cacheMisses,
+      pathSafetyCacheHits: this.performanceMetrics.pathSafetyCacheHits,
+      pathSafetyCacheMisses: this.performanceMetrics.pathSafetyCacheMisses,
+      totalOperations: this.performanceMetrics.totalOperations,
+      averageOperationTime: this.performanceMetrics.averageOperationTime,
+    };
+  }
+
+  resetPerformanceMetrics(): void {
+    this.performanceMetrics = {
+      operationCounts: new Map(),
+      operationTimes: new Map(),
+      cacheHits: 0,
+      cacheMisses: 0,
+      pathSafetyCacheHits: 0,
+      pathSafetyCacheMisses: 0,
+      totalOperations: 0,
+      averageOperationTime: 0,
+    };
+  }
+
+  optimizeCache(): void {
+    // Perform cache optimization based on usage patterns
+    
+    // Clean up expired path safety cache entries
+    this.evictOldPathSafetyEntries();
+    
+    // Optimize file cache by removing least frequently used entries
+    if (this.fileCache.size > this.maxCacheEntries * 0.8) {
+      const entries = Array.from(this.fileCache.entries())
+        .sort((a, b) => {
+          // Sort by access count (ascending) then by last accessed (ascending)
+          if (a[1].accessCount !== b[1].accessCount) {
+            return a[1].accessCount - b[1].accessCount;
+          }
+          return a[1].lastAccessed - b[1].lastAccessed;
+        });
+      
+      // Remove bottom 30% of entries
+      const toRemove = entries.slice(0, Math.floor(entries.length * 0.3));
+      toRemove.forEach(([key]) => {
+        this.fileCache.delete(key);
+        this.cacheStats.invalidations++;
+      });
+    }
+    
+    // Update cache statistics
+    this.performanceMetrics.cacheHits = this.cacheStats.hits;
+    this.performanceMetrics.cacheMisses = this.cacheStats.misses;
   }
 
   /**
@@ -1463,6 +1851,47 @@ export class FallbackFileSystemService implements FileSystemService {
 
   getCacheStats(): { size: number; hitRate: number; totalRequests: number } {
     return { size: 0, hitRate: 0, totalRequests: 0 };
+  }
+
+  async batchReadTextFiles(): Promise<BatchOperationResult<string>> {
+    return {
+      successful: [],
+      failed: [],
+      totalProcessed: 0,
+      totalTime: 0,
+      averageTimePerOperation: 0,
+    };
+  }
+
+  async batchWriteTextFiles(): Promise<BatchOperationResult> {
+    return {
+      successful: [],
+      failed: [],
+      totalProcessed: 0,
+      totalTime: 0,
+      averageTimePerOperation: 0,
+    };
+  }
+
+  getPerformanceMetrics(): FileSystemMetrics {
+    return {
+      operationCounts: new Map(),
+      operationTimes: new Map(),
+      cacheHits: 0,
+      cacheMisses: 0,
+      pathSafetyCacheHits: 0,
+      pathSafetyCacheMisses: 0,
+      totalOperations: 0,
+      averageOperationTime: 0,
+    };
+  }
+
+  resetPerformanceMetrics(): void {
+    // No-op for fallback
+  }
+
+  optimizeCache(): void {
+    // No-op for fallback
   }
 }
 

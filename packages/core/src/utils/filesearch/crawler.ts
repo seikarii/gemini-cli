@@ -21,13 +21,117 @@ export interface CrawlOptions {
   // Caching options.
   cache: boolean;
   cacheTtl: number;
+  // Performance options.
+  maxConcurrency?: number;
 }
 
-function toPosixPath(p: string) {
-  return p.split(path.sep).join(path.posix.sep);
+/**
+ * Performance metrics for crawling operations.
+ */
+interface CrawlMetrics {
+  startTime: number;
+  totalDirectories: number;
+  totalFiles: number;
+  cacheHit: boolean;
+  concurrentStats: number;
+  ignoredItems: number;
+}
+
+/**
+ * Represents a file system entry with its metadata.
+ */
+interface FileSystemEntry {
+  name: string;
+  fullPath: string;
+  posixPath: string;
+  relativePath: string;
+  isDirectory: boolean;
+  isFile: boolean;
+  error?: Error;
+}
+
+/**
+ * Optimized POSIX path converter with memoization for better performance.
+ */
+const pathConversionCache = new Map<string, string>();
+
+function toPosixPath(p: string): string {
+  if (pathConversionCache.has(p)) {
+    return pathConversionCache.get(p)!;
+  }
+  
+  const posixPath = p.split(path.sep).join(path.posix.sep);
+  
+  // Keep cache size reasonable
+  if (pathConversionCache.size > 1000) {
+    pathConversionCache.clear();
+  }
+  
+  pathConversionCache.set(p, posixPath);
+  return posixPath;
+}
+
+/**
+ * Processes file system entries in parallel for better performance.
+ */
+async function processEntriesInParallel(
+  entries: string[],
+  dir: string,
+  posixCrawlDirectory: string,
+  maxConcurrency: number = 50
+): Promise<FileSystemEntry[]> {
+  const results: FileSystemEntry[] = [];
+  
+  // Process entries in batches to avoid overwhelming the system
+  for (let i = 0; i < entries.length; i += maxConcurrency) {
+    const batch = entries.slice(i, i + maxConcurrency);
+    
+    const batchPromises = batch.map(async (entry): Promise<FileSystemEntry> => {
+      const fullPath = path.join(dir, entry);
+      const posixPath = toPosixPath(fullPath);
+      const relativePath = path.posix.relative(posixCrawlDirectory, posixPath);
+      
+      try {
+        const stat = await fs.stat(fullPath);
+        return {
+          name: entry,
+          fullPath,
+          posixPath,
+          relativePath,
+          isDirectory: stat.isDirectory(),
+          isFile: stat.isFile(),
+        };
+      } catch (error) {
+        return {
+          name: entry,
+          fullPath,
+          posixPath,
+          relativePath,
+          isDirectory: false,
+          isFile: false,
+          error: error as Error,
+        };
+      }
+    });
+    
+    const batchResults = await Promise.all(batchPromises);
+    results.push(...batchResults);
+  }
+  
+  return results;
 }
 
 export async function crawl(options: CrawlOptions): Promise<string[]> {
+  const metrics: CrawlMetrics = {
+    startTime: performance.now(),
+    totalDirectories: 0,
+    totalFiles: 0,
+    cacheHit: false,
+    concurrentStats: 0,
+    ignoredItems: 0,
+  };
+
+  // Check cache first
   if (options.cache) {
     const cacheKey = cache.getCacheKey(
       options.crawlDirectory,
@@ -37,69 +141,101 @@ export async function crawl(options: CrawlOptions): Promise<string[]> {
     const cachedResults = cache.read(cacheKey);
 
     if (cachedResults) {
+      metrics.cacheHit = true;
+      logPerformanceMetrics(metrics, cachedResults.length);
       return cachedResults;
     }
   }
 
   const posixCwd = toPosixPath(options.cwd);
   const posixCrawlDirectory = toPosixPath(options.crawlDirectory);
+  const maxConcurrency = options.maxConcurrency || 50;
 
-  // Simple recursive crawler to avoid relying on external fdir API differences.
+  // Optimized crawler with parallel processing
   const dirFilter = options.ignore.getDirectoryFilter();
   const resultsList: string[] = [];
 
   // Always include the crawl root marker '.' so callers know the root was visited.
   resultsList.push('.');
 
-  async function walk(dir: string, depth: number) {
+  async function walkOptimized(dir: string, depth: number): Promise<void> {
     if (options.maxDepth !== undefined && depth > options.maxDepth) return;
+    
     let entries: string[];
     try {
       entries = await fs.readdir(dir);
-    } catch (_e) {
+    } catch (error) {
+      // Log error for debugging but don't fail the entire crawl
+      if (process.env['NODE_ENV'] === 'development') {
+        console.debug(`Failed to read directory ${dir}:`, error);
+      }
       return;
     }
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry);
-      let stat;
-      try {
-        stat = await fs.stat(fullPath);
-      } catch (_e) {
+
+    if (entries.length === 0) return;
+
+    // Process entries in parallel for better performance
+    const processedEntries = await processEntriesInParallel(
+      entries,
+      dir,
+      posixCrawlDirectory,
+      maxConcurrency
+    );
+
+    metrics.concurrentStats += processedEntries.length;
+
+    // Separate directories and files for processing
+    const directories: FileSystemEntry[] = [];
+    const files: FileSystemEntry[] = [];
+
+    for (const entry of processedEntries) {
+      if (entry.error) {
+        // Skip entries that couldn't be processed
         continue;
       }
-      const posixFull = toPosixPath(fullPath);
-      const relativeEntry = path.posix.relative(posixCrawlDirectory, posixFull);
 
-      if (stat.isDirectory()) {
-        // Directory checks expect a trailing slash for directory patterns.
-        const dirCheck = relativeEntry === '' ? '' : `${relativeEntry}/`;
-        if (dirFilter(dirCheck)) continue;
-        // Push directory entry with trailing slash, use '.' for the root.
-        resultsList.push(relativeEntry === '' ? '.' : `${relativeEntry}/`);
-        await walk(fullPath, depth + 1);
-      } else if (stat.isFile()) {
-        const fileRelative = toPosixPath(path.posix.relative(posixCrawlDirectory, posixFull));
-        resultsList.push(fileRelative);
+      if (entry.isDirectory) {
+        directories.push(entry);
+      } else if (entry.isFile) {
+        files.push(entry);
       }
+    }
+
+    // Process directories
+    for (const dirEntry of directories) {
+      const dirCheck = dirEntry.relativePath === '' ? '' : `${dirEntry.relativePath}/`;
+      
+      if (dirFilter(dirCheck)) {
+        metrics.ignoredItems++;
+        continue;
+      }
+      
+      metrics.totalDirectories++;
+      
+      // Push directory entry with trailing slash, use '.' for the root.
+      const dirPath = dirEntry.relativePath === '' ? '.' : `${dirEntry.relativePath}/`;
+      resultsList.push(dirPath);
+      
+      // Recursively process subdirectory
+      await walkOptimized(dirEntry.fullPath, depth + 1);
+    }
+
+    // Process files
+    for (const fileEntry of files) {
+      metrics.totalFiles++;
+      resultsList.push(fileEntry.relativePath);
     }
   }
 
-  await walk(options.crawlDirectory, 0);
-  const results = resultsList;
-
-  // Debug: log computed paths and raw results to diagnose test mismatches.
-  // eslint-disable-next-line no-console
-  console.log('[crawler] posixCwd ->', posixCwd);
-  // eslint-disable-next-line no-console
-  console.log('[crawler] posixCrawlDirectory ->', posixCrawlDirectory);
+  await walkOptimized(options.crawlDirectory, 0);
+  
+  // Transform results relative to cwd
   const relativeToCrawlDir = path.posix.relative(posixCwd, posixCrawlDirectory);
-  // eslint-disable-next-line no-console
-  console.log('[crawler] relativeToCrawlDir ->', relativeToCrawlDir);
-  // eslint-disable-next-line no-console
-  console.log('[crawler] raw results ->', results);
+  const relativeToCwdResults = resultsList.map((p) => 
+    relativeToCrawlDir === '' ? p : path.posix.join(relativeToCrawlDir, p)
+  );
 
-  const relativeToCwdResults = results.map((p) => path.posix.join(relativeToCrawlDir, p));
-
+  // Cache results
   if (options.cache) {
     const cacheKey = cache.getCacheKey(
       options.crawlDirectory,
@@ -109,5 +245,32 @@ export async function crawl(options: CrawlOptions): Promise<string[]> {
     cache.write(cacheKey, relativeToCwdResults, options.cacheTtl * 1000);
   }
 
+  logPerformanceMetrics(metrics, relativeToCwdResults.length);
   return relativeToCwdResults;
+}
+
+/**
+ * Logs performance metrics for crawl operations.
+ */
+function logPerformanceMetrics(metrics: CrawlMetrics, resultCount: number): void {
+  const duration = performance.now() - metrics.startTime;
+  
+  // Only log if performance is concerning or in development mode
+  if (duration > 1000 || process.env['NODE_ENV'] === 'development') {
+    const logData = {
+      duration: `${duration.toFixed(2)}ms`,
+      resultCount,
+      directories: metrics.totalDirectories,
+      files: metrics.totalFiles,
+      ignored: metrics.ignoredItems,
+      cacheHit: metrics.cacheHit,
+      concurrentStats: metrics.concurrentStats,
+    };
+    
+    if (process.env['NODE_ENV'] === 'development') {
+      console.debug('[crawler] Performance metrics:', logData);
+    } else if (duration > 5000) {
+      console.warn('[crawler] Slow crawl operation detected:', logData);
+    }
+  }
 }
