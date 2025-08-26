@@ -503,8 +503,8 @@ export class LoopDetectionService {
       loopType === LoopType.LLM_DETECTED_LOOP
     ) {
       this.suggestLoopBreakActions(
-        [LoopBreakAction.REQUEST_USER_INPUT], // Simple suggestion
-        reasoning,
+        [LoopBreakAction.REQUEST_USER_INPUT, LoopBreakAction.CHANGE_STRATEGY],
+        `Consecutive failures of 'replace' detected. Consider using 'upsert_code_block' or 'ast_edit' for more robust code modifications. ` + reasoning,
       );
       this.loopDetected = true; // Set the flag to stop execution.
       return true; // Signal that a loop was detected and we should stop.

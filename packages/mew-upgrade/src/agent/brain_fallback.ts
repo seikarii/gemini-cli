@@ -28,6 +28,8 @@ export interface CognitiveAlarm {
   on_fire?: (ctx: Record<any, any>) => void; // Changed to any for now, will refine later
   priority?: number;
   meta?: Record<string, any>;
+  should_fire?: (ctx: Record<string, any>) => boolean;
+  fire?: (ctx: Record<string, any>) => void;
 }
 
 export interface FilmEdge {
@@ -59,6 +61,10 @@ export function gen_id(prefix: string = "node"): string {
   return `${prefix}_${uuidv4().substring(0, 8)}`;
 }
 
+// --- Constants ---
+const _EPS = 1e-8;
+
+// --- Utility functions ---
 export function _safe_float(val: any, fallback: number = 0.0): number {
   try {
     if (val === null || val === undefined) {
@@ -72,6 +78,27 @@ export function _safe_float(val: any, fallback: number = 0.0): number {
     console.debug("_safe_float failed for", val, e);
     return fallback;
   }
+}
+
+export function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+export function cos_sim(a: number[], b: number[]): number {
+  if (a.length === 0 || b.length === 0) return 0.0;
+  const min_len = Math.min(a.length, b.length);
+  let dot = 0.0;
+  let norm_a = 0.0;
+  let norm_b = 0.0;
+  
+  for (let i = 0; i < min_len; i++) {
+    dot += a[i] * b[i];
+    norm_a += a[i] * a[i];
+    norm_b += b[i] * b[i];
+  }
+  
+  const denom = Math.sqrt(norm_a) * Math.sqrt(norm_b);
+  return denom > _EPS ? dot / denom : 0.0;
 }
 
 // TODO: Define AdamConfig interface
@@ -99,27 +126,27 @@ export class EmotionalEvaluator {
       }
     }
 
-    const threat = _safe_float(ctx.threat, 0.0);
-    const opportunity = _safe_float(ctx.opportunity, 0.0);
-    const progress = _safe_float(ctx.progress, 0.0);
+    const threat = _safe_float(ctx["threat"], 0.0);
+    const opportunity = _safe_float(ctx["opportunity"], 0.0);
+    const progress = _safe_float(ctx["progress"], 0.0);
 
     let valence = clamp(0.4 * opportunity - 0.6 * threat + 0.3 * progress, -1.0, 1.0);
     let arousal = clamp(0.6 * threat + 0.5 * opportunity, 0.0, 1.0);
     let dopamine = clamp(0.5 * progress + 0.3 * opportunity, 0.0, 1.0);
 
-    const detailed = ctx.detailed_physiological_state;
+    const detailed = ctx["detailed_physiological_state"];
     if (typeof detailed === 'object' && detailed !== null) {
       const feedback = detailed.feedback_modifiers || {};
       valence = clamp(valence + _safe_float(feedback.valence, 0.0), -1.0, 1.0);
       arousal = clamp(arousal + _safe_float(feedback.arousal, 0.0), 0.0, 1.0);
       dopamine = clamp(dopamine + _safe_float(feedback.dopamine, 0.0), 0.0, 1.0);
     } else {
-      const phys = ctx.physiological_state;
+      const phys = ctx["physiological_state"];
       if (typeof phys === 'string') {
         const som = this._calculate_somatic_modifier(phys);
-        valence = clamp(valence + _safe_float(som.valence, 0.0), -1.0, 1.0);
-        arousal = clamp(arousal + _safe_float(som.arousal, 0.0), 0.0, 1.0);
-        dopamine = clamp(dopamine + _safe_float(som.dopamine, 0.0), 0.0, 1.0);
+        valence = clamp(valence + _safe_float(som["valence"], 0.0), -1.0, 1.0);
+        arousal = clamp(arousal + _safe_float(som["arousal"], 0.0), 0.0, 1.0);
+        dopamine = clamp(dopamine + _safe_float(som["dopamine"], 0.0), 0.0, 1.0);
       }
     }
     return [valence, arousal, dopamine];
@@ -147,7 +174,7 @@ export class ExecutivePFC {
 
   push_wm(item: Record<string, any>): void {
     this.working_memory.push(item);
-    const limit = _safe_float(this.config.PFC_MAX_WORKING_MEMORY, this.max_wm);
+    const limit = _safe_float(this.config["PFC_MAX_WORKING_MEMORY"], this.max_wm);
     if (this.working_memory.length > limit) {
       this.working_memory.shift(); // Remove the oldest item
     }
@@ -158,22 +185,20 @@ export class ExecutivePFC {
     long_term_gain: number,
     context: Record<string, any> | null = null,
   ): boolean {
-    let base_inhibition = _safe_float(this.config.PFC_INHIBITION_LEVEL, this.inhibition_level);
+    let base_inhibition = _safe_float(this.config["PFC_INHIBITION_LEVEL"], this.inhibition_level);
 
     if (context) {
-      const detailed = context.detailed_physiological_state || {};
+      const detailed = context["detailed_physiological_state"] || {};
       if (typeof detailed === 'object' && detailed !== null) {
         const stress_level = _safe_float(detailed.stress_level, 0.0);
         const fatigue_level = _safe_float(detailed.fatigue_level, 0.0);
         const energy_level = _safe_float(detailed.energy_level, 0.7);
-        const arousal = _safe_float(context.arousal, 0.5);
+        const arousal = _safe_float(context["arousal"], 0.5);
 
         if (stress_level > 0.7) {
-          base_inhibition *= (
-            (1.0 - stress_level * 0.3)
-            if arousal > 0.6
-            else (1.0 + stress_level * 0.4)
-          );
+          base_inhibition *= arousal > 0.6
+            ? (1.0 - stress_level * 0.3)
+            : (1.0 + stress_level * 0.4);
         }
         if (fatigue_level > 0.6) {
           base_inhibition *= 1.0 - fatigue_level * 0.3;
@@ -219,7 +244,7 @@ export class BasalGanglia {
 }
 export class Cerebellum {
   micro_adjust(node: FilmNode, ctx: Record<string, any>): void {
-    const err = _safe_float(ctx.error, 0.0);
+    const err = _safe_float(ctx["error"], 0.0);
     node.cost_energy = clamp((node.cost_energy || 0.0) + 0.05 * err, 0.001, 1.0);
     node.usage_count = (node.usage_count || 0) + 1;
   }
@@ -259,7 +284,7 @@ export class PatternRecognizer {
       }
     }
 
-    const patternThresholdNew = _safe_float(this.config.PATTERN_THRESHOLD_NEW, this.threshold_new);
+    const patternThresholdNew = _safe_float(this.config["PATTERN_THRESHOLD_NEW"], this.threshold_new);
 
     if (best_s < patternThresholdNew) {
       const pid = `pat_${Object.keys(this.templates).length}`;
@@ -291,23 +316,23 @@ export class FrequencyRegulator {
   constructor(config: AdamConfig = DEFAULT_ADAM_CONFIG) {
     this.config = config;
     try {
-      this.base_hz = _safe_float(this.config.BASE_HZ, 1.0);
+      this.base_hz = _safe_float(this.config["BASE_HZ"], 1.0);
     } catch (e) {
       this.base_hz = 1.0;
     }
   }
 
   compute_hz(arousal: number, threat: number, safe: number): number {
-    const base = _safe_float(this.config.BASE_HZ, this.base_hz);
+    const base = _safe_float(this.config["BASE_HZ"], this.base_hz);
     const k = base + 40.0 * arousal + 30.0 * threat - 20.0 * safe;
-    const min_hz = _safe_float(this.config.MIN_HZ, 0.1);
-    const max_hz = _safe_float(this.config.MAX_HZ, 240.0);
+    const min_hz = _safe_float(this.config["MIN_HZ"], 0.1);
+    const max_hz = _safe_float(this.config["MAX_HZ"], 240.0);
     return clamp(k, min_hz, max_hz);
   }
 
   update_parallel(arousal: number, safe: number): void {
-    const safe_threshold_high = _safe_float(this.config.SAFE_THRESHOLD_HIGH, 0.8);
-    const safe_threshold_medium = _safe_float(this.config.SAFE_THRESHOLD_MEDIUM, 0.6);
+    const safe_threshold_high = _safe_float(this.config["SAFE_THRESHOLD_HIGH"], 0.8);
+    const safe_threshold_medium = _safe_float(this.config["SAFE_THRESHOLD_MEDIUM"], 0.6);
 
     if (safe > safe_threshold_high && arousal < 0.3) {
       this.parallel_thoughts = 3;
@@ -351,10 +376,10 @@ export class SimpleActuator {
           divine_signature: "Ω",
           info: "Reality rewritten by divine will.",
         };
-        if (_safe_float(context.energy_balance, 1.0) < 0.2) {
-          res.progress = _safe_float(res.progress, 0.0) * 0.5;
-          res.valence = _safe_float(res.valence, 0.0) * 0.5;
-          res.info = (String(res.info) + " (low energy: partial effect)");
+        if (_safe_float(context["energy_balance"], 1.0) < 0.2) {
+          res["progress"] = _safe_float(res["progress"], 0.0) * 0.5;
+          res["valence"] = _safe_float(res["valence"], 0.0) * 0.5;
+          res["info"] = (String(res["info"]) + " (low energy: partial effect)");
         }
         return res;
       }
@@ -379,37 +404,35 @@ export class SimpleActuator {
         const mapped: Record<string, any> = {
           progress: progress_val,
           valence: 0.2,
-          opportunity: (
-            0.2 if (action.includes("create") || action.includes("explore")) else 0.0
-          ),
+          opportunity: (action.includes("create") || action.includes("explore")) ? 0.2 : 0.0,
           threat: 0.0,
           tool_output: tool_result.output || "",
           tool_command: tool_result.command || action,
           divine_signature: action.includes("create") ? "Φ" : "Ψ",
           info: `Tool '${action}' executed successfully.`,
         };
-        if (_safe_float(context.energy_balance, 1.0) < 0.2) {
+        if (_safe_float(context["energy_balance"], 1.0) < 0.2) {
           for (const k in mapped) {
             if (typeof mapped[k] === 'number') {
               mapped[k] = _safe_float(mapped[k], 0.0) * 0.5;
             }
           }
-          mapped.info += " (low energy mode)";
+          mapped["info"] += " (low energy mode)";
         }
-        if (_safe_float(context.threat, 0.0) > 0.7) {
+        if (_safe_float(context["threat"], 0.0) > 0.7) {
           for (const k in mapped) {
             if (typeof mapped[k] === 'number') {
               mapped[k] = _safe_float(mapped[k], 0.0) * 0.7;
             }
           }
-          mapped.info += " (threat detected)";
-        } else if (_safe_float(context.safe, 0.5) > 0.8) {
+          mapped["info"] += " (threat detected)";
+        } else if (_safe_float(context["safe"], 0.5) > 0.8) {
           for (const k in mapped) {
             if (typeof mapped[k] === 'number') {
               mapped[k] = _safe_float(mapped[k], 0.0) * 1.2;
             }
           }
-          mapped.info += " (safe environment)";
+          mapped["info"] += " (safe environment)";
         }
         return mapped;
       } else {
@@ -440,6 +463,35 @@ export class SimpleActuator {
 
 // Default config (placeholder)
 const DEFAULT_ADAM_CONFIG: AdamConfig = {};
+
+export class BrainFallback {
+  entity_id: string;
+  config: AdamConfig;
+  recall_fn: (cue: any) => [any, string[]];
+  ingest_fn: (...args: any[]) => any;
+  emit_event: (eventType: string, data: Record<string, any>) => void;
+  tool_registry: ToolRegistry | null;
+  patterns: PatternRecognizer;
+  exec: ExecutivePFC;
+  limbic: EmotionalEvaluator;
+  habits: BasalGanglia;
+  cerebellum: Cerebellum;
+  freq: FrequencyRegulator;
+  actuator: SimpleActuator;
+  films: Record<string, Film>;
+  current: [string, string] | null;
+  _hooks: ((data: any) => void)[];
+  _trace: Record<string, any>[];
+  chaotic_core: ChaoticCognitiveCore | null = null;
+  eva_runtime: any;
+  eva_memory_store: Record<string, any>;
+  eva_experience_store: Record<string, any>;
+  eva_phases: Record<string, any>;
+  eva_phase: string;
+  _eva_buffer: Record<string, any>[];
+  _eva_flush_interval: number;
+  _last_eva_flush_ts: number;
+
   constructor(
     entity_id: string,
     get_embedding: ((x: any) => number[]) | null = null,
@@ -518,23 +570,23 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
       console.error("Failed to recall experiences from memory", e);
     }
 
-    const [pat_id, score] = this.patterns.match(context.sensory || context);
+    const [pat_id, score] = this.patterns.match(context["sensory"] || context);
     context["pattern_id"] = pat_id;
     context["pattern_match"] = score;
 
     const [val, arousal, dop] = this.limbic.evaluate(context);
-    context.valence = val;
-    context.arousal = arousal;
-    context.dopamine = dop;
+    context["valence"] = val;
+    context["arousal"] = arousal;
+    context["dopamine"] = dop;
 
     const hz = this.freq.compute_hz(
       arousal,
-      _safe_float(context.threat, 0.0),
-      _safe_float(context.safe, 0.0),
+      _safe_float(context["threat"], 0.0),
+      _safe_float(context["safe"], 0.0),
     );
     this.freq.update_parallel(
       arousal,
-      _safe_float(context.safe, 0.0),
+      _safe_float(context["safe"], 0.0),
     );
     context["tick_hz"] = hz;
     context["parallel_thoughts"] = this.freq.parallel_thoughts;
@@ -561,7 +613,7 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
 
       if (!this.exec.allow_action(
         arousal,
-        long_term_gain,
+        long_term_gain || 0.0,
         context,
       )) {
         // inhibition path
@@ -618,7 +670,7 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
     const high_arousal_threshold = _safe_float((this.config as any).HIGH_AROUSAL_THRESHOLD, 0.9);
     const progress_threshold_high = _safe_float((this.config as any).PROGRESS_THRESHOLD_HIGH, 0.8);
 
-    if ((_safe_float(context.threat, 0.0) > crisis_threat_threshold) || (arousal > high_arousal_threshold)) {
+    if ((_safe_float(context["threat"], 0.0) > crisis_threat_threshold) || (arousal > high_arousal_threshold)) {
       try {
         this.emit_event(
           "CRISIS",
@@ -626,7 +678,7 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
             "entity_id": this.entity_id,
             "film": film_id,
             "ctx": {
-              "threat": context.threat,
+              "threat": context["threat"],
               "arousal": arousal,
               "valence": val,
             },
@@ -636,7 +688,7 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
         console.debug("emit_event CRISIS failed (non-fatal)", e);
       }
     } else if (
-      (_safe_float(context.progress, 0.0) > progress_threshold_high) &&
+      (_safe_float(context["progress"], 0.0) > progress_threshold_high) &&
       (dop > progress_threshold_high) &&
       (Math.random() < 0.1)
     ) {
@@ -695,7 +747,25 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
     return trace_snapshot;
   }
 
-  _select_film(context: Record<string, any>): string | null { /* ... */ }
+  _select_film(context: Record<string, any>): string | null {
+    // Simple implementation - returns the film with highest fitness
+    let best_film: string | null = null;
+    let best_fitness = -Infinity;
+    
+    for (const film_id in this.films) {
+      const film = this.films[film_id];
+      if ((film.fitness || 0.0) > best_fitness) {
+        best_fitness = film.fitness || 0.0;
+        best_film = film_id;
+      }
+    }
+    
+    if (best_film) {
+      this.current = [best_film, this.films[best_film].entry || ""];
+    }
+    
+    return best_film;
+  }
 
   async _advance_film(film_id: string, ctx: Record<string, any>): Promise<Record<string, any>> {
     // TODO: Implement lock handling
@@ -747,8 +817,8 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
     try {
       this.ingest_fn(
         {"film": film_id, "node": node_id, "act": node.action},
-        _safe_float(ctx.valence, 0.0),
-        _safe_float(ctx.arousal, 0.0),
+        _safe_float(ctx["valence"], 0.0),
+        _safe_float(ctx["arousal"], 0.0),
         "habit",
       );
     } catch (e) {
@@ -761,13 +831,13 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
     } else {
       this.learn_from_outcome(
         film_id,
-        _safe_float(ctx.progress, 0.0) + _safe_float(ctx.opportunity, 0.0),
+        _safe_float(ctx["progress"], 0.0) + _safe_float(ctx["opportunity"], 0.0),
         node.cost_energy,
       );
       this.current = [film_id, f.entry || ""]; // Fallback to empty string if entry is undefined
     }
     node.ts_last = Date.now() / 1000;
-    node.last_outcome = _safe_float(ctx.progress, 0.0);
+    node.last_outcome = _safe_float(ctx["progress"], 0.0);
 
     return {
       "action": node.action,
@@ -812,7 +882,7 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
                 "film": film_id,
               },
               0.0,
-              _safe_float(ctx.arousal, 0.0),
+              _safe_float(ctx["arousal"], 0.0),
               "conscious",
             );
           } catch (e) {
@@ -900,7 +970,7 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
     // Update habit scores in basal ganglia
     if (film.nodes) {
       for (const node_id in film.nodes) {
-        const node = film.nodes[node_id];
+        const node: FilmNode = film.nodes[node_id];
         const action = node.action;
         if (action in this.habits.habit_scores) {
           this.habits.habit_scores[action] += reward * 0.1;
@@ -914,21 +984,21 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
   _create_film_from_chaotic_solution(solution: Record<string, any>, context: Record<string, any>): void {
     // TODO: Implement lock handling
     try {
-      const confidence = _safe_float(solution.confidence, 0.5);
-      const chaoticCoreConfidenceThreshold = _safe_float((this.config as any).CHAOTIC_CORE_CONFIDENCE_THRESHOLD, 0.7);
+      const confidence = _safe_float(solution["confidence"], 0.5);
+      const chaoticCoreConfidenceThreshold = _safe_float((this.config as any)["CHAOTIC_CORE_CONFIDENCE_THRESHOLD"], 0.7);
 
       if (confidence < chaoticCoreConfidenceThreshold) {
         return;
       }
 
       const film_id = `chaotic_film_${gen_id()}`;
-      const action_name = `chaotic_${solution.type || "emergent"}`;
+      const action_name = `chaotic_${solution["type"] || "emergent"}`;
       const node_id = `${film_id}_n0`;
 
       const node: FilmNode = {
         id: node_id,
         action: action_name,
-        params: solution.details || {},
+        params: solution["details"] || {},
         expected_reward: confidence,
       };
 
@@ -951,18 +1021,126 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
     source_film_id: string,
     reward: number,
     impact_score: number,
-  ): string { /* ... */ return ""; }
+  ): string {
+    const film_id = `oneshot_${gen_id()}`;
+    const source_film = this.films[source_film_id];
+    
+    if (!source_film || !source_film.nodes) {
+      return "";
+    }
+    
+    // Create a simplified version of the source film
+    const entry_node_id = source_film.entry || Object.keys(source_film.nodes)[0];
+    const source_node = source_film.nodes[entry_node_id];
+    
+    if (!source_node) {
+      return "";
+    }
+    
+    const node: FilmNode = {
+      id: `${film_id}_n0`,
+      action: source_node.action,
+      params: { ...source_node.params },
+      expected_reward: reward,
+      cost_energy: (source_node.cost_energy || 0.0) * 0.8, // Slightly more efficient
+    };
+    
+    const film: Film = {
+      id: film_id,
+      nodes: { [`${film_id}_n0`]: node },
+      entry: `${film_id}_n0`,
+      fitness: reward * 1.5, // High initial fitness
+      tags: ["one_shot", `impact_${impact_score.toFixed(2)}`],
+    };
+    
+    this.films[film_id] = film;
+    console.info(`Created one-shot film: ${film_id} (reward: ${reward.toFixed(3)})`);
+    return film_id;
+  }
 
   forget_unused_films(
     usage_threshold: number = 3,
     fitness_threshold: number = -0.5,
     age_threshold_days: number = 7.0,
-  ): string[] { return []; }
+  ): string[] {
+    const now = Date.now() / 1000;
+    const age_threshold_s = age_threshold_days * 24 * 3600;
+    const forgotten: string[] = [];
+    
+    for (const film_id in this.films) {
+      const film = this.films[film_id];
+      const usage = film.usage || 0;
+      const fitness = film.fitness || 0.0;
+      const age = film.last_run_ts ? (now - film.last_run_ts) : age_threshold_s + 1;
+      
+      if (usage < usage_threshold && fitness < fitness_threshold && age > age_threshold_s) {
+        delete this.films[film_id];
+        forgotten.push(film_id);
+      }
+    }
+    
+    console.info(`Forgot ${forgotten.length} unused films`);
+    return forgotten;
+  }
 
   generate_complex_film(
     base_actions: string[],
     context: Record<string, any>,
-  ): string { return ""; }
+  ): string {
+    const film_id = `complex_${gen_id()}`;
+    const nodes: Record<string, FilmNode> = {};
+    const edges: FilmEdge[] = [];
+    
+    // Create nodes for each action
+    base_actions.forEach((action, index) => {
+      const node_id = `${film_id}_n${index}`;
+      nodes[node_id] = {
+        id: node_id,
+        action: action,
+        params: {},
+        expected_reward: 0.5,
+      };
+      
+      // Create sequential edges
+      if (index > 0) {
+        const prev_node_id = `${film_id}_n${index - 1}`;
+        edges.push({
+          src: prev_node_id,
+          dst: node_id,
+          condition: (ctx: Record<string, any>) => _safe_float(ctx["progress"], 0.0) > 0.1,
+        });
+      }
+    });
+    
+    const film: Film = {
+      id: film_id,
+      nodes: nodes,
+      edges: edges,
+      entry: `${film_id}_n0`,
+      fitness: 0.3,
+      tags: ["complex", `actions_${base_actions.length}`],
+    };
+    
+    this.films[film_id] = film;
+    console.info(`Generated complex film: ${film_id} with ${base_actions.length} actions`);
+    return film_id;
+  }
+
+  get_trace(last_n: number = 20): Record<string, any>[] {
+    return this._trace.slice(-last_n);
+  }
+
+  get_current_state(): any {
+    return {
+      entity_id: this.entity_id,
+      current: this.current,
+      films_count: Object.keys(this.films).length,
+      working_memory_size: this.exec.working_memory.length,
+      pattern_templates: Object.keys(this.patterns.templates).length,
+      habit_scores: { ...this.habits.habit_scores },
+      eva_buffer_size: this._eva_buffer.length,
+    };
+  }
 
   get_learning_statistics(): Record<string, any> {
     if (Object.keys(this.films).length === 0) {
@@ -1006,8 +1184,6 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
     return { total_films, average_fitness, one_shot_films, complex_films, fitness_distribution };
   }
 
-  get_trace(last_n: number = 20): Record<string, any>[] { return []; }
-
   get_film_stats(): Record<string, any> {
     // TODO: Implement lock handling
     const film_usage: Record<string, number> = {};
@@ -1024,6 +1200,4 @@ const DEFAULT_ADAM_CONFIG: AdamConfig = {};
     }
     return { film_usage, epic_scores, fitness, tags };
   }
-
-  get_current_state(): any { return {}; }
 }

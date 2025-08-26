@@ -6,30 +6,349 @@
 
 // Shape for extracted intentions
 export interface Intentions {
-  functions: Array<Record<string, unknown>>;
-  classes: Array<Record<string, unknown>>;
-  imports: Array<Record<string, unknown>>;
-  constants: Array<Record<string, unknown>>;
+  functions: FunctionInfo[];
+  classes: ClassInfo[];
+  imports: ImportInfo[];
+  constants: ConstantInfo[];
+  exports: ExportInfo[];
+  interfaces: InterfaceInfo[];
+  types: TypeInfo[];
+  enums: EnumInfo[];
   parsingErrors: string[];
+  complexity: ComplexityMetrics;
   [key: string]: unknown;
 }
+
+export interface FunctionInfo {
+  name: string;
+  isAsync: boolean;
+  isExported: boolean;
+  isGenerator: boolean;
+  startLine: number | null;
+  endLine: number | null;
+  params: ParameterInfo[];
+  returnType?: string;
+  visibility?: 'public' | 'private' | 'protected';
+  isStatic?: boolean;
+  complexity?: number;
+  documentation?: string;
+}
+
+export interface ParameterInfo {
+  name: string;
+  type: string;
+  isOptional: boolean;
+  hasDefault: boolean;
+  defaultValue?: string;
+}
+
+export interface ClassInfo {
+  name: string;
+  isExported: boolean;
+  isAbstract: boolean;
+  startLine: number | null;
+  endLine: number | null;
+  methods: MethodInfo[];
+  properties: PropertyInfo[];
+  constructors: ConstructorInfo[];
+  extends?: string;
+  implements: string[];
+  documentation?: string;
+}
+
+export interface MethodInfo {
+  name: string;
+  isAsync: boolean;
+  isStatic: boolean;
+  isAbstract: boolean;
+  visibility: 'public' | 'private' | 'protected';
+  params: ParameterInfo[];
+  returnType?: string;
+  complexity?: number;
+}
+
+export interface PropertyInfo {
+  name: string;
+  type?: string;
+  isStatic: boolean;
+  isReadonly: boolean;
+  visibility: 'public' | 'private' | 'protected';
+  hasInitializer: boolean;
+}
+
+export interface ConstructorInfo {
+  params: ParameterInfo[];
+  visibility: 'public' | 'private' | 'protected';
+  complexity?: number;
+}
+
+export interface ImportInfo {
+  moduleSpecifier: string;
+  namedImports: NamedImportInfo[];
+  defaultImport?: string;
+  namespaceImport?: string;
+  isTypeOnly: boolean;
+  startLine: number | null;
+}
+
+export interface NamedImportInfo {
+  name: string;
+  alias?: string;
+  isTypeOnly: boolean;
+}
+
+export interface ConstantInfo {
+  name: string;
+  value?: string;
+  type?: string;
+  isExported: boolean;
+  startLine: number | null;
+  isReadonly: boolean;
+  documentation?: string;
+}
+
+export interface ExportInfo {
+  name?: string;
+  isDefault: boolean;
+  isReExport: boolean;
+  moduleSpecifier?: string;
+  type: 'variable' | 'function' | 'class' | 'interface' | 'type' | 'namespace';
+}
+
+export interface InterfaceInfo {
+  name: string;
+  isExported: boolean;
+  startLine: number | null;
+  endLine: number | null;
+  properties: InterfacePropertyInfo[];
+  methods: InterfaceMethodInfo[];
+  extends: string[];
+  documentation?: string;
+}
+
+export interface InterfacePropertyInfo {
+  name: string;
+  type?: string;
+  isOptional: boolean;
+  isReadonly: boolean;
+}
+
+export interface InterfaceMethodInfo {
+  name: string;
+  params: ParameterInfo[];
+  returnType?: string;
+  isOptional: boolean;
+}
+
+export interface TypeInfo {
+  name: string;
+  isExported: boolean;
+  definition: string;
+  startLine: number | null;
+  documentation?: string;
+}
+
+export interface EnumInfo {
+  name: string;
+  isExported: boolean;
+  isConst: boolean;
+  startLine: number | null;
+  endLine: number | null;
+  members: EnumMemberInfo[];
+  documentation?: string;
+}
+
+export interface EnumMemberInfo {
+  name: string;
+  value?: string | number;
+  hasInitializer: boolean;
+}
+
+export interface ComplexityMetrics {
+  cyclomaticComplexity: number;
+  cognitiveComplexity: number;
+  halsteadMetrics: HalsteadMetrics;
+  linesOfCode: number;
+  maintainabilityIndex: number;
+}
+
+export interface HalsteadMetrics {
+  operatorsCount: number;
+  operandsCount: number;
+  vocabularySize: number;
+  programLength: number;
+  difficulty: number;
+  effort: number;
+  timeRequired: number;
+  bugsDelivered: number;
+}
+
 /**
- * TypeScript port of ideas/ASTRAL_TOOLS/ast_tools/reader.py
+ * Enhanced TypeScript AST parser with comprehensive analysis capabilities
  * - robust file reading with encoding fallbacks
- * - file size guard
+ * - file size guard with configurable limits
  * - defensive parsing with ts-morph
- * - comment / JSDoc extraction
- * - intention extraction (functions, classes, imports, constants)
+ * - comprehensive structural analysis
+ * - complexity metrics calculation
+ * - documentation extraction
+ * - dependency analysis
  */
 import fs from 'fs/promises';
 import path from 'path';
-import { Project, SourceFile, SyntaxKind, JSDoc, ImportSpecifier, ParameterDeclaration, MethodDeclaration, StringLiteral } from 'ts-morph';
+import { 
+  Project, 
+  SourceFile, 
+  SyntaxKind, 
+  JSDoc, 
+  ImportSpecifier, 
+  ParameterDeclaration, 
+  MethodDeclaration,
+  Node
+} from 'ts-morph';
 
 const MAX_FILE_SIZE_MB = 50; // maximum file size to process
 
 /**
- * Result shape returned by readAndParseFile / ASTReader.execute
+ * Calculate cyclomatic complexity for a function or method
  */
+function calculateCyclomaticComplexity(node: Node): number {
+  let complexity = 1; // base complexity
+  
+  const complexityNodes = [
+    SyntaxKind.IfStatement,
+    SyntaxKind.WhileStatement,
+    SyntaxKind.ForStatement,
+    SyntaxKind.ForInStatement,
+    SyntaxKind.ForOfStatement,
+    SyntaxKind.SwitchStatement,
+    SyntaxKind.CaseClause,
+    SyntaxKind.ConditionalExpression,
+    SyntaxKind.TryStatement,
+    SyntaxKind.CatchClause
+  ];
+
+  node.forEachDescendant((child) => {
+    if (complexityNodes.includes(child.getKind())) {
+      complexity++;
+    }
+  });
+
+  return complexity;
+}
+
+/**
+ * Calculate Halstead metrics for code complexity analysis
+ */
+function calculateHalsteadMetrics(sourceFile: SourceFile): HalsteadMetrics {
+  const operators = new Set<string>();
+  const operands = new Set<string>();
+  let operatorCount = 0;
+  let operandCount = 0;
+
+  const operatorKinds = [
+    SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.AsteriskToken,
+    SyntaxKind.SlashToken, SyntaxKind.PercentToken, SyntaxKind.AmpersandToken,
+    SyntaxKind.BarToken, SyntaxKind.CaretToken, SyntaxKind.ExclamationToken,
+    SyntaxKind.EqualsEqualsToken, SyntaxKind.ExclamationEqualsToken,
+    SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken,
+    SyntaxKind.LessThanEqualsToken, SyntaxKind.GreaterThanEqualsToken,
+    SyntaxKind.AmpersandAmpersandToken, SyntaxKind.BarBarToken,
+    SyntaxKind.EqualsToken, SyntaxKind.PlusEqualsToken,
+    SyntaxKind.MinusEqualsToken, SyntaxKind.AsteriskEqualsToken
+  ];
+
+  sourceFile.forEachDescendant((node) => {
+    const kind = node.getKind();
+    const text = node.getText();
+
+    if (operatorKinds.includes(kind)) {
+      operators.add(text);
+      operatorCount++;
+    } else if (kind === SyntaxKind.Identifier || kind === SyntaxKind.StringLiteral || 
+               kind === SyntaxKind.NumericLiteral) {
+      operands.add(text);
+      operandCount++;
+    }
+  });
+
+  const n1 = operators.size; // unique operators
+  const n2 = operands.size; // unique operands
+  const N1 = operatorCount; // total operators
+  const N2 = operandCount; // total operands
+
+  const vocabularySize = n1 + n2;
+  const programLength = N1 + N2;
+  const difficulty = (n1 / 2) * (N2 / n2);
+  const effort = difficulty * programLength;
+  const timeRequired = effort / 18; // seconds
+  const bugsDelivered = effort / 3000;
+
+  return {
+    operatorsCount: N1,
+    operandsCount: N2,
+    vocabularySize,
+    programLength,
+    difficulty,
+    effort,
+    timeRequired,
+    bugsDelivered
+  };
+}
+
+/**
+ * Calculate maintainability index
+ */
+function calculateMaintainabilityIndex(
+  halstead: HalsteadMetrics,
+  cyclomaticComplexity: number,
+  linesOfCode: number
+): number {
+  if (linesOfCode === 0 || halstead.programLength === 0) return 100;
+  
+  const maintainabilityIndex = Math.max(0, 
+    171 - 5.2 * Math.log(halstead.programLength) - 
+    0.23 * cyclomaticComplexity - 16.2 * Math.log(linesOfCode)
+  );
+  
+  return Math.min(100, maintainabilityIndex);
+}
+
+/**
+ * Extract comprehensive complexity metrics
+ */
+function extractComplexityMetrics(sourceFile: SourceFile): ComplexityMetrics {
+  let totalCyclomaticComplexity = 0;
+  let functionCount = 0;
+  
+  // Count functions and their complexity
+  sourceFile.getFunctions().forEach(func => {
+    totalCyclomaticComplexity += calculateCyclomaticComplexity(func);
+    functionCount++;
+  });
+  
+  sourceFile.getClasses().forEach(cls => {
+    cls.getMethods().forEach(method => {
+      totalCyclomaticComplexity += calculateCyclomaticComplexity(method);
+      functionCount++;
+    });
+  });
+
+  const halsteadMetrics = calculateHalsteadMetrics(sourceFile);
+  const linesOfCode = sourceFile.getEndLineNumber();
+  const avgCyclomaticComplexity = functionCount > 0 ? totalCyclomaticComplexity / functionCount : 0;
+  
+  return {
+    cyclomaticComplexity: totalCyclomaticComplexity,
+    cognitiveComplexity: totalCyclomaticComplexity, // Simplified - could be enhanced
+    halsteadMetrics,
+    linesOfCode,
+    maintainabilityIndex: calculateMaintainabilityIndex(
+      halsteadMetrics, 
+      avgCyclomaticComplexity, 
+      linesOfCode
+    )
+  };
+}
 export interface ParseResult {
   source?: string | null;
   sourceFile?: SourceFile | null;
@@ -189,7 +508,7 @@ export function extractCommentsAndJsDoc(
     try {
       for (const nd of sourceFile.getDescendants()) {
         try {
-          const getJsDocs = (nd as any).getJsDocs;
+          const getJsDocs = (nd as { getJsDocs?: () => JSDoc[] }).getJsDocs;
           const js = typeof getJsDocs === 'function' ? getJsDocs.call(nd) ?? [] : [];
           if (Array.isArray(js) && js.length > 0) {
             for (const d of js) {
@@ -224,33 +543,57 @@ export function extractIntentionsFromSourceFile(
     classes: [],
     imports: [],
     constants: [],
+    exports: [],
+    interfaces: [],
+    types: [],
+    enums: [],
     parsingErrors: [],
+    complexity: {
+      cyclomaticComplexity: 0,
+      cognitiveComplexity: 0,
+      halsteadMetrics: {
+        operatorsCount: 0,
+        operandsCount: 0,
+        vocabularySize: 0,
+        programLength: 0,
+        difficulty: 0,
+        effort: 0,
+        timeRequired: 0,
+        bugsDelivered: 0
+      },
+      linesOfCode: 0,
+      maintainabilityIndex: 100
+    }
   };
+  
   if (!sourceFile) {
     intents.parsingErrors.push('sourceFile not available');
     return intents;
   }
 
   try {
+    // Extract complexity metrics
+    intents.complexity = extractComplexityMetrics(sourceFile);
+
     // Imports
     try {
       const imps = sourceFile.getImportDeclarations();
       for (const imp of imps) {
         try {
-          // small local helper to avoid implicit-`any` callback in map
           const namedImports = imp.getNamedImports();
-          const mappedNamed = namedImports.map((spec: ImportSpecifier) => {
-            return {
-              name: spec.getName(),
-              alias: spec.getAliasNode()?.getText() ?? undefined,
-            };
-          });
+          const mappedNamed = namedImports.map((spec: ImportSpecifier) => ({
+            name: spec.getName(),
+            alias: spec.getAliasNode()?.getText() ?? undefined,
+            isTypeOnly: spec.isTypeOnly()
+          }));
 
           intents.imports.push({
             moduleSpecifier: imp.getModuleSpecifierValue(),
             namedImports: mappedNamed,
             defaultImport: imp.getDefaultImport()?.getText?.() ?? undefined,
             namespaceImport: imp.getNamespaceImport()?.getText?.() ?? undefined,
+            isTypeOnly: imp.isTypeOnly(),
+            startLine: imp.getStartLineNumber()
           });
           } catch (e: unknown) {
             intents.parsingErrors.push(`import node error: ${String(e)}`);
@@ -265,16 +608,25 @@ export function extractIntentionsFromSourceFile(
       const funcs = sourceFile.getFunctions();
       for (const f of funcs) {
         try {
+          const params: ParameterInfo[] = f.getParameters?.().map((p: ParameterDeclaration) => ({
+            name: p.getName?.() || '',
+            type: p.getType?.().getText?.() ?? '',
+            isOptional: p.hasQuestionToken(),
+            hasDefault: p.hasInitializer(),
+            defaultValue: p.getInitializer()?.getText()
+          })) ?? [];
+
           intents.functions.push({
             name: f.getName?.() ?? '<anonymous>',
             isAsync: f.isAsync?.() ?? false,
+            isExported: f.isExported(),
+            isGenerator: f.isGenerator(),
             startLine: f.getStartLineNumber?.() ?? null,
             endLine: f.getEndLineNumber?.() ?? null,
-            params:
-              f.getParameters?.().map((p: ParameterDeclaration) => ({
-                name: p.getName?.(),
-                type: p.getType?.().getText?.() ?? '',
-              })) ?? [],
+            params,
+            returnType: f.getReturnTypeNode()?.getText(),
+            visibility: 'public', // functions are always public in TS
+            complexity: calculateCyclomaticComplexity(f)
           });
         } catch (e: unknown) {
           intents.parsingErrors.push(`function node error: ${String(e)}`);
@@ -289,16 +641,55 @@ export function extractIntentionsFromSourceFile(
       const classes = sourceFile.getClasses();
       for (const c of classes) {
         try {
+          const methods: MethodInfo[] = c.getMethods?.().map((m: MethodDeclaration) => ({
+            name: m.getName?.() || '',
+            isAsync: m.isAsync?.() ?? false,
+            isStatic: m.isStatic(),
+            isAbstract: m.isAbstract(),
+            visibility: m.getScope() || 'public',
+            params: m.getParameters().map((p: ParameterDeclaration) => ({
+              name: p.getName() || '',
+              type: p.getType().getText() || '',
+              isOptional: p.hasQuestionToken(),
+              hasDefault: p.hasInitializer(),
+              defaultValue: p.getInitializer()?.getText()
+            })),
+            returnType: m.getReturnTypeNode()?.getText(),
+            complexity: calculateCyclomaticComplexity(m)
+          })) ?? [];
+
+          const properties: PropertyInfo[] = c.getProperties().map(p => ({
+            name: p.getName() || '',
+            type: p.getType().getText(),
+            isStatic: p.isStatic(),
+            isReadonly: p.isReadonly(),
+            visibility: p.getScope() || 'public',
+            hasInitializer: p.hasInitializer()
+          }));
+
+          const constructors: ConstructorInfo[] = c.getConstructors().map(ctor => ({
+            params: ctor.getParameters().map((p: ParameterDeclaration) => ({
+              name: p.getName() || '',
+              type: p.getType().getText() || '',
+              isOptional: p.hasQuestionToken(),
+              hasDefault: p.hasInitializer(),
+              defaultValue: p.getInitializer()?.getText()
+            })),
+            visibility: ctor.getScope() || 'public',
+            complexity: calculateCyclomaticComplexity(ctor)
+          }));
+
           intents.classes.push({
             name: c.getName?.() ?? '<anonymous>',
             isExported: c.isExported?.() ?? false,
+            isAbstract: c.isAbstract(),
             startLine: c.getStartLineNumber?.() ?? null,
             endLine: c.getEndLineNumber?.() ?? null,
-            methods:
-              c.getMethods?.().map((m: MethodDeclaration) => ({
-                name: m.getName?.(),
-                isAsync: m.isAsync?.() ?? false,
-              })) ?? [],
+            methods,
+            properties,
+            constructors,
+            extends: c.getExtends()?.getText(),
+            implements: c.getImplements().map(i => i.getText())
           });
         } catch (e: unknown) {
           intents.parsingErrors.push(`class node error: ${String(e)}`);
@@ -306,6 +697,94 @@ export function extractIntentionsFromSourceFile(
       }
     } catch (e) {
       intents.parsingErrors.push(`classes extraction failed: ${String(e)}`);
+    }
+
+    // Interfaces
+    try {
+      const interfaces = sourceFile.getInterfaces();
+      for (const iface of interfaces) {
+        try {
+          const properties: InterfacePropertyInfo[] = iface.getProperties().map(p => ({
+            name: p.getName() || '',
+            type: p.getType().getText(),
+            isOptional: p.hasQuestionToken(),
+            isReadonly: p.isReadonly()
+          }));
+
+          const methods: InterfaceMethodInfo[] = iface.getMethods().map(m => ({
+            name: m.getName() || '',
+            params: m.getParameters().map((p: ParameterDeclaration) => ({
+              name: p.getName() || '',
+              type: p.getType().getText() || '',
+              isOptional: p.hasQuestionToken(),
+              hasDefault: p.hasInitializer(),
+              defaultValue: p.getInitializer()?.getText()
+            })),
+            returnType: m.getReturnTypeNode()?.getText(),
+            isOptional: m.hasQuestionToken()
+          }));
+
+          intents.interfaces.push({
+            name: iface.getName(),
+            isExported: iface.isExported(),
+            startLine: iface.getStartLineNumber(),
+            endLine: iface.getEndLineNumber(),
+            properties,
+            methods,
+            extends: iface.getExtends().map(e => e.getText())
+          });
+        } catch (e: unknown) {
+          intents.parsingErrors.push(`interface node error: ${String(e)}`);
+        }
+      }
+    } catch (e) {
+      intents.parsingErrors.push(`interfaces extraction failed: ${String(e)}`);
+    }
+
+    // Type aliases
+    try {
+      const typeAliases = sourceFile.getTypeAliases();
+      for (const ta of typeAliases) {
+        try {
+          intents.types.push({
+            name: ta.getName(),
+            isExported: ta.isExported(),
+            definition: ta.getTypeNode()?.getText() || '',
+            startLine: ta.getStartLineNumber()
+          });
+        } catch (e: unknown) {
+          intents.parsingErrors.push(`type alias node error: ${String(e)}`);
+        }
+      }
+    } catch (e) {
+      intents.parsingErrors.push(`type aliases extraction failed: ${String(e)}`);
+    }
+
+    // Enums
+    try {
+      const enums = sourceFile.getEnums();
+      for (const en of enums) {
+        try {
+          const members: EnumMemberInfo[] = en.getMembers().map(m => ({
+            name: m.getName(),
+            value: m.getValue(),
+            hasInitializer: m.hasInitializer()
+          }));
+
+          intents.enums.push({
+            name: en.getName(),
+            isExported: en.isExported(),
+            isConst: false, // ts-morph doesn't expose isConst directly
+            startLine: en.getStartLineNumber(),
+            endLine: en.getEndLineNumber(),
+            members
+          });
+        } catch (e: unknown) {
+          intents.parsingErrors.push(`enum node error: ${String(e)}`);
+        }
+      }
+    } catch (e) {
+      intents.parsingErrors.push(`enums extraction failed: ${String(e)}`);
     }
 
     // Constants - best-effort: numeric/string/boolean initializers from variable statements
@@ -326,10 +805,14 @@ export function extractIntentionsFromSourceFile(
                 kind === SyntaxKind.FalseKeyword
               ) {
                 intents.constants.push({
-                  name: decl.getName?.(),
+                  name: decl.getName?.() || '',
                   value: init.getText?.(),
+                  type: decl.getType().getText(),
                   isExported,
-                  startLine: decl.getStartLineNumber?.(),
+                  startLine: decl.getStartLineNumber?.() ?? null,
+                  isReadonly: decl.getParent()?.getKind() === SyntaxKind.VariableDeclarationList &&
+                              decl.getParent()?.getParent()?.getKind() === SyntaxKind.VariableStatement &&
+                              (decl.getParent()?.getParent() as { getDeclarationKind?: () => string })?.getDeclarationKind?.() === 'const'
                 });
               }
             } catch (e: unknown) {
@@ -346,25 +829,26 @@ export function extractIntentionsFromSourceFile(
       intents.parsingErrors.push(`constants extraction failed: ${String(e)}`);
     }
 
-    // Additionally: a defensive AST walk to collect some string literal docstrings if any
+    // Export analysis
     try {
-      sourceFile.forEachDescendant((n) => {
+      const exports = sourceFile.getExportDeclarations();
+      for (const exp of exports) {
         try {
-          const k = n.getKind?.();
-          if (k === SyntaxKind.StringLiteral) {
-            const txt = (n as StringLiteral).getLiteralText?.();
-            if (typeof txt === 'string' && txt.length > 20) {
-              // heuristics: long string literals may be docstrings/comments
-              intents.constants.push({ inferredDocstring: txt.slice(0, 200) });
-            }
-          }
-        } catch {
-          // ignore per-node errors
+          intents.exports.push({
+            name: exp.getNamedExports().map(ne => ne.getName()).join(', '),
+            isDefault: false,
+            isReExport: !!exp.getModuleSpecifier(),
+            moduleSpecifier: exp.getModuleSpecifierValue(),
+            type: 'variable' // simplified
+          });
+        } catch (e: unknown) {
+          intents.parsingErrors.push(`export node error: ${String(e)}`);
         }
-      });
-    } catch {
-      // ignore
+      }
+    } catch (e) {
+      intents.parsingErrors.push(`exports extraction failed: ${String(e)}`);
     }
+
   } catch (e: unknown) {
     intents.parsingErrors.push(
       `intentions overall extraction failed: ${String(e)}`,
@@ -482,9 +966,34 @@ export class ASTReader {
         parts.push(`✅ Parse Status: Success`);
       }
 
-   
-  const intents: Intentions = r.intentions as Intentions || {};
-  if (intents && !(intents as any)['extraction_error']) {
+  const intents: Intentions = r.intentions as Intentions || {
+    functions: [],
+    classes: [],
+    imports: [],
+    constants: [],
+    exports: [],
+    interfaces: [],
+    types: [],
+    enums: [],
+    parsingErrors: [],
+    complexity: {
+      cyclomaticComplexity: 0,
+      cognitiveComplexity: 0,
+      halsteadMetrics: {
+        operatorsCount: 0,
+        operandsCount: 0,
+        vocabularySize: 0,
+        programLength: 0,
+        difficulty: 0,
+        effort: 0,
+        timeRequired: 0,
+        bugsDelivered: 0
+      },
+      linesOfCode: 0,
+      maintainabilityIndex: 100
+    }
+  };
+  if (intents && !('extraction_error' in intents)) {
         const fnCount = Array.isArray(intents.functions)
           ? intents.functions.length
           : 0;
