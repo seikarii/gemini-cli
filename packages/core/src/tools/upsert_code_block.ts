@@ -6,6 +6,7 @@
 
 import * as Diff from 'diff';
 import * as fs from 'fs';
+import { promises as fsp } from 'fs';
 import * as path from 'path';
 import { SourceFile, Node, VariableDeclaration } from 'ts-morph';
 import * as astAdapter from '../ast/adapter.js';
@@ -146,8 +147,8 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
   private async handlePythonFile(): Promise<ToolResult> {
     // For Python files, use string-based parsing since ts-morph doesn't support Python
     try {
-      const originalContent = fs.readFileSync(this.params.file_path, 'utf-8');
-      const lines = originalContent.split('\n');
+  const originalContent = await fsp.readFile(this.params.file_path, 'utf-8');
+  const lines = originalContent.split('\n');
 
       const blockInfo = this.findPythonBlock(lines);
       const blockType =
@@ -171,8 +172,8 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
         operation = 'inserted';
       }
 
-      // Write back to file
-      fs.writeFileSync(this.params.file_path, newContent, 'utf-8');
+  // Write back to file
+  await fsp.writeFile(this.params.file_path, newContent, 'utf-8');
 
       const message = `Successfully ${operation} ${blockType} '${this.params.block_name}' in ${this.params.file_path}`;
 
@@ -246,9 +247,9 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
         operation = 'inserted';
       }
 
-      // Save the modified content
-      const newContent = astAdapter.dumpSourceFileText(sourceFile);
-      fs.writeFileSync(this.params.file_path, newContent, 'utf-8');
+  // Save the modified content
+  const newContent = astAdapter.dumpSourceFileText(sourceFile);
+  await fsp.writeFile(this.params.file_path, newContent, 'utf-8');
 
       const blockType =
         this.params.block_type ||
@@ -295,7 +296,7 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
 
   private async handlePlainTextFile(): Promise<ToolResult> {
     try {
-      const originalContent = fs.readFileSync(this.params.file_path, 'utf-8');
+  const originalContent = await fsp.readFile(this.params.file_path, 'utf-8');
 
       // For plain text files, simply append or replace based on simple pattern matching
       const lines = originalContent.split('\n');
@@ -344,7 +345,7 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
         operation = 'inserted';
       }
 
-      fs.writeFileSync(this.params.file_path, newContent, 'utf-8');
+  await fsp.writeFile(this.params.file_path, newContent, 'utf-8');
 
       const message = `Successfully ${operation} block '${this.params.block_name}' in ${this.params.file_path}`;
 

@@ -160,6 +160,7 @@ export default tseslint.config(
       'prefer-const': ['error', { destructuring: 'all' }],
       radix: 'error',
       'default-case': 'error',
+      'import/no-cycle': 'error',
     },
   },
   {

@@ -38,6 +38,99 @@ function isAtEndOfBaseWord(lineCodePoints: string[], col: number): boolean {
   return i >= lineCodePoints.length || !isWordCharStrict(lineCodePoints[i]);
 }
 
+function handleChangeMovementVertical(
+  state: TextBufferState,
+  count: number,
+  direction: 'up' | 'down',
+  totalLines: number,
+): TextBufferState {
+  const { cursorRow } = state;
+  const nextState = pushUndo(state);
+
+  if (totalLines === 1) {
+    const currentLine = state.lines[0] || '';
+    return replaceRangeInternal(
+      nextState,
+      0,
+      0,
+      0,
+      cpLen(currentLine),
+      '',
+    );
+  }
+
+  let startRow: number;
+  let linesToChange: number;
+
+  if (direction === 'down') {
+    startRow = cursorRow;
+    linesToChange = Math.min(count, totalLines - cursorRow);
+  } else { // direction === 'up'
+    startRow = Math.max(0, cursorRow - count + 1);
+    linesToChange = cursorRow - startRow + 1;
+  }
+
+  if (linesToChange <= 0) {
+    return state;
+  }
+
+  const { startOffset, endOffset } = getLineRangeOffsets(
+    startRow,
+    linesToChange,
+    nextState.lines,
+  );
+  const { startRow: newStartRow, startCol, endRow, endCol } =
+    getPositionFromOffsets(startOffset, endOffset, nextState.lines);
+
+  const resultState = replaceRangeInternal(
+    nextState,
+    newStartRow,
+    startCol,
+    endRow,
+    endCol,
+    '',
+  );
+
+  if (direction === 'up') {
+    return {
+      ...resultState,
+      cursorRow: startRow,
+      cursorCol: 0,
+    };
+  }
+
+  return resultState;
+}
+
+function getVerticalMovementNewState(
+  state: TextBufferState,
+  count: number,
+  direction: 'up' | 'down',
+): TextBufferState {
+  const { cursorRow, cursorCol, lines } = state;
+  let newRow: number;
+
+  if (direction === 'up') {
+    newRow = Math.max(0, cursorRow - count);
+  } else {
+    newRow = Math.min(lines.length - 1, cursorRow + count);
+  }
+
+  const targetLine = lines[newRow] || '';
+  const targetLineLength = cpLen(targetLine);
+  const newCol = Math.min(
+    cursorCol,
+    targetLineLength > 0 ? targetLineLength - 1 : 0,
+  );
+
+  return {
+    ...state,
+    cursorRow: newRow,
+    cursorCol: newCol,
+    preferredCol: null,
+  };
+}
+
 export type VimAction = Extract<
   TextBufferAction,
   | { type: 'vim_delete_word_forward' }
@@ -304,89 +397,12 @@ export function handleVimAction(
 
         case 'j': {
           // Down
-          const linesToChange = Math.min(count, totalLines - cursorRow);
-          if (linesToChange > 0) {
-            if (totalLines === 1) {
-              const currentLine = state.lines[0] || '';
-              return replaceRangeInternal(
-                pushUndo(state),
-                0,
-                0,
-                0,
-                cpLen(currentLine),
-                '',
-              );
-            } else {
-              const nextState = pushUndo(state);
-              const { startOffset, endOffset } = getLineRangeOffsets(
-                cursorRow,
-                linesToChange,
-                nextState.lines,
-              );
-              const { startRow, startCol, endRow, endCol } =
-                getPositionFromOffsets(startOffset, endOffset, nextState.lines);
-              return replaceRangeInternal(
-                nextState,
-                startRow,
-                startCol,
-                endRow,
-                endCol,
-                '',
-              );
-            }
-          }
-          return state;
+          return handleChangeMovementVertical(state, count, 'down', totalLines);
         }
 
         case 'k': {
           // Up
-          const upLines = Math.min(count, cursorRow + 1);
-          if (upLines > 0) {
-            if (state.lines.length === 1) {
-              const currentLine = state.lines[0] || '';
-              return replaceRangeInternal(
-                pushUndo(state),
-                0,
-                0,
-                0,
-                cpLen(currentLine),
-                '',
-              );
-            } else {
-              const startRow = Math.max(0, cursorRow - count + 1);
-              const linesToChange = cursorRow - startRow + 1;
-              const nextState = pushUndo(state);
-              const { startOffset, endOffset } = getLineRangeOffsets(
-                startRow,
-                linesToChange,
-                nextState.lines,
-              );
-              const {
-                startRow: newStartRow,
-                startCol,
-                endRow,
-                endCol,
-              } = getPositionFromOffsets(
-                startOffset,
-                endOffset,
-                nextState.lines,
-              );
-              const resultState = replaceRangeInternal(
-                nextState,
-                newStartRow,
-                startCol,
-                endRow,
-                endCol,
-                '',
-              );
-              return {
-                ...resultState,
-                cursorRow: startRow,
-                cursorCol: 0,
-              };
-            }
-          }
-          return state;
+          return handleChangeMovementVertical(state, count, 'up', totalLines);
         }
 
         case 'l': {
@@ -480,40 +496,12 @@ export function handleVimAction(
 
     case 'vim_move_up': {
       const { count } = action.payload;
-      const { cursorRow, cursorCol, lines } = state;
-      const newRow = Math.max(0, cursorRow - count);
-      const targetLine = lines[newRow] || '';
-      const targetLineLength = cpLen(targetLine);
-      const newCol = Math.min(
-        cursorCol,
-        targetLineLength > 0 ? targetLineLength - 1 : 0,
-      );
-
-      return {
-        ...state,
-        cursorRow: newRow,
-        cursorCol: newCol,
-        preferredCol: null,
-      };
+      return getVerticalMovementNewState(state, count, 'up');
     }
 
     case 'vim_move_down': {
       const { count } = action.payload;
-      const { cursorRow, cursorCol, lines } = state;
-      const newRow = Math.min(lines.length - 1, cursorRow + count);
-      const targetLine = lines[newRow] || '';
-      const targetLineLength = cpLen(targetLine);
-      const newCol = Math.min(
-        cursorCol,
-        targetLineLength > 0 ? targetLineLength - 1 : 0,
-      );
-
-      return {
-        ...state,
-        cursorRow: newRow,
-        cursorCol: newCol,
-        preferredCol: null,
-      };
+      return getVerticalMovementNewState(state, count, 'down');
     }
 
     case 'vim_move_word_forward': {
