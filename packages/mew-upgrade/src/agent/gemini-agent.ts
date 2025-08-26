@@ -8,6 +8,8 @@
  * @file Implements the main GeminiAgent, the central hub of the upgraded architecture.
  */
 
+import path from 'path';
+// fileURLToPath import intentionally omitted during build; kept out to avoid unused symbol
 import { MenteOmega } from '../mind/mente-omega.js';
 import type { MemoryNodeKind } from '../mind/mental-laby.js';
 import { UnifiedPersistence } from '../persistence/unified-persistence.js';
@@ -17,6 +19,8 @@ import { startWebServer } from '../server/webServer.js';
 // static type resolution against the monorepo's CLI during package-local builds.
 // @ts-ignore: build/runtime uses ESM paths; keep TS import for types
 import type { Config } from '../../cli/src/config/config';
+
+// fileURLToPath(import.meta.url) intentionally not used here during builds
 
 // Simple terminal connection used for local testing / examples
 class TerminalConnection {
@@ -28,7 +32,7 @@ class TerminalConnection {
 
   // Simulate a user typing a command in the terminal
   simulateUserRequest(request: string) {
-    console.log(`\n--- Terminal: User entered command: "${request}" ---`);
+    console.log(`\n--- Terminal: User entered command: \"${request}\" ---`);
     if (this.onRequest) {
       this.onRequest(request);
     }
@@ -44,8 +48,8 @@ export class GeminiAgent {
 
   constructor(config: Config) {
     this.config = config;
-    // The agent's state will be stored in a subdirectory.
-    const stateBasePath = '/media/seikarii/Nvme/gemini-cli/Mew/agent_state';
+    // The agent's state will be stored in a subdirectory of the project root.
+    const stateBasePath = path.join(this.config.getTargetDir(), '.gemini', 'agent_state');
 
     // contentGenerator will be initialized in start() because it's async
     this.contentGenerator = null;
@@ -143,6 +147,5 @@ export class GeminiAgent {
   
 
 // --- Main Execution (example / local test) ---
-// Example execution block removed to keep module ESM-compatible and focused on exports.
-
+// Example execution block removed to keep module ESM-compatible and focused on exports. 
 

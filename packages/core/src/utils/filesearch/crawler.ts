@@ -48,6 +48,9 @@ export async function crawl(options: CrawlOptions): Promise<string[]> {
   const dirFilter = options.ignore.getDirectoryFilter();
   const resultsList: string[] = [];
 
+  // Always include the crawl root marker '.' so callers know the root was visited.
+  resultsList.push('.');
+
   async function walk(dir: string, depth: number) {
     if (options.maxDepth !== undefined && depth > options.maxDepth) return;
     let entries: string[];
@@ -64,12 +67,19 @@ export async function crawl(options: CrawlOptions): Promise<string[]> {
       } catch (_e) {
         continue;
       }
-      const relativeDir = path.posix.relative(posixCrawlDirectory, path.posix.dirname(toPosixPath(fullPath)));
+      const posixFull = toPosixPath(fullPath);
+      const relativeEntry = path.posix.relative(posixCrawlDirectory, posixFull);
+
       if (stat.isDirectory()) {
-        if (dirFilter(`${relativeDir}/`)) continue;
+        // Directory checks expect a trailing slash for directory patterns.
+        const dirCheck = relativeEntry === '' ? '' : `${relativeEntry}/`;
+        if (dirFilter(dirCheck)) continue;
+        // Push directory entry with trailing slash, use '.' for the root.
+        resultsList.push(relativeEntry === '' ? '.' : `${relativeEntry}/`);
         await walk(fullPath, depth + 1);
       } else if (stat.isFile()) {
-        resultsList.push(toPosixPath(path.posix.relative(posixCrawlDirectory, toPosixPath(fullPath))));
+        const fileRelative = toPosixPath(path.posix.relative(posixCrawlDirectory, posixFull));
+        resultsList.push(fileRelative);
       }
     }
   }
@@ -77,11 +87,18 @@ export async function crawl(options: CrawlOptions): Promise<string[]> {
   await walk(options.crawlDirectory, 0);
   const results = resultsList;
 
+  // Debug: log computed paths and raw results to diagnose test mismatches.
+  // eslint-disable-next-line no-console
+  console.log('[crawler] posixCwd ->', posixCwd);
+  // eslint-disable-next-line no-console
+  console.log('[crawler] posixCrawlDirectory ->', posixCrawlDirectory);
   const relativeToCrawlDir = path.posix.relative(posixCwd, posixCrawlDirectory);
+  // eslint-disable-next-line no-console
+  console.log('[crawler] relativeToCrawlDir ->', relativeToCrawlDir);
+  // eslint-disable-next-line no-console
+  console.log('[crawler] raw results ->', results);
 
-  const relativeToCwdResults = results.map((p) =>
-    path.posix.join(relativeToCrawlDir, p),
-  );
+  const relativeToCwdResults = results.map((p) => path.posix.join(relativeToCrawlDir, p));
 
   if (options.cache) {
     const cacheKey = cache.getCacheKey(

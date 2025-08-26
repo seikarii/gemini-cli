@@ -75,6 +75,7 @@ class ReadFileToolInvocation extends BaseToolInvocation<
   private async openInMewWindow(filePath: string): Promise<void> {
     try {
       const portFilePath = path.join(this.config.getTargetDir(), '.gemini', 'mew_port.txt');
+      console.log(`[read_file] Looking for mew_port.txt at: ${portFilePath}`);
       let port = 3000;
       try {
         const portStr = await fs.readFile(portFilePath, 'utf8');
@@ -82,22 +83,32 @@ class ReadFileToolInvocation extends BaseToolInvocation<
         if (!isNaN(parsedPort)) {
           port = parsedPort;
         }
+        console.log(`[read_file] Found Mew server on port: ${port}`);
       } catch (e) {
-        // Ignore error if file doesn't exist or is unreadable, default to 3000
+        console.log(`[read_file] Could not read mew_port.txt, defaulting to port: ${port}`);
       }
 
-      fetch(`http://localhost:${port}/api/mew/set-active-file`, {
+      const url = `http://localhost:${port}/api/mew/set-active-file`;
+      const body = JSON.stringify({ filePath });
+      console.log(`[read_file] Sending POST to ${url} with body: ${body}`);
+
+      fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ filePath }),
+        body: body,
+      }).then(async response => {
+        console.log(`[read_file] Received response status: ${response.status}`);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`[read_file] Server error: ${errorText}`);
+        }
       }).catch(err => {
-        // Log the error but don't block the main operation
-        console.error('Failed to update Mew Window:', err);
+        console.error('[read_file] Failed to update Mew Window (fetch error):', err);
       });
     } catch (error) {
-      console.error('Error sending file to Mew Window:', error);
+      console.error('[read_file] Error sending file to Mew Window:', error);
     }
   }
 

@@ -32,7 +32,7 @@ const FAILED_TOOL_CALL_THRESHOLD = 3; // Consecutive failed tool calls
 // LLM-based loop detection
 const LLM_LOOP_CHECK_HISTORY_COUNT = 20;
 // Check for LLM-detected loops after a default number of turns (tests expect 30)
-// const LLM_CHECK_AFTER_TURNS = 30;
+const LLM_CHECK_AFTER_TURNS = 30;
 // Tests expect an interval range of [5,15] (min..max) used to compute adaptive interval
 const MIN_LLM_CHECK_INTERVAL = 5;
 const DEFAULT_LLM_CHECK_INTERVAL = 5;
@@ -890,6 +890,20 @@ export class LoopDetectionService {
       try {
         console.log('shouldPerformLLMCheck triggered by failures', {
           consecutiveFailedToolCallsCount: this.consecutiveFailedToolCallsCount,
+        });
+      } catch (_e) {
+        /* noop */
+      }
+      return true;
+    }
+
+    // Also allow periodic checks after a certain number of turns to satisfy
+    // tests and provide a safety net during long-running prompts.
+    if (this.turnsInCurrentPrompt - this.lastCheckTurn >= LLM_CHECK_AFTER_TURNS) {
+      try {
+        console.log('shouldPerformLLMCheck triggered by turn count', {
+          turnsInCurrentPrompt: this.turnsInCurrentPrompt,
+          lastCheckTurn: this.lastCheckTurn,
         });
       } catch (_e) {
         /* noop */

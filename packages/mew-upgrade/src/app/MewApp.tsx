@@ -55,7 +55,7 @@ const Directory = ({ node, onFileSelect }: { node: FileTreeNode, onFileSelect: (
   );
 };
 
-const FileTree = ({ onFileSelect }: { onFileSelect: (path: string) => void }) => {
+const FileTree = ({ onFileSelect, refreshTrigger }: { onFileSelect: (path: string) => void, refreshTrigger: number }) => {
   const [root, setRoot] = useState<FileTreeNode | null>(null);
 
   useEffect(() => {
@@ -69,7 +69,7 @@ const FileTree = ({ onFileSelect }: { onFileSelect: (path: string) => void }) =>
       }
     };
     fetchRoot();
-  }, []);
+  }, [refreshTrigger]);
 
   if (!root) {
     return <div>Loading file tree...</div>;
@@ -84,6 +84,7 @@ export const MewApp = () => {
   const [currentFilePath, setCurrentFilePath] = useState<string>('');
   const [fileContent, setFileContent] = useState<string>('// Load a file to see its content');
   const [activeFileFromServer, setActiveFileFromServer] = useState<string | null>(null);
+  const [fileTreeRefreshTrigger, setFileTreeRefreshTrigger] = useState(0);
 
   // Fetch agent status/logs
   useEffect(() => {
@@ -157,7 +158,8 @@ export const MewApp = () => {
       <h1 style={{ fontSize: '1.5em', marginBottom: '10px' }}>Mew Window</h1>
       <div style={{ display: 'flex', flexGrow: 1 }}>
         <div style={{ width: '30%', borderRight: '1px solid lightgrey', overflowY: 'auto' }}>
-          <FileTree onFileSelect={handleLoadFile} />
+          <button onClick={() => setFileTreeRefreshTrigger(prev => prev + 1)} style={{ marginBottom: '10px', padding: '5px 10px' }}>Refresh Tree</button>
+          <FileTree onFileSelect={handleLoadFile} refreshTrigger={fileTreeRefreshTrigger} />
         </div>
         <div style={{ width: '70%', display: 'flex', flexDirection: 'column' }}>
           {/* Agent Output / Logs */}

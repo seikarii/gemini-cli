@@ -19582,49 +19582,68 @@
   // src/app/MewApp.tsx
   var import_react = __toESM(require_react(), 1);
   var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
-  var FileTree = ({ tree, onFileSelect }) => {
-    const handleFileClick = (node, parentPath) => {
-      const newPath = parentPath ? `${parentPath}/${node.name}` : node.name;
-      if (node.type === "file") {
-        onFileSelect(newPath);
+  var Directory = ({ node, onFileSelect }) => {
+    const [isOpen, setIsOpen] = (0, import_react.useState)(node.isOpen || false);
+    const [children, setChildren] = (0, import_react.useState)(node.children || []);
+    const handleToggle = async () => {
+      setIsOpen(!isOpen);
+      if (!children.length) {
+        try {
+          const response = await fetch(`/api/file-tree?path=${encodeURIComponent(node.path)}`);
+          const data = await response.json();
+          setChildren(data.map((child) => ({ ...child, path: `${node.path}/${child.name}` })));
+        } catch (error) {
+          console.error("Error fetching directory contents:", error);
+        }
       }
     };
-    const renderTree = (nodes, path) => {
-      return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", { style: { listStyleType: "none", paddingLeft: "20px" }, children: nodes.map((node) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { onClick: () => handleFileClick(node, path), style: { cursor: node.type === "file" ? "pointer" : "default" }, children: [
-          node.type === "directory" ? "????" : "????",
-          " ",
-          node.name
-        ] }),
-        node.children && renderTree(node.children, path ? `${path}/${node.name}` : node.name)
-      ] }, node.name)) });
-    };
-    return renderTree(tree, "");
+    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { onClick: handleToggle, style: { cursor: "pointer" }, children: [
+        isOpen ? "[-]" : "[+]",
+        " ",
+        node.name
+      ] }),
+      isOpen && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { paddingLeft: "20px" }, children: children.map((child) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: child.type === "directory" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Directory, { node: child, onFileSelect }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { onClick: () => onFileSelect(child.path), style: { cursor: "pointer" }, children: [
+        "[F] ",
+        child.name
+      ] }) }, child.name)) })
+    ] });
+  };
+  var FileTree = ({ onFileSelect, refreshTrigger }) => {
+    const [root2, setRoot] = (0, import_react.useState)(null);
+    (0, import_react.useEffect)(() => {
+      const fetchRoot = async () => {
+        try {
+          const response = await fetch("/api/file-tree");
+          const data = await response.json();
+          setRoot({ name: "/", type: "directory", children: data.map((child) => ({ ...child, path: child.name })), path: "" });
+        } catch (error) {
+          console.error("Error fetching root directory:", error);
+        }
+      };
+      fetchRoot();
+    }, [refreshTrigger]);
+    if (!root2) {
+      return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: "Loading file tree..." });
+    }
+    return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Directory, { node: root2, onFileSelect });
   };
   var MewApp = () => {
     const [agentOutput, setAgentOutput] = (0, import_react.useState)("Waiting for agent output...");
     const [whisperInput, setWhisperInput] = (0, import_react.useState)("");
     const [currentFilePath, setCurrentFilePath] = (0, import_react.useState)("");
     const [fileContent, setFileContent] = (0, import_react.useState)("// Load a file to see its content");
-    const [fileTree, setFileTree] = (0, import_react.useState)([]);
-    (0, import_react.useEffect)(() => {
-      const fetchFileTree = async () => {
-        try {
-          const response = await fetch("/api/file-tree");
-          const data = await response.json();
-          setFileTree(data);
-        } catch (error) {
-          console.error("Error fetching file tree:", error);
-        }
-      };
-      fetchFileTree();
-    }, []);
+    const [activeFileFromServer, setActiveFileFromServer] = (0, import_react.useState)(null);
+    const [fileTreeRefreshTrigger, setFileTreeRefreshTrigger] = (0, import_react.useState)(0);
     (0, import_react.useEffect)(() => {
       const fetchAgentStatus = async () => {
         try {
           const response = await fetch("/api/agent-status");
           const data = await response.json();
           setAgentOutput(JSON.stringify(data, null, 2));
+          if (data.activeFilePath) {
+            setActiveFileFromServer(data.activeFilePath);
+          }
         } catch (error) {
           setAgentOutput(`Error fetching agent status: ${error}`);
         }
@@ -19633,6 +19652,30 @@
       fetchAgentStatus();
       return () => clearInterval(interval);
     }, []);
+    const handleLoadFile = async (path) => {
+      const a = path || currentFilePath;
+      if (a.trim() === "") return;
+      try {
+        const response = await fetch(`/api/file-content?path=${encodeURIComponent(a)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setFileContent(data.content);
+          setCurrentFilePath(data.filePath);
+          console.log(`Loaded file: ${data.filePath}`);
+        } else {
+          console.error("Failed to load file:", await response.text());
+          setFileContent(`Error loading file: ${a}`);
+        }
+      } catch (error) {
+        console.error("Error loading file:", error);
+        setFileContent(`Error loading file: ${a}`);
+      }
+    };
+    (0, import_react.useEffect)(() => {
+      if (activeFileFromServer && activeFileFromServer !== currentFilePath) {
+        handleLoadFile(activeFileFromServer);
+      }
+    }, [activeFileFromServer]);
     const handleWhisperSubmit = async () => {
       if (whisperInput.trim() === "") return;
       try {
@@ -19654,29 +19697,13 @@
         console.error("Error sending whisper:", error);
       }
     };
-    const handleLoadFile = async (path) => {
-      const a = path || currentFilePath;
-      if (a.trim() === "") return;
-      try {
-        const response = await fetch(`/api/file-content?path=${encodeURIComponent(a)}`);
-        if (response.ok) {
-          const data = await response.json();
-          setFileContent(data.content);
-          setCurrentFilePath(data.filePath);
-          console.log(`Loaded file: ${data.filePath}`);
-        } else {
-          console.error("Failed to load file:", await response.text());
-          setFileContent(`Error loading file: ${a}`);
-        }
-      } catch (error) {
-        console.error("Error loading file:", error);
-        setFileContent(`Error loading file: ${a}`);
-      }
-    };
     return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { border: "1px solid grey", padding: "10px", borderRadius: "5px", display: "flex", flexDirection: "column", height: "100vh", fontFamily: "monospace" }, children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { style: { fontSize: "1.5em", marginBottom: "10px" }, children: "Mew Window" }),
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", flexGrow: 1 }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { width: "30%", borderRight: "1px solid lightgrey", overflowY: "auto" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileTree, { tree: fileTree, onFileSelect: handleLoadFile }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { width: "30%", borderRight: "1px solid lightgrey", overflowY: "auto" }, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", { onClick: () => setFileTreeRefreshTrigger((prev) => prev + 1), style: { marginBottom: "10px", padding: "5px 10px" }, children: "Refresh Tree" }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileTree, { onFileSelect: handleLoadFile, refreshTrigger: fileTreeRefreshTrigger })
+        ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { width: "70%", display: "flex", flexDirection: "column" }, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flexGrow: 1, border: "1px solid lightgrey", padding: "5px", overflowY: "auto", marginBottom: "10px", backgroundColor: "#f0f0f0" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("pre", { style: { whiteSpace: "pre-wrap", wordBreak: "break-word" }, children: agentOutput }) }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", marginBottom: "10px" }, children: [
