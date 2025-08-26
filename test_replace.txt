@@ -1,4 +1,4 @@
-Hello World
+Hello Gemini
 This is a test file.
 Let's test the replace tool.
 First replacement successful.
