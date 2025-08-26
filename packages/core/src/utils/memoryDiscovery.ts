@@ -35,13 +35,20 @@ interface GeminiFileContent {
   content: string | null;
 }
 
+const projectRootCache = new Map<string, string | null>();
+
 async function findProjectRoot(startDir: string): Promise<string | null> {
+  if (projectRootCache.has(startDir)) {
+    return projectRootCache.get(startDir)!;
+  }
+
   let currentDir = path.resolve(startDir);
   while (true) {
     const gitPath = path.join(currentDir, '.git');
     try {
       const stats = await fs.lstat(gitPath);
       if (stats.isDirectory()) {
+        projectRootCache.set(startDir, currentDir);
         return currentDir;
       }
     } catch (error: unknown) {
@@ -73,6 +80,7 @@ async function findProjectRoot(startDir: string): Promise<string | null> {
     }
     const parentDir = path.dirname(currentDir);
     if (parentDir === currentDir) {
+      projectRootCache.set(startDir, null);
       return null;
     }
     currentDir = parentDir;

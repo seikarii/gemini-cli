@@ -4,19 +4,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { execSync } from 'child_process';
+import { exec } from 'child_process';
 import { ProxyAgent } from 'undici';
 
 /**
  * Checks if a directory is within a git repository hosted on GitHub.
  * @returns true if the directory is in a git repository with a github.com remote, false otherwise
  */
-export const isGitHubRepository = (): boolean => {
+export const isGitHubRepository = async (): Promise<boolean> => {
   try {
     const remotes = (
-      execSync('git remote -v', {
-        encoding: 'utf-8',
-      }) || ''
+      (await new Promise<string>((resolve, reject) =>
+        exec('git remote -v', { encoding: 'utf-8' }, (err, stdout) =>
+          err ? reject(err) : resolve(stdout || ''),
+        ),
+      )) || ''
     ).trim();
 
     const pattern = /github\.com/;
@@ -34,11 +36,13 @@ export const isGitHubRepository = (): boolean => {
  * @returns the path to the root of the git repo.
  * @throws error if the exec command fails.
  */
-export const getGitRepoRoot = (): string => {
+export const getGitRepoRoot = async (): Promise<string> => {
   const gitRepoRoot = (
-    execSync('git rev-parse --show-toplevel', {
-      encoding: 'utf-8',
-    }) || ''
+    (await new Promise<string>((resolve, reject) =>
+      exec('git rev-parse --show-toplevel', { encoding: 'utf-8' }, (err, stdout) =>
+        err ? reject(err) : resolve(stdout || ''),
+      ),
+    )) || ''
   ).trim();
 
   if (!gitRepoRoot) {
@@ -95,10 +99,14 @@ export const getLatestGitHubRelease = async (
  * @returns the owner and repository of the github repo.
  * @throws error if the exec command fails.
  */
-export function getGitHubRepoInfo(): { owner: string; repo: string } {
-  const remoteUrl = execSync('git remote get-url origin', {
-    encoding: 'utf-8',
-  }).trim();
+export async function getGitHubRepoInfo(): Promise<{ owner: string; repo: string }> {
+  const remoteUrl = (
+    (await new Promise<string>((resolve, reject) =>
+      exec('git remote get-url origin', { encoding: 'utf-8' }, (err, stdout) =>
+        err ? reject(err) : resolve(stdout || ''),
+      ),
+    )) || ''
+  ).trim();
 
   // Matches either https://github.com/owner/repo.git or git@github.com:owner/repo.git
   const match = remoteUrl.match(

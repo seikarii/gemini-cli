@@ -3,6 +3,11 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 import os from 'node:os';
 import path from 'node:path';
@@ -63,15 +68,14 @@ describe('setupGithubCommand', async () => {
       );
     }
 
-    vi.mocked(gitUtils.isGitHubRepository).mockReturnValueOnce(true);
-    vi.mocked(gitUtils.getGitRepoRoot).mockReturnValueOnce(fakeRepoRoot);
+  vi.mocked(gitUtils.isGitHubRepository).mockImplementationOnce(() => Promise.resolve(true));
+  vi.mocked(gitUtils.getGitRepoRoot).mockImplementationOnce(() => Promise.resolve(fakeRepoRoot));
     vi.mocked(gitUtils.getLatestGitHubRelease).mockResolvedValueOnce(
       fakeReleaseVersion,
     );
-    vi.mocked(gitUtils.getGitHubRepoInfo).mockReturnValue({
-      owner: fakeRepoOwner,
-      repo: fakeRepoName,
-    });
+    vi.mocked(gitUtils.getGitHubRepoInfo).mockImplementationOnce(() =>
+      Promise.resolve({ owner: fakeRepoOwner, repo: fakeRepoName }),
+    );
     vi.mocked(commandUtils.getUrlOpenCommand).mockReturnValueOnce(
       'fakeOpenCommand',
     );

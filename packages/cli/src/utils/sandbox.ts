@@ -20,6 +20,16 @@ import { Config, SandboxConfig } from '@google/gemini-cli-core';
 import { ConsolePatcher } from '../ui/utils/ConsolePatcher.js';
 
 const execAsync = promisify(exec);
+const fsp = fs.promises;
+
+async function existsAsync(p: string): Promise<boolean> {
+  try {
+    await fsp.access(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function getContainerPath(hostPath: string): string {
   if (os.platform() !== 'win32') {
@@ -116,7 +126,7 @@ function ports(): string[] {
     .map((p) => p.trim());
 }
 
-function entrypoint(workdir: string, cliArgs: string[]): string[] {
+async function entrypoint(workdir: string, cliArgs: string[]): Promise<string[]> {
   const isWindows = os.platform() === 'win32';
   const containerWorkdir = getContainerPath(workdir);
   const shellCmds = [];
@@ -158,7 +168,8 @@ function entrypoint(workdir: string, cliArgs: string[]): string[] {
     SETTINGS_DIRECTORY_NAME,
     'sandbox.bashrc',
   );
-  if (fs.existsSync(projectSandboxBashrc)) {
+  // prefer async check to avoid blocking event loop
+  if (await existsAsync(projectSandboxBashrc)) {
     shellCmds.push(`source ${getContainerPath(projectSandboxBashrc)};`);
   }
 
@@ -227,21 +238,35 @@ export async function start_sandbox(
         ...nodeArgs,
       ].join(' ');
 
+      const targetCwd = await fsp.realpath(process.cwd());
+      const tmpDir = await fsp.realpath(os.tmpdir());
+      const homeDir = await fsp.realpath(os.homedir());
+      let cacheDir = '';
+      try {
+        const { stdout } = await execAsync(`getconf DARWIN_USER_CACHE_DIR`, { maxBuffer: 10 * 1024 * 1024 });
+        cacheDir = (await fsp.realpath(stdout.toString().trim()));
+      } catch (_err) {
+        cacheDir = '';
+      }
+
       const args = [
         '-D',
-        `TARGET_DIR=${fs.realpathSync(process.cwd())}`,
+        `TARGET_DIR=${targetCwd}`,
         '-D',
-        `TMP_DIR=${fs.realpathSync(os.tmpdir())}`,
+        `TMP_DIR=${tmpDir}`,
         '-D',
-        `HOME_DIR=${fs.realpathSync(os.homedir())}`,
-        '-D',
-        `CACHE_DIR=${fs.realpathSync(execSync(`getconf DARWIN_USER_CACHE_DIR`).toString().trim())}`,
+        `HOME_DIR=${homeDir}`,
       ];
+      if (cacheDir) {
+        args.push('-D', `CACHE_DIR=${cacheDir}`);
+      }
 
       // Add included directories from the workspace context
       // Always add 5 INCLUDE_DIR parameters to ensure .sb files can reference them
       const MAX_INCLUDE_DIRS = 5;
-      const targetDir = fs.realpathSync(cliConfig?.getTargetDir() || '');
+      const targetDir = cliConfig?.getTargetDir()
+        ? await fsp.realpath(cliConfig.getTargetDir())
+        : '';
       const includedDirs: string[] = [];
 
       if (cliConfig) {
@@ -250,7 +275,7 @@ export async function start_sandbox(
 
         // Filter out TARGET_DIR
         for (const dir of directories) {
-          const realDir = fs.realpathSync(dir);
+          const realDir = await fsp.realpath(dir);
           if (realDir !== targetDir) {
             includedDirs.push(realDir);
           }
@@ -348,14 +373,14 @@ export async function start_sandbox(
 
     console.error(`hopping into sandbox (command: ${config.command}) ...`);
 
-    // determine full path for gemini-cli to distinguish linked vs installed setting
-    const gcPath = fs.realpathSync(process.argv[1]);
+  // determine full path for gemini-cli to distinguish linked vs installed setting
+  const gcPath = await fsp.realpath(process.argv[1]);
 
     const projectSandboxDockerfile = path.join(
       SETTINGS_DIRECTORY_NAME,
       'sandbox.Dockerfile',
     );
-    const isCustomProjectSandbox = fs.existsSync(projectSandboxDockerfile);
+    const isCustomProjectSandbox = await existsAsync(projectSandboxDockerfile);
 
     const image = config.image;
     const workdir = path.resolve(process.cwd());
@@ -435,8 +460,8 @@ export async function start_sandbox(
     const userSettingsDirInSandbox = getContainerPath(
       `/home/node/${SETTINGS_DIRECTORY_NAME}`,
     );
-    if (!fs.existsSync(userSettingsDirOnHost)) {
-      fs.mkdirSync(userSettingsDirOnHost);
+    if (!(await existsAsync(userSettingsDirOnHost))) {
+      await fsp.mkdir(userSettingsDirOnHost, { recursive: true });
     }
     args.push(
       '--volume',
@@ -453,8 +478,8 @@ export async function start_sandbox(
     args.push('--volume', `${os.tmpdir()}:${getContainerPath(os.tmpdir())}`);
 
     // mount gcloud config directory if it exists
-    const gcloudConfigDir = path.join(os.homedir(), '.config', 'gcloud');
-    if (fs.existsSync(gcloudConfigDir)) {
+  const gcloudConfigDir = path.join(os.homedir(), '.config', 'gcloud');
+  if (await existsAsync(gcloudConfigDir)) {
       args.push(
         '--volume',
         `${gcloudConfigDir}:${getContainerPath(gcloudConfigDir)}:ro`,
@@ -464,7 +489,7 @@ export async function start_sandbox(
     // mount ADC file if GOOGLE_APPLICATION_CREDENTIALS is set
     if (process.env['GOOGLE_APPLICATION_CREDENTIALS']) {
       const adcFile = process.env['GOOGLE_APPLICATION_CREDENTIALS'];
-      if (fs.existsSync(adcFile)) {
+  if (await existsAsync(adcFile)) {
         args.push('--volume', `${adcFile}:${getContainerPath(adcFile)}:ro`);
         args.push(
           '--env',
@@ -490,7 +515,7 @@ export async function start_sandbox(
             process.exit(1);
           }
           // check that from path exists on host
-          if (!fs.existsSync(from)) {
+          if (!(await existsAsync(from))) {
             console.error(
               `ERROR: missing mount path '${from}' listed in SANDBOX_MOUNTS`,
             );
@@ -538,17 +563,21 @@ export async function start_sandbox(
 
       // if using proxy, switch to internal networking through proxy
       if (proxy) {
-        execSync(
-          `${config.command} network inspect ${SANDBOX_NETWORK_NAME} || ${config.command} network create --internal ${SANDBOX_NETWORK_NAME}`,
-        );
+        try {
+          await execAsync(`${config.command} network inspect ${SANDBOX_NETWORK_NAME} || ${config.command} network create --internal ${SANDBOX_NETWORK_NAME}`, { maxBuffer: 10 * 1024 * 1024 });
+        } catch (_) {
+          // best-effort, continue
+        }
         args.push('--network', SANDBOX_NETWORK_NAME);
         // if proxy command is set, create a separate network w/ host access (i.e. non-internal)
         // we will run proxy in its own container connected to both host network and internal network
         // this allows proxy to work even on rootless podman on macos with host<->vm<->container isolation
         if (proxyCommand) {
-          execSync(
-            `${config.command} network inspect ${SANDBOX_PROXY_NAME} || ${config.command} network create ${SANDBOX_PROXY_NAME}`,
-          );
+          try {
+            await execAsync(`${config.command} network inspect ${SANDBOX_PROXY_NAME} || ${config.command} network create ${SANDBOX_PROXY_NAME}`, { maxBuffer: 10 * 1024 * 1024 });
+          } catch (_) {
+            // best-effort
+          }
         }
       }
     }
@@ -556,11 +585,13 @@ export async function start_sandbox(
     // name container after image, plus numeric suffix to avoid conflicts
     const imageName = parseImageName(image);
     let index = 0;
-    const containerNameCheck = execSync(
-      `${config.command} ps -a --format "{{.Names}}"`,
-    )
-      .toString()
-      .trim();
+    let containerNameCheck = '';
+    try {
+      const { stdout } = await execAsync(`${config.command} ps -a --format "{{.Names}}"`, { maxBuffer: 10 * 1024 * 1024 });
+      containerNameCheck = stdout.toString().trim();
+    } catch (_err) {
+      containerNameCheck = '';
+    }
     while (containerNameCheck.includes(`${imageName}-${index}`)) {
       index++;
     }
@@ -691,14 +722,14 @@ export async function start_sandbox(
     // for podman only, use empty --authfile to skip unnecessary auth refresh overhead
     if (config.command === 'podman') {
       const emptyAuthFilePath = path.join(os.tmpdir(), 'empty_auth.json');
-      fs.writeFileSync(emptyAuthFilePath, '{}', 'utf-8');
+      await fsp.writeFile(emptyAuthFilePath, '{}', 'utf-8');
       args.push('--authfile', emptyAuthFilePath);
     }
 
     // Determine if the current user's UID/GID should be passed to the sandbox.
     // See shouldUseCurrentUserInSandbox for more details.
-    let userFlag = '';
-    const finalEntrypoint = entrypoint(workdir, cliArgs);
+  let userFlag = '';
+  const finalEntrypoint = await entrypoint(workdir, cliArgs);
 
     if (process.env['GEMINI_CLI_INTEGRATION_TEST'] === 'true') {
       args.push('--user', 'root');
@@ -708,8 +739,17 @@ export async function start_sandbox(
       // The entrypoint script then handles dropping privileges to the correct user.
       args.push('--user', 'root');
 
-      const uid = execSync('id -u').toString().trim();
-      const gid = execSync('id -g').toString().trim();
+      let uid = '0';
+      let gid = '0';
+      try {
+        const { stdout: uidOut } = await execAsync('id -u');
+        uid = uidOut.toString().trim();
+        const { stdout: gidOut } = await execAsync('id -g');
+        gid = gidOut.toString().trim();
+      } catch (_err) {
+        uid = '0';
+        gid = '0';
+      }
 
       // Instead of passing --user to the main sandbox container, we let it
       // start as root, then create a user with the host's UID/GID, and
@@ -726,14 +766,14 @@ export async function start_sandbox(
         `id -u ${username} &>/dev/null || useradd -o -u ${uid} -g ${gid} -d ${homeDir} -s /bin/bash ${username}`,
       ].join(' && ');
 
-      const originalCommand = finalEntrypoint[2];
+  const originalCommand = finalEntrypoint[2];
       const escapedOriginalCommand = originalCommand.replace(/'/g, "'\\''");
 
       // Use `su -p` to preserve the environment.
       const suCommand = `su -p ${username} -c '${escapedOriginalCommand}'`;
 
       // The entrypoint is always `['bash', '-c', '<command>']`, so we modify the command part.
-      finalEntrypoint[2] = `${setupUserCommands} && ${suCommand}`;
+  finalEntrypoint[2] = `${setupUserCommands} && ${suCommand}`;
 
       // We still need userFlag for the simpler proxy container, which does not have this issue.
       userFlag = `--user ${uid}:${gid}`;
@@ -762,7 +802,12 @@ export async function start_sandbox(
       // install handlers to stop proxy on exit/signal
       const stopProxy = () => {
         console.log('stopping proxy container ...');
-        execSync(`${config.command} rm -f ${SANDBOX_PROXY_NAME}`);
+        try {
+          // best-effort, don't block shutdown
+          exec(`${config.command} rm -f ${SANDBOX_PROXY_NAME}`);
+        } catch (_) {
+          // ignore
+        }
       };
       process.on('exit', stopProxy);
       process.on('SIGINT', stopProxy);

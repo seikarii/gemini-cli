@@ -44,6 +44,7 @@ esbuild
   'google-auth-library',
   // File-system search helper used in core; externalize to avoid bundling issues
   'fdir',
+  'fast-uri',
     ],
     alias: {
       'is-in-ci': path.resolve(

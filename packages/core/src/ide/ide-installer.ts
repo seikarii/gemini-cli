@@ -27,20 +27,27 @@ async function findVsCodeCommand(): Promise<string | null> {
   // 1. Check PATH first.
   try {
     if (process.platform === 'win32') {
-      const result = child_process
-        .execSync(`where.exe ${VSCODE_COMMAND}`)
-        .toString()
-        .trim();
+      const result = (await new Promise<string>((resolve, reject) =>
+        child_process.exec(`where.exe ${VSCODE_COMMAND}`, (err, stdout) =>
+          err ? reject(err) : resolve(stdout || ''),
+        ),
+      )).toString().trim();
       // `where.exe` can return multiple paths. Return the first one.
       const firstPath = result.split(/\r?\n/)[0];
       if (firstPath) {
         return firstPath;
       }
     } else {
-      child_process.execSync(`command -v ${VSCODE_COMMAND}`, {
-        stdio: 'ignore',
-      });
-      return VSCODE_COMMAND;
+      try {
+        await new Promise<void>((resolve, reject) =>
+          child_process.exec(`command -v ${VSCODE_COMMAND}`, (err: unknown) =>
+            err ? reject(err) : resolve(),
+          ),
+        );
+        return VSCODE_COMMAND;
+      } catch {
+        // fallthrough to check locations
+      }
     }
   } catch {
     // Not in PATH, continue to check common locations.
@@ -86,8 +93,11 @@ async function findVsCodeCommand(): Promise<string | null> {
   }
 
   for (const location of locations) {
-    if (fs.existsSync(location)) {
+    try {
+      await fs.promises.access(location);
       return location;
+    } catch {
+      // not accessible, continue
     }
   }
 
@@ -112,7 +122,9 @@ class VsCodeInstaller implements IdeInstaller {
 
     const command = `"${commandPath}" --install-extension google.gemini-cli-vscode-ide-companion --force`;
     try {
-      child_process.execSync(command, { stdio: 'pipe' });
+      await new Promise<void>((resolve, reject) =>
+        child_process.exec(command, (err: unknown) => (err ? reject(err) : resolve())),
+      );
       return {
         success: true,
         message: 'VS Code companion extension was installed successfully.',

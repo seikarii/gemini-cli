@@ -210,10 +210,12 @@ ${finalExclusionPatternsForDescription
         for (const p of searchPatterns) {
           const normalizedP = p.replace(/\\/g, '/');
           const fullPath = path.join(dir, normalizedP);
-          if (fs.existsSync(fullPath)) {
+          try {
+            // Prefer async check to avoid blocking the event loop
+            await fs.promises.access(fullPath);
             processedPatterns.push(escape(normalizedP));
-          } else {
-            // The path does not exist or is not a file, so we treat it as a glob pattern.
+          } catch {
+            // The path does not exist or is not accessible, treat it as a glob pattern.
             processedPatterns.push(normalizedP);
           }
         }

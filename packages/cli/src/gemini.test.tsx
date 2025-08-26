@@ -154,7 +154,7 @@ describe('gemini.tsx main function', () => {
       true,
     );
 
-    loadSettingsMock.mockReturnValue(mockLoadedSettings);
+  loadSettingsMock.mockImplementation(async () => mockLoadedSettings);
 
     try {
       await main();

@@ -144,7 +144,7 @@ class BatchIgnoreProcessor {
   /**
    * Process a batch of entries, checking ignore patterns efficiently
    */
-  processBatch(entries: FileEntry[]): { ignored: Set<string>; processed: FileEntry[] } {
+  async processBatch(entries: FileEntry[]): Promise<{ ignored: Set<string>; processed: FileEntry[] }> {
     const ignored = new Set<string>();
     const processed: FileEntry[] = [];
     const uncachedEntries: FileEntry[] = [];
@@ -168,23 +168,27 @@ class BatchIgnoreProcessor {
     }
 
     // Second pass: Batch process uncached entries
-    if (uncachedEntries.length > 0) {
-      for (const entry of uncachedEntries) {
-        const isIgnored = this.fileService.shouldIgnoreFile(entry.path, {
-          respectGitIgnore: this.fileFilteringOptions?.respectGitIgnore,
-          respectGeminiIgnore: this.fileFilteringOptions?.respectGeminiIgnore,
+      if (uncachedEntries.length > 0) {
+        const ignorePromises = uncachedEntries.map(async (entry) => {
+          const isIgnored = await this.fileService.shouldIgnoreFile(entry.path, {
+            respectGitIgnore: this.fileFilteringOptions?.respectGitIgnore,
+            respectGeminiIgnore: this.fileFilteringOptions?.respectGeminiIgnore,
+          });
+          this.cache.set(entry.path, isIgnored);
+          this.metrics.totalIgnoreChecks++;
+          return { entry, isIgnored };
         });
 
-        this.cache.set(entry.path, isIgnored);
-        this.metrics.totalIgnoreChecks++;
+        const results = await Promise.all(ignorePromises);
 
-        if (isIgnored) {
-          ignored.add(entry.path);
-        } else {
-          processed.push(entry);
+        for (const { entry, isIgnored } of results) {
+          if (isIgnored) {
+            ignored.add(entry.path);
+          } else {
+            processed.push(entry);
+          }
         }
       }
-    }
 
     const batchTime = performance.now() - batchStart;
     this.metrics.avgIgnoreCheckMs = (this.metrics.avgIgnoreCheckMs + batchTime) / 2;
@@ -387,7 +391,7 @@ export async function bfsFileSearch(
 
         processedEntries = [];
         for (const batch of batches) {
-          const { processed } = batchProcessor.processBatch(batch);
+          const { processed } = await batchProcessor.processBatch(batch);
           processedEntries.push(...processed);
         }
       }

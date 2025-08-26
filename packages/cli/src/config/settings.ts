@@ -5,6 +5,7 @@
  */
 
 import * as fs from 'fs';
+// Removed unused import promisify
 import * as path from 'path';
 import { homedir, platform } from 'os';
 import * as dotenv from 'dotenv';
@@ -214,44 +215,65 @@ function resolveEnvVarsInObject<T>(obj: T): T {
   return obj;
 }
 
-function findEnvFile(startDir: string): string | null {
+export async function findEnvFile(startDir: string): Promise<string | null> {
+  // synchronous traversal is small and fast, but we provide an async-friendly
+  // alternative by using fs.promises.access. Implement as a synchronous loop
+  // but using non-blocking access checks to avoid event-loop stalls.
   let currentDir = path.resolve(startDir);
+  const access = fs.promises.access;
   while (true) {
-    // prefer gemini-specific .env under GEMINI_DIR
     const geminiEnvPath = path.join(currentDir, GEMINI_DIR, '.env');
-    if (fs.existsSync(geminiEnvPath)) {
+    try {
+      await access(geminiEnvPath);
       return geminiEnvPath;
+    } catch (_) {
+      // file not found at this path
+      /* no-op */
     }
     const envPath = path.join(currentDir, '.env');
-    if (fs.existsSync(envPath)) {
+    try {
+      await access(envPath);
       return envPath;
+    } catch (_) {
+      // file not found at this path
+      /* no-op */
     }
     const parentDir = path.dirname(currentDir);
     if (parentDir === currentDir || !parentDir) {
-      // check .env under home as fallback, again preferring gemini-specific .env
-      const homeGeminiEnvPath = path.join(homedir(), GEMINI_DIR, '.env');
-      if (fs.existsSync(homeGeminiEnvPath)) {
+  const homeGeminiEnvPath = path.join(homedir(), GEMINI_DIR, '.env');
+  const homeEnvPath = path.join(homedir(), '.env');
+      try {
+        await access(homeGeminiEnvPath);
         return homeGeminiEnvPath;
+      } catch (_) {
+        // file not found in home directory
+        /* no-op */
       }
-      const homeEnvPath = path.join(homedir(), '.env');
-      if (fs.existsSync(homeEnvPath)) {
+      try {
+        await access(homeEnvPath);
         return homeEnvPath;
+      } catch (_) {
+        // file not found in home directory
+        /* no-op */
       }
-      return null;
+      return null; // Exit the loop if no .env file is found after checking home directories
     }
     currentDir = parentDir;
   }
 }
 
-export function setUpCloudShellEnvironment(envFilePath: string | null): void {
+export async function setUpCloudShellEnvironment(
+  envFilePath: string | null,
+): Promise<void> {
   // Special handling for GOOGLE_CLOUD_PROJECT in Cloud Shell:
   // Because GOOGLE_CLOUD_PROJECT in Cloud Shell tracks the project
   // set by the user using "gcloud config set project" we do not want to
   // use its value. So, unless the user overrides GOOGLE_CLOUD_PROJECT in
   // one of the .env files, we set the Cloud Shell-specific default here.
-  if (envFilePath && fs.existsSync(envFilePath)) {
-    const envFileContent = fs.readFileSync(envFilePath);
-    const parsedEnv = dotenv.parse(envFileContent);
+  if (envFilePath) {
+    try {
+      const envFileContent = await fs.promises.readFile(envFilePath);
+      const parsedEnv = dotenv.parse(envFileContent as Buffer | string);
     if (parsedEnv['GOOGLE_CLOUD_PROJECT']) {
       // .env file takes precedence in Cloud Shell
       process.env['GOOGLE_CLOUD_PROJECT'] = parsedEnv['GOOGLE_CLOUD_PROJECT'];
@@ -259,68 +281,58 @@ export function setUpCloudShellEnvironment(envFilePath: string | null): void {
       // If not in .env, set to default and override global
       process.env['GOOGLE_CLOUD_PROJECT'] = 'cloudshell-gca';
     }
-  } else {
-    // If no .env file, set to default and override global
-    process.env['GOOGLE_CLOUD_PROJECT'] = 'cloudshell-gca';
+    } catch (_e) {
+      // If read fails, still set default
+      process.env['GOOGLE_CLOUD_PROJECT'] = 'cloudshell-gca';
+    }
   }
 }
 
-export function loadEnvironment(settings?: Settings): void {
-  const envFilePath = findEnvFile(process.cwd());
+export async function loadEnvironment(settings?: Settings): Promise<void> {
+  const envFilePath = await findEnvFile(process.cwd());
 
   // Cloud Shell environment variable handling
   if (process.env['CLOUD_SHELL'] === 'true') {
-    setUpCloudShellEnvironment(envFilePath);
+    await setUpCloudShellEnvironment(envFilePath);
   }
 
   // If no settings provided, try to load workspace settings for exclusions
   let resolvedSettings = settings;
   if (!resolvedSettings) {
-    const workspaceSettingsPath = new Storage(
-      process.cwd(),
-    ).getWorkspaceSettingsPath();
+    const workspaceSettingsPath = new Storage(process.cwd()).getWorkspaceSettingsPath();
     try {
-      if (fs.existsSync(workspaceSettingsPath)) {
-        const workspaceContent = fs.readFileSync(
-          workspaceSettingsPath,
-          'utf-8',
-        );
-        const parsedWorkspaceSettings = JSON.parse(
-          stripJsonComments(workspaceContent),
-        ) as Settings;
+      try {
+        const workspaceContent = await fs.promises.readFile(workspaceSettingsPath, 'utf-8');
+        const parsedWorkspaceSettings = JSON.parse(stripJsonComments(workspaceContent)) as Settings;
         resolvedSettings = resolveEnvVarsInObject(parsedWorkspaceSettings);
+      } catch (_e) {
+        // Ignore errors loading workspace settings
       }
     } catch (_e) {
-      // Ignore errors loading workspace settings
+      // ignore
     }
   }
 
   if (envFilePath) {
-    // Manually parse and load environment variables to handle exclusions correctly.
-    // This avoids modifying environment variables that were already set from the shell.
     try {
-      const envFileContent = fs.readFileSync(envFilePath, 'utf-8');
+      const envFileContent = await fs.promises.readFile(envFilePath, 'utf-8');
       const parsedEnv = dotenv.parse(envFileContent);
 
-      const excludedVars =
-        resolvedSettings?.excludedProjectEnvVars || DEFAULT_EXCLUDED_ENV_VARS;
+      const excludedVars = resolvedSettings?.excludedProjectEnvVars || DEFAULT_EXCLUDED_ENV_VARS;
       const isProjectEnvFile = !envFilePath.includes(GEMINI_DIR);
 
       for (const key in parsedEnv) {
         if (Object.hasOwn(parsedEnv, key)) {
-          // If it's a project .env file, skip loading excluded variables.
           if (isProjectEnvFile && excludedVars.includes(key)) {
             continue;
           }
-
-          // Load variable only if it's not already set in the environment.
           if (!Object.hasOwn(process.env, key)) {
             process.env[key] = parsedEnv[key];
           }
         }
       }
     } catch (_e) {
-      // Errors are ignored to match the behavior of `dotenv.config({ quiet: true })`.
+      // ignore parsing errors
     }
   }
 }
@@ -329,7 +341,7 @@ export function loadEnvironment(settings?: Settings): void {
  * Loads settings from user and workspace directories.
  * Project settings override user settings.
  */
-export function loadSettings(workspaceDir: string): LoadedSettings {
+export async function loadSettings(workspaceDir: string): Promise<LoadedSettings> {
   let systemSettings: Settings = {};
   let userSettings: Settings = {};
   let workspaceSettings: Settings = {};
@@ -342,14 +354,18 @@ export function loadSettings(workspaceDir: string): LoadedSettings {
 
   let realWorkspaceDir = resolvedWorkspaceDir;
   try {
-    // fs.realpathSync gets the "true" path, resolving any symlinks
-    realWorkspaceDir = fs.realpathSync(resolvedWorkspaceDir);
+    realWorkspaceDir = await fs.promises.realpath(resolvedWorkspaceDir);
   } catch (_e) {
-    // This is okay. The path might not exist yet, and that's a valid state.
+    // path might not exist yet
   }
 
   // We expect homedir to always exist and be resolvable.
-  const realHomeDir = fs.realpathSync(resolvedHomeDir);
+  let realHomeDir = resolvedHomeDir;
+  try {
+    realHomeDir = await fs.promises.realpath(resolvedHomeDir);
+  } catch (_e) {
+    // ignore
+  }
 
   const workspaceSettingsPath = new Storage(
     workspaceDir,
@@ -357,9 +373,11 @@ export function loadSettings(workspaceDir: string): LoadedSettings {
 
   // Load system settings
   try {
-    if (fs.existsSync(systemSettingsPath)) {
-      const systemContent = fs.readFileSync(systemSettingsPath, 'utf-8');
+    try {
+      const systemContent = await fs.promises.readFile(systemSettingsPath, 'utf-8');
       systemSettings = JSON.parse(stripJsonComments(systemContent)) as Settings;
+    } catch (_e) {
+      // ignore missing system settings
     }
   } catch (error: unknown) {
     settingsErrors.push({
@@ -370,15 +388,16 @@ export function loadSettings(workspaceDir: string): LoadedSettings {
 
   // Load user settings
   try {
-    if (fs.existsSync(USER_SETTINGS_PATH)) {
-      const userContent = fs.readFileSync(USER_SETTINGS_PATH, 'utf-8');
+    try {
+      const userContent = await fs.promises.readFile(USER_SETTINGS_PATH, 'utf-8');
       userSettings = JSON.parse(stripJsonComments(userContent)) as Settings;
-      // Support legacy theme names
       if (userSettings.theme && userSettings.theme === 'VS') {
         userSettings.theme = DefaultLight.name;
       } else if (userSettings.theme && userSettings.theme === 'VS2015') {
         userSettings.theme = DefaultDark.name;
       }
+    } catch (_e) {
+      // ignore missing user settings
     }
   } catch (error: unknown) {
     settingsErrors.push({
@@ -390,11 +409,9 @@ export function loadSettings(workspaceDir: string): LoadedSettings {
   if (realWorkspaceDir !== realHomeDir) {
     // Load workspace settings
     try {
-      if (fs.existsSync(workspaceSettingsPath)) {
-        const projectContent = fs.readFileSync(workspaceSettingsPath, 'utf-8');
-        workspaceSettings = JSON.parse(
-          stripJsonComments(projectContent),
-        ) as Settings;
+      try {
+        const projectContent = await fs.promises.readFile(workspaceSettingsPath, 'utf-8');
+        workspaceSettings = JSON.parse(stripJsonComments(projectContent)) as Settings;
         if (workspaceSettings.theme && workspaceSettings.theme === 'VS') {
           workspaceSettings.theme = DefaultLight.name;
         } else if (
@@ -403,6 +420,8 @@ export function loadSettings(workspaceDir: string): LoadedSettings {
         ) {
           workspaceSettings.theme = DefaultDark.name;
         }
+      } catch (_e) {
+        // ignore missing workspace settings
       }
     } catch (error: unknown) {
       settingsErrors.push({
@@ -426,7 +445,7 @@ export function loadSettings(workspaceDir: string): LoadedSettings {
 
   // loadEnviroment depends on settings so we have to create a temp version of
   // the settings to avoid a cycle
-  loadEnvironment(tempMergedSettings);
+  await loadEnvironment(tempMergedSettings);
 
   // Now that the environment is loaded, resolve variables in the settings.
   systemSettings = resolveEnvVarsInObject(systemSettings);
@@ -466,16 +485,16 @@ export function loadSettings(workspaceDir: string): LoadedSettings {
 
   return loadedSettings;
 }
-
-export function saveSettings(settingsFile: SettingsFile): void {
+export async function saveSettings(settingsFile: SettingsFile): Promise<void> {
   try {
-    // Ensure the directory exists
     const dirPath = path.dirname(settingsFile.path);
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
+    try {
+      await fs.promises.access(dirPath);
+    } catch (_) {
+      await fs.promises.mkdir(dirPath, { recursive: true });
     }
 
-    fs.writeFileSync(
+    await fs.promises.writeFile(
       settingsFile.path,
       JSON.stringify(settingsFile.settings, null, 2),
       'utf-8',

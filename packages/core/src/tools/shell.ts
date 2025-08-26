@@ -188,12 +188,11 @@ class ShellToolInvocation extends BaseToolInvocation<
       const result = await resultPromise;
 
       const backgroundPIDs: number[] = [];
+      let pgrepLines: string[] = [];
       if (os.platform() !== 'win32') {
-        if (fs.existsSync(tempFilePath)) {
-          const pgrepLines = fs
-            .readFileSync(tempFilePath, 'utf8')
-            .split(EOL)
-            .filter(Boolean);
+        try {
+          const fileContent = await fs.promises.readFile(tempFilePath, 'utf8');
+          pgrepLines = fileContent.split(EOL).filter(Boolean);
           for (const line of pgrepLines) {
             if (!/^\d+$/.test(line)) {
               console.error(`pgrep: ${line}`);
@@ -203,9 +202,9 @@ class ShellToolInvocation extends BaseToolInvocation<
               backgroundPIDs.push(pid);
             }
           }
-        } else {
+        } catch (e) {
           if (!signal.aborted) {
-            console.error('missing pgrep output');
+            console.error('missing pgrep output or error reading file:', e);
           }
         }
       }
@@ -281,8 +280,10 @@ class ShellToolInvocation extends BaseToolInvocation<
         returnDisplay: returnDisplayMessage,
       };
     } finally {
-      if (fs.existsSync(tempFilePath)) {
-        fs.unlinkSync(tempFilePath);
+      try {
+        await fs.promises.unlink(tempFilePath);
+      } catch (e) {
+        // Ignore if file doesn't exist or other unlink errors
       }
     }
   }

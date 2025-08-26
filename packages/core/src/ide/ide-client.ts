@@ -406,7 +406,9 @@ export class IdeClient {
       return new Response(response.body as ReadableStream<unknown> | null, {
         status: response.status,
         statusText: response.statusText,
-        headers: response.headers,
+        // Cast undici's Headers to the web-compatible HeadersInit to avoid
+        // TypeScript incompatibilities between different Headers types.
+        headers: response.headers as unknown as HeadersInit,
       });
     };
   }

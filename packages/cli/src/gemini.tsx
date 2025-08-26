@@ -332,6 +332,7 @@ class StartupOrchestrator {
       cleanupCheckpoints(),
       getCliVersion(),
     ]);
+    console.log('[DEBUG] StartupOrchestrator: Phase 1 completed.');
 
     // Handle errors from parallel operations
     const settingsValue = settings.status === 'fulfilled' ? settings.value : (() => {

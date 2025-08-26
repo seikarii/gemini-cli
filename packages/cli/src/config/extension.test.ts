@@ -43,7 +43,7 @@ describe('loadExtensions', () => {
     fs.rmSync(tempHomeDir, { recursive: true, force: true });
   });
 
-  it('should include extension path in loaded extension', () => {
+  it('should include extension path in loaded extension', async () => {
     const workspaceExtensionsDir = path.join(
       tempWorkspaceDir,
       EXTENSIONS_DIRECTORY_NAME,
@@ -62,13 +62,13 @@ describe('loadExtensions', () => {
       JSON.stringify(config),
     );
 
-    const extensions = loadExtensions(tempWorkspaceDir);
-    expect(extensions).toHaveLength(1);
-    expect(extensions[0].path).toBe(extensionDir);
-    expect(extensions[0].config.name).toBe('test-extension');
+  const extensions = await loadExtensions(tempWorkspaceDir);
+  expect(extensions).toHaveLength(1);
+  expect(extensions[0].path).toBe(extensionDir);
+  expect(extensions[0].config.name).toBe('test-extension');
   });
 
-  it('should load context file path when GEMINI.md is present', () => {
+  it('should load context file path when GEMINI.md is present', async () => {
     const workspaceExtensionsDir = path.join(
       tempWorkspaceDir,
       EXTENSIONS_DIRECTORY_NAME,
@@ -77,9 +77,9 @@ describe('loadExtensions', () => {
     createExtension(workspaceExtensionsDir, 'ext1', '1.0.0', true);
     createExtension(workspaceExtensionsDir, 'ext2', '2.0.0');
 
-    const extensions = loadExtensions(tempWorkspaceDir);
+  const extensions = await loadExtensions(tempWorkspaceDir);
 
-    expect(extensions).toHaveLength(2);
+  expect(extensions).toHaveLength(2);
     const ext1 = extensions.find((e) => e.config.name === 'ext1');
     const ext2 = extensions.find((e) => e.config.name === 'ext2');
     expect(ext1?.contextFiles).toEqual([
@@ -88,7 +88,7 @@ describe('loadExtensions', () => {
     expect(ext2?.contextFiles).toEqual([]);
   });
 
-  it('should load context file path from the extension config', () => {
+  it('should load context file path from the extension config', async () => {
     const workspaceExtensionsDir = path.join(
       tempWorkspaceDir,
       EXTENSIONS_DIRECTORY_NAME,
@@ -102,9 +102,9 @@ describe('loadExtensions', () => {
       'my-context-file.md',
     );
 
-    const extensions = loadExtensions(tempWorkspaceDir);
+  const extensions = await loadExtensions(tempWorkspaceDir);
 
-    expect(extensions).toHaveLength(1);
+  expect(extensions).toHaveLength(1);
     const ext1 = extensions.find((e) => e.config.name === 'ext1');
     expect(ext1?.contextFiles).toEqual([
       path.join(workspaceExtensionsDir, 'ext1', 'my-context-file.md'),

@@ -202,22 +202,41 @@ export async function openDiff(
       case 'vim':
       case 'emacs':
       case 'neovim': {
-        // Use execSync for terminal-based editors
-        const command =
-          process.platform === 'win32'
-            ? `${diffCommand.command} ${diffCommand.args.join(' ')}`
-            : `${diffCommand.command} ${diffCommand.args.map((arg) => `"${arg}"`).join(' ')}`;
-        try {
-          execSync(command, {
+        // Use spawn for terminal-based editors and await completion
+        return new Promise((resolve) => {
+          const args = diffCommand.args;
+          const child = spawn(diffCommand.command, args, {
             stdio: 'inherit',
-            encoding: 'utf8',
+            shell: false,
           });
-        } catch (_e) {
-          console.error('Error in onEditorClose callback:', _e);
-        } finally {
-          onEditorClose();
-        }
-        break;
+
+          child.on('close', (code) => {
+            try {
+              if (code !== 0) {
+                console.error(`${editor} exited with code ${code}`);
+              }
+            } catch (e) {
+              console.error('Error in onEditorClose callback:', e);
+            } finally {
+              try {
+                onEditorClose();
+              } catch (e) {
+                console.debug('onEditorClose callback threw:', e);
+              }
+              resolve();
+            }
+          });
+
+          child.on('error', (err) => {
+            console.error('Failed to spawn editor process:', err);
+            try {
+              onEditorClose();
+            } catch (e) {
+              console.debug('onEditorClose callback threw:', e);
+            }
+            resolve();
+          });
+        });
       }
 
       default:

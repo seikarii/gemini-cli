@@ -21,12 +21,13 @@
   },
   "dependencies": {
     "@google/gemini-cli-core": "file:../core",
+    "express": "^4.19.2",
     "ink": "^6.1.1",
-    "react": "^19.1.0",
-    "express": "^4.19.2"
+    "react": "^19.1.0"
   },
   "devDependencies": {
     "@types/react": "^19.1.8",
+    "@types/uuid": "^10.0.0",
     "tsx": "^4.20.3",
     "typescript": "^5.3.3"
   },

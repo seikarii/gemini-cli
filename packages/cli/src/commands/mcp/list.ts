@@ -23,8 +23,8 @@ const RESET_COLOR = '\u001b[0m';
 async function getMcpServersFromConfig(): Promise<
   Record<string, MCPServerConfig>
 > {
-  const settings = loadSettings(process.cwd());
-  const extensions = loadExtensions(process.cwd());
+  const settings = await loadSettings(process.cwd());
+  const extensions = await loadExtensions(process.cwd());
   const mcpServers = { ...(settings.merged.mcpServers || {}) };
   for (const extension of extensions) {
     Object.entries(extension.config.mcpServers || {}).forEach(

@@ -24,14 +24,19 @@ import {
 import { getUrlOpenCommand } from '../../ui/utils/commandUtils.js';
 
 // Generate OS-specific commands to open the GitHub pages needed for setup.
-function getOpenUrlsCommands(readmeUrl: string): string[] {
+async function getOpenUrlsCommands(readmeUrl: string): Promise<string[]> {
   // Determine the OS-specific command to open URLs, ex: 'open', 'xdg-open', etc
   const openCmd = getUrlOpenCommand();
 
   // Build a list of URLs to open
   const urlsToOpen = [readmeUrl];
 
-  const repoInfo = getGitHubRepoInfo();
+  let repoInfo;
+  try {
+    repoInfo = await getGitHubRepoInfo();
+  } catch {
+    repoInfo = null;
+  }
   if (repoInfo) {
     urlsToOpen.push(
       `https://github.com/${repoInfo.owner}/${repoInfo.repo}/settings/secrets/actions`,
@@ -92,7 +97,7 @@ export const setupGithubCommand: SlashCommand = {
   ): Promise<SlashCommandActionReturn> => {
     const abortController = new AbortController();
 
-    if (!isGitHubRepository()) {
+  if (!(await isGitHubRepository())) {
       throw new Error(
         'Unable to determine the GitHub repository. /setup-github must be run from a git repository.',
       );
@@ -101,7 +106,7 @@ export const setupGithubCommand: SlashCommand = {
     // Find the root directory of the repo
     let gitRepoRoot: string;
     try {
-      gitRepoRoot = getGitRepoRoot();
+      gitRepoRoot = await getGitRepoRoot();
     } catch (_error) {
       console.debug(`Failed to get git repo root:`, _error);
       throw new Error(
@@ -194,7 +199,7 @@ export const setupGithubCommand: SlashCommand = {
     commands.push(
       `echo "Successfully downloaded ${workflows.length} workflows and updated .gitignore. Follow the steps in ${readmeUrl} (skipping the /setup-github step) to complete setup."`,
     );
-    commands.push(...getOpenUrlsCommands(readmeUrl));
+  commands.push(...(await getOpenUrlsCommands(readmeUrl)));
 
     const command = `(${commands.join(' && ')})`;
     return {

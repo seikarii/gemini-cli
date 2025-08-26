@@ -8,6 +8,10 @@ import { isGitRepository } from '@google/gemini-cli-core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as childProcess from 'child_process';
+import { promisify } from 'util';
+
+const fsp = fs.promises;
+const exec = promisify(childProcess.exec);
 
 export enum PackageManager {
   NPM = 'npm',
@@ -28,10 +32,10 @@ export interface InstallationInfo {
   updateMessage?: string;
 }
 
-export function getInstallationInfo(
+export async function getInstallationInfo(
   projectRoot: string,
   isAutoUpdateDisabled: boolean,
-): InstallationInfo {
+): Promise<InstallationInfo> {
   const cliPath = process.argv[1];
   if (!cliPath) {
     return { packageManager: PackageManager.UNKNOWN, isGlobal: false };
@@ -39,7 +43,8 @@ export function getInstallationInfo(
 
   try {
     // Normalize path separators to forward slashes for consistent matching.
-    const realPath = fs.realpathSync(cliPath).replace(/\\/g, '/');
+    const realPathRaw = await fsp.realpath(cliPath);
+    const realPath = realPathRaw.replace(/\\/g, '/');
     const normalizedProjectRoot = projectRoot?.replace(/\\/g, '/');
     const isGit = isGitRepository(process.cwd());
 
@@ -78,9 +83,10 @@ export function getInstallationInfo(
     if (process.platform === 'darwin') {
       try {
         // The package name in homebrew is gemini-cli
-        childProcess.execSync('brew list -1 | grep -q "^gemini-cli$"', {
+        // Use async exec; ignore output
+        await exec('brew list -1 | grep -q "^gemini-cli$"', {
           stdio: 'ignore',
-        });
+        } as any);
         return {
           packageManager: PackageManager.HOMEBREW,
           isGlobal: true,
@@ -145,12 +151,24 @@ export function getInstallationInfo(
       realPath.startsWith(`${normalizedProjectRoot}/node_modules`)
     ) {
       let pm = PackageManager.NPM;
-      if (fs.existsSync(path.join(projectRoot, 'yarn.lock'))) {
+      const yarnLock = path.join(projectRoot, 'yarn.lock');
+      const pnpmLock = path.join(projectRoot, 'pnpm-lock.yaml');
+      const bunLock = path.join(projectRoot, 'bun.lockb');
+      try {
+        await fsp.access(yarnLock);
         pm = PackageManager.YARN;
-      } else if (fs.existsSync(path.join(projectRoot, 'pnpm-lock.yaml'))) {
-        pm = PackageManager.PNPM;
-      } else if (fs.existsSync(path.join(projectRoot, 'bun.lockb'))) {
-        pm = PackageManager.BUN;
+      } catch (_) {
+        try {
+          await fsp.access(pnpmLock);
+          pm = PackageManager.PNPM;
+        } catch (_) {
+          try {
+            await fsp.access(bunLock);
+            pm = PackageManager.BUN;
+          } catch (_) {
+            // no lockfile found, keep default
+          }
+        }
       }
       return {
         packageManager: pm,

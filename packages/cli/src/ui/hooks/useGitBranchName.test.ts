@@ -19,7 +19,7 @@ import { useGitBranchName } from './useGitBranchName.js';
 import { fs, vol } from 'memfs'; // For mocking fs
 import { EventEmitter } from 'node:events';
 import { exec as mockExec, type ChildProcess } from 'node:child_process';
-import type { FSWatcher } from 'memfs/lib/volume.js';
+
 
 // Mock child_process
 vi.mock('child_process');
@@ -212,9 +212,12 @@ describe('useGitBranchName', () => {
   it('should cleanup watcher on unmount', async ({ skip }) => {
     skip(); // TODO: fix
     const closeMock = vi.fn();
-    const watchMock = vi.spyOn(fs, 'watch').mockReturnValue({
+    // The memfs FSWatcher type is incompatible with node's FSWatcher type; this
+    // test is only checking that close() is called on unmount. Silence strict
+    // type checking here to avoid build-time type mismatch errors.
+  const watchMock = vi.spyOn(fs, 'watch').mockReturnValue({
       close: closeMock,
-    } as unknown as FSWatcher);
+    } as unknown as ReturnType<typeof fs.watch>);
 
     (mockExec as MockedFunction<typeof mockExec>).mockImplementation(
       (_command, _options, callback) => {
