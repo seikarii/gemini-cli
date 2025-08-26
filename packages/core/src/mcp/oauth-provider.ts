@@ -722,7 +722,7 @@ export class MCPOAuthProvider {
 
     console.log('\nOpening browser for OAuth authentication...');
     console.log('If the browser does not open, please visit:');
-    console.log('');
+    console.info('');
 
     // Get terminal width or default to 80
     const terminalWidth = process.stdout.columns || 80;
@@ -736,14 +736,14 @@ export class MCPOAuthProvider {
     console.log(separator);
     console.log(authUrl);
     console.log(separator);
-    console.log('');
+    console.info('');
     console.log(
       '💡 TIP: Triple-click to select the entire URL, then copy and paste it into your browser.',
     );
     console.log(
       '⚠️  Make sure to copy the COMPLETE URL - it may wrap across multiple lines.',
     );
-    console.log('');
+    console.info('');
 
     // Start callback server
     const callbackPromise = this.startCallbackServer(pkceParams.state);
@@ -761,7 +761,7 @@ export class MCPOAuthProvider {
     // Wait for callback
     const { code } = await callbackPromise;
 
-    console.log('\nAuthorization code received, exchanging for tokens...');
+    console.info('\nAuthorization code received, exchanging for tokens...');
 
     // Exchange code for tokens
     const tokenResponse = await this.exchangeCodeForToken(
@@ -805,7 +805,7 @@ export class MCPOAuthProvider {
           savedToken.token.accessToken.length > 20
             ? `${savedToken.token.accessToken.substring(0, 20)}...`
             : '[token]';
-        console.log(`Token verification successful: ${tokenPreview}`);
+        console.info(`Token verification successful: ${tokenPreview}`);
       } else {
         console.error(
           'Token verification failed: token not found or invalid after save',

@@ -23,7 +23,7 @@ export interface Intentions {
  */
 import fs from 'fs/promises';
 import path from 'path';
-import { Project, SourceFile, SyntaxKind } from 'ts-morph';
+import { Project, SourceFile, SyntaxKind, JSDocableNode, JSDoc, ImportSpecifier, ParameterDeclaration, MethodDeclaration, StringLiteral } from 'ts-morph';
 
 const MAX_FILE_SIZE_MB = 50; // maximum file size to process
 
@@ -83,7 +83,7 @@ export async function readFileWithEncodingFallback(
         continue;
       }
       return { content, error: null };
-    } catch (_err) {
+    } catch (_err: unknown) {
       // try next encoding
       void _err;
       continue;
@@ -194,9 +194,9 @@ export function extractCommentsAndJsDoc(
           if (Array.isArray(js) && js.length > 0) {
             for (const d of js) {
               const txt =
-                typeof (d as any).getInnerText === 'function'
-                  ? (d as any).getInnerText()
-                  : String((d as any).getText?.() ?? '');
+                typeof (d as JSDoc).getInnerText === 'function'
+                  ? (d as JSDoc).getInnerText()
+                  : String((d as JSDoc).getText?.() ?? '');
               if (txt) jsdocs.push(txt.trim());
             }
           }
@@ -239,14 +239,10 @@ export function extractIntentionsFromSourceFile(
         try {
           // small local helper to avoid implicit-`any` callback in map
           const namedImports = imp.getNamedImports();
-          const mappedNamed = namedImports.map((spec: unknown) => {
-            const s = spec as unknown as {
-              getName: () => string;
-              getAliasNode?: () => { getText?: () => string } | undefined;
-            };
+          const mappedNamed = namedImports.map((spec: ImportSpecifier) => {
             return {
-              name: s.getName(),
-              alias: s.getAliasNode?.()?.getText?.() ?? undefined,
+              name: spec.getName(),
+              alias: spec.getAliasNode()?.getText() ?? undefined,
             };
           });
 
@@ -275,12 +271,12 @@ export function extractIntentionsFromSourceFile(
             startLine: f.getStartLineNumber?.() ?? null,
             endLine: f.getEndLineNumber?.() ?? null,
             params:
-              f.getParameters?.().map((p: any) => ({
+              f.getParameters?.().map((p: ParameterDeclaration) => ({
                 name: p.getName?.(),
                 type: p.getType?.().getText?.() ?? '',
               })) ?? [],
           });
-        } catch (e: any) {
+        } catch (e: unknown) {
           intents.parsingErrors.push(`function node error: ${String(e)}`);
         }
       }
@@ -299,12 +295,12 @@ export function extractIntentionsFromSourceFile(
             startLine: c.getStartLineNumber?.() ?? null,
             endLine: c.getEndLineNumber?.() ?? null,
             methods:
-              c.getMethods?.().map((m: any) => ({
+              c.getMethods?.().map((m: MethodDeclaration) => ({
                 name: m.getName?.(),
                 isAsync: m.isAsync?.() ?? false,
               })) ?? [],
           });
-        } catch (e: any) {
+        } catch (e: unknown) {
           intents.parsingErrors.push(`class node error: ${String(e)}`);
         }
       }
@@ -336,13 +332,13 @@ export function extractIntentionsFromSourceFile(
                   startLine: decl.getStartLineNumber?.(),
                 });
               }
-            } catch (e: any) {
+            } catch (e: unknown) {
               intents.parsingErrors.push(
                 `variable declaration error: ${String(e)}`,
               );
             }
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
           intents.parsingErrors.push(`variable statement error: ${String(e)}`);
         }
       }
@@ -356,7 +352,7 @@ export function extractIntentionsFromSourceFile(
         try {
           const k = n.getKind?.();
           if (k === SyntaxKind.StringLiteral) {
-            const txt = (n as any).getLiteralText?.();
+            const txt = (n as StringLiteral).getLiteralText?.();
             if (typeof txt === 'string' && txt.length > 20) {
               // heuristics: long string literals may be docstrings/comments
               intents.constants.push({ inferredDocstring: txt.slice(0, 200) });
@@ -369,7 +365,7 @@ export function extractIntentionsFromSourceFile(
     } catch {
       // ignore
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     intents.parsingErrors.push(
       `intentions overall extraction failed: ${String(e)}`,
     );
@@ -437,7 +433,7 @@ export async function readAndParseFile(filePath: string): Promise<ParseResult> {
     result.intentions = extractIntentionsFromSourceFile(sourceFile ?? null);
 
     result.fileInfo.processingTimeMs = Date.now() - start;
-  } catch (e: any) {
+  } catch (e: unknown) {
     result.parseError = `Unexpected processing error: ${String(e)}`;
   }
 
@@ -463,7 +459,7 @@ export class ASTReader {
   async execute(params: ASTReaderParams): Promise<{
     success: boolean;
     output: string;
-    metadata?: any;
+    metadata?: Partial<ParseResult>;
     errorMessage?: string;
     executionTime?: number;
   }> {
@@ -487,7 +483,7 @@ export class ASTReader {
       }
 
    
-  const intents: any = r.intentions || {};
+  const intents: Intentions = r.intentions as Intentions || {};
       if (intents && !intents.extraction_error) {
         const fnCount = Array.isArray(intents.functions)
           ? intents.functions.length
@@ -518,7 +514,7 @@ export class ASTReader {
       const output = parts.join('\n');
 
    
-  const metadata: any = {
+  const metadata: Partial<ParseResult> = {
         fileInfo: r.fileInfo,
         parseError: r.parseError,
         intentions:

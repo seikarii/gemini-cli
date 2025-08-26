@@ -41,7 +41,7 @@ export class UnifiedPersistence {
     for (const key in components) {
       await this.service.save(components[key], key);
     }
-    console.log("--- Agent State Backup Complete ---");
+    console.info("--- Agent State Backup Complete ---");
   }
 
   /**

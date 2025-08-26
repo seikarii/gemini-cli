@@ -62,7 +62,7 @@ export class ActionSystem {
 
     while (this.actionQueue.length > 0) {
       const action = this.actionQueue.shift()!;
-      console.log(`ActionSystem: Executing action ${action.id}: ${action.tool}`);
+      console.info(`ActionSystem: Executing action ${action.id}: ${action.tool}`);
       
       const toolExecutor = this.toolRegistry[action.tool];
       if (toolExecutor) {

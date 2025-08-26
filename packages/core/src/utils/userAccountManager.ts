@@ -33,7 +33,7 @@ export class UserAccountManager {
 
     // Inlined validation logic
     if (typeof parsed !== 'object' || parsed === null) {
-      console.log('Invalid accounts file schema, starting fresh.');
+      console.error('Invalid accounts file schema, starting fresh.');
       return defaultState;
     }
     const { active, old } = parsed as Partial<UserAccounts>;

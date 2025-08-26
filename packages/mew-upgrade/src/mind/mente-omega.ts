@@ -46,7 +46,7 @@ export class MenteOmega implements Persistable {
 
     // 1. Recall relevant information from memory.
     const relevantMemories = this.memory.recall(userRequest) as Array<{ data: unknown }>;
-    console.log(`MenteOmega: Recalled ${relevantMemories.length} relevant memories.`);
+    console.info(`MenteOmega: Recalled ${relevantMemories.length} relevant memories.`);
 
     // 2. Build a context for the creative mind (the LLM).
     const memorySummary = relevantMemories
@@ -99,7 +99,7 @@ export class MenteOmega implements Persistable {
   private async getPlanFromMenteAlfa(context: Content[], signal?: AbortSignal): Promise<PlanDeAccion> {
     try {
       // Call the underlying client-style generateContent(contents, generationConfig, abortSignal?) which many callers use
-      const result = await (this.menteAlfa as any).generateContent(
+      const result = await this.menteAlfa.generateContent(
         context,
         { temperature: 0.7 },
         signal ?? new AbortController().signal,

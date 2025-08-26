@@ -12,7 +12,7 @@ import path from 'path';
 // fileURLToPath import intentionally omitted during build; kept out to avoid unused symbol
 import { MenteOmega } from '../mind/mente-omega.js';
 import type { MemoryNodeKind } from '../mind/mental-laby.js';
-import { UnifiedPersistence } from '../persistence/unified-persistence.js';
+import { UnifiedPersistence, Agent } from '../persistence/unified-persistence.js';
 import { createContentGenerator, ContentGenerator } from '@google/gemini-cli-core';
 import { startWebServer } from '../server/webServer.js';
 // We import runNonInteractive dynamically in the example block to avoid
@@ -32,7 +32,8 @@ class TerminalConnection {
 
   // Simulate a user typing a command in the terminal
   simulateUserRequest(request: string) {
-    console.log(`\n--- Terminal: User entered command: \"${request}\" ---`);
+    console.info(`
+--- Terminal: User entered command: "${request}" ---`);
     if (this.onRequest) {
       this.onRequest(request);
     }
@@ -62,8 +63,8 @@ export class GeminiAgent {
 
     // Setup the connection between the terminal and the brain (guarded: brain may be null until start())
     this.terminal.onReceiveRequest((request) => {
-      if (this.brain && typeof (this.brain as any).process === 'function') {
-        (this.brain as any).process(request);
+      if (this.brain) {
+        this.brain.process(request);
       } else {
         // If the brain is not ready yet, you could buffer requests here.
         console.warn('Received terminal request before brain was initialized:', request);
@@ -75,12 +76,12 @@ export class GeminiAgent {
    * Starts the agent's main loop and restores its state.
    */
   async start(): Promise<void> {
-    console.log('--- Gemini Agent is starting up... ---');
+    console.info('--- Gemini Agent is starting up...');
 
     // Initialize the content generator (MenteAlfa connection) using the real config
     this.contentGenerator = await createContentGenerator(
       this.config.getContentGeneratorConfig(),
-      this.config as any,
+      this.config,
       this.config.getSessionId()
     );
 
@@ -106,7 +107,7 @@ export class GeminiAgent {
   /**
    * Provides the persistence system with the components that need to be saved.
    */
-  private getPersistableAPI(): any {
+  private getPersistableAPI(): Agent {
     return {
       getPersistableComponents: () => {
         const components: Record<string, unknown> = {};
@@ -127,7 +128,7 @@ export class GeminiAgent {
   public whisper(data: any, kind?: MemoryNodeKind): void {
     if (this.brain) {
       // Use any because MenteOmega's public API may not expose memory typing here.
-      (this.brain as any).memory.ingest(data, kind);
+      this.brain.memory.ingest(data, kind);
       console.log('Agent whispered data into memory.');
     } else {
       console.warn('Cannot whisper: Agent brain not initialized.');

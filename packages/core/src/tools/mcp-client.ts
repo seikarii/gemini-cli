@@ -972,7 +972,7 @@ export async function connectToMcpServer(
         );
         if (oauthSuccess) {
           // Retry connection with OAuth token
-          console.log(
+          console.info(
             `Retrying connection to '${mcpServerName}' with OAuth token...`,
           );
 

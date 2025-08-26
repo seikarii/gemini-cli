@@ -99,7 +99,7 @@ class ReadFileToolInvocation extends BaseToolInvocation<
         },
         body: body,
   }).then(async (response: any) => {
-        console.log(`[read_file] Received response status: ${response.status}`);
+        console.info(`[read_file] Received response status: ${response.status}`);
         if (!response.ok) {
           const errorText = await response.text();
           console.error(`[read_file] Server error: ${errorText}`);

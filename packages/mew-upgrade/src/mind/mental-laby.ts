@@ -149,7 +149,7 @@ export class MentalLaby implements Persistable {
     node.usageCount++;
     node.salience = Math.min(1, node.salience + 0.1);
     node.lastAccessTimestamp = Date.now();
-    console.log(`MentalLaby: Reinforced memory node ${node.id}`);
+    console.info(`MentalLaby: Reinforced memory node ${node.id}`);
   }
 
   private findSimilarNodes(embedding: number[], k: number): Array<{ id: string; similarity: number }> {
@@ -175,7 +175,7 @@ export class MentalLaby implements Persistable {
     }
   }
 
-  private createEmbedding(data: any): number[] {
+  private createEmbedding(data: unknown): number[] {
     return this.embedder.embed(data);
   }
 
@@ -189,13 +189,13 @@ export class MentalLaby implements Persistable {
     return { nodes: nodesArray };
   }
 
-  importState(state: any): void {
-    if (state && state.nodes) {
+  importState(state: unknown): void {
+    if (state && typeof state === 'object' && 'nodes' in state && Array.isArray((state as { nodes: unknown[] }).nodes)) {
       this.nodes.clear();
-      for (const nodeData of state.nodes) {
-        this.nodes.set(nodeData.id, {
-          ...nodeData,
-          edges: new Map(nodeData.edges),
+      for (const nodeData of (state as { nodes: unknown[] }).nodes) {
+        this.nodes.set((nodeData as { id: string }).id, {
+          ...(nodeData as MemoryNode),
+          edges: new Map((nodeData as { edges: Array<[string, { weight: number }]> }).edges),
         });
       }
     }

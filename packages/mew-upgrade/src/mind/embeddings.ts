@@ -126,7 +126,7 @@ export class HashingEmbedder {
     v[idx] += s * (1.0 + Math.min(1.0, Math.abs(x)));
   }
 
-  private addDict(v: number[], d: Record<string, any>): void {
+  private addDict(v: number[], d: Record<string, unknown>): void {
     // Sort keys for deterministic embedding
     const sortedKeys = Object.keys(d).sort();
     for (const k of sortedKeys) {

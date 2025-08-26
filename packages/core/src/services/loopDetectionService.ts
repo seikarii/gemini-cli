@@ -901,7 +901,7 @@ export class LoopDetectionService {
     // tests and provide a safety net during long-running prompts.
     if (this.turnsInCurrentPrompt - this.lastCheckTurn >= LLM_CHECK_AFTER_TURNS) {
       try {
-        console.log('shouldPerformLLMCheck triggered by turn count', {
+        console.debug('shouldPerformLLMCheck triggered by turn count', {
           turnsInCurrentPrompt: this.turnsInCurrentPrompt,
           lastCheckTurn: this.lastCheckTurn,
         });

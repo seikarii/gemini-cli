@@ -173,7 +173,7 @@ export async function startWebServer(agent: GeminiAgent) {
 
   // Add signal handlers for graceful shutdown
   process.on('SIGINT', () => {
-    console.log('SIGINT signal received: Closing web server.');
+    console.info('SIGINT signal received: Closing web server.');
     server.close(() => {
       process.exit(0);
     });

@@ -61,7 +61,7 @@ export class PersistenceService {
       const filePath = `${this.basePath}/${key}.json.gz`;
 
       if (!await this.storage.exists(filePath)) {
-        console.log(`No saved state found for key '${key}' at ${filePath}.`);
+        console.info(`No saved state found for key '${key}' at ${filePath}.`);
         return false;
       }
 

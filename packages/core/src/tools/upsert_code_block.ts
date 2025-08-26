@@ -7,7 +7,7 @@
 import * as Diff from 'diff';
 import * as fs from 'fs';
 import * as path from 'path';
-import { SourceFile, Node } from 'ts-morph';
+import { SourceFile, Node, VariableDeclaration } from 'ts-morph';
 import * as astAdapter from '../ast/adapter.js';
 import { DEFAULT_DIFF_OPTIONS, getDiffStat } from './diffOptions.js';
 import {
@@ -505,7 +505,7 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
 
     // Variables (const, let, var)
     sourceFile.getVariableStatements().forEach((stmt) => {
-  stmt.getDeclarations().forEach((decl: any) => {
+  stmt.getDeclarations().forEach((decl: VariableDeclaration) => {
         const name = decl.getName();
         blocks.push({
           name,

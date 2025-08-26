@@ -10,7 +10,11 @@ import {
   SourceFile,
   Node,
   ClassDeclaration,
-  SyntaxKind,
+  RenameableNode,
+  FunctionDeclaration,
+  MethodDeclaration,
+  ArrowFunction,
+  FunctionExpression,
 } from 'ts-morph';
 import { findNodes } from './finder.js';
 import { ModificationSpec, ModificationOperation } from './models.js';
@@ -73,7 +77,7 @@ export class ASTModifier {
       // Group modifications by target nodes if possible, otherwise apply sequentially
       for (const mod of modifications) {
         const targetQuery = (mod as any).targetQuery as any;
-        const targets = findNodes(sourceFile, targetQuery as any);
+        const targets = findNodes(sourceFile, targetQuery);
 
         // If target nodes found, apply to each. If none, try to apply at file-level (e.g., add_import/add_class)
         if (targets && targets.length > 0) {
@@ -108,7 +112,7 @@ export class ASTModifier {
         modifiedText,
         backupId,
       };
-    } catch (_e: any) {
+    } catch (_e: unknown) {
       const restored = this.restoreBackup(backupId);
       return {
         success: false,
@@ -288,14 +292,9 @@ export class ASTModifier {
 
     // If parent is a block (list of statements), use insertStatements
     const block = parent.getFirstChildByKind(SyntaxKind.Block) ?? parent;
-    if (
-      (block as any).insertStatements &&
-      typeof (block as any).insertStatements === 'function'
-    ) {
+    if (Node.isSourceFile(block) || Node.isBlock(block)) {
       // find index of node among block statements
-      const statements = (block as any).getStatements
-        ? (block as any).getStatements()
-        : [];
+      const statements = block.getStatements();
       const idx = statements.findIndex(
   (s: Node) => s.getStart() === node.getStart(),
       );
@@ -361,9 +360,9 @@ export class ASTModifier {
           }
         } else {
           // sometimes ts-morph nodes (parameters, variable names) expose getName
-          if (typeof (n as any).getName === 'function' && (n as any).getName() === oldName) {
+          if (Node.isRenameableNode(n) && typeof n.getName === 'function' && n.getName() === oldName) {
             // rename is optional on some nodes
-            (n as any).rename && (n as any).rename(newName);
+            n.rename(newName);
           }
         }
       } catch {
@@ -383,7 +382,7 @@ export class ASTModifier {
         // attempt to set parameters by replacing the signature portion
         const bodyText =
           node.getFirstChildByKind(SyntaxKind.Block)?.getText() ?? '{}';
-        const name = (node as any).getName ? (node as any).getName() : '';
+        const name = (node as FunctionDeclaration | MethodDeclaration | ArrowFunction | FunctionExpression).getName();
         const replaceText = `${name}(${newSignature}) ${bodyText}`;
         // replace whole node with new signature + body (safer than trying to mutate params)
         node.replaceWithText(replaceText);
@@ -405,10 +404,10 @@ export class ASTModifier {
   ) {
     // If node is a function or method, insert into its body
     const block = node.getFirstChildByKind(SyntaxKind.Block);
-    if (block && (block as any).insertStatements) {
-      const stmts = (block as any).getStatements();
-      if (atEnd) (block as any).insertStatements(stmts.length, stmtCode);
-      else (block as any).insertStatements(0, stmtCode);
+    if (block) {
+      const stmts = block.getStatements();
+      if (atEnd) block.insertStatements(stmts.length, stmtCode);
+      else block.insertStatements(0, stmtCode);
       return;
     }
 
