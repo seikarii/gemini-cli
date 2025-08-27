@@ -261,7 +261,8 @@ export class GeminiClient {
     ];
     try {
       const userMemory = this.config.getUserMemory();
-      const systemInstruction = getCoreSystemPrompt(userMemory);
+      const model = this.config.getModel();
+      const systemInstruction = getCoreSystemPrompt(userMemory, model);
       const generateContentConfigWithThinking = isThinkingSupported(
         this.config.getModel(),
       )
@@ -607,7 +608,7 @@ export class GeminiClient {
       model || this.config.getModel() || DEFAULT_GEMINI_FLASH_MODEL;
     try {
       const userMemory = this.config.getUserMemory();
-      const systemInstruction = getCoreSystemPrompt(userMemory);
+      const systemInstruction = getCoreSystemPrompt(userMemory, modelToUse);
       const requestConfig = {
         abortSignal,
         ...this.generateContentConfig,
@@ -717,7 +718,7 @@ export class GeminiClient {
 
     try {
       const userMemory = this.config.getUserMemory();
-      const systemInstruction = getCoreSystemPrompt(userMemory);
+      const systemInstruction = getCoreSystemPrompt(userMemory, modelToUse);
 
       const requestConfig: GenerateContentConfig = {
         abortSignal,

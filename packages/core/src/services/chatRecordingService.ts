@@ -246,11 +246,13 @@ export interface TokensSummary {
  */
 export interface ContextCompressionConfig {
   maxContextTokens: number; // Maximum tokens before compression kicks in (default: 35000)
-  preserveRecentMessages: number; // Number of recent messages to keep full (default: 8)
+  preserveRecentMessages: number; // Number of recent USER messages to keep full (assistant messages are preserved separately)
   compressionRatio: number; // How aggressively to compress (0.1 = keep 10%, default: 0.3)
   keywordPreservation: boolean; // Whether to preserve important keywords (default: true)
   summarizeToolCalls: boolean; // Whether to summarize old tool calls (default: true)
   strategy: CompressionStrategy; // Compression strategy to use
+  neverCompressUserMessages: boolean; // Always preserve ALL user messages, never compress them (default: true)
+  importanceThreshold: number; // Minimum importance score (0.0-1.0) for message preservation (default: 0.7)
 }
 
 /**
@@ -1018,11 +1020,15 @@ export interface ResumedSessionData {
  * - Intelligent context management to prevent hallucinations from large contexts
  *
  * CONTEXT COMPRESSION STRATEGY:
- * - Recent messages (default: 8) are kept in full detail
- * - Older messages are progressively compressed based on age and relevance
+ * - ALL user messages (prompts) are ALWAYS preserved in full detail
+ * - Recent assistant messages (default: 5-10) are kept in full detail
+ * - Older assistant messages are progressively compressed based on age and relevance
  * - Tool calls are summarized while preserving success/failure patterns
  * - Key information is extracted and preserved regardless of age
- * - Total context is kept under configurable token limits (default: 35k)
+ * - Total context is kept under configurable token limits (default: 66k)
+ *
+ * This ensures that the AI never forgets the user's original mission or context,
+ * while still managing conversation length efficiently.
  *
  * Sessions are stored as JSON files in ~/.gemini/tmp/<project_hash>/chats/
  */
@@ -1042,12 +1048,14 @@ export class ChatRecordingService {
   
   // Context compression configuration
   private compressionConfig: ContextCompressionConfig = {
-    maxContextTokens: 66000,
-    preserveRecentMessages: 8,
+    maxContextTokens: 120000, // Increased from 66k to 120k for better context preservation
+    preserveRecentMessages: 20, // Always preserve ALL user messages up to this count
     compressionRatio: 0.3,
     keywordPreservation: true,
     summarizeToolCalls: true,
-    strategy: CompressionStrategy.MODERATE,
+    strategy: CompressionStrategy.NO_COMPRESSION,
+    neverCompressUserMessages: true, // CRITICAL: User messages are NEVER compressed
+    importanceThreshold: 0.7, // High threshold for preserving important messages
   };
 
   constructor(
@@ -1122,11 +1130,40 @@ export class ChatRecordingService {
    * Compresses old context intelligently to stay under token limits.
    */
   private async compressContextIfNeeded(conversation: EnhancedConversationRecord): Promise<EnhancedConversationRecord> {
-    const totalMessages = conversation.messages.length;
-    // Don't compress if we have few messages
-    if (totalMessages <= this.compressionConfig.preserveRecentMessages) {
-      return conversation;
+    const userMessages = conversation.messages.filter(msg => msg.type === 'user');
+    const totalUserMessages = userMessages.length;
+
+    // CRITICAL: Never compress if neverCompressUserMessages is true
+    if (this.compressionConfig.neverCompressUserMessages) {
+      // Estimate current context size including ALL user messages
+      let totalTokens = 0;
+      for (const msg of conversation.messages) {
+        totalTokens += await this.estimateTokenCount(msg.content);
+        if (msg.type === 'gemini' && msg.toolCalls) {
+          for (const tc of msg.toolCalls) {
+            totalTokens += await this.estimateTokenCount(JSON.stringify(tc.args));
+            if (tc.result) {
+              totalTokens += await this.estimateTokenCount(JSON.stringify(tc.result));
+            }
+          }
+        }
+      }
+      // Add compressed context tokens if it exists
+      if (conversation.compressedContext) {
+        totalTokens += conversation.compressedContext.compressedTokens;
+      }
+
+      // Only compress if we exceed the limit significantly (give more headroom for user messages)
+      if (totalTokens <= this.compressionConfig.maxContextTokens * 1.2) {
+        return conversation;
+      }
+    } else {
+      // Original logic for when user messages can be compressed
+      if (totalUserMessages <= this.compressionConfig.preserveRecentMessages) {
+        return conversation;
+      }
     }
+
     // Estimate current context size
     let totalTokens = 0;
     for (const msg of conversation.messages) {
@@ -1144,24 +1181,109 @@ export class ChatRecordingService {
     if (conversation.compressedContext) {
       totalTokens += conversation.compressedContext.compressedTokens;
     }
+
     // Check if compression is needed
     if (totalTokens <= this.compressionConfig.maxContextTokens) {
       return conversation;
     }
+
     console.log(`[ChatRecording] Context size ${totalTokens} tokens exceeds limit ${this.compressionConfig.maxContextTokens}. Compressing...`);
-    // Split messages into recent (preserve) and old (compress)
-    const preserveCount = this.compressionConfig.preserveRecentMessages;
-    const recentMessages = conversation.messages.slice(-preserveCount);
-    const oldMessages = conversation.messages.slice(0, -preserveCount);
-    // Create or update compressed context using the configured strategy
-    const newCompressedContext = await this.createCompressedContext(oldMessages, conversation.compressedContext);
+
+    // Separate user and assistant messages
+    const allUserMessages = conversation.messages.filter(msg => msg.type === 'user');
+    const allAssistantMessages = conversation.messages.filter(msg => msg.type === 'gemini');
+
+    // CRITICAL: Always preserve ALL user messages (they contain the mission/context)
+    // Only compress old assistant messages
+    const preserveAssistantCount = Math.max(5, Math.floor(this.compressionConfig.preserveRecentMessages / 2));
+    const recentAssistantMessages = allAssistantMessages.slice(-preserveAssistantCount);
+    const oldAssistantMessages = allAssistantMessages.slice(0, -preserveAssistantCount);
+
+    // Evaluate importance of assistant messages to preserve critical ones
+    const importantAssistantMessages = await this.filterImportantMessages(oldAssistantMessages);
+
+    // Combine: ALL user messages + recent assistant messages + important old messages
+    const messagesToKeep = [...allUserMessages, ...recentAssistantMessages, ...importantAssistantMessages];
+
+    // Create compressed context from remaining old assistant messages
+    const remainingOldMessages = oldAssistantMessages.filter(msg => !importantAssistantMessages.includes(msg));
+    const newCompressedContext = await this.createCompressedContext(remainingOldMessages, conversation.compressedContext);
+
     return {
       ...conversation,
-      messages: recentMessages,
+      messages: messagesToKeep,
       compressedContext: newCompressedContext,
       lastCompressionTime: new Date().toISOString(),
       compressionConfig: this.compressionConfig,
     };
+  }
+
+  /**
+   * Filters messages based on importance score to preserve critical information.
+   */
+  private async filterImportantMessages(messages: MessageRecord[]): Promise<MessageRecord[]> {
+    if (messages.length === 0) return [];
+
+    const importantMessages: MessageRecord[] = [];
+
+    for (const message of messages) {
+      const importanceScore = await this.calculateMessageImportance(message);
+      if (importanceScore >= this.compressionConfig.importanceThreshold) {
+        importantMessages.push(message);
+      }
+    }
+
+    return importantMessages;
+  }
+
+  /**
+   * Calculates importance score for a message (0.0-1.0).
+   * Higher scores indicate messages that should be preserved during compression.
+   */
+  private async calculateMessageImportance(message: MessageRecord): Promise<number> {
+    let score = 0.0;
+    const content = message.content.toLowerCase();
+
+    // High importance indicators
+    const highImportanceKeywords = [
+      'error', 'failed', 'failure', 'exception', 'crash', 'bug', 'critical',
+      'important', 'key', 'summary', 'conclusion', 'result', 'outcome',
+      'decision', 'requirement', 'specification', 'architecture',
+      'security', 'performance', 'breaking change'
+    ];
+
+    for (const keyword of highImportanceKeywords) {
+      if (content.includes(keyword)) {
+        score += 0.2;
+      }
+    }
+
+    // Medium importance indicators
+    const mediumImportanceKeywords = [
+      'success', 'completed', 'done', 'fixed', 'resolved',
+      'created', 'modified', 'updated', 'changed',
+      'test', 'function', 'class', 'method', 'api'
+    ];
+
+    for (const keyword of mediumImportanceKeywords) {
+      if (content.includes(keyword)) {
+        score += 0.1;
+      }
+    }
+
+    // Tool calls are generally important
+    if (message.type === 'gemini' && message.toolCalls && message.toolCalls.length > 0) {
+      score += 0.3;
+    }
+
+    // Recent messages are more important (recency bias)
+    const messageAge = Date.now() - new Date(message.timestamp).getTime();
+    const hoursOld = messageAge / (1000 * 60 * 60);
+    if (hoursOld < 1) score += 0.2;
+    else if (hoursOld < 24) score += 0.1;
+
+    // Cap at 1.0 and ensure minimum score for very recent messages
+    return Math.min(1.0, Math.max(score, hoursOld < 0.1 ? 0.5 : 0));
   }
 
   /**
