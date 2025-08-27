@@ -14,6 +14,7 @@ import {
 } from '@google/genai';
 import { GeminiChat, EmptyStreamError } from './geminiChat.js';
 import { Config } from '../config/config.js';
+import { ContentGenerator } from './contentGenerator.js';
 import { setSimulate429 } from '../utils/testUtils.js';
 
 // Mocks
@@ -889,5 +890,160 @@ describe('GeminiChat', () => {
       );
     }
     expect(turn4.parts[0].text).toBe('second response');
+  });
+
+  describe('Function Call Response Alignment', () => {
+    it('should maintain correct function call/response alignment when using curated history', async () => {
+      // This test reproduces the API error scenario where function call/response parts get misaligned
+      // due to history reversal in curated mode
+
+      const mockContentGenerator: ContentGenerator = {
+        generateContent: vi.fn(),
+        generateContentStream: vi.fn(),
+        countTokens: vi.fn(),
+        embedContent: vi.fn(),
+      };
+
+      // Create a conversation with function calls and responses
+      const functionCallContent: Content = {
+        role: 'model',
+        parts: [{
+          functionCall: {
+            name: 'read_file',
+            args: { absolute_path: '/test/file.txt' }
+          }
+        }]
+      };
+
+      const functionResponseContent: Content = {
+        role: 'user',
+        parts: [{
+          functionResponse: {
+            name: 'read_file',
+            response: { content: 'file content' }
+          }
+        }]
+      };
+
+      const userMessageContent: Content = {
+        role: 'user',
+        parts: [{ text: 'Please read this file' }]
+      };
+
+      const modelResponseContent: Content = {
+        role: 'model',
+        parts: [{ text: 'I have read the file content for you.' }]
+      };
+
+      // Set up the conversation history
+      const chat = new GeminiChat(mockConfig, mockContentGenerator);
+      chat.setHistory([
+        userMessageContent,
+        functionCallContent,
+        functionResponseContent,
+        modelResponseContent
+      ]);
+
+      // Test curated history - this is where the reversal happens
+      const curatedHistory = chat.getHistory(true);
+
+      // Verify that the order is preserved for function calls/responses
+      expect(curatedHistory.length).toBeGreaterThan(0);
+
+      // Check that function calls and responses are in the correct order
+      const functionCallIndex = curatedHistory.findIndex(content =>
+        content.parts?.some(part => 'functionCall' in part)
+      );
+      const functionResponseIndex = curatedHistory.findIndex(content =>
+        content.parts?.some(part => 'functionResponse' in part)
+      );
+
+      // Function response should come after function call
+      if (functionCallIndex !== -1 && functionResponseIndex !== -1) {
+        expect(functionResponseIndex).toBeGreaterThan(functionCallIndex);
+      }
+
+      // Verify that when we have function calls, the history is NOT reversed
+      // This prevents the API error about mismatched function parts
+      const hasFunctionCalls = curatedHistory.some(content =>
+        content.parts?.some(part => 'functionCall' in part || 'functionResponse' in part)
+      );
+
+      if (hasFunctionCalls) {
+        // When there are function calls, the most recent message should be at the END
+        // (not at the beginning like when reversed)
+        const lastContent = curatedHistory[curatedHistory.length - 1];
+        expect(lastContent.role).toBe('model'); // Most recent should be model response
+
+        // Verify the order is preserved: user -> function call -> function response -> model response
+        expect(curatedHistory[0].role).toBe('user'); // First message should be user
+        expect(curatedHistory[1].parts?.[0]).toHaveProperty('functionCall'); // Second should be function call
+        expect(curatedHistory[2].parts?.[0]).toHaveProperty('functionResponse'); // Third should be function response
+        expect(curatedHistory[3].role).toBe('model'); // Fourth should be model response
+      }
+    });
+  });
+
+  describe('Context Optimization Preservation', () => {
+    it('should still reverse history when there are no function calls', async () => {
+      // This test ensures that the context optimization (history reversal) still works
+      // for regular conversations without function calls
+
+      const mockContentGenerator: ContentGenerator = {
+        generateContent: vi.fn(),
+        generateContentStream: vi.fn(),
+        countTokens: vi.fn(),
+        embedContent: vi.fn(),
+      };
+
+      // Create a regular conversation without function calls
+      const userMessage1: Content = {
+        role: 'user',
+        parts: [{ text: 'First user message' }]
+      };
+
+      const modelResponse1: Content = {
+        role: 'model',
+        parts: [{ text: 'First model response' }]
+      };
+
+      const userMessage2: Content = {
+        role: 'user',
+        parts: [{ text: 'Second user message' }]
+      };
+
+      const modelResponse2: Content = {
+        role: 'model',
+        parts: [{ text: 'Second model response' }]
+      };
+
+      // Set up the conversation history
+      const chat = new GeminiChat(mockConfig, mockContentGenerator);
+      chat.setHistory([
+        userMessage1,
+        modelResponse1,
+        userMessage2,
+        modelResponse2
+      ]);
+
+      // Test curated history - this should be reversed for context optimization
+      const curatedHistory = chat.getHistory(true);
+
+      // Verify that the history is reversed (most recent messages first)
+      expect(curatedHistory.length).toBe(4);
+
+      // When reversed, the most recent message should be first
+      expect(curatedHistory[0].role).toBe('model'); // Most recent model response
+      expect(curatedHistory[0].parts?.[0].text).toBe('Second model response');
+
+      expect(curatedHistory[1].role).toBe('user'); // Second user message
+      expect(curatedHistory[1].parts?.[0].text).toBe('Second user message');
+
+      expect(curatedHistory[2].role).toBe('model'); // First model response
+      expect(curatedHistory[2].parts?.[0].text).toBe('First model response');
+
+      expect(curatedHistory[3].role).toBe('user'); // First user message
+      expect(curatedHistory[3].parts?.[0].text).toBe('First user message');
+    });
   });
 });

@@ -590,9 +590,22 @@ export class GeminiChat {
     // CRITICAL FIX: Invert the order for curated history to prioritize recent messages
     // This ensures that when the context is truncated due to token limits,
     // the most recent and relevant information is preserved
+    //
+    // EXCEPTION: Do NOT reverse history if it contains function calls/responses
+    // because the Gemini API requires function calls and responses to be in
+    // the correct chronological order to match function response parts
     if (curated && result.length > 0) {
-      result = result.reverse();
-      console.debug(`[Context Optimization] Reversed ${result.length} messages to prioritize recent context`);
+      // Check if history contains function calls or responses
+      const hasFunctionCalls = result.some(content =>
+        content.parts?.some(part => 'functionCall' in part || 'functionResponse' in part)
+      );
+
+      if (hasFunctionCalls) {
+        console.debug(`[Function Call Protection] Preserving chronological order for ${result.length} messages containing function calls/responses`);
+      } else {
+        result = result.reverse();
+        console.debug(`[Context Optimization] Reversed ${result.length} messages to prioritize recent context`);
+      }
     }
 
     const endTime = performance.now();
