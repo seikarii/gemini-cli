@@ -1,7 +1,0 @@
-Hello Gemini
-This is a test file.
-Let's test the replace tool.
-First replacement successful.
-Second replacement successful.
-Duplicate string replacement successful.
-This is a new string.

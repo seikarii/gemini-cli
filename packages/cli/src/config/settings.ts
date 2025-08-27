@@ -433,7 +433,7 @@ export async function loadSettings(workspaceDir: string): Promise<LoadedSettings
 
   // For the initial trust check, we can only use user and system settings.
   const initialTrustCheckSettings = { ...systemSettings, ...userSettings };
-  const isTrusted = isWorkspaceTrusted(initialTrustCheckSettings) ?? true;
+  const isTrusted = (await isWorkspaceTrusted(initialTrustCheckSettings)) ?? true;
 
   // Create a temporary merged settings object to pass to loadEnvironment.
   const tempMergedSettings = mergeSettings(

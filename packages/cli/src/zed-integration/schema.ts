@@ -24,9 +24,7 @@ export const CLIENT_METHODS = {
 
 export const PROTOCOL_VERSION = 1;
 
-export type WriteTextFileRequest = z.infer<typeof writeTextFileRequestSchema>;
 
-export type ReadTextFileRequest = z.infer<typeof readTextFileRequestSchema>;
 
 export type PermissionOptionKind = z.infer<typeof permissionOptionKindSchema>;
 
@@ -140,6 +138,10 @@ export const readTextFileRequestSchema = z.object({
   path: z.string(),
   sessionId: z.string(),
 });
+
+export type WriteTextFileRequest = z.infer<typeof writeTextFileRequestSchema>;
+
+export type ReadTextFileRequest = z.infer<typeof readTextFileRequestSchema>;
 
 export const permissionOptionKindSchema = z.union([
   z.literal('allow_once'),

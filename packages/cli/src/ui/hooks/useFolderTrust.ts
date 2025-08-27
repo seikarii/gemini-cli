@@ -24,18 +24,21 @@ export const useFolderTrust = (
 
   const { folderTrust, folderTrustFeature } = settings.merged;
   useEffect(() => {
-    const trusted = isWorkspaceTrusted({
-      folderTrust,
-      folderTrustFeature,
-    } as Settings);
-    setIsTrusted(trusted);
-    setIsFolderTrustDialogOpen(trusted === undefined);
-    onTrustChange(trusted);
+    const checkTrust = async () => {
+      const trusted = await isWorkspaceTrusted({
+        folderTrust,
+        folderTrustFeature,
+      } as Settings);
+      setIsTrusted(trusted);
+      setIsFolderTrustDialogOpen(trusted === undefined);
+      onTrustChange(trusted);
+    };
+    checkTrust();
   }, [onTrustChange, folderTrust, folderTrustFeature]);
 
   const handleFolderTrustSelect = useCallback(
-    (choice: FolderTrustChoice) => {
-      const trustedFolders = loadTrustedFolders();
+    async (choice: FolderTrustChoice) => {
+      const trustedFolders = await loadTrustedFolders();
       const cwd = process.cwd();
       let trustLevel: TrustLevel;
 

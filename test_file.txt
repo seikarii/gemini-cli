@@ -1,3 +1,0 @@
-Este es el nuevo contenido del archivo de prueba.
-
-Esta es una línea añadida para probar el sistema de edición.

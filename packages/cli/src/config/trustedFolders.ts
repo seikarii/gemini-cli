@@ -4,16 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import * as fs from 'fs';
 import { promises as fsp } from 'fs';
 import * as path from 'path';
 import { homedir } from 'os';
 import { getErrorMessage, isWithinRoot } from '@google/gemini-cli-core';
 import { Settings } from './settings.js';
+import { SETTINGS_DIRECTORY_NAME } from './constants.js';
 import stripJsonComments from 'strip-json-comments';
 
 export const TRUSTED_FOLDERS_FILENAME = 'trustedFolders.json';
-export const SETTINGS_DIRECTORY_NAME = '.gemini';
 export const USER_SETTINGS_DIR = path.join(homedir(), SETTINGS_DIRECTORY_NAME);
 export const USER_TRUSTED_FOLDERS_PATH = path.join(
   USER_SETTINGS_DIR,
@@ -60,29 +59,31 @@ export class LoadedTrustedFolders {
   }
 }
 
-export function loadTrustedFolders(): LoadedTrustedFolders {
+export async function loadTrustedFolders(): Promise<LoadedTrustedFolders> {
   const errors: TrustedFoldersError[] = [];
   const userConfig: Record<string, TrustLevel> = {};
 
   const userPath = USER_TRUSTED_FOLDERS_PATH;
 
-  // Load user trusted folders
+  // Load user trusted folders asynchronously
   try {
-    if (fs.existsSync(userPath)) {
-      const content = fs.readFileSync(userPath, 'utf-8');
-      const parsed = JSON.parse(stripJsonComments(content)) as Record<
-        string,
-        TrustLevel
-      >;
-      if (parsed) {
-        Object.assign(userConfig, parsed);
-      }
+    await fsp.access(userPath);
+    const content = await fsp.readFile(userPath, 'utf-8');
+    const parsed = JSON.parse(stripJsonComments(content)) as Record<
+      string,
+      TrustLevel
+    >;
+    if (parsed) {
+      Object.assign(userConfig, parsed);
     }
   } catch (error: unknown) {
-    errors.push({
-      message: getErrorMessage(error),
-      path: userPath,
-    });
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      errors.push({
+        message: getErrorMessage(error),
+        path: userPath,
+      });
+    }
+    // If file doesn't exist, we just continue with empty config (not an error)
   }
 
   return new LoadedTrustedFolders(
@@ -111,7 +112,7 @@ export function saveTrustedFolders(
   }
 }
 
-export function isWorkspaceTrusted(settings: Settings): boolean | undefined {
+export async function isWorkspaceTrusted(settings: Settings): Promise<boolean | undefined> {
   const folderTrustFeature = settings.folderTrustFeature ?? false;
   const folderTrustSetting = settings.folderTrust ?? true;
   const folderTrustEnabled = folderTrustFeature && folderTrustSetting;
@@ -120,7 +121,7 @@ export function isWorkspaceTrusted(settings: Settings): boolean | undefined {
     return true;
   }
 
-  const { rules, errors } = loadTrustedFolders();
+  const { rules, errors } = await loadTrustedFolders();
 
   if (errors.length > 0) {
     for (const error of errors) {
