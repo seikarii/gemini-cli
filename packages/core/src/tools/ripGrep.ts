@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import fs from 'fs';
 import path from 'path';
 import { EOL } from 'os';
 import { spawn } from 'child_process';
@@ -20,6 +19,8 @@ import { SchemaValidator } from '../utils/schemaValidator.js';
 import { makeRelative, shortenPath } from '../utils/paths.js';
 import { getErrorMessage, isNodeError } from '../utils/errors.js';
 import { Config } from '../config/config.js';
+import { FileExclusions } from '../utils/ignorePatterns.js';
+import { ToolErrorType } from './tool-error.js';
 
 const DEFAULT_TOTAL_MAX_MATCHES = 20000;
 
@@ -41,6 +42,16 @@ export interface RipGrepToolParams {
    * File pattern to include in the search (e.g. "*.js", "*.{ts,tsx}")
    */
   include?: string;
+
+  /**
+   * Maximum number of matches to return (optional, defaults to 20000)
+   */
+  max_matches?: number;
+
+  /**
+   * Whether to show dependency check warnings (optional, defaults to false)
+   */
+  show_dependency_warnings?: boolean;
 }
 
 /**
@@ -56,11 +67,14 @@ class GrepToolInvocation extends BaseToolInvocation<
   RipGrepToolParams,
   ToolResult
 > {
+  private readonly fileExclusions: FileExclusions;
+
   constructor(
     private readonly config: Config,
     params: RipGrepToolParams,
   ) {
     super(params);
+    this.fileExclusions = new FileExclusions(config);
   }
 
   /**
@@ -69,7 +83,7 @@ class GrepToolInvocation extends BaseToolInvocation<
    * @returns The absolute path if valid and exists, or null if no path specified (to search all directories).
    * @throws {Error} If path is outside root, doesn't exist, or isn't a directory.
    */
-  private resolveAndValidatePath(relativePath?: string): string | null {
+  private async resolveAndValidatePath(relativePath?: string): Promise<string | null> {
     // If no path specified, return null to indicate searching all workspace directories
     if (!relativePath) {
       return null;
@@ -88,8 +102,8 @@ class GrepToolInvocation extends BaseToolInvocation<
 
     // Check existence and type after resolving
     try {
-      const stats = fs.statSync(targetPath);
-      if (!stats.isDirectory()) {
+      const fileInfo = await this.config.getFileSystemService().getFileInfo(targetPath);
+      if (!fileInfo.success || !fileInfo.data?.isDirectory) {
         throw new Error(`Path is not a directory: ${targetPath}`);
       }
     } catch (error: unknown) {
@@ -104,10 +118,84 @@ class GrepToolInvocation extends BaseToolInvocation<
     return targetPath;
   }
 
+  /**
+   * Checks if ripgrep dependency is available and executable
+   */
+  private async checkRipgrepDependency(): Promise<{ available: boolean; message: string }> {
+    try {
+      // Check if rgPath is defined
+      if (!rgPath) {
+        return {
+          available: false,
+          message: 'ripgrep executable path is not available. Please ensure @lvce-editor/ripgrep is properly installed.',
+        };
+      }
+
+      // Check if the executable exists and is accessible
+      const fs = await import('fs/promises');
+      try {
+        await fs.access(rgPath);
+      } catch (_error) {
+        return {
+          available: false,
+          message: `ripgrep executable not found at ${rgPath}. Please reinstall @lvce-editor/ripgrep.`,
+        };
+      }
+
+      // Try to execute ripgrep with a simple command to verify it's working
+      const { spawn } = await import('child_process');
+      return new Promise((resolve) => {
+        const child = spawn(rgPath, ['--version'], {
+          stdio: 'ignore',
+          windowsHide: true,
+        });
+
+        child.on('close', (code) => {
+          if (code === 0) {
+            resolve({ available: true, message: 'ripgrep is available and working' });
+          } else {
+            resolve({
+              available: false,
+              message: `ripgrep executable exists but returned exit code ${code}. Please check the installation.`,
+            });
+          }
+        });
+
+        child.on('error', (err) => {
+          resolve({
+            available: false,
+            message: `Failed to execute ripgrep: ${err.message}. Please check the installation.`,
+          });
+        });
+      });
+    } catch (error) {
+      return {
+        available: false,
+        message: `Error checking ripgrep dependency: ${getErrorMessage(error)}`,
+      };
+    }
+  }
+
   async execute(signal: AbortSignal): Promise<ToolResult> {
     try {
+      // Check ripgrep dependency proactively
+      const dependencyCheck = await this.checkRipgrepDependency();
+      if (!dependencyCheck.available) {
+        if (this.params.show_dependency_warnings) {
+          console.warn(`Ripgrep dependency warning: ${dependencyCheck.message}`);
+        }
+        return {
+          llmContent: `Error: ${dependencyCheck.message}`,
+          returnDisplay: `Dependency Error`,
+          error: {
+            message: dependencyCheck.message,
+            type: ToolErrorType.LS_EXECUTION_ERROR,
+          },
+        };
+      }
+
       const workspaceContext = this.config.getWorkspaceContext();
-      const searchDirAbs = this.resolveAndValidatePath(this.params.path);
+      const searchDirAbs = await this.resolveAndValidatePath(this.params.path);
       const searchDirDisplay = this.params.path || '.';
 
       // Determine which directories to search
@@ -121,10 +209,10 @@ class GrepToolInvocation extends BaseToolInvocation<
       }
 
       let allMatches: GrepMatch[] = [];
-      const totalMaxMatches = DEFAULT_TOTAL_MAX_MATCHES;
+      const totalMaxMatches = this.params.max_matches ?? DEFAULT_TOTAL_MAX_MATCHES;
 
       if (this.config.getDebugMode()) {
-        console.log(`[GrepTool] Total result limit: ${totalMaxMatches}`);
+        console.log(`[RipGrepTool] Total result limit: ${totalMaxMatches}`);
       }
 
       for (const searchDir of searchDirectories) {
@@ -133,6 +221,7 @@ class GrepToolInvocation extends BaseToolInvocation<
           path: searchDir,
           include: this.params.include,
           signal,
+          maxMatches: totalMaxMatches - allMatches.length,
         });
 
         if (searchDirectories.length > 1) {
@@ -229,33 +318,131 @@ class GrepToolInvocation extends BaseToolInvocation<
     for (const line of lines) {
       if (!line.trim()) continue;
 
-      const firstColonIndex = line.indexOf(':');
-      if (firstColonIndex === -1) continue;
+      // Try multiple parsing strategies for robustness
 
-      const secondColonIndex = line.indexOf(':', firstColonIndex + 1);
-      if (secondColonIndex === -1) continue;
+      // Strategy 1: Standard format - filePath:lineNumber:lineContent
+      let match = this.parseStandardRipgrepFormat(line, basePath);
+      if (match) {
+        results.push(match);
+        continue;
+      }
 
-      const filePathRaw = line.substring(0, firstColonIndex);
-      const lineNumberStr = line.substring(
-        firstColonIndex + 1,
-        secondColonIndex,
-      );
-      const lineContent = line.substring(secondColonIndex + 1);
+      // Strategy 2: Handle file paths with colons (escaped or quoted)
+      match = this.parseComplexPathRipgrepFormat(line, basePath);
+      if (match) {
+        results.push(match);
+        continue;
+      }
 
-      const lineNumber = parseInt(lineNumberStr, 10);
-
-      if (!isNaN(lineNumber)) {
-        const absoluteFilePath = path.resolve(basePath, filePathRaw);
-        const relativeFilePath = path.relative(basePath, absoluteFilePath);
-
-        results.push({
-          filePath: relativeFilePath || path.basename(absoluteFilePath),
-          lineNumber,
-          line: lineContent,
-        });
+      // Strategy 3: Fallback - try to extract any line number and content
+      match = this.parseFallbackRipgrepFormat(line, basePath);
+      if (match) {
+        results.push(match);
       }
     }
     return results;
+  }
+
+  /**
+   * Parses standard ripgrep format: filePath:lineNumber:lineContent
+   */
+  private parseStandardRipgrepFormat(line: string, basePath: string): GrepMatch | null {
+    // Find the index of the first colon.
+    const firstColonIndex = line.indexOf(':');
+    if (firstColonIndex === -1) return null;
+
+    // Find the index of the second colon, searching *after* the first one.
+    const secondColonIndex = line.indexOf(':', firstColonIndex + 1);
+    if (secondColonIndex === -1) return null;
+
+    // Extract parts based on the found colon indices
+    const filePathRaw = line.substring(0, firstColonIndex);
+    const lineNumberStr = line.substring(firstColonIndex + 1, secondColonIndex);
+    const lineContent = line.substring(secondColonIndex + 1);
+
+    const lineNumber = parseInt(lineNumberStr, 10);
+    if (isNaN(lineNumber)) return null;
+
+    const absoluteFilePath = path.resolve(basePath, filePathRaw);
+    const relativeFilePath = path.relative(basePath, absoluteFilePath);
+
+    return {
+      filePath: relativeFilePath || path.basename(absoluteFilePath),
+      lineNumber,
+      line: lineContent,
+    };
+  }
+
+  /**
+   * Parses complex path formats with escaped colons or quotes
+   */
+  private parseComplexPathRipgrepFormat(line: string, basePath: string): GrepMatch | null {
+    // Handle quoted file paths
+    const quotedMatch = line.match(/^"([^"]+)":(\d+):(.*)$/);
+    if (quotedMatch) {
+      const [, filePathRaw, lineNumberStr, lineContent] = quotedMatch;
+      const lineNumber = parseInt(lineNumberStr, 10);
+      if (isNaN(lineNumber)) return null;
+
+      const absoluteFilePath = path.resolve(basePath, filePathRaw);
+      const relativeFilePath = path.relative(basePath, absoluteFilePath);
+
+      return {
+        filePath: relativeFilePath || path.basename(absoluteFilePath),
+        lineNumber,
+        line: lineContent,
+      };
+    }
+
+    // Handle escaped colons in file paths
+    const parts = line.split(':');
+    if (parts.length < 3) return null;
+
+    // Try to find the line number by looking for a numeric part
+    for (let i = 1; i < parts.length - 1; i++) {
+      const potentialLineNumber = parseInt(parts[i], 10);
+      if (!isNaN(potentialLineNumber)) {
+        const filePathRaw = parts.slice(0, i).join(':');
+        const lineContent = parts.slice(i + 1).join(':');
+
+        const absoluteFilePath = path.resolve(basePath, filePathRaw);
+        const relativeFilePath = path.relative(basePath, absoluteFilePath);
+
+        return {
+          filePath: relativeFilePath || path.basename(absoluteFilePath),
+          lineNumber: potentialLineNumber,
+          line: lineContent,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Fallback parser for unrecognized formats
+   */
+  private parseFallbackRipgrepFormat(line: string, basePath: string): GrepMatch | null {
+    // Look for any pattern that might contain a line number
+    const lineNumberMatch = line.match(/:(\d+):/);
+    if (!lineNumberMatch) return null;
+
+    const lineNumber = parseInt(lineNumberMatch[1], 10);
+    if (isNaN(lineNumber)) return null;
+
+    // Everything before the line number is the file path
+    const filePathEnd = lineNumberMatch.index!;
+    const filePathRaw = line.substring(0, filePathEnd);
+    const lineContent = line.substring(filePathEnd + lineNumberMatch[0].length);
+
+    const absoluteFilePath = path.resolve(basePath, filePathRaw);
+    const relativeFilePath = path.relative(basePath, absoluteFilePath);
+
+    return {
+      filePath: relativeFilePath || path.basename(absoluteFilePath),
+      lineNumber,
+      line: lineContent,
+    };
   }
 
   private async performRipgrepSearch(options: {
@@ -263,8 +450,9 @@ class GrepToolInvocation extends BaseToolInvocation<
     path: string;
     include?: string;
     signal: AbortSignal;
+    maxMatches?: number;
   }): Promise<GrepMatch[]> {
-    const { pattern, path: absolutePath, include } = options;
+    const { pattern, path: absolutePath, include, maxMatches } = options;
 
     const rgArgs = [
       '--line-number',
@@ -275,25 +463,25 @@ class GrepToolInvocation extends BaseToolInvocation<
       pattern,
     ];
 
+    if (maxMatches) {
+      rgArgs.push('--max-count', maxMatches.toString());
+    }
+
     if (include) {
       rgArgs.push('--glob', include);
     }
 
-    const excludes = [
-      '.git',
-      'node_modules',
-      'bower_components',
-      '*.log',
-      '*.tmp',
-      'build',
-      'dist',
-      'coverage',
-    ];
-    excludes.forEach((exclude) => {
+    // Use FileExclusions for proper exclusion patterns
+    const excludePatterns = this.fileExclusions.getGlobExcludes();
+    excludePatterns.forEach((exclude) => {
       rgArgs.push('--glob', `!${exclude}`);
     });
 
-    rgArgs.push('--threads', '4');
+    // Dynamic threading based on CPU cores
+    const os = await import('os');
+    const cpuCount = os.cpus().length;
+    const threadCount = Math.max(1, Math.min(cpuCount, 8)); // Cap at 8 threads
+    rgArgs.push('--threads', threadCount.toString());
     rgArgs.push(absolutePath);
 
     try {
@@ -401,7 +589,7 @@ export class RipGrepTool extends BaseDeclarativeTool<
     super(
       RipGrepTool.Name,
       'SearchText',
-      'Searches for a regular expression pattern within the content of files in a specified directory (or current working directory). Can filter files by a glob pattern. Returns the lines containing matches, along with their file paths and line numbers. Total results limited to 20,000 matches like VSCode.',
+      'Searches for a regular expression pattern within the content of files in a specified directory (or current working directory). Can filter files by a glob pattern. Returns the lines containing matches, along with their file paths and line numbers. Uses ripgrep for high-performance searching with configurable limits and dynamic threading.',
       Kind.Search,
       {
         properties: {
@@ -420,52 +608,21 @@ export class RipGrepTool extends BaseDeclarativeTool<
               "Optional: A glob pattern to filter which files are searched (e.g., '*.js', '*.{ts,tsx}', 'src/**'). If omitted, searches all files (respecting potential global ignores).",
             type: 'string',
           },
+          max_matches: {
+            description:
+              'Optional: Maximum number of matches to return. Defaults to 20000.',
+            type: 'number',
+          },
+          show_dependency_warnings: {
+            description:
+              'Optional: Whether to show warnings about ripgrep dependency availability. Defaults to false.',
+            type: 'boolean',
+          },
         },
         required: ['pattern'],
         type: 'object',
       },
     );
-  }
-
-  /**
-   * Checks if a path is within the root directory and resolves it.
-   * @param relativePath Path relative to the root directory (or undefined for root).
-   * @returns The absolute path if valid and exists, or null if no path specified (to search all directories).
-   * @throws {Error} If path is outside root, doesn't exist, or isn't a directory.
-   */
-  private resolveAndValidatePath(relativePath?: string): string | null {
-    // If no path specified, return null to indicate searching all workspace directories
-    if (!relativePath) {
-      return null;
-    }
-
-    const targetPath = path.resolve(this.config.getTargetDir(), relativePath);
-
-    // Security Check: Ensure the resolved path is within workspace boundaries
-    const workspaceContext = this.config.getWorkspaceContext();
-    if (!workspaceContext.isPathWithinWorkspace(targetPath)) {
-      const directories = workspaceContext.getDirectories();
-      throw new Error(
-        `Path validation failed: Attempted path "${relativePath}" resolves outside the allowed workspace directories: ${directories.join(', ')}`,
-      );
-    }
-
-    // Check existence and type after resolving
-    try {
-      const stats = fs.statSync(targetPath);
-      if (!stats.isDirectory()) {
-        throw new Error(`Path is not a directory: ${targetPath}`);
-      }
-    } catch (error: unknown) {
-      if (isNodeError(error) && error.code !== 'ENOENT') {
-        throw new Error(`Path does not exist: ${targetPath}`);
-      }
-      throw new Error(
-        `Failed to access path stats for ${targetPath}: ${error}`,
-      );
-    }
-
-    return targetPath;
   }
 
   /**
@@ -482,15 +639,7 @@ export class RipGrepTool extends BaseDeclarativeTool<
       return errors;
     }
 
-    // Only validate path if one is provided
-    if (params.path) {
-      try {
-        this.resolveAndValidatePath(params.path);
-      } catch (error) {
-        return getErrorMessage(error);
-      }
-    }
-
+    // Path validation is done in the invocation's execute method
     return null; // Parameters are valid
   }
 

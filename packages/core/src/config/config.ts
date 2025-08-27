@@ -20,6 +20,8 @@ import { ReadManyFilesParams } from '../tools/read-many-files.js';
 import { ShellToolParams } from '../tools/shell.js';
 import { SaveMemoryParams } from '../tools/memoryTool.js';
 import { WebSearchToolParams, WebSearchToolResult } from '../tools/web-search.js';
+import { SemanticSearchTool, SemanticSearchToolParams } from '../tools/semantic-search.js';
+import { UnifiedSearchTool, UnifiedSearchToolParams } from '../tools/unified-search.js';
 import { ToolResult } from '../tools/tools.js';
 import { AuthType, ContentGeneratorConfig, createContentGeneratorConfig } from '../core/contentGenerator.js';
 import { PromptRegistry } from '../prompts/prompt-registry.js';
@@ -901,6 +903,8 @@ export class Config {
     registerCoreTool<ShellToolParams, ToolResult>(ShellTool, this);
     registerCoreTool<SaveMemoryParams, ToolResult>(MemoryTool);
     registerCoreTool<WebSearchToolParams, WebSearchToolResult>(WebSearchTool, this);
+    registerCoreTool<SemanticSearchToolParams, ToolResult>(SemanticSearchTool, this);
+    registerCoreTool<UnifiedSearchToolParams, ToolResult>(UnifiedSearchTool, this);
 
     await registry.discoverAllTools();
     return registry;

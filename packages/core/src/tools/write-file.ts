@@ -5,7 +5,6 @@
  */
 
 import fs from 'fs';
-import { promises as fsp } from 'fs';
 import path from 'path';
 import * as Diff from 'diff';
 import { Config, ApprovalMode } from '../config/config.js';
@@ -269,7 +268,7 @@ class WriteFileToolInvocation extends BaseToolInvocation<
       skip_correction,
     } = this.params;
 
-  if (mode === 'append' && !(await (async () => { try { await fsp.stat(file_path); return true; } catch { return false; } })())) {
+  if (mode === 'append' && !(await this.config.getFileSystemService().exists(file_path))) {
       // If appending to a non-existent file, it's the same as overwriting an empty file.
       mode = 'overwrite';
     }
@@ -277,18 +276,20 @@ class WriteFileToolInvocation extends BaseToolInvocation<
     // Safeguard against accidental file wipe
     if (
       mode === 'overwrite' &&
-      !content &&
-      (await (async () => { try { const s = await fsp.stat(file_path); return s.size > 0; } catch { return false; } })())
+      !content
     ) {
-      const errorMsg = `Attempted to overwrite a non-empty file with empty content. Operation aborted to prevent data loss.`;
-      return {
-        llmContent: errorMsg,
-        returnDisplay: errorMsg,
-        error: {
-          message: errorMsg,
-          type: ToolErrorType.FILE_WRITE_FAILURE,
-        },
-      };
+      const fileInfo = await this.config.getFileSystemService().getFileInfo(file_path);
+      if (fileInfo.success && fileInfo.data && fileInfo.data.size > 0) {
+        const errorMsg = `Attempted to overwrite a non-empty file with empty content. Operation aborted to prevent data loss.`;
+        return {
+          llmContent: errorMsg,
+          returnDisplay: errorMsg,
+          error: {
+            message: errorMsg,
+            type: ToolErrorType.FILE_WRITE_FAILURE,
+          },
+        };
+      }
     }
 
     let finalContent = content;
@@ -343,21 +344,36 @@ class WriteFileToolInvocation extends BaseToolInvocation<
     } else {
       // If skipping correction, assume fileContent is finalContent
       // and determine fileExists/isNewFile based on simple fs.existsSync
-  fileExists = await (async () => { try { await fsp.stat(file_path); return true; } catch { return false; } })();
-  isNewFile = !fileExists;
-  originalContent = fileExists ? await fsp.readFile(file_path, 'utf8') : '';
+      fileExists = await this.config.getFileSystemService().exists(file_path);
+      isNewFile = !fileExists;
+      if (fileExists) {
+        const readResult = await this.config.getFileSystemService().readTextFile(file_path);
+        if (readResult.success) {
+          originalContent = readResult.data!;
+        } else {
+          originalContent = '';
+        }
+      } else {
+        originalContent = '';
+      }
     }
 
     try {
       const dirName = path.dirname(file_path);
-      if (!(await (async () => { try { await fsp.stat(dirName); return true; } catch { return false; } })())) {
-        await fsp.mkdir(dirName, { recursive: true });
+      if (!(await this.config.getFileSystemService().exists(dirName))) {
+        const createResult = await this.config.getFileSystemService().createDirectory(dirName, { recursive: true });
+        if (!createResult.success) {
+          throw new Error(createResult.error);
+        }
       }
       // Create a backup of the existing file to allow restore on failure.
       const backupPath = `${file_path}.backup`;
       try {
-        if (await (async () => { try { await fsp.stat(file_path); return true; } catch { return false; } })()) {
-          await fsp.copyFile(file_path, backupPath);
+        if (await this.config.getFileSystemService().exists(file_path)) {
+          const copyResult = await this.config.getFileSystemService().copyFile(file_path, backupPath);
+          if (!copyResult.success) {
+            throw new Error(copyResult.error);
+          }
         }
       } catch (_e) {
         // ignore backup creation failures; proceed to write but log in debug
@@ -378,9 +394,12 @@ class WriteFileToolInvocation extends BaseToolInvocation<
           if (!verify2.success || verify2.data !== fileContent) {
             // restore from backup if available
             try {
-              if (await (async () => { try { await fsp.stat(backupPath); return true; } catch { return false; } })()) {
-                  await fsp.copyFile(backupPath, file_path);
+              if (await this.config.getFileSystemService().exists(backupPath)) {
+                const restoreResult = await this.config.getFileSystemService().copyFile(backupPath, file_path);
+                if (!restoreResult.success) {
+                  throw new Error(restoreResult.error);
                 }
+              }
             } catch (_restoreErr) {
               if (this.config.getDebugMode()) console.error('Failed to restore backup after failed write verification', _restoreErr);
             }

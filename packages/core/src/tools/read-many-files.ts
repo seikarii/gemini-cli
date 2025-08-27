@@ -12,7 +12,6 @@ import {
   ToolResult,
 } from './tools.js';
 import { getErrorMessage } from '../utils/errors.js';
-import * as fs from 'fs';
 import * as path from 'path';
 import { glob, escape } from 'glob';
 import {
@@ -212,8 +211,12 @@ ${finalExclusionPatternsForDescription
           const fullPath = path.join(dir, normalizedP);
           try {
             // Prefer async check to avoid blocking the event loop
-            await fs.promises.access(fullPath);
-            processedPatterns.push(escape(normalizedP));
+            const exists = await this.config.getFileSystemService().exists(fullPath);
+            if (exists) {
+              processedPatterns.push(escape(normalizedP));
+            } else {
+              processedPatterns.push(normalizedP);
+            }
           } catch {
             // The path does not exist or is not accessible, treat it as a glob pattern.
             processedPatterns.push(normalizedP);

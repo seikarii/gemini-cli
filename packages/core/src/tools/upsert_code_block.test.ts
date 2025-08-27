@@ -6,6 +6,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { UpsertCodeBlockTool } from './upsert_code_block.js';
+import { type Config } from '../config/config.js';
 
 // Mock fs and ast adapter to avoid real file IO and ts-morph
 vi.mock('fs', () => ({
@@ -21,6 +22,21 @@ vi.mock('../ast/adapter.js', () => ({
 vi.mock('diff', () => ({ createPatch: (_: any, __: any, ___: any) => 'patch' }));
 
 describe('UpsertCodeBlockTool (unit)', () => {
+  let mockConfig: Config;
+
+  beforeEach(() => {
+    mockConfig = {
+      getCoreTools: vi.fn().mockReturnValue([]),
+      getExcludeTools: vi.fn().mockReturnValue([]),
+      getDebugMode: vi.fn().mockReturnValue(false),
+      getTargetDir: vi.fn().mockReturnValue('/test/dir'),
+      getSummarizeToolOutputConfig: vi.fn().mockReturnValue(undefined),
+      getWorkspaceContext: vi.fn().mockReturnValue({}),
+      getGeminiClient: vi.fn(),
+      getShouldUseNodePtyShell: vi.fn().mockReturnValue(false),
+    } as unknown as Config;
+  });
+
   it('inserts or updates a simple JS block (preview)', async () => {
     const params = {
       file_path: '/tmp/foo.ts',
@@ -30,7 +46,7 @@ describe('UpsertCodeBlockTool (unit)', () => {
       preview: true,
     } as any;
 
-  const tool = new UpsertCodeBlockTool();
+  const tool = new UpsertCodeBlockTool(mockConfig);
    
   const inv = (tool as unknown as { createInvocation: (p: any) => any }).createInvocation(params);
    

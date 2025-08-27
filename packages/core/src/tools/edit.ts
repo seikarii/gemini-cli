@@ -266,14 +266,86 @@ interface AutofixConfig {
 }
 
 const DEFAULT_AUTOFIX_CONFIG: AutofixConfig = {
-  minSimilarityThreshold: 0.7,
-  maxCandidates: 5,
+  minSimilarityThreshold: 0.8, // Increased for higher quality matches
+  maxCandidates: 3, // Reduced for better performance
   enableFuzzyMatching: true,
   normalizeWhitespace: true,
   adjustIndentation: true,
 };
 
+/**
+ * Performance optimization: limit the search space for large files
+ */
+function optimizeSearchSpace(content: string, searchString: string): string {
+  const contentLength = content.length;
+  const searchLength = searchString.length;
+
+  // For very large files, limit the search to a reasonable subset
+  if (contentLength > 100000 && searchLength < 1000) { // 100KB threshold
+    const searchStart = Math.max(0, contentLength - 50000); // Search in last 50KB
+    return content.substring(searchStart);
+  }
+
+  return content;
+}
+
 // normalizeWhitespace is provided by ../utils/stringUtils.ts
+
+/**
+ * Unified advanced matching that combines diff-match-patch and fuzzy techniques
+ */
+function findBestMatchUnified(
+  content: string,
+  searchString: string,
+  config: AutofixConfig,
+): { match: string; confidence: number; startIndex: number } | null {
+  // First try diff-match-patch for precise matching
+  const dmpResult = findBestMatchWithDMP(content, searchString, config);
+  if (dmpResult && dmpResult.confidence >= 0.9) {
+    return dmpResult;
+  }
+
+  // Fallback to optimized fuzzy matching
+  const fuzzyMatches = findFuzzyMatchesOptimized(content, searchString, config);
+  if (fuzzyMatches.length > 0) {
+    const bestFuzzy = fuzzyMatches[0];
+    if (bestFuzzy.similarity >= config.minSimilarityThreshold) {
+      return {
+        match: bestFuzzy.match,
+        confidence: bestFuzzy.similarity,
+        startIndex: bestFuzzy.startIndex,
+      };
+    }
+  }
+
+  // Return DMP result if available, even if confidence is lower
+  return dmpResult;
+}
+
+/**
+ * Smart indentation adjustment that combines detection and adjustment
+ */
+function adjustIndentationSmart(
+  originalString: string,
+  matchedString: string,
+  content: string,
+): string {
+  const lines = content.split('\n');
+  const matchedLines = matchedString.split('\n');
+
+  if (matchedLines.length === 0) return originalString;
+
+  // Find where the matched content appears in the file
+  const firstLineContent = matchedLines[0].trim();
+  const matchingLineIndex = lines.findIndex(
+    (line) => line.trim() === firstLineContent,
+  );
+
+  if (matchingLineIndex === -1) return originalString;
+
+  const targetIndent = lines[matchingLineIndex].match(/^(\s*)/)?.[1] || '';
+  return adjustIndentationAdvanced(originalString, targetIndent);
+}
 
 /**
  * Detects the indentation pattern of a text block with improved base detection
@@ -491,8 +563,34 @@ function findBestMatchWithDMP(
 }
 
 /**
+ * Validates input parameters to prevent edge cases and improve robustness
+ */
+function validateAutofixInput(
+  currentContent: string,
+  oldString: string,
+): boolean {
+  // Check for empty or invalid inputs
+  if (!currentContent || !oldString) {
+    return false;
+  }
+
+  // Check for extremely large content that could cause performance issues
+  if (currentContent.length > 10 * 1024 * 1024) { // 10MB limit
+    console.debug('AutofixEdit: Content too large, skipping advanced matching');
+    return false;
+  }
+
+  // Check for very short strings that are likely to cause false matches
+  if (oldString.trim().length < 3) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Attempts to autofix an edit by adjusting whitespace and indentation.
- * Enhanced version with optimizations and better diff-based matching.
+ * Simplified version with unified matching strategy for better maintainability.
  */
 async function autofixEdit(
   currentContent: string,
@@ -500,18 +598,75 @@ async function autofixEdit(
   newString: string,
 ): Promise<string> {
   void newString;
+
+  // Validate inputs to prevent edge cases
+  if (!validateAutofixInput(currentContent, oldString)) {
+    return oldString;
+  }
+
   const config = DEFAULT_AUTOFIX_CONFIG;
   const appliedFixes: string[] = [];
   let workingOldString = oldString;
 
-  // Step 1: Try exact match first
+  // Step 1: Try exact match first (fastest path)
   if (currentContent.includes(oldString)) {
     return oldString; // No fix needed
   }
 
   appliedFixes.push('exact_match_failed');
 
-  // Step 2: Basic normalization
+  // Step 2: Unified advanced matching (combines multiple techniques)
+  if (config.enableFuzzyMatching) {
+    try {
+      // Optimize search space for large files
+      const optimizedContent = optimizeSearchSpace(currentContent, oldString);
+
+      const unifiedMatch = findBestMatchUnified(optimizedContent, oldString, config);
+      if (unifiedMatch && unifiedMatch.confidence >= config.minSimilarityThreshold) {
+        // If we found a match in optimized content, verify it exists in full content
+        if (optimizedContent !== currentContent) {
+          const fullContentMatch = findBestMatchUnified(currentContent, oldString, config);
+          if (fullContentMatch && fullContentMatch.confidence >= unifiedMatch.confidence) {
+            appliedFixes.push(
+              `unified_match_${Math.round(fullContentMatch.confidence * 100)}pct`,
+            );
+            workingOldString = fullContentMatch.match;
+          } else {
+            appliedFixes.push(
+              `optimized_unified_match_${Math.round(unifiedMatch.confidence * 100)}pct`,
+            );
+            workingOldString = unifiedMatch.match;
+          }
+        } else {
+          appliedFixes.push(
+            `unified_match_${Math.round(unifiedMatch.confidence * 100)}pct`,
+          );
+          workingOldString = unifiedMatch.match;
+        }
+
+        // Apply smart indentation adjustment if needed
+        if (config.adjustIndentation && workingOldString !== oldString) {
+          const adjustedString = adjustIndentationSmart(
+            oldString,
+            workingOldString,
+            currentContent,
+          );
+
+          if (currentContent.includes(adjustedString)) {
+            appliedFixes.push('smart_indentation_adjustment');
+            workingOldString = adjustedString;
+          }
+        }
+
+        return workingOldString;
+      }
+    } catch (error) {
+      // If advanced matching fails, fall back to basic normalization
+      console.debug('AutofixEdit: Advanced matching failed, using fallback:', error);
+    }
+  }
+
+  // Step 3: Basic whitespace normalization (last resort)
   if (config.normalizeWhitespace) {
     const normalizedOld = normalizeWhitespace(oldString);
     const normalizedContent = normalizeWhitespace(currentContent);
@@ -532,100 +687,8 @@ async function autofixEdit(
     }
   }
 
-  // Step 3: Advanced diff-based matching with diff-match-patch (moved earlier for better precision)
-  if (config.enableFuzzyMatching) {
-    const dmpMatch = findBestMatchWithDMP(currentContent, oldString, config);
-    if (dmpMatch && dmpMatch.confidence >= 0.85) {
-      appliedFixes.push(
-        `dmp_match_${Math.round(dmpMatch.confidence * 100)}pct`,
-      );
-      workingOldString = dmpMatch.match;
-
-      // Apply advanced indentation adjustment if needed
-      if (config.adjustIndentation && workingOldString !== oldString) {
-        const lines = currentContent.split('\n');
-        const matchLines = workingOldString.split('\n');
-
-        if (matchLines.length > 0) {
-          // Find where this content appears in the file to get proper indentation
-          const firstLineContent = matchLines[0].trim();
-          const matchingLineIndex = lines.findIndex(
-            (line) => line.trim() === firstLineContent,
-          );
-
-          if (matchingLineIndex !== -1) {
-            const targetIndent =
-              lines[matchingLineIndex].match(/^(\s*)/)?.[1] || '';
-            const adjustedOldString = adjustIndentationAdvanced(
-              oldString,
-              targetIndent,
-            );
-
-            if (currentContent.includes(adjustedOldString)) {
-              appliedFixes.push('advanced_indentation_adjustment');
-              workingOldString = adjustedOldString;
-            }
-          }
-        }
-      }
-
-      // If we found a good match with DMP, return it
-      return workingOldString;
-    }
-  }
-
-  // Step 4: Optimized fuzzy matching as fallback
-  if (config.enableFuzzyMatching && workingOldString === oldString) {
-    const fuzzyMatches = findFuzzyMatchesOptimized(
-      currentContent,
-      oldString,
-      config,
-    );
-
-    if (fuzzyMatches.length > 0) {
-      const bestMatch = fuzzyMatches[0];
-      appliedFixes.push(
-        `optimized_fuzzy_match_${Math.round(bestMatch.similarity * 100)}pct`,
-      );
-
-      // If we have a high confidence match, use it
-      if (bestMatch.similarity >= 0.85) {
-        workingOldString = bestMatch.match;
-      }
-    }
-  }
-
-  // Step 5: Basic indentation adjustment (fallback for cases where advanced didn't apply)
-  if (config.adjustIndentation && workingOldString !== oldString) {
-    const lines = currentContent.split('\n');
-    const oldLines = workingOldString.split('\n');
-
-    if (oldLines.length > 0) {
-      // Find where this content appears in the file to get proper indentation
-      const firstLineContent = oldLines[0].trim();
-      const matchingLineIndex = lines.findIndex(
-        (line) => line.trim() === firstLineContent,
-      );
-
-      if (matchingLineIndex !== -1) {
-        const targetIndent =
-          lines[matchingLineIndex].match(/^(\s*)/)?.[1] || '';
-        const adjustedOldString = adjustIndentationAdvanced(
-          oldString,
-          targetIndent,
-        );
-
-        if (currentContent.includes(adjustedOldString)) {
-          appliedFixes.push('basic_indentation_adjustment');
-          workingOldString = adjustedOldString;
-        }
-      }
-    }
-  }
-
   // Log telemetry for debugging and improvement
   if (appliedFixes.length > 1) {
-    // More than just 'exact_match_failed'
     console.debug('AutofixEdit applied fixes:', appliedFixes.join(', '));
 
     // Log confidence metrics for future improvements

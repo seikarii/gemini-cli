@@ -90,6 +90,10 @@ class ReadFileToolInvocation extends BaseToolInvocation<
   private static mewServerCache: MewServerInfo | null = null;
   private static readonly CACHE_DURATION = 30000; // 30 seconds
   private static readonly DEFAULT_PORTS = [3000, 3001, 3002, 3003, 8080, 8081];
+  private static readonly EXTENDED_PORTS = Array.from({ length: 7000 }, (_, i) => i + 3000); // 3000-9999
+  private static readonly FAST_TIMEOUT = 1000; // 1 second for initial checks
+  private static readonly SLOW_TIMEOUT = 3000; // 3 seconds for comprehensive checks
+  private static readonly MAX_CONCURRENT_CHECKS = 10; // Check 10 ports simultaneously
 
   constructor(
     private config: Config,
@@ -112,23 +116,23 @@ class ReadFileToolInvocation extends BaseToolInvocation<
 
   private async findMewServerPort(): Promise<number | null> {
     const now = Date.now();
-    
+
     // Check cache first
-    if (ReadFileToolInvocation.mewServerCache && 
+    if (ReadFileToolInvocation.mewServerCache &&
         (now - ReadFileToolInvocation.mewServerCache.lastChecked) < ReadFileToolInvocation.CACHE_DURATION &&
         ReadFileToolInvocation.mewServerCache.isAvailable) {
       return ReadFileToolInvocation.mewServerCache.port;
     }
 
-    // Try to read port from file first
+    // Try to read port from file first (most reliable method)
     try {
       const portFilePath = path.join(this.config.getTargetDir(), '.gemini', 'mew_port.txt');
-  const portResult = await this.config.getFileSystemService().readTextFile(portFilePath);
-  if (!portResult.success || typeof portResult.data !== 'string') throw new Error(portResult.error || 'Error reading port file');
-  const portStr = portResult.data;
+      const portResult = await this.config.getFileSystemService().readTextFile(portFilePath);
+      if (!portResult.success || typeof portResult.data !== 'string') throw new Error(portResult.error || 'Error reading port file');
+      const portStr = portResult.data;
       const parsedPort = parseInt(portStr.trim(), 10);
       if (!isNaN(parsedPort) && parsedPort > 0 && parsedPort < 65536) {
-        const isAvailable = await this.checkPortAvailability(parsedPort);
+        const isAvailable = await this.checkPortAvailability(parsedPort, ReadFileToolInvocation.FAST_TIMEOUT);
         if (isAvailable) {
           ReadFileToolInvocation.mewServerCache = {
             port: parsedPort,
@@ -143,18 +147,32 @@ class ReadFileToolInvocation extends BaseToolInvocation<
       // File doesn't exist or couldn't be read, continue with port scanning
     }
 
-    // Scan common ports
+    // Fast scan of default ports first
+    console.log('[read_file] Scanning default ports...');
     for (const port of ReadFileToolInvocation.DEFAULT_PORTS) {
-      const isAvailable = await this.checkPortAvailability(port);
+      const isAvailable = await this.checkPortAvailability(port, ReadFileToolInvocation.FAST_TIMEOUT);
       if (isAvailable) {
         ReadFileToolInvocation.mewServerCache = {
           port,
           lastChecked: now,
           isAvailable: true
         };
-        console.log(`[read_file] Found Mew server on scanned port: ${port}`);
+        console.log(`[read_file] Found Mew server on default port: ${port}`);
         return port;
       }
+    }
+
+    // Comprehensive scan of extended port range with parallel checking
+    console.log('[read_file] Performing comprehensive port scan...');
+    const port = await this.scanPortsComprehensively();
+    if (port) {
+      ReadFileToolInvocation.mewServerCache = {
+        port,
+        lastChecked: now,
+        isAvailable: true
+      };
+      console.log(`[read_file] Found Mew server on scanned port: ${port}`);
+      return port;
     }
 
     // Update cache to indicate no server found
@@ -164,14 +182,14 @@ class ReadFileToolInvocation extends BaseToolInvocation<
       isAvailable: false
     };
 
-    console.log('[read_file] No Mew server found on any common ports');
+    console.log('[read_file] No Mew server found on any scanned ports');
     return null;
   }
 
-  private async checkPortAvailability(port: number): Promise<boolean> {
+  private async checkPortAvailability(port: number, timeout: number = ReadFileToolInvocation.SLOW_TIMEOUT): Promise<boolean> {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
 
       const response = await fetch(`http://localhost:${port}/api/health`, {
         method: 'GET',
@@ -184,6 +202,40 @@ class ReadFileToolInvocation extends BaseToolInvocation<
     } catch (_error) {
       return false;
     }
+  }
+
+  private async scanPortsComprehensively(): Promise<number | null> {
+    // Check ports in batches to avoid overwhelming the system
+    const ports = ReadFileToolInvocation.EXTENDED_PORTS;
+
+    for (let i = 0; i < ports.length; i += ReadFileToolInvocation.MAX_CONCURRENT_CHECKS) {
+      const batch = ports.slice(i, i + ReadFileToolInvocation.MAX_CONCURRENT_CHECKS);
+
+      // Check all ports in this batch concurrently
+      const promises = batch.map(async (port: number) => {
+        const isAvailable = await this.checkPortAvailability(port, ReadFileToolInvocation.SLOW_TIMEOUT);
+        return isAvailable ? port : null;
+      });
+
+      try {
+        const results = await Promise.all(promises);
+        const foundPort = results.find((port: number | null) => port !== null);
+
+        if (foundPort) {
+          return foundPort;
+        }
+      } catch (error) {
+        // Continue with next batch if this batch fails
+        console.log(`[read_file] Error checking port batch ${i / ReadFileToolInvocation.MAX_CONCURRENT_CHECKS + 1}:`, error);
+      }
+
+      // Small delay between batches to avoid overwhelming
+      if (i + ReadFileToolInvocation.MAX_CONCURRENT_CHECKS < ports.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+
+    return null;
   }
 
   private async updateMewWindow(filePath: string): Promise<void> {

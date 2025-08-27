@@ -77,6 +77,16 @@ export interface GlobToolParams {
    * Whether to respect .gitignore patterns (optional, defaults to true)
    */
   respect_git_ignore?: boolean;
+
+  /**
+   * Whether to sort results by modification time (optional, defaults to true)
+   */
+  sort_by_time?: boolean;
+
+  /**
+   * Maximum number of results to return (optional, defaults to no limit)
+   */
+  max_results?: number;
 }
 
 class GlobToolInvocation extends BaseToolInvocation<
@@ -138,17 +148,27 @@ class GlobToolInvocation extends BaseToolInvocation<
         this.config.getFileFilteringRespectGitIgnore();
       const fileDiscovery = this.config.getFileService();
 
-      // Collect entries from all search directories
-      let allEntries: GlobPath[] = [];
+      // Use streaming approach for better memory efficiency with large result sets
+      const allEntries: GlobPath[] = [];
+      const maxResults = this.params.max_results;
 
       for (const searchDir of searchDirectories) {
         let pattern = this.params.pattern;
         const fullPath = path.join(searchDir, pattern);
-        if (fs.existsSync(fullPath)) {
-          pattern = escape(pattern);
+
+        // Optimize file existence check - only check if pattern looks like a specific file
+        if (!pattern.includes('*') && !pattern.includes('?') && !pattern.includes('{')) {
+          try {
+            if (fs.existsSync(fullPath)) {
+              pattern = escape(pattern);
+            }
+          } catch (_error) {
+            // Ignore errors in existence check, continue with original pattern
+          }
         }
 
-        const entries = (await glob(pattern, {
+        // Use streaming for better memory efficiency
+        const stream = glob.stream(pattern, {
           cwd: searchDir,
           withFileTypes: true,
           nodir: true,
@@ -158,9 +178,22 @@ class GlobToolInvocation extends BaseToolInvocation<
           ignore: this.config.getFileExclusions().getGlobExcludes(),
           follow: false,
           signal,
-        })) as GlobPath[];
+        });
 
-        allEntries = allEntries.concat(entries);
+        // Collect entries from stream
+        for await (const entry of stream) {
+          allEntries.push(entry as GlobPath);
+
+          // Early termination if we've reached the max results limit
+          if (maxResults && allEntries.length >= maxResults) {
+            break;
+          }
+        }
+
+        // Break outer loop if we've reached the limit
+        if (maxResults && allEntries.length >= maxResults) {
+          break;
+        }
       }
 
       const entries = allEntries;
@@ -204,18 +237,30 @@ class GlobToolInvocation extends BaseToolInvocation<
         };
       }
 
-      // Set filtering such that we first show the most recent files
-      const oneDayInMs = 24 * 60 * 60 * 1000;
-      const nowTimestamp = new Date().getTime();
+      // Apply configurable sorting
+      let finalEntries = filteredEntries;
+      if (this.params.sort_by_time !== false) {
+        // Default behavior: sort by modification time
+        const oneDayInMs = 24 * 60 * 60 * 1000;
+        const nowTimestamp = new Date().getTime();
+        finalEntries = sortFileEntries(
+          filteredEntries,
+          nowTimestamp,
+          oneDayInMs,
+        );
+      } else {
+        // Sort alphabetically for better performance
+        finalEntries = [...filteredEntries].sort((a, b) =>
+          a.fullpath().localeCompare(b.fullpath())
+        );
+      }
 
-      // Sort the filtered entries using the new helper function
-      const sortedEntries = sortFileEntries(
-        filteredEntries,
-        nowTimestamp,
-        oneDayInMs,
-      );
+      // Apply max results limit if specified
+      if (maxResults && finalEntries.length > maxResults) {
+        finalEntries = finalEntries.slice(0, maxResults);
+      }
 
-      const sortedAbsolutePaths = sortedEntries.map((entry) =>
+      const sortedAbsolutePaths = finalEntries.map((entry) =>
         entry.fullpath(),
       );
       const fileListDescription = sortedAbsolutePaths.join('\n');
@@ -230,7 +275,16 @@ class GlobToolInvocation extends BaseToolInvocation<
       if (gitIgnoredCount > 0) {
         resultMessage += ` (${gitIgnoredCount} additional files were git-ignored)`;
       }
-      resultMessage += `, sorted by modification time (newest first):\n${fileListDescription}`;
+
+      const sortDescription = this.params.sort_by_time === false
+        ? ', sorted alphabetically'
+        : ', sorted by modification time (newest first)';
+
+      resultMessage += `${sortDescription}:\n${fileListDescription}`;
+
+      if (maxResults && entries.length > maxResults) {
+        resultMessage += `\n\n[Showing first ${maxResults} of ${entries.length} matches]`;
+      }
 
       return {
         llmContent: resultMessage,
@@ -263,7 +317,7 @@ export class GlobTool extends BaseDeclarativeTool<GlobToolParams, ToolResult> {
     super(
       GlobTool.Name,
       'FindFiles',
-      'Efficiently finds files matching specific glob patterns (e.g., `src/**/*.ts`, `**/*.md`), returning absolute paths sorted by modification time (newest first). Ideal for quickly locating files based on their name or path structure, especially in large codebases.',
+      'Efficiently finds files matching specific glob patterns (e.g., `src/**/*.ts`, `**/*.md`), returning absolute paths sorted by modification time (newest first). Ideal for quickly locating files based on their name or path structure, especially in large codebases. Supports streaming for large result sets and configurable sorting for performance optimization.',
       Kind.Search,
       {
         properties: {
@@ -286,6 +340,16 @@ export class GlobTool extends BaseDeclarativeTool<GlobToolParams, ToolResult> {
             description:
               'Optional: Whether to respect .gitignore patterns when finding files. Only available in git repositories. Defaults to true.',
             type: 'boolean',
+          },
+          sort_by_time: {
+            description:
+              'Optional: Whether to sort results by modification time (newest first). Defaults to true. Set to false for better performance with large result sets.',
+            type: 'boolean',
+          },
+          max_results: {
+            description:
+              'Optional: Maximum number of results to return. If omitted, returns all matching files.',
+            type: 'number',
           },
         },
         required: ['pattern'],

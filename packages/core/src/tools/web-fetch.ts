@@ -23,6 +23,8 @@ import { ProxyAgent, setGlobalDispatcher } from 'undici';
 
 const URL_FETCH_TIMEOUT_MS = 10000;
 const MAX_CONTENT_LENGTH = 100000;
+const MIN_CONTENT_LENGTH = 100; // Minimum content length to be considered useful
+const MAX_RETRIES = 2; // Maximum number of processing retries
 
 // Helper function to extract URLs from a string
 function extractUrls(text: string): string[] {
@@ -74,63 +76,398 @@ class WebFetchToolInvocation extends BaseToolInvocation<
 
   private async executeFallback(signal: AbortSignal): Promise<ToolResult> {
     const urls = extractUrls(this.params.prompt);
-    // For now, we only support one URL for fallback
-    let url = urls[0];
-
-    // Convert GitHub blob URL to raw URL
-    if (url.includes('github.com') && url.includes('/blob/')) {
-      url = url
-        .replace('github.com', 'raw.githubusercontent.com')
-        .replace('/blob/', '/');
-    }
-
-    try {
-      const response = await fetchWithTimeout(url, URL_FETCH_TIMEOUT_MS);
-      if (!response.ok) {
-        throw new Error(
-          `Request failed with status code ${response.status} ${response.statusText}`,
-        );
-      }
-      const html = await response.text();
-      const textContent = convert(html, {
-        wordwrap: false,
-        selectors: [
-          { selector: 'a', options: { ignoreHref: true } },
-          { selector: 'img', format: 'skip' },
-        ],
-      }).substring(0, MAX_CONTENT_LENGTH);
-
-      const geminiClient = this.config.getGeminiClient();
-      const fallbackPrompt = `The user requested the following: "${this.params.prompt}".
-
-I was unable to access the URL directly. Instead, I have fetched the raw content of the page. Please use the following content to answer the request. Do not attempt to access the URL again.
-
----
-${textContent}
----
-`;
-      const result = await geminiClient.generateContent(
-        [{ role: 'user', parts: [{ text: fallbackPrompt }] }],
-        {},
-        signal,
-      );
-      const resultText = getResponseText(result) || '';
+    if (urls.length === 0) {
       return {
-        llmContent: resultText,
-        returnDisplay: `Content for ${url} processed using fallback fetch.`,
-      };
-    } catch (_e) {
-      const error = _e as Error;
-      const errorMessage = `Error during fallback fetch for ${url}: ${error.message}`;
-      return {
-        llmContent: `Error: ${errorMessage}`,
-        returnDisplay: `Error: ${errorMessage}`,
+        llmContent: 'Error: No URLs found in the prompt for fallback processing.',
+        returnDisplay: 'Error: No URLs found in the prompt for fallback processing.',
         error: {
-          message: errorMessage,
+          message: 'No URLs found in the prompt for fallback processing.',
           type: ToolErrorType.WEB_FETCH_FALLBACK_FAILED,
         },
       };
     }
+
+    const results: string[] = [];
+    let hasErrors = false;
+
+    for (const url of urls) {
+      try {
+        let processedUrl = url;
+
+        // Convert GitHub blob URL to raw URL
+        if (processedUrl.includes('github.com') && processedUrl.includes('/blob/')) {
+          processedUrl = processedUrl
+            .replace('github.com', 'raw.githubusercontent.com')
+            .replace('/blob/', '/');
+        }
+
+        const response = await fetchWithTimeout(processedUrl, URL_FETCH_TIMEOUT_MS);
+        if (!response.ok) {
+          throw new Error(
+            `Request failed with status code ${response.status} ${response.statusText}`,
+          );
+        }
+
+        const html = await response.text();
+
+        // Enhanced HTML processing for better summarization
+        const processedContent = this.processHtmlContent(html, processedUrl);
+
+        // Validate processed content quality before sending to LLM
+        if (!this.isContentValidForLLM(processedContent)) {
+          throw new Error(`Unable to extract meaningful content from ${processedUrl}. The page may be dynamically loaded, require JavaScript, or have restricted access.`);
+        }
+
+        // Create a more focused and intelligent prompt for the LLM
+        const llmPrompt = this.createIntelligentPrompt(processedContent, processedUrl, this.params.prompt);
+
+        const geminiClient = this.config.getGeminiClient();
+        const result = await geminiClient.generateContent(
+          [{ role: 'user', parts: [{ text: llmPrompt }] }],
+          {},
+          signal,
+        );
+        const resultText = getResponseText(result) || '';
+
+        results.push(`**${processedUrl}:**\n${resultText}`);
+      } catch (error) {
+        const errorMessage = `Error processing ${url}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        results.push(`**${url}:**\nError: ${errorMessage}`);
+        hasErrors = true;
+      }
+    }
+
+    const combinedResults = results.join('\n\n---\n\n');
+    const returnDisplay = hasErrors
+      ? `Content processed with some errors using enhanced fallback fetch.`
+      : `Content processed using enhanced fallback fetch.`;
+
+    return {
+      llmContent: combinedResults,
+      returnDisplay,
+    };
+  }
+
+  private processHtmlContent(html: string, url: string): string {
+    // Enhanced HTML processing with multiple strategies and validation
+    let processedText = '';
+    let attempt = 0;
+    const maxAttempts = MAX_RETRIES + 1;
+
+    while (attempt < maxAttempts && !this.isContentValid(processedText)) {
+      try {
+        processedText = this.attemptHtmlProcessing(html, url, attempt);
+        attempt++;
+      } catch (error) {
+        console.warn(`HTML processing attempt ${attempt + 1} failed:`, error);
+        attempt++;
+      }
+    }
+
+    // If all attempts failed or content is still invalid, provide fallback
+    if (!this.isContentValid(processedText)) {
+      processedText = this.createFallbackContent(html, url);
+    }
+
+    return processedText;
+  }
+
+  private attemptHtmlProcessing(html: string, url: string, attempt: number): string {
+    const strategies = [
+      // Strategy 1: Comprehensive content extraction
+      () => this.extractWithComprehensiveStrategy(html, url),
+      // Strategy 2: Main content focused
+      () => this.extractWithMainContentStrategy(html, url),
+      // Strategy 3: Basic cleanup
+      () => this.extractWithBasicStrategy(html, url),
+    ];
+
+    const strategy = strategies[Math.min(attempt, strategies.length - 1)];
+    return strategy();
+  }
+
+  private extractWithComprehensiveStrategy(html: string, url: string): string {
+    const processedText = convert(html, {
+      wordwrap: false,
+      selectors: [
+        { selector: 'script', format: 'skip' },
+        { selector: 'style', format: 'skip' },
+        { selector: 'nav', format: 'skip' },
+        { selector: 'header', format: 'skip' },
+        { selector: 'footer', format: 'skip' },
+        { selector: 'aside', format: 'skip' },
+        { selector: 'a', options: { ignoreHref: true } },
+        { selector: 'img', format: 'skip' },
+        { selector: 'form', format: 'skip' },
+        { selector: 'input', format: 'skip' },
+        { selector: 'button', format: 'skip' },
+        { selector: 'noscript', format: 'skip' },
+        { selector: 'iframe', format: 'skip' },
+        { selector: 'object', format: 'skip' },
+        { selector: 'embed', format: 'skip' },
+        // Prioritize main content selectors
+        { selector: 'main', format: 'block' },
+        { selector: 'article', format: 'block' },
+        { selector: 'section', format: 'block' },
+        { selector: '[role="main"]', format: 'block' },
+        { selector: '.content', format: 'block' },
+        { selector: '.main-content', format: 'block' },
+        { selector: '.post-content', format: 'block' },
+        { selector: '.entry-content', format: 'block' },
+        { selector: '#content', format: 'block' },
+        { selector: '#main', format: 'block' },
+        // Keep headings for structure
+        { selector: 'h1', format: 'block' },
+        { selector: 'h2', format: 'block' },
+        { selector: 'h3', format: 'block' },
+        { selector: 'h4', format: 'block' },
+        { selector: 'h5', format: 'block' },
+        { selector: 'h6', format: 'block' },
+        // Keep paragraphs and lists
+        { selector: 'p', format: 'block' },
+        { selector: 'li', format: 'block' },
+        { selector: 'ul', format: 'block' },
+        { selector: 'ol', format: 'block' },
+        // Keep tables
+        { selector: 'table', format: 'block' },
+        { selector: 'tr', format: 'block' },
+        { selector: 'td', format: 'block' },
+        { selector: 'th', format: 'block' },
+      ],
+      limits: {
+        maxInputLength: 500000,
+      },
+    });
+
+    return this.finalizeContent(processedText, html, url);
+  }
+
+  private extractWithMainContentStrategy(html: string, url: string): string {
+    const processedText = convert(html, {
+      wordwrap: false,
+      selectors: [
+        { selector: 'script', format: 'skip' },
+        { selector: 'style', format: 'skip' },
+        { selector: 'nav', format: 'skip' },
+        { selector: 'header', format: 'skip' },
+        { selector: 'footer', format: 'skip' },
+        { selector: 'aside', format: 'skip' },
+        // Focus only on main content areas
+        { selector: 'main', format: 'block' },
+        { selector: 'article', format: 'block' },
+        { selector: '[role="main"]', format: 'block' },
+        { selector: '.content', format: 'block' },
+        { selector: '.main-content', format: 'block' },
+        { selector: '.post-content', format: 'block' },
+        { selector: '.entry-content', format: 'block' },
+        { selector: '#content', format: 'block' },
+        { selector: '#main', format: 'block' },
+        // Keep essential elements
+        { selector: 'h1', format: 'block' },
+        { selector: 'h2', format: 'block' },
+        { selector: 'h3', format: 'block' },
+        { selector: 'p', format: 'block' },
+        { selector: 'li', format: 'block' },
+      ],
+      limits: {
+        maxInputLength: 500000,
+      },
+    });
+
+    return this.finalizeContent(processedText, html, url);
+  }
+
+  private extractWithBasicStrategy(html: string, url: string): string {
+    const processedText = convert(html, {
+      wordwrap: false,
+      selectors: [
+        { selector: 'script', format: 'skip' },
+        { selector: 'style', format: 'skip' },
+        { selector: 'nav', format: 'skip' },
+        { selector: 'header', format: 'skip' },
+        { selector: 'footer', format: 'skip' },
+        { selector: 'aside', format: 'skip' },
+      ],
+      limits: {
+        maxInputLength: 500000,
+      },
+    });
+
+    return this.finalizeContent(processedText, html, url);
+  }
+
+  private finalizeContent(processedText: string, html: string, url: string): string {
+    // Clean up excessive whitespace and normalize
+    let cleanedText = processedText
+      .replace(/\n{3,}/g, '\n\n') // Replace 3+ newlines with 2
+      .replace(/[ \t]+/g, ' ') // Replace multiple spaces/tabs with single space
+      .trim();
+
+    // Extract title if available
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const title = titleMatch ? titleMatch[1].trim() : '';
+
+    // Limit content length to prevent token overuse
+    if (cleanedText.length > MAX_CONTENT_LENGTH) {
+      cleanedText = cleanedText.substring(0, MAX_CONTENT_LENGTH - 100) +
+        '\n\n[Content truncated due to length...]';
+    }
+
+    // Add metadata
+    const metadata = `Source: ${url}${title ? `\nTitle: ${title}` : ''}\n\n`;
+
+    return metadata + cleanedText;
+  }
+
+  private isContentValid(content: string): boolean {
+    if (!content || content.trim().length < MIN_CONTENT_LENGTH) {
+      return false;
+    }
+
+    // Check if content has meaningful text (not just metadata)
+    const contentWithoutMetadata = content.split('\n\n').slice(1).join('\n\n');
+    if (contentWithoutMetadata.trim().length < MIN_CONTENT_LENGTH) {
+      return false;
+    }
+
+    // Check for excessive boilerplate or meaningless content
+    const meaninglessPatterns = [
+      /^(\s*error\s*:?\s*)+$/i,
+      /^(\s*not found\s*:?\s*)+$/i,
+      /^(\s*access denied\s*:?\s*)+$/i,
+      /^(\s*loading\s*\.\.\.\s*)+$/i,
+      /^(\s*please wait\s*:?\s*)+$/i,
+    ];
+
+    const meaningfulContent = contentWithoutMetadata.trim();
+    for (const pattern of meaninglessPatterns) {
+      if (pattern.test(meaningfulContent)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private createFallbackContent(html: string, url: string): string {
+    // Extract basic information as fallback
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const title = titleMatch ? titleMatch[1].trim() : 'No title available';
+
+    const descriptionMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["'][^>]*>/i);
+    const description = descriptionMatch ? descriptionMatch[1].trim() : '';
+
+    let fallbackContent = `Source: ${url}\nTitle: ${title}\n\n`;
+
+    if (description) {
+      fallbackContent += `Description: ${description}\n\n`;
+    }
+
+    fallbackContent += `[Unable to extract full content from this webpage. The page may be dynamically loaded, require JavaScript, or have restricted access.]`;
+
+    return fallbackContent;
+  }
+
+  private isContentValidForLLM(content: string): boolean {
+    // First check basic validity
+    if (!this.isContentValid(content)) {
+      return false;
+    }
+
+    // Additional checks for LLM suitability
+    const contentWithoutMetadata = content.split('\n\n').slice(1).join('\n\n').trim();
+
+    // Check minimum useful content length for LLM processing
+    if (contentWithoutMetadata.length < 200) {
+      return false;
+    }
+
+    // Check for content that would confuse the LLM
+    const confusingPatterns = [
+      /^\[unable to extract/i,
+      /^error:/i,
+      /^not found/i,
+      /^access denied/i,
+      /^please try again/i,
+      /^loading/i,
+      /^waiting/i,
+    ];
+
+    for (const pattern of confusingPatterns) {
+      if (pattern.test(contentWithoutMetadata)) {
+        return false;
+      }
+    }
+
+    // Check if content has enough substantive information
+    const words = contentWithoutMetadata.split(/\s+/).filter(word => word.length > 3);
+    if (words.length < 10) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private createIntelligentPrompt(content: string, url: string, userPrompt: string): string {
+    // Extract key information from content
+    const lines = content.split('\n');
+    const title = lines.find(line => line.startsWith('Title:'))?.replace('Title:', '').trim() || '';
+    const source = lines.find(line => line.startsWith('Source:'))?.replace('Source:', '').trim() || '';
+    const mainContent = lines.slice(2).join('\n').trim(); // Skip metadata lines
+
+    // Create a more intelligent prompt based on content analysis
+    const contentSummary = this.analyzeContentForPrompt(mainContent);
+
+    return `The user requested: "${userPrompt}"
+
+I need to analyze the content from: ${source}${title ? ` (Title: ${title})` : ''}
+
+Content Analysis:
+${contentSummary}
+
+Here is the extracted and cleaned content from the webpage:
+
+---
+${content}
+---
+
+Please provide a comprehensive and focused response based on the user's request. Focus on the most relevant information and provide actionable insights. If the content doesn't fully address the request, acknowledge this and provide the best analysis possible with the available information.`;
+  }
+
+  private analyzeContentForPrompt(content: string): string {
+    const wordCount = content.split(/\s+/).length;
+    const charCount = content.length;
+
+    let analysis = `- Content length: ${charCount} characters, approximately ${wordCount} words
+`;
+
+    // Detect content type
+    if (content.includes('function') || content.includes('const') || content.includes('var')) {
+      analysis += `- Content type: Appears to contain code or technical documentation
+`;
+    } else if (content.match(/\b\d{4}-\d{2}-\d{2}\b/)) {
+      analysis += `- Content type: Appears to contain dated information or articles
+`;
+    } else if (content.match(/\b(http|https):\/\//g)) {
+      analysis += `- Content type: Appears to contain links or references
+`;
+    }
+
+    // Check for structured content
+    const headers = content.match(/^#{1,6}\s+.+$/gm);
+    if (headers && headers.length > 0) {
+      analysis += `- Structure: Contains ${headers.length} headings/sections
+`;
+    }
+
+    // Check for lists
+    const listItems = content.match(/^[-*+]\s+.+$/gm);
+    if (listItems && listItems.length > 0) {
+      analysis += `- Structure: Contains ${listItems.length} list items
+`;
+    }
+
+    return analysis;
   }
 
   getDescription(): string {

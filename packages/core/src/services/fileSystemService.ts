@@ -38,6 +38,24 @@ export interface FileSystemOptions {
   enableMetrics?: boolean;
   /** Batch size for bulk operations (default: 50) */
   batchSize?: number;
+  /** Custom path safety configuration */
+  pathSafetyConfig?: PathSafetyConfig;
+}
+
+/**
+ * Configuration for path safety checks
+ */
+export interface PathSafetyConfig {
+  /** Whether to allow path traversal (..) - use with caution (default: false) */
+  allowPathTraversal?: boolean;
+  /** Whether to allow tilde expansion (default: false) */
+  allowTildeExpansion?: boolean;
+  /** Additional allowed characters in paths (default: none) */
+  allowedChars?: string;
+  /** Whether to enable strict path validation (default: true) */
+  strictValidation?: boolean;
+  /** Custom allowed roots for path validation */
+  allowedRoots?: string[];
 }
 
 /**
@@ -222,6 +240,13 @@ export class StandardFileSystemService implements FileSystemService {
     performanceMode: 'balanced',
     enableMetrics: false,
     batchSize: 50,
+    pathSafetyConfig: {
+      allowPathTraversal: false,
+      allowTildeExpansion: false,
+      allowedChars: '',
+      strictValidation: true,
+      allowedRoots: [],
+    },
   };
 
   // Self-validating cache implementation
@@ -368,12 +393,17 @@ export class StandardFileSystemService implements FileSystemService {
    * Optimized path safety validation with dynamic performance mode
    */
   isPathSafe(filePath: string, allowedRoots: string[] = []): boolean {
+    // Get path safety configuration from options or use defaults
+    const pathSafetyConfig = this.defaultOptions.pathSafetyConfig;
+
     // Dynamic performance mode - could be configured per instance
     const performanceMode: PerformanceMode = this.defaultOptions.performanceMode;
-    
+
     if (performanceMode === 'fast') {
-      // Basic check only for fast mode
-      return !filePath.includes('..') && !filePath.includes('~');
+      // Basic check only for fast mode - respect configuration
+      const hasTraversal = !pathSafetyConfig.allowPathTraversal && filePath.includes('..');
+      const hasTilde = !pathSafetyConfig.allowTildeExpansion && filePath.includes('~');
+      return !hasTraversal && !hasTilde;
     }
 
     // Create cache key
@@ -394,22 +424,34 @@ export class StandardFileSystemService implements FileSystemService {
       // Normalize and resolve the path
       const normalizedPath = path.resolve(filePath);
 
-      // Check for path traversal attempts
-      if (filePath.includes('..') || filePath.includes('~')) {
+      // Check for path traversal attempts (configurable)
+      if (!pathSafetyConfig.allowPathTraversal && filePath.includes('..')) {
         this.cachePathSafetyResult(cacheKey, false, allowedRootsHash, now);
         return false;
       }
 
-      // Check for suspicious characters (optimized regex)
-      const suspiciousChars = /[<>:"|?*]/;
-      if (suspiciousChars.test(filePath)) {
+      // Check for tilde expansion (configurable)
+      if (!pathSafetyConfig.allowTildeExpansion && filePath.includes('~')) {
         this.cachePathSafetyResult(cacheKey, false, allowedRootsHash, now);
         return false;
       }
 
-      // Validate against allowed roots if specified (optimized)
-      if (allowedRoots.length > 0) {
-        const isInAllowedRoot = allowedRoots.some((root) => {
+      // Check for suspicious characters (configurable)
+      if (pathSafetyConfig.strictValidation) {
+        const suspiciousChars = /[<>:"|?*]/;
+        const additionalChars = pathSafetyConfig.allowedChars || '';
+        const allowedChars = new RegExp(`[<>:"|?*${additionalChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`, 'g');
+
+        if (suspiciousChars.test(filePath) && !allowedChars.test(filePath)) {
+          this.cachePathSafetyResult(cacheKey, false, allowedRootsHash, now);
+          return false;
+        }
+      }
+
+      // Validate against allowed roots (merge configured roots with parameter roots)
+      const allAllowedRoots = [...(pathSafetyConfig.allowedRoots || []), ...allowedRoots];
+      if (allAllowedRoots.length > 0) {
+        const isInAllowedRoot = allAllowedRoots.some((root) => {
           const normalizedRoot = path.resolve(root);
           return normalizedPath.startsWith(normalizedRoot);
         });
@@ -487,13 +529,18 @@ export class StandardFileSystemService implements FileSystemService {
   }
 
   /**
-   * Execute operation with timeout protection
+   * Execute operation with timeout protection and configurable behavior
    */
   private async withTimeout<T>(
     operation: Promise<T>,
     timeoutMs: number,
     operationName: string,
   ): Promise<T> {
+    // Allow infinite timeout if set to 0 or negative
+    if (timeoutMs <= 0) {
+      return operation;
+    }
+
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
         reject(new Error(`${operationName} timed out after ${timeoutMs}ms`));
@@ -504,22 +551,28 @@ export class StandardFileSystemService implements FileSystemService {
   }
 
   /**
-   * Validate file size against limits
+   * Validate file size against limits with enhanced configurability
    */
   private async validateFileSize(
     filePath: string,
     maxSize: number,
   ): Promise<void> {
+    // Allow unlimited file size if maxSize is 0 or negative
+    if (maxSize <= 0) {
+      return;
+    }
+
     try {
       const stats = await fs.stat(filePath);
       if (stats.size > maxSize) {
         throw new Error(
-          `File size ${stats.size} bytes exceeds maximum allowed ${maxSize} bytes`,
+          `File size ${stats.size} bytes exceeds maximum allowed ${maxSize} bytes for file: ${filePath}`,
         );
       }
-    } catch (_error) {
-      if ((_error as NodeJS.ErrnoException).code !== 'ENOENT') {
-        throw _error;
+    } catch (error) {
+      const nodeError = error as NodeJS.ErrnoException;
+      if (nodeError.code !== 'ENOENT') {
+        throw error;
       }
       // File doesn't exist, which is fine for write operations
     }
@@ -1724,6 +1777,102 @@ export class StandardFileSystemService implements FileSystemService {
       size: this.fileCache.size,
       hitRate: Math.round(hitRate * 100) / 100,
       totalRequests: this.cacheStats.totalRequests,
+    };
+  }
+
+  /**
+   * Get detailed cache performance metrics
+   */
+  getCacheMetrics(): {
+    fileCache: {
+      size: number;
+      maxSize: number;
+      hitRate: number;
+      hits: number;
+      misses: number;
+    };
+    pathSafetyCache: {
+      size: number;
+      hitRate: number;
+      hits: number;
+      misses: number;
+    };
+  } {
+    const fileCacheHitRate = this.cacheStats.hits + this.cacheStats.misses > 0
+      ? this.cacheStats.hits / (this.cacheStats.hits + this.cacheStats.misses)
+      : 0;
+
+    const pathSafetyHitRate = this.performanceMetrics.pathSafetyCacheHits +
+      this.performanceMetrics.pathSafetyCacheMisses > 0
+      ? this.performanceMetrics.pathSafetyCacheHits /
+        (this.performanceMetrics.pathSafetyCacheHits + this.performanceMetrics.pathSafetyCacheMisses)
+      : 0;
+
+    return {
+      fileCache: {
+        size: this.fileCache.size,
+        maxSize: this.maxCacheEntries,
+        hitRate: fileCacheHitRate,
+        hits: this.cacheStats.hits,
+        misses: this.cacheStats.misses,
+      },
+      pathSafetyCache: {
+        size: this.pathSafetyCache.size,
+        hitRate: pathSafetyHitRate,
+        hits: this.performanceMetrics.pathSafetyCacheHits,
+        misses: this.performanceMetrics.pathSafetyCacheMisses,
+      },
+    };
+  }
+
+  /**
+   * Get diagnostic information about the service
+   */
+  getDiagnostics(): {
+    cacheMetrics: ReturnType<StandardFileSystemService['getCacheMetrics']>;
+    performanceMetrics: ReturnType<StandardFileSystemService['getPerformanceMetrics']>;
+    configuration: {
+      defaultTimeout: number;
+      defaultMaxFileSize: number;
+      performanceMode: PerformanceMode;
+      cacheEnabled: boolean;
+      maxCacheEntries: number;
+    };
+  } {
+    return {
+      cacheMetrics: this.getCacheMetrics(),
+      performanceMetrics: this.getPerformanceMetrics(),
+      configuration: {
+        defaultTimeout: this.defaultOptions.timeout,
+        defaultMaxFileSize: this.defaultOptions.maxFileSize,
+        performanceMode: this.defaultOptions.performanceMode,
+        cacheEnabled: true,
+        maxCacheEntries: this.maxCacheEntries,
+      },
+    };
+  }
+
+  /**
+   * Clear all caches - useful for testing or memory management
+   */
+  clearCaches(): void {
+    this.fileCache.clear();
+    this.pathSafetyCache.clear();
+    this.cacheStats = {
+      hits: 0,
+      misses: 0,
+      invalidations: 0,
+      totalRequests: 0,
+    };
+    this.performanceMetrics = {
+      operationCounts: new Map(),
+      operationTimes: new Map(),
+      cacheHits: 0,
+      cacheMisses: 0,
+      pathSafetyCacheHits: 0,
+      pathSafetyCacheMisses: 0,
+      totalOperations: 0,
+      averageOperationTime: 0,
     };
   }
 }

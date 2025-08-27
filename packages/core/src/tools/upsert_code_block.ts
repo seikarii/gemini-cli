@@ -5,8 +5,6 @@
  */
 
 import * as Diff from 'diff';
-import * as fs from 'fs';
-import { promises as fsp } from 'fs';
 import * as path from 'path';
 import { SourceFile, Node, VariableDeclaration } from 'ts-morph';
 import * as astAdapter from '../ast/adapter.js';
@@ -19,10 +17,8 @@ import {
   ToolResult,
   ToolResultDisplay,
 } from './tools.js';
-
-/**
- * Parameters for the UpsertCodeBlock tool.
- */
+import { Config } from '../config/config.js';
+import { parse } from 'pyparser';
 export interface UpsertCodeBlockToolParams {
   /**
    * The absolute path to the file to modify.
@@ -76,7 +72,10 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
   UpsertCodeBlockToolParams,
   ToolResult
 > {
-  constructor(params: UpsertCodeBlockToolParams) {
+  constructor(
+    private config: Config,
+    params: UpsertCodeBlockToolParams,
+  ) {
     super(params);
   }
 
@@ -96,7 +95,8 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
       }
 
       // Check if file exists and is readable
-      if (!fs.existsSync(this.params.file_path)) {
+      const fileExists = await this.config.getFileSystemService().exists(this.params.file_path);
+      if (!fileExists) {
         return {
           llmContent: `File not found: ${this.params.file_path}`,
           returnDisplay: `❌ File not found: ${this.params.file_path}`,
@@ -145,35 +145,50 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
   }
 
   private async handlePythonFile(): Promise<ToolResult> {
-    // For Python files, use string-based parsing since ts-morph doesn't support Python
+    // For Python files, use robust AST parsing with pyparser
     try {
-  const originalContent = await fsp.readFile(this.params.file_path, 'utf-8');
-  const lines = originalContent.split('\n');
+      const readResult = await this.config.getFileSystemService().readTextFile(this.params.file_path);
+      if (!readResult.success) {
+        return {
+          llmContent: `Error reading file: ${readResult.error}`,
+          returnDisplay: `❌ Error reading file: ${readResult.error}`,
+        };
+      }
+      const originalContent = readResult.data!;
 
-      const blockInfo = this.findPythonBlock(lines);
+      // Parse Python AST to find and manipulate code blocks
+      const astResult = await this.parsePythonAST(originalContent);
+      if (!astResult.success) {
+        // Fallback to string-based parsing if AST parsing fails
+        return await this.handlePythonFileStringBased(originalContent);
+      }
+
+      const blockInfo = await this.findPythonBlockAST(astResult.ast, this.params.block_name);
       const blockType =
         this.params.block_type ||
-        this.detectPythonBlockType(this.params.content);
+        this.detectPythonBlockTypeAST(this.params.content);
 
       let newContent: string;
       let operation: string;
 
       if (blockInfo) {
-        // Replace existing block
-        newContent = this.replacePythonBlock(
-          lines,
-          blockInfo,
-          this.params.content,
-        );
+        // Replace existing block using AST
+        newContent = await this.replacePythonBlockAST(originalContent, astResult.ast, blockInfo, this.params.content);
         operation = 'updated';
       } else {
         // Insert new block
-        newContent = this.insertPythonBlock(lines, this.params.content);
+        newContent = this.insertPythonBlock(originalContent.split('\n'), this.params.content);
         operation = 'inserted';
       }
 
-  // Write back to file
-  await fsp.writeFile(this.params.file_path, newContent, 'utf-8');
+      // Write back to file
+      const writeResult = await this.config.getFileSystemService().writeTextFile(this.params.file_path, newContent);
+      if (!writeResult.success) {
+        return {
+          llmContent: `Error writing file: ${writeResult.error}`,
+          returnDisplay: `❌ Error writing file: ${writeResult.error}`,
+        };
+      }
 
       const message = `Successfully ${operation} ${blockType} '${this.params.block_name}' in ${this.params.file_path}`;
 
@@ -249,7 +264,13 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
 
   // Save the modified content
   const newContent = astAdapter.dumpSourceFileText(sourceFile);
-  await fsp.writeFile(this.params.file_path, newContent, 'utf-8');
+  const writeResult = await this.config.getFileSystemService().writeTextFile(this.params.file_path, newContent);
+  if (!writeResult.success) {
+    return {
+      llmContent: `Error writing file: ${writeResult.error}`,
+      returnDisplay: `❌ Error writing file: ${writeResult.error}`,
+    };
+  }
 
       const blockType =
         this.params.block_type ||
@@ -296,7 +317,14 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
 
   private async handlePlainTextFile(): Promise<ToolResult> {
     try {
-  const originalContent = await fsp.readFile(this.params.file_path, 'utf-8');
+      const readResult = await this.config.getFileSystemService().readTextFile(this.params.file_path);
+      if (!readResult.success) {
+        return {
+          llmContent: `Error reading file: ${readResult.error}`,
+          returnDisplay: `❌ Error reading file: ${readResult.error}`,
+        };
+      }
+      const originalContent = readResult.data!;
 
       // For plain text files, simply append or replace based on simple pattern matching
       const lines = originalContent.split('\n');
@@ -345,7 +373,13 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
         operation = 'inserted';
       }
 
-  await fsp.writeFile(this.params.file_path, newContent, 'utf-8');
+      const writeResult = await this.config.getFileSystemService().writeTextFile(this.params.file_path, newContent);
+      if (!writeResult.success) {
+        return {
+          llmContent: `Error writing file: ${writeResult.error}`,
+          returnDisplay: `❌ Error writing file: ${writeResult.error}`,
+        };
+      }
 
       const message = `Successfully ${operation} block '${this.params.block_name}' in ${this.params.file_path}`;
 
@@ -470,6 +504,140 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
       default:
         return [...lines, '', newContent].join('\n');
     }
+  }
+
+  // AST-based Python methods
+  private async parsePythonAST(content: string): Promise<{ success: boolean; ast?: any; error?: string }> {
+    try {
+      const ast = await parse(content);
+      return { success: true, ast };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  private async findPythonBlockAST(ast: unknown, blockName: string): Promise<{ start: number; end: number; type: string } | null> {
+    // Traverse AST to find function/class definitions matching blockName
+    const visitor = (node: unknown, path: string[]): { start: number; end: number; type: string } | null => {
+      const nodeObj = node as Record<string, unknown>;
+      if (nodeObj['_type'] === 'FunctionDef' && nodeObj['name'] === blockName) {
+        return {
+          start: (nodeObj['lineno'] as number) - 1, // Convert to 0-based index
+          end: (nodeObj['end_lineno'] as number) - 1,
+          type: 'function'
+        };
+      }
+      if (nodeObj['_type'] === 'ClassDef' && nodeObj['name'] === blockName) {
+        return {
+          start: (nodeObj['lineno'] as number) - 1,
+          end: (nodeObj['end_lineno'] as number) - 1,
+          type: 'class'
+        };
+      }
+      // Recursively search in child nodes
+      for (const [key, value] of Object.entries(nodeObj)) {
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            if (item && typeof item === 'object') {
+              const result = visitor(item, [...path, key]);
+              if (result) return result;
+            }
+          }
+        } else if (value && typeof value === 'object' && (value as Record<string, unknown>)['_type']) {
+          const result = visitor(value, [...path, key]);
+          if (result) return result;
+        }
+      }
+      return null;
+    };
+
+    return visitor(ast, []);
+  }
+
+  private async detectPythonBlockTypeAST(content: string): Promise<string> {
+    try {
+      const ast = await parse(content);
+      const astObj = ast as Record<string, unknown>;
+      if (astObj['_type'] === 'FunctionDef') return 'function';
+      if (astObj['_type'] === 'ClassDef') return 'class';
+      if (astObj['_type'] === 'Module' && Array.isArray(astObj['body']) &&
+          astObj['body'].some((stmt: unknown) => (stmt as Record<string, unknown>)['_type'] === 'FunctionDef' ||
+                                             (stmt as Record<string, unknown>)['_type'] === 'ClassDef')) {
+        return 'method'; // Assume method if it's code within a class context
+      }
+      return 'code';
+    } catch {
+      return 'code'; // Fallback
+    }
+  }
+
+  private async replacePythonBlockAST(
+    originalContent: string,
+    ast: unknown,
+    blockInfo: { start: number; end: number; type: string },
+    newContent: string
+  ): Promise<string> {
+    const lines = originalContent.split('\n');
+    const newLines = newContent.split('\n');
+
+    // Replace the block lines with new content
+    const beforeBlock = lines.slice(0, blockInfo.start);
+    const afterBlock = lines.slice(blockInfo.end + 1);
+
+    return [...beforeBlock, ...newLines, ...afterBlock].join('\n');
+  }
+
+  private async handlePythonFileStringBased(originalContent: string): Promise<ToolResult> {
+    // Fallback to original string-based parsing
+    const lines = originalContent.split('\n');
+
+    const blockInfo = this.findPythonBlock(lines);
+    const blockType =
+      this.params.block_type ||
+      this.detectPythonBlockType(this.params.content);
+
+    let newContent: string;
+    let operation: string;
+
+    if (blockInfo) {
+      // Replace existing block
+      newContent = this.replacePythonBlock(
+        lines,
+        blockInfo,
+        this.params.content,
+      );
+      operation = 'updated';
+    } else {
+      // Insert new block
+      newContent = this.insertPythonBlock(lines, this.params.content);
+      operation = 'inserted';
+    }
+
+    // Write back to file
+    const writeResult = await this.config.getFileSystemService().writeTextFile(this.params.file_path, newContent);
+    if (!writeResult.success) {
+      return {
+        llmContent: `Error writing file: ${writeResult.error}`,
+        returnDisplay: `❌ Error writing file: ${writeResult.error}`,
+      };
+    }
+
+    const message = `Successfully ${operation} ${blockType} '${this.params.block_name}' in ${this.params.file_path}`;
+
+    const fileName = path.basename(this.params.file_path);
+    const fileDiff = Diff.createPatch(
+      fileName,
+      originalContent,
+      newContent,
+      'Current',
+      'Proposed',
+      DEFAULT_DIFF_OPTIONS,
+    );
+
+    return {
+      llmContent: message,
+      returnDisplay: `${message}\n\n${fileDiff}`,
+    };
   }
 
   // TypeScript-specific methods
@@ -631,7 +799,7 @@ export class UpsertCodeBlockTool extends BaseDeclarativeTool<
 > {
   static readonly Name = 'upsert_code_block';
 
-  constructor() {
+  constructor(private config: Config) {
     super(
       UpsertCodeBlockTool.Name,
       'UpsertCodeBlock',
@@ -688,6 +856,6 @@ export class UpsertCodeBlockTool extends BaseDeclarativeTool<
   protected createInvocation(
     params: UpsertCodeBlockToolParams,
   ): ToolInvocation<UpsertCodeBlockToolParams, ToolResult> {
-    return new UpsertCodeBlockToolInvocation(params);
+    return new UpsertCodeBlockToolInvocation(this.config, params);
   }
 }

@@ -4,10 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import fs from 'fs';
 import path from 'path';
-import os, { EOL } from 'os';
-import crypto from 'crypto';
+import os from 'os';
+import psTree from 'ps-tree';
 import { Config } from '../config/config.js';
 import {
   BaseDeclarativeTool,
@@ -38,6 +37,33 @@ export interface ShellToolParams {
   command: string;
   description?: string;
   directory?: string;
+}
+
+// Interface for ps-tree process objects
+interface PSTreeProcess {
+  PID: string;
+  COMMAND: string;
+  PPID?: string;
+}
+
+/**
+ * Get all child process IDs for a given parent PID in a cross-platform way
+ */
+async function getChildProcessIds(parentPid: number): Promise<number[]> {
+  return new Promise((resolve, reject) => {
+    psTree(parentPid, (error: Error | null, children: readonly PSTreeProcess[]) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      const childPids = children
+        .map((child: PSTreeProcess) => parseInt(child.PID, 10))
+        .filter((pid: number) => !isNaN(pid) && pid !== parentPid);
+
+      resolve(childPids);
+    });
+  });
 }
 
 class ShellToolInvocation extends BaseToolInvocation<
@@ -108,22 +134,9 @@ class ShellToolInvocation extends BaseToolInvocation<
       };
     }
 
-    const isWindows = os.platform() === 'win32';
-    const tempFileName = `shell_pgrep_${crypto
-      .randomBytes(6)
-      .toString('hex')}.tmp`;
-    const tempFilePath = path.join(os.tmpdir(), tempFileName);
-
     try {
-      // pgrep is not available on Windows, so we can't get background PIDs
-      const commandToExecute = isWindows
-        ? strippedCommand
-        : (() => {
-            // wrap command to append subprocess pids (via pgrep) to temporary file
-            let command = strippedCommand.trim();
-            if (!command.endsWith('&')) command += ';';
-            return `{ ${command} }; __code=$?; pgrep -g 0 >${tempFilePath} 2>&1; exit $__code;`;
-          })();
+      // Use the original command without pgrep wrapper - we'll get child processes via ps-tree
+      const commandToExecute = strippedCommand;
 
       const cwd = path.resolve(
         this.config.getTargetDir(),
@@ -187,24 +200,15 @@ class ShellToolInvocation extends BaseToolInvocation<
 
       const result = await resultPromise;
 
+      // Get background process IDs using cross-platform ps-tree
       const backgroundPIDs: number[] = [];
-      let pgrepLines: string[] = [];
-      if (os.platform() !== 'win32') {
+      if (result.pid) {
         try {
-          const fileContent = await fs.promises.readFile(tempFilePath, 'utf8');
-          pgrepLines = fileContent.split(EOL).filter(Boolean);
-          for (const line of pgrepLines) {
-            if (!/^\d+$/.test(line)) {
-              console.error(`pgrep: ${line}`);
-            }
-            const pid = Number(line);
-            if (pid !== result.pid) {
-              backgroundPIDs.push(pid);
-            }
-          }
-        } catch (e) {
+          const childPids = await getChildProcessIds(result.pid);
+          backgroundPIDs.push(...childPids);
+        } catch (error) {
           if (!signal.aborted) {
-            console.error('missing pgrep output or error reading file:', e);
+            console.error('Error getting child process IDs:', error);
           }
         }
       }
@@ -279,12 +283,13 @@ class ShellToolInvocation extends BaseToolInvocation<
         llmContent,
         returnDisplay: returnDisplayMessage,
       };
-    } finally {
-      try {
-        await fs.promises.unlink(tempFilePath);
-      } catch (e) {
-        // Ignore if file doesn't exist or other unlink errors
-      }
+    } catch (error) {
+      // Handle any unexpected errors in command execution
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      return {
+        llmContent: `Command execution failed: ${errorMessage}`,
+        returnDisplay: `Command failed: ${errorMessage}`,
+      };
     }
   }
 }
