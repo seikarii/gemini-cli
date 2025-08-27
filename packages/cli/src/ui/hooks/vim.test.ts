@@ -10,6 +10,7 @@ import React from 'react';
 import { useVim } from './vim.js';
 import type { TextBuffer } from '../components/shared/text-buffer.js';
 import { textBufferReducer } from '../components/shared/text-buffer.js';
+import type { Key } from './useKeypress.js';
 
 // Mock the VimModeContext
 import type { VimMode } from './vim.js';
@@ -186,7 +187,7 @@ describe('useVim hook', () => {
 
   const exitInsertMode = (result: {
     current: {
-      handleInput: (input: { sequence: string; name: string }) => void;
+      handleInput: (input: Key) => void;
     };
   }) => {
     act(() => {

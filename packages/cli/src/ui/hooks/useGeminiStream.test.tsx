@@ -441,7 +441,7 @@ describe('useGeminiStream', () => {
 
     renderHook(() =>
       useGeminiStream(
-        undefined,
+        'mock-agent',
         new MockedGeminiClientClass(mockConfig),
         [],
         mockAddItem,
@@ -740,7 +740,7 @@ describe('useGeminiStream', () => {
 
     const { result, rerender } = renderHook(() =>
       useGeminiStream(
-        undefined, // agent
+        'mock-agent',
         new MockedGeminiClientClass(mockConfig),
         [],
         mockAddItem,
@@ -1146,7 +1146,7 @@ describe('useGeminiStream', () => {
 
       renderHook(() =>
         useGeminiStream(
-          undefined, // agent
+          'mock-agent',
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
@@ -1251,7 +1251,7 @@ describe('useGeminiStream', () => {
 
       const { result } = renderHook(() =>
         useGeminiStream(
-          undefined, // agent
+          'mock-agent',
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
@@ -1300,7 +1300,7 @@ describe('useGeminiStream', () => {
 
       const { result } = renderHook(() =>
         useGeminiStream(
-          undefined, // agent
+          'mock-agent',
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
@@ -1350,7 +1350,7 @@ describe('useGeminiStream', () => {
 
       const { result } = renderHook(() =>
         useGeminiStream(
-          undefined, // agent
+          'mock-agent',
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
@@ -1440,6 +1440,7 @@ describe('useGeminiStream', () => {
 
         const { result } = renderHook(() =>
           useGeminiStream(
+            'mock-agent',
             new MockedGeminiClientClass(mockConfig),
             [],
             mockAddItem,
@@ -1451,7 +1452,6 @@ describe('useGeminiStream', () => {
             () => {},
             () => Promise.resolve(),
             false,
-            () => {},
             () => {},
             () => {},
             () => {},
@@ -1497,6 +1497,7 @@ describe('useGeminiStream', () => {
 
       const { result } = renderHook(() =>
         useGeminiStream(
+          'mock-agent',
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
@@ -1575,6 +1576,7 @@ describe('useGeminiStream', () => {
 
       const { result } = renderHook(() =>
         useGeminiStream(
+          'mock-agent',
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
@@ -1629,6 +1631,7 @@ describe('useGeminiStream', () => {
 
       const { result } = renderHook(() =>
         useGeminiStream(
+          'mock-agent',
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
@@ -1688,6 +1691,7 @@ describe('useGeminiStream', () => {
 
     const { result } = renderHook(() =>
       useGeminiStream(
+        'mock-agent',
         mockConfig.getGeminiClient() as GeminiClient,
         [],
         mockAddItem,
@@ -1751,6 +1755,7 @@ describe('useGeminiStream', () => {
 
       const { result } = renderHook(() =>
         useGeminiStream(
+          'mock-agent',
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
@@ -1820,6 +1825,7 @@ describe('useGeminiStream', () => {
 
       const { result } = renderHook(() =>
         useGeminiStream(
+          'mock-agent',
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
@@ -1870,6 +1876,7 @@ describe('useGeminiStream', () => {
 
       const { result } = renderHook(() =>
         useGeminiStream(
+          'mock-agent',
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
@@ -1926,6 +1933,7 @@ describe('useGeminiStream', () => {
 
     const { result } = renderHook(() =>
       useGeminiStream(
+        'mock-agent',
         mockConfig.getGeminiClient() as GeminiClient,
         [],
         mockAddItem,

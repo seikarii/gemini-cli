@@ -1,17 +1,6 @@
 /**
  * @license
- * Copvi.mock('./updateEventEmitter.js', async () => {
-  const actual = await vi.importActual('./updateEventEmitter.js') as {
-    updateEventEmitter: unknown;
-  };
-  return {
-    ...actual,
-    updateEventEmitter: {
-      ...(actual.updateEventEmitter as object),
-      emit: vi.fn(),
-    },
-  };
-});5 Google LLC
+ * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -119,8 +108,6 @@ describe('handleAutoUpdate', () => {
       packageManager: PackageManager.NPM,
     }));
 
-    })));
-
     handleAutoUpdate(mockUpdateInfo, mockSettings, '/root', mockSpawn);
 
     expect(mockUpdateEventEmitter.emit).toHaveBeenCalledTimes(1);
@@ -140,8 +127,6 @@ describe('handleAutoUpdate', () => {
       isGlobal: false,
       packageManager: PackageManager.NPM,
     }));
-
-    });
 
     handleAutoUpdate(mockUpdateInfo, mockSettings, '/root', mockSpawn);
 
@@ -163,8 +148,6 @@ describe('handleAutoUpdate', () => {
       packageManager: PackageManager.NPM,
     }));
 
-    });
-
     handleAutoUpdate(mockUpdateInfo, mockSettings, '/root', mockSpawn);
 
     expect(mockUpdateEventEmitter.emit).toHaveBeenCalledTimes(1);
@@ -184,8 +167,6 @@ describe('handleAutoUpdate', () => {
       packageManager: PackageManager.NPM,
     }));
 
-    });
-
     // Simulate successful execution
     setTimeout(() => {
       mockChildProcess.emit('close', 0);
@@ -197,25 +178,20 @@ describe('handleAutoUpdate', () => {
   });
 
   it('should emit "update-failed" when the update process fails', async () => {
-    await new Promise<void>((resolve) => {
-      mockGetInstallationInfo.mockReturnValue(Promise.resolve({
-        updateCommand: 'npm i -g @google/gemini-cli@latest',
-        updateMessage: 'This is an additional message.',
-        isGlobal: false,
-        packageManager: PackageManager.NPM,
+    mockGetInstallationInfo.mockReturnValue(Promise.resolve({
+      updateCommand: 'npm i -g @google/gemini-cli@latest',
+      updateMessage: 'This is an additional message.',
+      isGlobal: false,
+      packageManager: PackageManager.NPM,
     }));
 
-      });
+    // Simulate failed execution
+    setTimeout(() => {
+      mockChildProcess.stderr.emit('data', 'An error occurred');
+      mockChildProcess.emit('close', 1);
+    }, 0);
 
-      // Simulate failed execution
-      setTimeout(() => {
-        mockChildProcess.stderr.emit('data', 'An error occurred');
-        mockChildProcess.emit('close', 1);
-        resolve();
-      }, 0);
-
-      handleAutoUpdate(mockUpdateInfo, mockSettings, '/root', mockSpawn);
-    });
+    handleAutoUpdate(mockUpdateInfo, mockSettings, '/root', mockSpawn);
 
     expect(mockUpdateEventEmitter.emit).toHaveBeenCalledWith('update-failed', {
       message:
@@ -224,24 +200,19 @@ describe('handleAutoUpdate', () => {
   });
 
   it('should emit "update-failed" when the spawn function throws an error', async () => {
-    await new Promise<void>((resolve) => {
-      mockGetInstallationInfo.mockReturnValue(Promise.resolve({
-        updateCommand: 'npm i -g @google/gemini-cli@latest',
-        updateMessage: 'This is an additional message.',
-        isGlobal: false,
-        packageManager: PackageManager.NPM,
+    mockGetInstallationInfo.mockReturnValue(Promise.resolve({
+      updateCommand: 'npm i -g @google/gemini-cli@latest',
+      updateMessage: 'This is an additional message.',
+      isGlobal: false,
+      packageManager: PackageManager.NPM,
     }));
 
-      });
+    // Simulate an error event
+    setTimeout(() => {
+      mockChildProcess.emit('error', new Error('Spawn error'));
+    }, 0);
 
-      // Simulate an error event
-      setTimeout(() => {
-        mockChildProcess.emit('error', new Error('Spawn error'));
-        resolve();
-      }, 0);
-
-      handleAutoUpdate(mockUpdateInfo, mockSettings, '/root', mockSpawn);
-    });
+    handleAutoUpdate(mockUpdateInfo, mockSettings, '/root', mockSpawn);
 
     expect(mockUpdateEventEmitter.emit).toHaveBeenCalledWith('update-failed', {
       message:
@@ -258,8 +229,6 @@ describe('handleAutoUpdate', () => {
       packageManager: PackageManager.NPM,
     }));
 
-    });
-
     handleAutoUpdate(mockUpdateInfo, mockSettings, '/root', mockSpawn);
 
     expect(mockSpawn).toHaveBeenCalledWith(
@@ -272,24 +241,19 @@ describe('handleAutoUpdate', () => {
   });
 
   it('should emit "update-success" when the update process succeeds', async () => {
-    await new Promise<void>((resolve) => {
-      mockGetInstallationInfo.mockReturnValue(Promise.resolve({
-        updateCommand: 'npm i -g @google/gemini-cli@latest',
-        updateMessage: 'This is an additional message.',
-        isGlobal: false,
-        packageManager: PackageManager.NPM,
+    mockGetInstallationInfo.mockReturnValue(Promise.resolve({
+      updateCommand: 'npm i -g @google/gemini-cli@latest',
+      updateMessage: 'This is an additional message.',
+      isGlobal: false,
+      packageManager: PackageManager.NPM,
     }));
 
-      });
+    // Simulate successful execution
+    setTimeout(() => {
+      mockChildProcess.emit('close', 0);
+    }, 0);
 
-      // Simulate successful execution
-      setTimeout(() => {
-        mockChildProcess.emit('close', 0);
-        resolve();
-      }, 0);
-
-      handleAutoUpdate(mockUpdateInfo, mockSettings, '/root', mockSpawn);
-    });
+    handleAutoUpdate(mockUpdateInfo, mockSettings, '/root', mockSpawn);
 
     expect(mockUpdateEventEmitter.emit).toHaveBeenCalledWith('update-success', {
       message:
