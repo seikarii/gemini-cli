@@ -7,6 +7,7 @@
 // File for 'gemini mcp remove' command
 import type { CommandModule } from 'yargs';
 import { loadSettings, SettingScope } from '../../config/settings.js';
+import { logger } from '../../config/logger.js';
 
 async function removeMcpServer(
   name: string,
@@ -14,24 +15,29 @@ async function removeMcpServer(
     scope: string;
   },
 ) {
-  const { scope } = options;
-  const settingsScope =
-    scope === 'user' ? SettingScope.User : SettingScope.Workspace;
-  const settings = await loadSettings(process.cwd());
+  try {
+    const { scope } = options;
+    const settingsScope =
+      scope === 'user' ? SettingScope.User : SettingScope.Workspace;
+    const settings = await loadSettings(process.cwd());
 
-  const existingSettings = settings.forScope(settingsScope).settings;
-  const mcpServers = existingSettings.mcpServers || {};
+    const existingSettings = settings.forScope(settingsScope).settings;
+    const mcpServers = existingSettings.mcpServers || {};
 
-  if (!mcpServers[name]) {
-    console.log(`Server "${name}" not found in ${scope} settings.`);
-    return;
+    if (!mcpServers[name]) {
+      logger.info(`Server "${name}" not found in ${scope} settings.`);
+      return;
+    }
+
+    delete mcpServers[name];
+
+    settings.setValue(settingsScope, 'mcpServers', mcpServers);
+
+    logger.info(`Server "${name}" removed from ${scope} settings.`);
+  } catch (error) {
+    logger.error(`Failed to remove MCP server "${name}": ${error}`);
+    throw error;
   }
-
-  delete mcpServers[name];
-
-  settings.setValue(settingsScope, 'mcpServers', mcpServers);
-
-  console.log(`Server "${name}" removed from ${scope} settings.`);
 }
 
 export const removeCommand: CommandModule = {

@@ -36,6 +36,33 @@ import { randomUUID } from 'crypto';
 import { Extension } from '../config/extension.js';
 import { CliArgs, loadCliConfig } from '../config/config.js';
 
+// Create a proper logger utility instead of reassigning console methods
+class Logger {
+  private isDebugEnabled(): boolean {
+    return process.env.DEBUG === 'true' || process.env.DEBUG_MODE === 'true';
+  }
+
+  debug(message: string, ...args: unknown[]): void {
+    if (this.isDebugEnabled()) {
+      console.error(`[DEBUG] ${message}`, ...args);
+    }
+  }
+
+  info(message: string, ...args: unknown[]): void {
+    console.error(`[INFO] ${message}`, ...args);
+  }
+
+  warn(message: string, ...args: unknown[]): void {
+    console.error(`[WARN] ${message}`, ...args);
+  }
+
+  error(message: string, ...args: unknown[]): void {
+    console.error(`[ERROR] ${message}`, ...args);
+  }
+}
+
+const logger = new Logger();
+
 export async function runZedIntegration(
   config: Config,
   settings: LoadedSettings,
@@ -46,10 +73,8 @@ export async function runZedIntegration(
   const stdin = Readable.toWeb(process.stdin) as ReadableStream<Uint8Array>;
 
   // Stdout is used to send messages to the client, so console.log/console.info
-  // messages to stderr so that they don't interfere with ACP.
-  console.log = console.error;
-  console.info = console.error;
-  console.debug = console.error;
+  // messages should go to stderr so that they don't interfere with ACP.
+  // Instead of reassigning console methods, we'll use a proper logger.
 
   new acp.AgentSideConnection(
     (client: acp.Client) =>
@@ -129,7 +154,7 @@ class GeminiAgent {
         await config.refreshAuth(this.settings.merged.selectedAuthType);
         isAuthenticated = true;
       } catch (e) {
-        console.error(`Authentication failed: ${e}`);
+        logger.error(`Authentication failed: ${e}`);
       }
     }
 
@@ -556,7 +581,7 @@ class Session {
         const reason = respectGitIgnore
           ? 'git-ignored and will be skipped'
           : 'ignored by custom patterns';
-        console.warn(`Path ${pathName} is ${reason}.`);
+        logger.warn(`Path ${pathName} is ${reason}.`);
         continue;
       }
       let currentPathSpec = pathName;
@@ -569,22 +594,22 @@ class Session {
             currentPathSpec = pathName.endsWith('/')
               ? `${pathName}**`
               : `${pathName}/**`;
-            this.debug(
+            logger.debug(
               `Path ${pathName} resolved to directory, using glob: ${currentPathSpec}`,
             );
           } else {
-            this.debug(`Path ${pathName} resolved to file: ${currentPathSpec}`);
+            logger.debug(`Path ${pathName} resolved to file: ${currentPathSpec}`);
           }
           resolvedSuccessfully = true;
         } else {
-          this.debug(
+          logger.debug(
             `Path ${pathName} is outside the project directory. Skipping.`,
           );
         }
       } catch (error) {
         if (isNodeError(error) && error.code === 'ENOENT') {
           if (this.config.getEnableRecursiveFileSearch() && globTool) {
-            this.debug(
+            logger.debug(
               `Path ${pathName} not found directly, attempting glob search.`,
             );
             try {
@@ -608,32 +633,32 @@ class Session {
                     this.config.getTargetDir(),
                     firstMatchAbsolute,
                   );
-                  this.debug(
+                  logger.debug(
                     `Glob search for ${pathName} found ${firstMatchAbsolute}, using relative path: ${currentPathSpec}`,
                   );
                   resolvedSuccessfully = true;
                 } else {
-                  this.debug(
+                  logger.debug(
                     `Glob search for '**/*${pathName}*' did not return a usable path. Path ${pathName} will be skipped.`,
                   );
                 }
               } else {
-                this.debug(
+                logger.debug(
                   `Glob search for '**/*${pathName}*' found no files or an error. Path ${pathName} will be skipped.`,
                 );
               }
             } catch (globError) {
-              console.error(
-                `Error during glob search for ${pathName}: ${getErrorMessage(globError)}`,
-              );
+        logger.error(
+          `Error during glob search for ${pathName}: ${getErrorMessage(globError)}`,
+        );
             }
           } else {
-            this.debug(
+            logger.debug(
               `Glob tool not found. Path ${pathName} will be skipped.`,
             );
           }
         } else {
-          console.error(
+          logger.error(
             `Error stating path ${pathName}. Path ${pathName} will be skipped.`,
           );
         }
@@ -694,7 +719,7 @@ class Session {
     // Inform user about ignored paths
     if (ignoredPaths.length > 0) {
       const ignoreType = respectGitIgnore ? 'git-ignored' : 'custom-ignored';
-      this.debug(
+      logger.debug(
         `Ignored ${ignoredPaths.length} ${ignoreType} files: ${ignoredPaths.join(', ')}`,
       );
     }
@@ -703,7 +728,7 @@ class Session {
 
     if (pathSpecsToRead.length === 0 && embeddedContext.length === 0) {
       // Fallback for lone "@" or completely invalid @-commands resulting in empty initialQueryText
-      console.warn('No valid file paths found in @ commands to read.');
+      logger.warn('No valid file paths found in @ commands to read.');
       return [{ text: initialQueryText }];
     }
 
@@ -815,12 +840,6 @@ class Session {
     }
 
     return processedQueryParts;
-  }
-
-  debug(msg: string) {
-    if (this.config.getDebugMode()) {
-      console.warn(msg);
-    }
   }
 }
 

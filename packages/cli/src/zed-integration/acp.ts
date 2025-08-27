@@ -23,42 +23,46 @@ export class AgentSideConnection implements Client {
   ) {
     const agent = toAgent(this);
 
+    // Define method handlers in a decoupled way
+    const methodHandlers = new Map<string, (params: unknown) => Promise<unknown>>([
+      ['initialize', (params) => {
+        const validatedParams = schema.initializeRequestSchema.parse(params);
+        return agent.initialize(validatedParams);
+      }],
+      ['session/new', (params) => {
+        const validatedParams = schema.newSessionRequestSchema.parse(params);
+        return agent.newSession(validatedParams);
+      }],
+      ['session/load', (params) => {
+        if (!agent.loadSession) {
+          throw RequestError.methodNotFound();
+        }
+        const validatedParams = schema.loadSessionRequestSchema.parse(params);
+        return agent.loadSession(validatedParams);
+      }],
+      ['authenticate', (params) => {
+        const validatedParams = schema.authenticateRequestSchema.parse(params);
+        return agent.authenticate(validatedParams);
+      }],
+      ['session/prompt', (params) => {
+        const validatedParams = schema.promptRequestSchema.parse(params);
+        return agent.prompt(validatedParams);
+      }],
+      ['session/cancel', (params) => {
+        const validatedParams = schema.cancelNotificationSchema.parse(params);
+        return agent.cancel(validatedParams);
+      }],
+    ]);
+
     const handler = async (
       method: string,
       params: unknown,
     ): Promise<unknown> => {
-      switch (method) {
-        case schema.AGENT_METHODS.initialize: {
-          const validatedParams = schema.initializeRequestSchema.parse(params);
-          return agent.initialize(validatedParams);
-        }
-        case schema.AGENT_METHODS.session_new: {
-          const validatedParams = schema.newSessionRequestSchema.parse(params);
-          return agent.newSession(validatedParams);
-        }
-        case schema.AGENT_METHODS.session_load: {
-          if (!agent.loadSession) {
-            throw RequestError.methodNotFound();
-          }
-          const validatedParams = schema.loadSessionRequestSchema.parse(params);
-          return agent.loadSession(validatedParams);
-        }
-        case schema.AGENT_METHODS.authenticate: {
-          const validatedParams =
-            schema.authenticateRequestSchema.parse(params);
-          return agent.authenticate(validatedParams);
-        }
-        case schema.AGENT_METHODS.session_prompt: {
-          const validatedParams = schema.promptRequestSchema.parse(params);
-          return agent.prompt(validatedParams);
-        }
-        case schema.AGENT_METHODS.session_cancel: {
-          const validatedParams = schema.cancelNotificationSchema.parse(params);
-          return agent.cancel(validatedParams);
-        }
-        default:
-          throw RequestError.methodNotFound(method);
+      const methodHandler = methodHandlers.get(method);
+      if (!methodHandler) {
+        throw RequestError.methodNotFound(method);
       }
+      return methodHandler(params);
     };
 
     this.#connection = new Connection(handler, input, output);

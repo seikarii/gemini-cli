@@ -6,37 +6,32 @@
 
 import { z } from 'zod';
 
-export const AGENT_METHODS = {
-  authenticate: 'authenticate',
-  initialize: 'initialize',
-  session_cancel: 'session/cancel',
-  session_load: 'session/load',
-  session_new: 'session/new',
-  session_prompt: 'session/prompt',
-};
-
-export const CLIENT_METHODS = {
-  fs_read_text_file: 'fs/read_text_file',
-  fs_write_text_file: 'fs/write_text_file',
-  session_request_permission: 'session/request_permission',
-  session_update: 'session/update',
-};
-
 export const PROTOCOL_VERSION = 1;
 
+// Convert magic strings to enums for better type safety
+export enum AgentMethods {
+  authenticate = 'authenticate',
+  initialize = 'initialize',
+  session_cancel = 'session/cancel',
+  session_load = 'session/load',
+  session_new = 'session/new',
+  session_prompt = 'session/prompt',
+}
 
+export enum ClientMethods {
+  fs_read_text_file = 'fs/read_text_file',
+  fs_write_text_file = 'fs/write_text_file',
+  session_request_permission = 'session/request_permission',
+  session_update = 'session/update',
+}
 
-export type PermissionOptionKind = z.infer<typeof permissionOptionKindSchema>;
+// Keep backward compatibility
+export const AGENT_METHODS = AgentMethods;
+export const CLIENT_METHODS = ClientMethods;
 
-export type Role = z.infer<typeof roleSchema>;
-
-export type TextResourceContents = z.infer<typeof textResourceContentsSchema>;
-
-export type BlobResourceContents = z.infer<typeof blobResourceContentsSchema>;
-
-export type ToolKind = z.infer<typeof toolKindSchema>;
-
-export type ToolCallStatus = z.infer<typeof toolCallStatusSchema>;
+// =============================================================================
+// COMMON SCHEMAS
+// =============================================================================
 
 export type WriteTextFileResponse = z.infer<typeof writeTextFileResponseSchema>;
 
@@ -126,6 +121,10 @@ export type AgentRequest = z.infer<typeof agentRequestSchema>;
 
 export type AgentNotification = z.infer<typeof agentNotificationSchema>;
 
+// =============================================================================
+// FILE SYSTEM SCHEMAS
+// =============================================================================
+
 export const writeTextFileRequestSchema = z.object({
   content: z.string(),
   path: z.string(),
@@ -198,6 +197,10 @@ export const requestPermissionOutcomeSchema = z.union([
     outcome: z.literal('selected'),
   }),
 ]);
+
+// =============================================================================
+// SESSION SCHEMAS
+// =============================================================================
 
 export const cancelNotificationSchema = z.object({
   sessionId: z.string(),

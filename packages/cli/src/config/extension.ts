@@ -50,7 +50,12 @@ async function loadExtensionsFromDir(dir: string): Promise<Extension[]> {
   const extensionsDir = storage.getExtensionsDir();
   try {
     await fs.promises.access(extensionsDir);
-  } catch (_) {
+  } catch (error) {
+    // Only ignore ENOENT (directory doesn't exist), log other errors
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      return [];
+    }
+    logger.warn(`Error accessing extensions directory ${extensionsDir}: ${error}`);
     return [];
   }
 
@@ -77,18 +82,27 @@ async function loadExtension(extensionDir: string): Promise<Extension | null> {
       );
       return null;
     }
-  } catch (_e) {
-    // If the path doesn't exist or is not accessible, skip it
+  } catch (error) {
+    // Only ignore ENOENT (path doesn't exist), log other errors as they might indicate permission issues
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      return null;
+    }
+    logger.warn(`Error accessing extension directory ${extensionDir}: ${error}`);
     return null;
   }
 
   const configFilePath = path.join(extensionDir, EXTENSIONS_CONFIG_FILENAME);
   try {
     await fs.promises.access(configFilePath);
-  } catch (_) {
-    logger.warn(
-      `extension directory ${extensionDir} does not contain a config file ${configFilePath}.`,
-    );
+  } catch (error) {
+    // Only ignore ENOENT (config file doesn't exist), log other errors
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      logger.warn(
+        `extension directory ${extensionDir} does not contain a config file ${configFilePath}.`,
+      );
+      return null;
+    }
+    logger.warn(`Error accessing config file ${configFilePath}: ${error}`);
     return null;
   }
 
@@ -109,8 +123,12 @@ async function loadExtension(extensionDir: string): Promise<Extension | null> {
       try {
         await fs.promises.access(contextFilePath);
         contextFiles.push(contextFilePath);
-      } catch (_) {
-        // not present, skip
+      } catch (error) {
+        // Only ignore ENOENT (context file doesn't exist), log other errors
+        if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) {
+          logger.warn(`Error accessing context file ${contextFilePath}: ${error}`);
+        }
+        // If ENOENT or other error, skip this context file
       }
     }
 
@@ -142,6 +160,7 @@ export function annotateActiveExtensions(
 ): GeminiCLIExtension[] {
   const annotatedExtensions: GeminiCLIExtension[] = [];
 
+  // If no specific extensions are enabled, enable all extensions by default
   if (enabledExtensionNames.length === 0) {
     return extensions.map((extension) => ({
       name: extension.config.name,
@@ -151,10 +170,12 @@ export function annotateActiveExtensions(
     }));
   }
 
+  // Normalize extension names to lowercase for case-insensitive comparison
   const lowerCaseEnabledExtensions = new Set(
     enabledExtensionNames.map((e) => e.trim().toLowerCase()),
   );
 
+  // Special case: if only "none" is specified, disable all extensions
   if (
     lowerCaseEnabledExtensions.size === 1 &&
     lowerCaseEnabledExtensions.has('none')
@@ -167,14 +188,16 @@ export function annotateActiveExtensions(
     }));
   }
 
+  // Track which requested extensions were not found
   const notFoundNames = new Set(lowerCaseEnabledExtensions);
 
+  // Process each available extension and mark it as active if it was requested
   for (const extension of extensions) {
     const lowerCaseName = extension.config.name.toLowerCase();
     const isActive = lowerCaseEnabledExtensions.has(lowerCaseName);
 
     if (isActive) {
-      notFoundNames.delete(lowerCaseName);
+      notFoundNames.delete(lowerCaseName); // Remove from not-found set
     }
 
     annotatedExtensions.push({
@@ -185,6 +208,7 @@ export function annotateActiveExtensions(
     });
   }
 
+  // Report any requested extensions that were not found
   for (const requestedName of notFoundNames) {
     logger.error(`Extension not found: ${requestedName}`);
   }

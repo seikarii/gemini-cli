@@ -33,8 +33,6 @@ export class AcpFileSystemService implements FileSystemService {
     const response = await this.client.readTextFile({
       path: filePath,
       sessionId: this.sessionId,
-      line: null,
-      limit: null,
     });
 
     return {
