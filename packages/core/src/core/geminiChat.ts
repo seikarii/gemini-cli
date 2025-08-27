@@ -587,6 +587,14 @@ export class GeminiChat {
       result = structuredClone(history);
     }
 
+    // CRITICAL FIX: Invert the order for curated history to prioritize recent messages
+    // This ensures that when the context is truncated due to token limits,
+    // the most recent and relevant information is preserved
+    if (curated && result.length > 0) {
+      result = result.reverse();
+      console.debug(`[Context Optimization] Reversed ${result.length} messages to prioritize recent context`);
+    }
+
     const endTime = performance.now();
     if (endTime - startTime > 50) {
       // Log if cloning takes >50ms

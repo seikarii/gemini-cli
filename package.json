@@ -44,7 +44,7 @@
     "test:integration:sandbox:podman": "GEMINI_SANDBOX=podman vitest run --root ./integration-tests",
     "lint": "eslint . --ext .ts,.tsx --ignore-pattern '**/.gemini_checkpoints/**' && eslint integration-tests --ignore-pattern '**/.gemini_checkpoints/**'",
     "lint:fix": "eslint . --fix --ignore-pattern '**/.gemini_checkpoints/**' && eslint integration-tests --fix --ignore-pattern '**/.gemini_checkpoints/**'",
-    "lint:ci": "eslint . --ext .ts,.tsx --max-warnings 0 && eslint integration-tests --max-warnings 0",
+    "lint:ci": "eslint . --ext .ts,.tsx --max-warnings 0 --ignore-pattern '**/.gemini_checkpoints/**' && eslint integration-tests --max-warnings 0 --ignore-pattern '**/.gemini_checkpoints/**'",
     "format": "prettier --experimental-cli --write .",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "duplicate-check": "jscpd packages",

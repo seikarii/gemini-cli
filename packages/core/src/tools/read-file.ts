@@ -17,7 +17,7 @@ import {
 } from './tools.js';
 import { ToolErrorType } from './tool-error.js';
 
-import { PartUnion } from '@google/genai';
+import { PartListUnion, PartUnion } from '@google/genai';
 import {
   processSingleFileContent,
   getSpecificMimeType,
@@ -102,6 +102,7 @@ class ReadFileToolInvocation extends BaseToolInvocation<
   private static readonly FAST_TIMEOUT = 1000; // 1 second for initial checks
   private static readonly SLOW_TIMEOUT = 3000; // 3 seconds for comprehensive checks
   private static readonly MAX_CONCURRENT_CHECKS = 10; // Check 10 ports simultaneously
+  private static readonly MAX_AST_CONTENT_SIZE = 200 * 1024; // 200KB limit for AST content to prevent API issues
 
   constructor(
     private config: Config,
@@ -588,12 +589,15 @@ class ReadFileToolInvocation extends BaseToolInvocation<
       }
 
       // Add AST tree structure if requested and sourceFile is available
-      if (this.params.show_ast_tree !== false && parseResult.sourceFile) {
+      // Skip for large files to prevent API issues
+      if (this.params.show_ast_tree !== false && parseResult.sourceFile && parseResult.fileInfo.sizeBytes < 500 * 1024) {
         astContent += `🌲 **AST Tree Structure:**\n`;
         const astTree = this.buildASTTree(parseResult.sourceFile);
         astContent += '```\n';
         astContent += this.formatASTTree(astTree);
         astContent += '```\n\n';
+      } else if (this.params.show_ast_tree !== false && parseResult.sourceFile && parseResult.fileInfo.sizeBytes >= 500 * 1024) {
+        astContent += `🌲 **AST Tree Structure:** Skipped for large file (>500KB) to prevent API issues.\n\n`;
       }
 
       // Perform AST query if specified
@@ -658,6 +662,12 @@ class ReadFileToolInvocation extends BaseToolInvocation<
 
       astContent += '---\n\n';
 
+      // Limit AST content size to prevent API issues
+      if (astContent.length > ReadFileToolInvocation.MAX_AST_CONTENT_SIZE) {
+        const truncatedLength = ReadFileToolInvocation.MAX_AST_CONTENT_SIZE - 100;
+        astContent = astContent.substring(0, truncatedLength) + '\n\n⚠️ **AST content truncated** to prevent API issues.\n\n---\n\n';
+      }
+
       return { astContent, parseResult };
     } catch (error) {
       return {
@@ -705,7 +715,7 @@ class ReadFileToolInvocation extends BaseToolInvocation<
       finalContent += astAnalysis.astContent;
     }
 
-    const MAX_LLM_CONTENT_SIZE = 1024 * 1024; // 1MB limit for LLM content
+    const MAX_LLM_CONTENT_SIZE = 512 * 1024; // 512KB limit for LLM content
 
     if (result.isTruncated) {
       const [start, end] = result.linesShown!;
@@ -715,7 +725,7 @@ class ReadFileToolInvocation extends BaseToolInvocation<
         : end;
 
       finalContent += `
-⚠️ **IMPORTANT: File content has been truncated.**
+IMPORTANT: The file content has been truncated.
 📊 Status: Showing lines ${start}-${end} of ${total} total lines.
 🔧 Action: To read more of the file, use the 'offset' and 'limit' parameters in a subsequent 'read_file' call.
 📍 Next section: Use offset: ${nextOffset}
@@ -723,11 +733,16 @@ class ReadFileToolInvocation extends BaseToolInvocation<
 --- FILE CONTENT (truncated) ---
 ${result.llmContent}`;
     } else {
-      finalContent += `📄 **FILE CONTENT:**\n\n${result.llmContent || ''}`;
+      // Only add header if there's AST content or for better formatting
+      const content = result.llmContent;
+      if (astAnalysis && astAnalysis.astContent && typeof content === 'string') {
+        finalContent = `📄 **FILE CONTENT:**\n\n${content}`;
+      } else {
+        finalContent = typeof content === 'string' ? content : JSON.stringify(content);
+      }
     }
 
-    const llmContent: PartUnion =
-      finalContent || '📄 **FILE CONTENT:** (empty file)';
+    const llmContent: PartListUnion = [{ text: finalContent }];
 
     // Allow llmContent to be either a string (text) or an object with expected parts
     const mimetype = getSpecificMimeType(this.params.absolute_path);
@@ -735,30 +750,12 @@ ${result.llmContent}`;
       absolute_path: this.params.absolute_path,
     });
 
-    const isString = typeof llmContent === 'string';
+    // llmContent is now always a PartListUnion array, so we don't need the format validation
+    // The validation was moved earlier in the process
 
-    function isPartUnion(value: unknown): value is PartUnion {
-      if (!value || typeof value !== 'object') return false;
-      const v = value as Record<string, unknown>;
-      return 'text' in v || 'inlineData' in v;
-    }
-
-    const isPartObject = isPartUnion(llmContent);
-
-    if (!isString && !isPartObject) {
-      const errorMsg = `File content is not in a supported format. Mime type: ${mimetype}`;
-      return {
-        llmContent: errorMsg,
-        returnDisplay: `❌ Error: ${errorMsg}`,
-        error: {
-          message: errorMsg,
-          type: ToolErrorType.READ_CONTENT_FAILURE,
-        },
-      };
-    }
-
-    if (isString && (llmContent as string).length > MAX_LLM_CONTENT_SIZE) {
-      const errorMsg = `File content exceeds maximum allowed size for LLM (${MAX_LLM_CONTENT_SIZE} bytes). Actual size: ${(llmContent as string).length} bytes.`;
+    // Since llmContent is now always a PartListUnion, we check the original finalContent for size
+    if (finalContent.length > MAX_LLM_CONTENT_SIZE) {
+      const errorMsg = `File content exceeds maximum allowed size for LLM (${MAX_LLM_CONTENT_SIZE} bytes). Actual size: ${finalContent.length} bytes.`;
       return {
         llmContent: errorMsg,
         returnDisplay: `❌ Error: ${errorMsg}`,
@@ -769,8 +766,8 @@ ${result.llmContent}`;
       };
     }
 
-    const lines = isString
-      ? (result.llmContent as string).split('\n').length
+    const lines = typeof result.llmContent === 'string'
+      ? result.llmContent.split('\n').length
       : undefined;
     logFileOperation(
       this.config,
@@ -794,14 +791,21 @@ ${result.llmContent}`;
       }
     }
 
-    // If the PartUnion is an object containing text, many existing tests expect a plain string.
-    // Unwrap { text: string } -> string for backward compatibility, but keep inlineData objects as-is.
-    let finalLlmContent: PartUnion = llmContent;
-    if (!isString && isPartObject) {
-      const obj = llmContent as unknown as Record<string, unknown>;
-      if ('text' in obj && typeof obj['text'] === 'string') {
-        finalLlmContent = obj['text'] as string;
-      }
+    // For backward compatibility, return string for simple text content
+    // and PartListUnion only for complex content like images/PDFs
+    let finalLlmContent: string | PartListUnion = finalContent;
+    
+    // For inlineData objects (images/PDFs), return the object directly for backward compatibility
+    if (result.llmContent && typeof result.llmContent === 'object' && 'inlineData' in result.llmContent) {
+      finalLlmContent = result.llmContent as PartUnion;
+    }
+    // For objects with text property (like error messages), extract the text value
+    else if (result.llmContent && typeof result.llmContent === 'object' && 'text' in result.llmContent) {
+      finalLlmContent = (result.llmContent as { text: string }).text;
+    }
+    // For other objects, stringify them
+    else if (result.llmContent && typeof result.llmContent === 'object') {
+      finalLlmContent = JSON.stringify(result.llmContent);
     }
 
     return {
