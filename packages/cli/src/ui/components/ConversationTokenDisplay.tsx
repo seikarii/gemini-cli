@@ -32,7 +32,6 @@ export const ConversationTokenDisplay: React.FC<
   const [lastMessageTokenCount, setLastMessageTokenCount] = useState<
     number | null
   >(null);
-  const [isLoadingTokens, setIsLoadingTokens] = useState(false);
 
   // Refs for debouncing and mounted state
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -52,8 +51,6 @@ export const ConversationTokenDisplay: React.FC<
       if (!isMountedRef.current) return;
 
       try {
-        setIsLoadingTokens(true);
-
         // Load both token counts in parallel
         const [currentTokens, lastMessageTokens] = await Promise.all([
           getCurrentTokenCount(),
@@ -67,10 +64,6 @@ export const ConversationTokenDisplay: React.FC<
       } catch (error) {
         // Silently handle errors to avoid disrupting the UI
         console.warn('Failed to load token counts:', error);
-      } finally {
-        if (isMountedRef.current) {
-          setIsLoadingTokens(false);
-        }
       }
     }, 300); // 300ms debounce delay
   }, [getCurrentTokenCount, getLastMessageTokenCount]);
