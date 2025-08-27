@@ -208,7 +208,7 @@ export class GeminiChat {
     private readonly config: Config,
     private readonly contentGenerator: ContentGenerator,
     private readonly generationConfig: GenerateContentConfig = {},
-    private history: Content[] = [],
+    protected history: Content[] = [],
   ) {
     validateHistory(history);
   }
@@ -587,26 +587,11 @@ export class GeminiChat {
       result = structuredClone(history);
     }
 
-    // CRITICAL FIX: Invert the order for curated history to prioritize recent messages
-    // This ensures that when the context is truncated due to token limits,
-    // the most recent and relevant information is preserved
-    //
-    // EXCEPTION: Do NOT reverse history if it contains function calls/responses
-    // because the Gemini API requires function calls and responses to be in
-    // the correct chronological order to match function response parts
-    if (curated && result.length > 0) {
-      // Check if history contains function calls or responses
-      const hasFunctionCalls = result.some(content =>
-        content.parts?.some(part => 'functionCall' in part || 'functionResponse' in part)
-      );
-
-      if (hasFunctionCalls) {
-        console.debug(`[Function Call Protection] Preserving chronological order for ${result.length} messages containing function calls/responses`);
-      } else {
-        result = result.reverse();
-        console.debug(`[Context Optimization] Reversed ${result.length} messages to prioritize recent context`);
-      }
-    }
+    // REMOVED: Previous "CRITICAL FIX" logic that reversed history for token management.
+    // Context optimization and intelligent ordering is now handled by 
+    // PromptContextManager and EnhancedGeminiChatProxy for more sophisticated
+    // RAG-enhanced context assembly.
+    // This method now returns the raw chronological history as requested.
 
     const endTime = performance.now();
     if (endTime - startTime > 50) {
@@ -645,8 +630,9 @@ export class GeminiChat {
 
   /**
    * Sets the entire history and invalidates cache.
+   * Protected to allow RAG-enhanced wrappers clean access for context management.
    */
-  setHistory(history: Content[]): void {
+  protected setHistory(history: Content[]): void {
     validateHistory(history);
     this.history = history;
     // Invalidate cache when history is replaced

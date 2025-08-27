@@ -35,7 +35,7 @@ export class RAGEnhancedGeminiChat {
       chatRecordingService,
       config,
       {
-        maxTotalTokens: 28000, // Conservative for most Gemini models
+        maxTotalTokens: 42000, // Conservative for most Gemini models
         maxRAGChunks: 6,
         ragRelevanceThreshold: 0.65,
         ragWeight: 0.35, // 35% RAG, 65% conversation

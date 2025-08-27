@@ -207,29 +207,54 @@ export class PromptContextManager {
     
     // Calculate token budget for conversation
     const ragTokenBudget = ragChunksCount * 500; // Estimate 500 tokens per chunk
-    const _conversationTokenBudget = Math.max(
+    const conversationTokenBudget = Math.max(
       this.config.maxTotalTokens - ragTokenBudget - 1000, // Reserve for system prompt
       5000 // Minimum conversation budget
     );
 
-    // Use ChatRecordingService's intelligent compression
-    // Note: This would require extending ChatRecordingService to accept token budget
-    
-    // For now, implement basic compression strategy
-    if (history.length <= 10) {
-      return { content: history, compressionLevel: 'none' };
-    }
+    // Use ChatRecordingService's advanced compression with flexible token budget
+    try {
+      const optimizedResult = await this.chatRecordingService.getOptimizedHistoryForPrompt(
+        conversationTokenBudget,
+        false // Don't include system info for performance
+      );
 
-    if (history.length <= 20) {
-      return { content: history.slice(-15), compressionLevel: 'minimal' };
-    }
+      // Determine compression level based on metadata
+      let compressionLevel = 'none';
+      if (optimizedResult.metaInfo.compressionApplied) {
+        const reductionRatio = 1 - (optimizedResult.metaInfo.finalMessageCount / optimizedResult.metaInfo.originalMessageCount);
+        if (reductionRatio < 0.3) {
+          compressionLevel = 'minimal';
+        } else if (reductionRatio < 0.6) {
+          compressionLevel = 'moderate';
+        } else {
+          compressionLevel = 'aggressive';
+        }
+      }
 
-    if (history.length <= 50) {
-      return { content: history.slice(-25), compressionLevel: 'moderate' };
-    }
+      return { 
+        content: optimizedResult.history, 
+        compressionLevel 
+      };
+    } catch (error) {
+      // Fallback to basic compression if ChatRecordingService fails
+      console.warn('Failed to get optimized history from ChatRecordingService, using fallback:', error);
+      
+      if (history.length <= 10) {
+        return { content: history, compressionLevel: 'none' };
+      }
 
-    // For very long histories, use aggressive compression
-    return { content: history.slice(-20), compressionLevel: 'aggressive' };
+      if (history.length <= 20) {
+        return { content: history.slice(-15), compressionLevel: 'minimal' };
+      }
+
+      if (history.length <= 50) {
+        return { content: history.slice(-25), compressionLevel: 'moderate' };
+      }
+
+      // For very long histories, use aggressive compression
+      return { content: history.slice(-20), compressionLevel: 'aggressive' };
+    }
   }
 
   /**

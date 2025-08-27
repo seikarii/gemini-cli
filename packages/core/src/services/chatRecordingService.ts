@@ -1,4 +1,5 @@
 import { PartListUnion, Status, ThoughtSummary, Config } from '../index.js';
+import { Content } from '@google/genai';
 
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -2222,6 +2223,99 @@ export class ChatRecordingService {
       recentMessages: optimized.messages,
       totalEstimatedTokens: totalTokens,
       compressionStats,
+    };
+  }
+
+  /**
+   * Gets optimized conversational history specifically designed for PromptContextManager integration.
+   * This method provides flexible token budget management and returns history in Content[] format.
+   *
+   * @param tokenBudget - Maximum number of tokens to allocate for history (default: 8000)
+   * @param includeSystemInfo - Whether to include compression stats in the result (default: false)
+   * @returns Optimized history formatted for integration with PromptContextManager
+   */
+  async getOptimizedHistoryForPrompt(
+    tokenBudget: number = 8000,
+    includeSystemInfo: boolean = false
+  ): Promise<{
+    history: Content[];
+    metaInfo: {
+      totalTokens: number;
+      originalMessageCount: number;
+      finalMessageCount: number;
+      compressionApplied: boolean;
+      compressionStats?: {
+        originalMessages: number;
+        compressedMessages: number;
+        tokenReduction: number;
+        compressionRatio: number;
+      };
+    };
+  }> {
+    if (!this.conversationFile) {
+      return {
+        history: [],
+        metaInfo: {
+          totalTokens: 0,
+          originalMessageCount: 0,
+          finalMessageCount: 0,
+          compressionApplied: false,
+        },
+      };
+    }
+
+    const conversation = await this.readConversation();
+
+    // Apply compression with custom token budget
+    const originalConfig = { ...this.compressionConfig };
+    this.compressionConfig.maxContextTokens = tokenBudget;
+    
+    const optimized = await this.compressContextIfNeeded(conversation);
+    
+    // Restore original config
+    this.compressionConfig = originalConfig;
+    
+    // Convert messages to Content[] format
+    const history: Content[] = optimized.messages.map((msg: MessageRecord) => ({
+      role: msg.type === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.content }],
+    }));
+
+    // Calculate total tokens
+    let totalTokens = 0;
+    for (const msg of optimized.messages) {
+      totalTokens += await this.estimateTokenCount(msg.content);
+    }
+    
+    if (optimized.compressedContext) {
+      totalTokens += optimized.compressedContext.compressedTokens;
+    }
+    
+    const originalMessageCount = optimized.compressedContext 
+      ? optimized.compressedContext.messageCount + optimized.messages.length 
+      : optimized.messages.length;
+    
+    const compressionApplied = !!optimized.compressedContext;
+    
+    let compressionStats;
+    if (compressionApplied && includeSystemInfo) {
+      compressionStats = {
+        originalMessages: originalMessageCount,
+        compressedMessages: optimized.messages.length,
+        tokenReduction: optimized.compressedContext!.originalTokens - optimized.compressedContext!.compressedTokens,
+        compressionRatio: optimized.compressedContext!.compressedTokens / optimized.compressedContext!.originalTokens,
+      };
+    }
+
+    return {
+      history,
+      metaInfo: {
+        totalTokens,
+        originalMessageCount,
+        finalMessageCount: optimized.messages.length,
+        compressionApplied,
+        compressionStats: includeSystemInfo ? compressionStats : undefined,
+      },
     };
   }
 
