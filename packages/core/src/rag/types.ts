@@ -373,9 +373,35 @@ export interface ContextAssemblyOptions {
 }
 
 /**
+ * Configuration for vector stores.
+ */
+export interface VectorStoreConfig {
+  provider: 'chroma' | 'pinecone' | 'weaviate' | 'qdrant' | 'memory';
+  connectionString?: string;
+  apiKey?: string;
+  collection?: string;
+  persistenceDirectory?: string;
+}
+
+/**
+ * Options for vector search operations.
+ */
+export interface VectorSearchOptions {
+  maxResults?: number;
+  threshold?: number;
+  filters?: QueryFilters;
+}
+
+/**
  * Abstract base class for vector stores.
  */
 export abstract class RAGVectorStore {
+  protected config: VectorStoreConfig;
+
+  constructor(config: VectorStoreConfig) {
+    this.config = config;
+  }
+
   abstract initialize(): Promise<void>;
   abstract addChunks(chunks: RAGChunk[]): Promise<void>;
   abstract updateChunks(chunks: RAGChunk[]): Promise<void>;
@@ -397,13 +423,8 @@ export abstract class RAGVectorStore {
  */
 export interface VectorStoreStats {
   totalChunks: number;
-  totalSize: number;
   indexSize: number;
   lastUpdated: string;
-  performance: {
-    averageQueryTime: number;
-    cacheHitRate: number;
-  };
 }
 
 /**
@@ -425,6 +446,83 @@ export interface EmbeddingModelInfo {
   maxTokens: number;
   isCodeSpecific: boolean;
   provider: string;
+}
+
+/**
+ * Source material for indexing into the RAG system.
+ */
+export interface IndexingSource {
+  /** Unique identifier for the source */
+  id: string;
+  /** Type of content being indexed */
+  type: ChunkType;
+  /** The content to be indexed */
+  content: string;
+  /** Additional metadata for the source */
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Result of indexing operation.
+ */
+export interface IndexingResult {
+  /** Total number of chunks created */
+  totalChunks: number;
+  /** Number of sources successfully processed */
+  successfulSources: number;
+  /** Any errors that occurred during indexing */
+  errors: Array<{
+    sourceId: string;
+    error: string;
+  }>;
+}
+
+/**
+ * Options for enhancing queries.
+ */
+export interface QueryEnhancementOptions {
+  /** Maximum number of tokens in the result context */
+  maxTokens?: number;
+  /** Whether to include dependency information */
+  includeDependencies?: boolean;
+  /** Whether to include documentation context */
+  includeDocumentation?: boolean;
+  /** Whether to compress older content */
+  compressOlder?: boolean;
+}
+
+/**
+ * Enhanced query result with context.
+ */
+export interface EnhancedQueryResult {
+  /** The assembled context content */
+  content: string;
+  /** Total number of tokens in the context */
+  tokenCount: number;
+  /** Source chunks used to build the context */
+  sourceChunks: RAGChunk[];
+  /** Metadata about the enhancement process */
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * RAG system performance metrics.
+ */
+export interface RAGMetrics {
+  /** Total number of queries processed */
+  totalQueries: number;
+  /** Total number of chunks indexed */
+  totalChunksIndexed: number;
+  /** Average time for retrieval operations (ms) */
+  averageRetrievalTime: number;
+  /** Cache hit rate (0-1) */
+  cacheHitRate: number;
+  /** Memory usage statistics */
+  memoryUsage?: {
+    heapUsed: number;
+    heapTotal: number;
+    external: number;
+  };
 }
 
 /**

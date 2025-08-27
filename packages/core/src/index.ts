@@ -64,6 +64,11 @@ export * from './services/fileSystemService.js';
 export * from './services/loopDetectionService.js';
 export * from './services/chatRecordingService.js';
 
+// Export RAG System
+export * from './rag/types.js';
+export * from './rag/ragService.js';
+export * from './rag/logger.js';
+
 // Export IDE specific logic
 export * from './ide/ide-client.js';
 export * from './ide/ideContext.js';
