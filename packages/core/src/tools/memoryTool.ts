@@ -2,8 +2,14 @@ interface Config {
   getFileSystemService(): {
     readTextFile: (path: string) => Promise<{ success: boolean; data?: string; error?: string }>;
     writeTextFile: (path: string, data: string) => Promise<{ success: boolean; error?: string }>;
-    createDirectory: (path: string, options: { recursive: boolean }) => Promise<void>;
+    createDirectory: (path: string, options: { recursive: boolean }) => Promise<{ success: boolean; error?: string }>;
   };
+}
+
+export interface SaveMemoryParams {
+  fact: string;
+  modified_by_user?: boolean;
+  modified_content?: string;
 }
 /**
  * @license
@@ -97,11 +103,6 @@ export function getAllGeminiMdFilenames(): string[] {
   return [currentGeminiMdFilename];
 }
 
-interface SaveMemoryParams {
-  fact: string;
-  modified_by_user?: boolean;
-  modified_content?: string;
-}
 
 function getGlobalMemoryFilePath(): string {
   return path.join(Storage.getGlobalGeminiDir(), getCurrentGeminiMdFilename());

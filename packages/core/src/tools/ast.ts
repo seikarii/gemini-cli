@@ -4,147 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  BaseDeclarativeTool,
-  BaseToolInvocation,
-  Kind,
-  ToolInvocation,
-  ToolResult,
-} from './tools.js';
+import { BaseDeclarativeTool, BaseToolInvocation, Kind, ToolInvocation, ToolResult } from './tools.js';
+import { generateUnifiedDiff } from './diffPreview.js';
 import { Config } from '../config/config.js';
-import {
-  parseSourceToSourceFile,
-  extractIntentionsFromSourceFile,
-} from '../ast/parser.js';
-import {
-  ASTQuery,
-  DictionaryQuery,
-  ASTQuery as _ASTQuery,
-} from '../ast/models.js';
-
-// Modifier imports
-import { ASTModifier } from '../ast/modifier.js';
-import { ModificationSpec, ModificationOperation } from '../ast/models.js';
+import { parseSourceToSourceFile } from '../ast/parser.js';
+import { ASTQuery, DictionaryQuery } from '../ast/models.js';
 import { findNodes } from '../ast/finder.js';
-import { Node } from 'ts-morph';
-
-/**
- * Very small, dependency-free line-oriented unified-ish diff generator.
- * Not perfect, but returns a readable diff for preview mode without adding deps.
- */
-function generateSimpleLineDiff(
-  oldText: string,
-  newText: string,
-  filePath: string,
-) {
-  const oldLines = oldText.split(/\r\n|\r|\n/);
-  const newLines = newText.split(/\r\n|\r|\n/);
-  const max = Math.max(oldLines.length, newLines.length);
-  const out: string[] = [];
-  out.push(`--- ${filePath}`);
-  out.push(`+++ ${filePath} (modified)`);
-  out.push('');
-  for (let i = 0; i < max; i++) {
-    const o = oldLines[i];
-    const n = newLines[i];
-    if (o === n) {
-      // show a small context window only for readability
-      if (i === 0 || i % 200 === 0) {
-        out.push(' ' + (o ?? ''));
-      }
-    } else {
-      if (o !== undefined) out.push('-' + o);
-      if (n !== undefined) out.push('+' + n);
-    }
-  }
-  return out.join('\n');
-}
-
-//=================================================================================================
-// AST Read Tool
-//=================================================================================================
-
-export interface ASTReadToolParams {
-  file_path: string;
-}
-
-class ASTReadToolInvocation extends BaseToolInvocation<
-  ASTReadToolParams,
-  ToolResult
-> {
-  constructor(
-    private readonly config: Config,
-    private readonly toolParams: ASTReadToolParams,
-  ) {
-    super(toolParams);
-  }
-
-  getDescription(): string {
-    return `Reading AST and intentions from ${this.toolParams.file_path}`;
-  }
-
-  async execute(): Promise<ToolResult> {
-    const { file_path } = this.toolParams;
-    const fs = this.config.getFileSystemService();
-
-    const readResult = await fs.readTextFile(file_path);
-    if (!readResult.success) {
-      return {
-        llmContent: `Error: Could not read file: ${readResult.error}`,
-        returnDisplay: `Error: Could not read file: ${readResult.error}`,
-      };
-    }
-
-    const sourceFile = parseSourceToSourceFile(
-      file_path,
-      readResult.data!,
-    )?.sourceFile;
-    if (!sourceFile) {
-      return {
-        llmContent: `Error: Could not parse file: ${file_path}`,
-        returnDisplay: `Error: Could not parse file: ${file_path}`,
-      };
-    }
-    const intentionMap = extractIntentionsFromSourceFile(sourceFile);
-
-    return {
-      llmContent: JSON.stringify(intentionMap, null, 2),
-      returnDisplay: JSON.stringify(intentionMap, null, 2),
-    };
-  }
-}
-
-export class ASTReadTool extends BaseDeclarativeTool<
-  ASTReadToolParams,
-  ToolResult
-> {
-  static readonly Name = 'ast_read';
-
-  constructor(private readonly config: Config) {
-    super(
-      ASTReadTool.Name,
-      'ASTRead',
-      'Reads a TypeScript/JavaScript file and returns a structured map of its intentions (functions, classes, imports, etc.).',
-      Kind.Read,
-      {
-        properties: {
-          file_path: {
-            description: 'The absolute path to the file to analyze.',
-            type: 'string',
-          },
-        },
-        required: ['file_path'],
-        type: 'object',
-      },
-    );
-  }
-
-  protected createInvocation(
-    params: ASTReadToolParams,
-  ): ToolInvocation<ASTReadToolParams, ToolResult> {
-    return new ASTReadToolInvocation(this.config, params);
-  }
-}
+import { ASTModifier } from '../ast/modifier.js';
+import { ModificationOperation } from '../ast/models.js';
+import type { Node } from 'ts-morph';
 
 //=================================================================================================
 // AST Find Tool
@@ -155,10 +23,7 @@ export interface ASTFindToolParams {
   query: ASTQuery | DictionaryQuery | string;
 }
 
-class ASTFindToolInvocation extends BaseToolInvocation<
-  ASTFindToolParams,
-  ToolResult
-> {
+class ASTFindToolInvocation extends BaseToolInvocation<ASTFindToolParams, ToolResult> {
   constructor(
     private readonly config: Config,
     private readonly toolParams: ASTFindToolParams,
@@ -167,13 +32,12 @@ class ASTFindToolInvocation extends BaseToolInvocation<
   }
 
   getDescription(): string {
-    return `Finding AST nodes in ${this.toolParams.file_path}`;
+    return `Find AST nodes in ${this.toolParams.file_path}`;
   }
 
   async execute(): Promise<ToolResult> {
     const { file_path, query } = this.toolParams;
     const fs = this.config.getFileSystemService();
-
     const readResult = await fs.readTextFile(file_path);
     if (!readResult.success) {
       return {
@@ -181,35 +45,31 @@ class ASTFindToolInvocation extends BaseToolInvocation<
         returnDisplay: `Error: Could not read file: ${readResult.error}`,
       };
     }
-
-    const sourceFile = parseSourceToSourceFile(
-      file_path,
-      readResult.data!,
-    )?.sourceFile;
+    const parseResult = parseSourceToSourceFile(readResult.data!, file_path);
+    const sourceFile = parseResult?.sourceFile;
     if (!sourceFile) {
       return {
         llmContent: `Error: Could not parse file: ${file_path}`,
         returnDisplay: `Error: Could not parse file: ${file_path}`,
       };
     }
-    const foundNodes = findNodes(sourceFile, query as any);
-
-    if (foundNodes.length === 0) {
+  const foundNodes = findNodes(sourceFile, query as DictionaryQuery | string);
+    if (!foundNodes || foundNodes.length === 0) {
       return {
         llmContent: 'No nodes found matching the query.',
         returnDisplay: 'No nodes found matching the query.',
       };
     }
-
-    const results = foundNodes.map((node: Node) => ({
-        kind: node.getKindName(),
-        text:
-          node.getText().substring(0, 100) +
-          (node.getText().length > 100 ? '...' : ''),
-        startLine: node.getStartLineNumber(),
-        endLine: node.getEndLineNumber(),
-      }));
-
+    // Return basic info for each node
+    const results = foundNodes.map((node) => {
+      const n = node as Node;
+      return {
+        kind: n.getKindName ? n.getKindName() : n.getKind(),
+        text: n.getText ? n.getText().substring(0, 100) + (n.getText().length > 100 ? '...' : '') : '',
+        startLine: n.getStartLineNumber ? n.getStartLineNumber() : undefined,
+        endLine: n.getEndLineNumber ? n.getEndLineNumber() : undefined,
+      };
+    });
     return {
       llmContent: JSON.stringify(results, null, 2),
       returnDisplay: JSON.stringify(results, null, 2),
@@ -217,10 +77,7 @@ class ASTFindToolInvocation extends BaseToolInvocation<
   }
 }
 
-export class ASTFindTool extends BaseDeclarativeTool<
-  ASTFindToolParams,
-  ToolResult
-> {
+export class ASTFindTool extends BaseDeclarativeTool<ASTFindToolParams, ToolResult> {
   static readonly Name = 'ast_find';
 
   constructor(private readonly config: Config) {
@@ -262,15 +119,11 @@ export interface ASTEditToolParams {
   file_path: string;
   query: ASTQuery | DictionaryQuery | string;
   new_text: string;
-  // Optional flags:
-  preview?: boolean; // if true, do not write file, return modified content
-  create_backup?: boolean; // if false, skip creating backup (default true)
+  preview?: boolean;
+  create_backup?: boolean;
 }
 
-class ASTEditToolInvocation extends BaseToolInvocation<
-  ASTEditToolParams,
-  ToolResult
-> {
+class ASTEditToolInvocation extends BaseToolInvocation<ASTEditToolParams, ToolResult> {
   constructor(
     private readonly config: Config,
     private readonly toolParams: ASTEditToolParams,
@@ -279,15 +132,12 @@ class ASTEditToolInvocation extends BaseToolInvocation<
   }
 
   getDescription(): string {
-    return `Editing AST node in ${this.toolParams.file_path}`;
+    return `Edit AST node in ${this.toolParams.file_path}`;
   }
 
   async execute(): Promise<ToolResult> {
-    const { file_path, query, new_text } = this.toolParams;
-    const preview = !!(this.toolParams as any).preview;
-    const createBackup = (this.toolParams as any).create_backup !== false; // default true
+    const { file_path, query, new_text, preview, create_backup } = this.toolParams;
     const fs = this.config.getFileSystemService();
-
     const readResult = await fs.readTextFile(file_path);
     if (!readResult.success) {
       return {
@@ -295,75 +145,40 @@ class ASTEditToolInvocation extends BaseToolInvocation<
         returnDisplay: `Error: Could not read file: ${readResult.error}`,
       };
     }
-
-    const sourceFile = parseSourceToSourceFile(
-      file_path,
-      readResult.data!,
-    )?.sourceFile;
+    const parseResult = parseSourceToSourceFile(readResult.data!, file_path);
+    const sourceFile = parseResult?.sourceFile;
     if (!sourceFile) {
       return {
         llmContent: `Error: Could not parse file: ${file_path}`,
         returnDisplay: `Error: Could not parse file: ${file_path}`,
       };
     }
-    const foundNodes = findNodes(sourceFile, query as any);
-
-    if (foundNodes.length === 0) {
-      return {
-        llmContent:
-          'Error: No nodes found matching the query. No changes made.',
-        returnDisplay:
-          'Error: No nodes found matching the query. No changes made.',
-      };
-    }
-
-    if (foundNodes.length > 1) {
-      return {
-        llmContent: `Error: Query is not specific enough. Found ${foundNodes.length} nodes. No changes made.`,
-        returnDisplay: `Error: Query is not specific enough. Found ${foundNodes.length} nodes. No changes made.`,
-      };
-    }
-
-    // Use ASTModifier to perform the replacement in a robust, consistent way
+    // Use ASTModifier for robust editing
     const modifier = new ASTModifier();
-    const mods: ModificationSpec[] = [
-      {
-        operation: ModificationOperation.REPLACE,
-        targetQuery: query as any,
-        newCode: new_text,
-      },
-    ];
-
-    // Ask modifier to format; it will always create an internal backup id.
+    const mods = [{
+      operation: ModificationOperation.REPLACE,
+      targetQuery: query as DictionaryQuery | string,
+      newCode: new_text,
+    }];
     const modResult = await modifier.applyModifications(
       readResult.data!,
       mods,
       { filePath: file_path, format: true },
     );
-
     if (!modResult.success) {
       return {
         llmContent: `Error applying modification: ${modResult.error ?? 'unknown error'}`,
         returnDisplay: `Error applying modification: ${modResult.error ?? 'unknown error'}`,
       };
     }
-
     const newContent = modResult.modifiedText ?? readResult.data!;
-
     if (preview) {
-      // Return a compact diff instead of the full modified file
-      const diff = generateSimpleLineDiff(
-        readResult.data!,
-        newContent,
-        file_path,
-      );
+      const diff = generateUnifiedDiff(readResult.data!, newContent, file_path);
       return {
         llmContent: `Preview diff (no file written). Backup id: ${modResult.backupId ?? 'n/a'}\n\n${diff}`,
         returnDisplay: `Preview diff (no file written). Backup id: ${modResult.backupId ?? 'n/a'}\n\n${diff}`,
       };
     }
-
-    // If createBackup is false, we still used modifier backup; user opted out of persistent backup on write.
     const writeResult = await fs.writeTextFile(file_path, newContent);
     if (!writeResult.success) {
       return {
@@ -371,18 +186,14 @@ class ASTEditToolInvocation extends BaseToolInvocation<
         returnDisplay: `Error writing file: ${writeResult.error}`,
       };
     }
-
     return {
-      llmContent: `Successfully edited node in ${file_path} (backup: ${createBackup ? (modResult.backupId ?? 'n/a') : 'skipped'})`,
-      returnDisplay: `Successfully edited node in ${file_path} (backup: ${createBackup ? (modResult.backupId ?? 'n/a') : 'skipped'})`,
+      llmContent: `Successfully edited node in ${file_path} (backup: ${create_backup ? (modResult.backupId ?? 'n/a') : 'skipped'})`,
+      returnDisplay: `Successfully edited node in ${file_path} (backup: ${create_backup ? (modResult.backupId ?? 'n/a') : 'skipped'})`,
     };
   }
 }
 
-export class ASTEditTool extends BaseDeclarativeTool<
-  ASTEditToolParams,
-  ToolResult
-> {
+export class ASTEditTool extends BaseDeclarativeTool<ASTEditToolParams, ToolResult> {
   static readonly Name = 'ast_edit';
 
   constructor(private readonly config: Config) {
@@ -429,3 +240,5 @@ export class ASTEditTool extends BaseDeclarativeTool<
     return new ASTEditToolInvocation(this.config, params);
   }
 }
+
+

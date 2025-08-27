@@ -6,11 +6,22 @@
 
 import * as path from 'node:path';
 import process from 'node:process';
-import {
-  AuthType,
-  ContentGeneratorConfig,
-  createContentGeneratorConfig,
-} from '../core/contentGenerator.js';
+import { LSToolParams } from '../tools/ls.js';
+import { ReadFileToolParams } from '../tools/read-file.js';
+import { GrepToolParams } from '../tools/grep.js';
+import { RipGrepToolParams } from '../tools/ripGrep.js';
+import { GlobToolParams } from '../tools/glob.js';
+import { EditToolParams } from '../tools/edit.js';
+import { WriteFileToolParams } from '../tools/write-file.js';
+import { UpsertCodeBlockToolParams } from '../tools/upsert_code_block.js';
+import { ASTFindToolParams, ASTEditToolParams } from '../tools/ast.js';
+import { WebFetchToolParams } from '../tools/web-fetch.js';
+import { ReadManyFilesParams } from '../tools/read-many-files.js';
+import { ShellToolParams } from '../tools/shell.js';
+import { SaveMemoryParams } from '../tools/memoryTool.js';
+import { WebSearchToolParams, WebSearchToolResult } from '../tools/web-search.js';
+import { ToolResult } from '../tools/tools.js';
+import { AuthType, ContentGeneratorConfig, createContentGeneratorConfig } from '../core/contentGenerator.js';
 import { PromptRegistry } from '../prompts/prompt-registry.js';
 import { ToolRegistry } from '../tools/tool-registry.js';
 import { LSTool } from '../tools/ls.js';
@@ -26,7 +37,7 @@ import { ReadManyFilesTool } from '../tools/read-many-files.js';
 import { MemoryTool, setGeminiMdFilename } from '../tools/memoryTool.js';
 import { WebSearchTool } from '../tools/web-search.js';
 import { UpsertCodeBlockTool } from '../tools/upsert_code_block.js';
-import { ASTReadTool, ASTFindTool, ASTEditTool } from '../tools/ast.js';
+import { ASTFindTool, ASTEditTool } from '../tools/ast.js';
 import { GeminiClient } from '../core/client.js';
 import { FileDiscoveryService } from '../services/fileDiscoveryService.js';
 import { GitService } from '../services/gitService.js';
@@ -836,7 +847,10 @@ export class Config {
 
     // helper to create & register core tools that are enabled
      
-    const registerCoreTool = (ToolClass: ToolConstructor, ...args: unknown[]) => {
+    const registerCoreTool = <TParams extends object, TResult extends import("../tools/tools.js").ToolResult>(
+      ToolClass: ToolConstructor<TParams, TResult>,
+      config?: import("../config/config.js").Config
+    ) => {
       const className = ToolClass.name;
       const toolName = ToolClass.Name || className;
       const coreTools = this.getCoreTools();
@@ -863,31 +877,30 @@ export class Config {
       }
 
       if (isEnabled) {
-        registry.registerTool(new ToolClass(...args));
+        registry.registerTool(new ToolClass(config!));
       }
     };
 
-    registerCoreTool(LSTool, this);
-    registerCoreTool(ReadFileTool, this);
+    registerCoreTool<LSToolParams, ToolResult>(LSTool, this);
+    registerCoreTool<ReadFileToolParams, ToolResult>(ReadFileTool, this);
 
     if (this.getUseRipgrep()) {
-      registerCoreTool(RipGrepTool, this);
+      registerCoreTool<RipGrepToolParams, ToolResult>(RipGrepTool, this);
     } else {
-      registerCoreTool(GrepTool, this);
+      registerCoreTool<GrepToolParams, ToolResult>(GrepTool, this);
     }
 
-    registerCoreTool(GlobTool, this);
-    registerCoreTool(EditTool, this);
-    registerCoreTool(WriteFileTool, this);
-    registerCoreTool(UpsertCodeBlockTool);
-    registerCoreTool(ASTReadTool, this);
-    registerCoreTool(ASTFindTool, this);
-    registerCoreTool(ASTEditTool, this);
-    registerCoreTool(WebFetchTool, this);
-    registerCoreTool(ReadManyFilesTool, this);
-    registerCoreTool(ShellTool, this);
-    registerCoreTool(MemoryTool);
-    registerCoreTool(WebSearchTool, this);
+    registerCoreTool<GlobToolParams, ToolResult>(GlobTool, this);
+    registerCoreTool<EditToolParams, ToolResult>(EditTool, this);
+    registerCoreTool<WriteFileToolParams, ToolResult>(WriteFileTool, this);
+    registerCoreTool<UpsertCodeBlockToolParams, ToolResult>(UpsertCodeBlockTool);
+    registerCoreTool<ASTFindToolParams, ToolResult>(ASTFindTool, this);
+    registerCoreTool<ASTEditToolParams, ToolResult>(ASTEditTool, this);
+    registerCoreTool<WebFetchToolParams, ToolResult>(WebFetchTool, this);
+    registerCoreTool<ReadManyFilesParams, ToolResult>(ReadManyFilesTool, this);
+    registerCoreTool<ShellToolParams, ToolResult>(ShellTool, this);
+    registerCoreTool<SaveMemoryParams, ToolResult>(MemoryTool);
+    registerCoreTool<WebSearchToolParams, WebSearchToolResult>(WebSearchTool, this);
 
     await registry.discoverAllTools();
     return registry;
@@ -896,8 +909,8 @@ export class Config {
 
 // Export model constants for use in CLI
 export { DEFAULT_GEMINI_FLASH_MODEL };
-interface ToolConstructor {
-  new (...args: any[]): any;  
+interface ToolConstructor<TParams extends object, TResult extends import("../tools/tools.js").ToolResult> {
+  new (config: import("../config/config.js").Config): import("../tools/tools.js").DeclarativeTool<TParams, TResult>;
   Name?: string; // Static property
   name: string; // Static property
 }

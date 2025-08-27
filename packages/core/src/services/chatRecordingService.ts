@@ -1,8 +1,4 @@
-// Placeholder types/interfaces for missing references
-export type PartListUnion = unknown;
-export type Status = string;
-export type ThoughtSummary = unknown;
-export type Config = any;
+import { PartListUnion, Status, ThoughtSummary, Config } from '../index.js';
 
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -288,8 +284,8 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
 
   protected summarizeToolCalls(messages: MessageRecord[]): string {
     const toolCalls = messages
-      .filter(m => m.type === 'gemini' && 'toolCalls' in m && Array.isArray((m as any).toolCalls) && (m as any).toolCalls.length > 0)
-      .map(m => (m as any).toolCalls)
+      .filter(m => m.type === 'gemini' && 'toolCalls' in m && Array.isArray((m as unknown as { toolCalls?: unknown[] }).toolCalls ?? []) && ((m as unknown as { toolCalls?: unknown[] }).toolCalls ?? []).length > 0)
+      .map(m => (m as unknown as { toolCalls?: unknown[] }).toolCalls ?? [])
       .flat();
     return `Tool calls: ${toolCalls.length}`;
   }
@@ -887,7 +883,8 @@ export class ChatRecordingService {
 
     try {
       this.queuedThoughts.push({
-  ...(typeof thought === 'object' && thought !== null ? thought : {}),
+  subject: (typeof thought === 'object' && thought !== null && 'subject' in thought && typeof (thought as ThoughtSummary).subject === 'string') ? (thought as ThoughtSummary).subject : '',
+  description: (typeof thought === 'object' && thought !== null && 'description' in thought && typeof (thought as ThoughtSummary).description === 'string') ? (thought as ThoughtSummary).description : '',
         timestamp: new Date().toISOString(),
       });
     } catch (error) {

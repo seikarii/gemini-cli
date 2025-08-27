@@ -1,1 +1,1 @@
-Hi, this is a test file created by Gemini CLI.
+This is new content written by Gemini CLI.
