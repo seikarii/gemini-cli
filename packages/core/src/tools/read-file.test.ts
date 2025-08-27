@@ -202,7 +202,7 @@ describe('ReadFileTool', () => {
       >;
 
       expect(await invocation.execute(abortSignal)).toEqual({
-        llmContent: fileContent,
+        llmContent: [{ text: fileContent }],
         returnDisplay: '',
       });
     });
@@ -259,10 +259,11 @@ describe('ReadFileTool', () => {
       >;
 
       const result = await invocation.execute(abortSignal);
-      expect(result.llmContent).toContain(
+      const llmContent = result.llmContent as Array<{ text: string }>;
+      expect(llmContent[0].text).toContain(
         'IMPORTANT: The file content has been truncated',
       );
-      expect(result.llmContent).toContain('--- FILE CONTENT (truncated) ---');
+      expect(llmContent[0].text).toContain('--- FILE CONTENT (truncated) ---');
       expect(result.returnDisplay).toContain('some lines were shortened');
     });
 
@@ -322,9 +323,9 @@ describe('ReadFileTool', () => {
       >;
 
       const result = await invocation.execute(abortSignal);
-      expect(result.llmContent).toBe(
-        'Cannot display content of binary file: binary.bin',
-      );
+      expect(result.llmContent).toEqual([
+        { text: 'Cannot display content of binary file: binary.bin' }
+      ]);
       expect(result.returnDisplay).toBe('Skipped binary file: binary.bin');
     });
 
@@ -339,7 +340,7 @@ describe('ReadFileTool', () => {
       >;
 
       const result = await invocation.execute(abortSignal);
-      expect(result.llmContent).toBe(svgContent);
+      expect(result.llmContent).toEqual([{ text: svgContent }]);
       expect(result.returnDisplay).toBe('Read SVG as text: image.svg');
     });
 
@@ -373,7 +374,7 @@ describe('ReadFileTool', () => {
       >;
 
       const result = await invocation.execute(abortSignal);
-      expect(result.llmContent).toBe('');
+      expect(result.llmContent).toEqual([{ text: '' }]);
       expect(result.returnDisplay).toBe('');
     });
 
@@ -394,15 +395,16 @@ describe('ReadFileTool', () => {
       >;
 
       const result = await invocation.execute(abortSignal);
-      expect(result.llmContent).toContain(
+      const llmContent = result.llmContent as Array<{ text: string }>;
+      expect(llmContent[0].text).toContain(
         'IMPORTANT: The file content has been truncated',
       );
-      expect(result.llmContent).toContain(
+      expect(llmContent[0].text).toContain(
         'Status: Showing lines 6-8 of 20 total lines',
       );
-      expect(result.llmContent).toContain('Line 6');
-      expect(result.llmContent).toContain('Line 7');
-      expect(result.llmContent).toContain('Line 8');
+      expect(llmContent[0].text).toContain('Line 6');
+      expect(llmContent[0].text).toContain('Line 7');
+      expect(llmContent[0].text).toContain('Line 8');
       expect(result.returnDisplay).toBe(
         'Read lines 6-8 of 20 from paginated.txt',
       );

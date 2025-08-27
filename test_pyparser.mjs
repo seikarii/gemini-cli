@@ -1,3 +1,4 @@
+/* eslint-env node */
 import pkg from 'pyparser';
 const { parse } = pkg;
 

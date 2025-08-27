@@ -177,12 +177,14 @@ export default tseslint.config(
   },
   // extra settings for scripts that we run directly with node
   {
-    files: ['./scripts/**/*.js', 'esbuild.config.js'],
+    files: ['./scripts/**/*.{js,cjs}', 'esbuild.config.js', 'test_pyparser.mjs'],
     languageOptions: {
       globals: {
         ...globals.node,
         process: 'readonly',
         console: 'readonly',
+        __filename: 'readonly',
+        __dirname: 'readonly',
       },
     },
     rules: {
@@ -252,6 +254,13 @@ export default tseslint.config(
     rules: {
       'no-restricted-syntax': 'off',
       '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  {
+    files: ['scripts/scan-blocking-patterns.cjs'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      'no-restricted-syntax': 'off', // Disable the generic require() restriction
     },
   },
   prettierConfig,

@@ -793,7 +793,7 @@ ${result.llmContent}`;
 
     // For backward compatibility, return string for simple text content
     // and PartListUnion only for complex content like images/PDFs
-    let finalLlmContent: string | PartListUnion = finalContent;
+    let finalLlmContent: string | PartListUnion = llmContent;
     
     // For inlineData objects (images/PDFs), return the object directly for backward compatibility
     if (result.llmContent && typeof result.llmContent === 'object' && 'inlineData' in result.llmContent) {
@@ -806,6 +806,10 @@ ${result.llmContent}`;
     // For other objects, stringify them
     else if (result.llmContent && typeof result.llmContent === 'object') {
       finalLlmContent = JSON.stringify(result.llmContent);
+    }
+    // For text content, use the PartListUnion format
+    else {
+      finalLlmContent = llmContent;
     }
 
     return {

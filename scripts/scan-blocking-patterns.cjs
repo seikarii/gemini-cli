@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-env node */
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
