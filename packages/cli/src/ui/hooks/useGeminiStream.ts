@@ -20,6 +20,7 @@ import {
   MessageSenderType,
   ToolCallRequestInfo,
   ActionScriptRequestInfo,
+  CoreToolScheduler,
   logUserPrompt,
   GitService,
   EditorType,
@@ -138,6 +139,46 @@ export const useGeminiStream = (
       getPreferredEditor,
       onEditorClose,
     );
+
+  // Function to execute Action Scripts using CoreToolScheduler
+  const executeActionScripts = useCallback(
+    async (actionScriptRequests: ActionScriptRequestInfo[], signal: AbortSignal) => {
+      for (const actionScriptRequest of actionScriptRequests) {
+        try {
+          console.log('Executing Action Script:', actionScriptRequest.script.id);
+
+          // Create CoreToolScheduler instance
+          const toolScheduler = new CoreToolScheduler({
+            config,
+            getPreferredEditor,
+            onEditorClose,
+            onAllToolCallsComplete: async (completedToolCalls) => {
+              // Handle completion of action script execution
+              if (completedToolCalls.length > 0) {
+                console.log('Action Script completed:', actionScriptRequest.script.id);
+                // Here we could add the results to history if needed
+              }
+            },
+            onToolCallsUpdate: () => {
+              // Handle updates during execution if needed
+            },
+            loopDetectionService: undefined, // Will use default
+          });
+
+          // Execute the action script
+          const results = await toolScheduler.executeActionScript(actionScriptRequest, signal);
+
+          // Process results - could add to history or handle responses
+          console.log('Action Script results:', results);
+
+        } catch (error) {
+          console.error('Error executing Action Script:', error);
+          // Handle error - could add error message to history
+        }
+      }
+    },
+    [config, getPreferredEditor, onEditorClose]
+  );
 
   const pendingToolCallGroupDisplay = useMemo(
     () =>
@@ -615,12 +656,7 @@ export const useGeminiStream = (
         scheduleToolCalls(toolCallRequests, signal);
       }
       if (actionScriptRequests.length > 0) {
-        // TODO: Implement Action Script scheduling
-        for (const actionScriptRequest of actionScriptRequests) {
-          console.log('Executing Action Script:', actionScriptRequest.script.id);
-          // Here we would call the CoreToolScheduler to execute the action script
-          // For now, we'll create a placeholder response
-        }
+        await executeActionScripts(actionScriptRequests, signal);
       }
       return StreamProcessingStatus.Completed;
     },
@@ -629,6 +665,7 @@ export const useGeminiStream = (
       handleUserCancelledEvent,
       handleErrorEvent,
       scheduleToolCalls,
+      executeActionScripts,
       handleChatCompressionEvent,
       handleFinishedEvent,
       handleMaxSessionTurnsEvent,
