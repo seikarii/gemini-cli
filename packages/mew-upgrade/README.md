@@ -8,6 +8,7 @@ Breve nota sobre la convención de imports en este paquete:
   tratará ese import como JSX y resolverá la implementación escrita en `.tsx`.
 
 Razón técnica:
+
 - El repositorio usa resolución de módulos ESM tipo `node16`/`nodenext`. Con esa
   configuración TypeScript y Node exigen extensiones explícitas en los imports ESM
   (por ejemplo `./MewApp.js`). El pipeline aquí aprovecha esa convención y le indica
@@ -15,6 +16,7 @@ Razón técnica:
   adicionales de precompilación.
 
 Recomendaciones para mantenedores:
+
 - No elimines la extensión `.js` en imports dentro de `packages/mew-upgrade/src/app`.
 - Si prefieres evitar esta convención, considera una de estas alternativas:
   - Cambiar el pipeline para compilar primero TS/TSX a JS y luego apuntar los imports

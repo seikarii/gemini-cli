@@ -103,7 +103,7 @@ function validateHistory(history: Content[]) {
  */
 function extractCuratedHistory(
   comprehensiveHistory: Content[],
-  cache?: { lastHistoryHash: string; curatedHistory: Content[] }
+  cache?: { lastHistoryHash: string; curatedHistory: Content[] },
 ): Content[] {
   if (comprehensiveHistory === undefined || comprehensiveHistory.length === 0) {
     return [];
@@ -111,7 +111,12 @@ function extractCuratedHistory(
 
   // Performance optimization: Use memoization for large histories
   if (cache && comprehensiveHistory.length > 10) {
-    const currentHash = JSON.stringify(comprehensiveHistory.map(c => ({ role: c.role, partsLength: c.parts?.length || 0 })));
+    const currentHash = JSON.stringify(
+      comprehensiveHistory.map((c) => ({
+        role: c.role,
+        partsLength: c.parts?.length || 0,
+      })),
+    );
     if (cache.lastHistoryHash === currentHash) {
       return cache.curatedHistory;
     }
@@ -121,7 +126,7 @@ function extractCuratedHistory(
   const curatedHistory: Content[] = [];
   const length = comprehensiveHistory.length;
   let i = 0;
-  
+
   while (i < length) {
     if (comprehensiveHistory[i].role === 'user') {
       curatedHistory.push(comprehensiveHistory[i]);
@@ -144,14 +149,22 @@ function extractCuratedHistory(
 
   // Update cache for future calls
   if (cache && comprehensiveHistory.length > 10) {
-    const currentHash = JSON.stringify(comprehensiveHistory.map(c => ({ role: c.role, partsLength: c.parts?.length || 0 })));
+    const currentHash = JSON.stringify(
+      comprehensiveHistory.map((c) => ({
+        role: c.role,
+        partsLength: c.parts?.length || 0,
+      })),
+    );
     cache.lastHistoryHash = currentHash;
     cache.curatedHistory = curatedHistory;
   }
 
   const endTime = performance.now();
-  if (endTime - startTime > 100) { // Log if extraction takes >100ms
-    console.debug(`History extraction took ${endTime - startTime}ms for ${comprehensiveHistory.length} items`);
+  if (endTime - startTime > 100) {
+    // Log if extraction takes >100ms
+    console.debug(
+      `History extraction took ${endTime - startTime}ms for ${comprehensiveHistory.length} items`,
+    );
   }
 
   return curatedHistory;
@@ -179,13 +192,14 @@ export class GeminiChat {
   // A promise to represent the current state of the message being sent to the
   // model.
   private sendPromise: Promise<void> = Promise.resolve();
-  
+
   // Cache for memoizing curated history extraction
-  private historyCache: { lastHistoryHash: string; curatedHistory: Content[] } = {
-    lastHistoryHash: '',
-    curatedHistory: []
-  };
-  
+  private historyCache: { lastHistoryHash: string; curatedHistory: Content[] } =
+    {
+      lastHistoryHash: '',
+      curatedHistory: [],
+    };
+
   // Performance tracking
   private retryCount = 0;
   private lastPerformanceCheck = Date.now();
@@ -210,11 +224,14 @@ export class GeminiChat {
   ): Promise<string | null> {
     // Track retry attempts for monitoring
     this.retryCount++;
-    
+
     // Performance check: warn if excessive retries
     const now = Date.now();
-    if (this.retryCount > 10 && now - this.lastPerformanceCheck > 60000) { // Every minute
-      console.warn(`High retry count detected: ${this.retryCount} retries in the last period`);
+    if (this.retryCount > 10 && now - this.lastPerformanceCheck > 60000) {
+      // Every minute
+      console.warn(
+        `High retry count detected: ${this.retryCount} retries in the last period`,
+      );
       this.lastPerformanceCheck = now;
     }
 
@@ -333,7 +350,10 @@ export class GeminiChat {
         authType: this.config.getContentGeneratorConfig()?.authType,
       });
 
-      this.sendPromise = this.processResponseAndUpdateHistory(response, userContent);
+      this.sendPromise = this.processResponseAndUpdateHistory(
+        response,
+        userContent,
+      );
       await this.sendPromise.catch(() => {
         // Resets sendPromise to avoid subsequent calls failing
         this.sendPromise = Promise.resolve();
@@ -351,7 +371,7 @@ export class GeminiChat {
    */
   private async processResponseAndUpdateHistory(
     response: GenerateContentResponse,
-    userContent: Content
+    userContent: Content,
   ): Promise<void> {
     const outputContent = response.candidates?.[0]?.content;
     // Because the AFC input contains the entire curated chat history in
@@ -447,12 +467,17 @@ export class GeminiChat {
               if (attempt < INVALID_CONTENT_RETRY_OPTIONS.maxAttempts - 1) {
                 recordContentRetry(self.config);
                 // Exponential backoff with jitter
-                const delay = Math.min(
-                  INVALID_CONTENT_RETRY_OPTIONS.initialDelayMs * 
-                  Math.pow(INVALID_CONTENT_RETRY_OPTIONS.backoffMultiplier, attempt),
-                  INVALID_CONTENT_RETRY_OPTIONS.maxDelayMs
-                ) + Math.random() * 100; // Add jitter
-                
+                const delay =
+                  Math.min(
+                    INVALID_CONTENT_RETRY_OPTIONS.initialDelayMs *
+                      Math.pow(
+                        INVALID_CONTENT_RETRY_OPTIONS.backoffMultiplier,
+                        attempt,
+                      ),
+                    INVALID_CONTENT_RETRY_OPTIONS.maxDelayMs,
+                  ) +
+                  Math.random() * 100; // Add jitter
+
                 await new Promise((res) => setTimeout(res, delay));
                 continue;
               }
@@ -547,11 +572,11 @@ export class GeminiChat {
    */
   getHistory(curated: boolean = false): Content[] {
     const startTime = performance.now();
-    
+
     const history = curated
       ? extractCuratedHistory(this.history, this.historyCache)
       : this.history;
-    
+
     // Optimize cloning strategy based on history size
     let result: Content[];
     if (history.length > 100) {
@@ -561,12 +586,15 @@ export class GeminiChat {
       // For smaller histories, use structuredClone which is more feature-complete
       result = structuredClone(history);
     }
-    
+
     const endTime = performance.now();
-    if (endTime - startTime > 50) { // Log if cloning takes >50ms
-      console.debug(`History cloning took ${endTime - startTime}ms for ${history.length} items`);
+    if (endTime - startTime > 50) {
+      // Log if cloning takes >50ms
+      console.debug(
+        `History cloning took ${endTime - startTime}ms for ${history.length} items`,
+      );
     }
-    
+
     return result;
   }
 
@@ -578,7 +606,7 @@ export class GeminiChat {
     // Reset cache when history is cleared
     this.historyCache = {
       lastHistoryHash: '',
-      curatedHistory: []
+      curatedHistory: [],
     };
     // Reset performance counters
     this.retryCount = 0;
@@ -593,7 +621,7 @@ export class GeminiChat {
     // Invalidate cache when history changes
     this.historyCache.lastHistoryHash = '';
   }
-  
+
   /**
    * Sets the entire history and invalidates cache.
    */
@@ -603,7 +631,7 @@ export class GeminiChat {
     // Invalidate cache when history is replaced
     this.historyCache = {
       lastHistoryHash: '',
-      curatedHistory: []
+      curatedHistory: [],
     };
   }
 
@@ -620,21 +648,21 @@ export class GeminiChat {
     ) {
       const tools = this.config.getToolRegistry().getAllTools();
       const cyclicSchemaTools: string[] = [];
-      
+
       // Optimize tool checking for large tool sets
       const toolCheckPromises = tools.map(async (tool) => {
-        const hasParametersCycle = tool.schema.parameters && 
-          hasCycleInSchema(tool.schema.parameters);
-        
+        const hasParametersCycle =
+          tool.schema.parameters && hasCycleInSchema(tool.schema.parameters);
+
         if (hasParametersCycle) {
           return tool.displayName;
         }
         return null;
       });
-      
+
       const results = await Promise.all(toolCheckPromises);
-      cyclicSchemaTools.push(...results.filter(Boolean) as string[]);
-      
+      cyclicSchemaTools.push(...(results.filter(Boolean) as string[]));
+
       if (cyclicSchemaTools.length > 0) {
         const extraDetails =
           `\n\nThis error was probably caused by cyclic schema references in one of the following tools, try disabling them with excludeTools:\n\n - ` +
@@ -658,7 +686,7 @@ export class GeminiChat {
     for await (const chunk of streamResponse) {
       hasReceivedAnyChunk = true;
       chunkCount++;
-      
+
       if (isValidResponse(chunk)) {
         const content = chunk.candidates?.[0]?.content;
         if (content) {
@@ -676,7 +704,7 @@ export class GeminiChat {
 
     const endTime = performance.now();
     const processingTime = endTime - startTime;
-    
+
     // Performance monitoring for large streams
     if (chunkCount > 100 || processingTime > 5000) {
       console.debug(`Processed ${chunkCount} chunks in ${processingTime}ms`);
@@ -710,7 +738,10 @@ export class GeminiChat {
       automaticFunctionCallingHistory.length > 0
     ) {
       newHistoryEntries.push(
-        ...extractCuratedHistory(automaticFunctionCallingHistory, this.historyCache),
+        ...extractCuratedHistory(
+          automaticFunctionCallingHistory,
+          this.historyCache,
+        ),
       );
     } else {
       // Guard for streaming calls where the user input might already be in the history.
@@ -766,7 +797,7 @@ export class GeminiChat {
 
     // Part 4: Add the new turn (user and model parts) to the main history.
     this.history.push(...newHistoryEntries, ...consolidatedOutputContents);
-    
+
     // Invalidate cache since history has changed
     this.historyCache.lastHistoryHash = '';
   }

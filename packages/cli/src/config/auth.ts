@@ -26,23 +26,28 @@ const AuthMethodSchema = z.enum([
   AuthType.USE_VERTEX_AI,
 ]);
 
-const EnvironmentVariablesSchema = z.object({
-  [ENV_GOOGLE_CLOUD_PROJECT]: z.string().min(1).optional(),
-  [ENV_GOOGLE_CLOUD_LOCATION]: z.string().min(1).optional(),
-  [ENV_GEMINI_API_KEY]: z.string().min(1).optional(),
-  [ENV_GOOGLE_API_KEY]: z.string().min(1).optional(),
-}).passthrough();
+const EnvironmentVariablesSchema = z
+  .object({
+    [ENV_GOOGLE_CLOUD_PROJECT]: z.string().min(1).optional(),
+    [ENV_GOOGLE_CLOUD_LOCATION]: z.string().min(1).optional(),
+    [ENV_GEMINI_API_KEY]: z.string().min(1).optional(),
+    [ENV_GOOGLE_API_KEY]: z.string().min(1).optional(),
+  })
+  .passthrough();
 
-const GcpProjectIdSchema = z.string()
+const GcpProjectIdSchema = z
+  .string()
   .min(1, 'Project ID cannot be empty')
   .max(30, 'Project ID too long')
   .regex(/^[a-z][a-z0-9-]*[a-z0-9]$/, 'Invalid GCP project ID format');
 
-const GcpLocationSchema = z.string()
+const GcpLocationSchema = z
+  .string()
   .min(1, 'Location cannot be empty')
   .regex(/^[a-z0-9-]+$/, 'Invalid GCP location format');
 
-const ApiKeySchema = z.string()
+const ApiKeySchema = z
+  .string()
   .min(1, 'API key cannot be empty')
   .regex(/^[A-Za-z0-9_-]*$/, 'Invalid API key format');
 
@@ -83,7 +88,8 @@ function validateEnvironmentForAuthMethod(
         return { success: true };
 
       case AuthType.USE_VERTEX_AI: {
-        const hasVertexConfig = env[ENV_GOOGLE_CLOUD_PROJECT] && env[ENV_GOOGLE_CLOUD_LOCATION];
+        const hasVertexConfig =
+          env[ENV_GOOGLE_CLOUD_PROJECT] && env[ENV_GOOGLE_CLOUD_LOCATION];
         const hasApiKey = env[ENV_GOOGLE_API_KEY];
 
         if (!hasVertexConfig && !hasApiKey) {
@@ -107,20 +113,28 @@ function validateEnvironmentForAuthMethod(
   } catch (error) {
     if (error instanceof z.ZodError) {
       // For invalid auth methods, return the original error message
-      if (authMethod && !Object.values(AuthType).includes(authMethod as AuthType)) {
+      if (
+        authMethod &&
+        !Object.values(AuthType).includes(authMethod as AuthType)
+      ) {
         return { success: false, error: ERROR_INVALID_AUTH_METHOD };
       }
       // For other validation errors, return a generic validation error
       return {
         success: false,
-        error: `Validation error: ${error.errors.map(e => e.message).join(', ')}`,
+        error: `Validation error: ${error.errors.map((e) => e.message).join(', ')}`,
       };
     }
     return { success: false, error: ERROR_INVALID_AUTH_METHOD };
   }
 }
 
-export const validateAuthMethod = (authMethod: string, env: NodeJS.ProcessEnv = process.env): string | null => {
+export const validateAuthMethod = (
+  authMethod: string,
+  env: NodeJS.ProcessEnv = process.env,
+): string | null => {
   const result = validateEnvironmentForAuthMethod(authMethod as AuthType, env);
-  return result.success ? null : (result as { success: false; error: string }).error;
+  return result.success
+    ? null
+    : (result as { success: false; error: string }).error;
 };

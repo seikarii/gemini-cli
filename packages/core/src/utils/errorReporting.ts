@@ -78,9 +78,14 @@ export async function reportError(
       // Still try to write the minimal report
       if (fileSystemService) {
         // Use FileSystemService for standardized file operations
-        const writeResult = await fileSystemService.writeTextFile(reportPath, stringifiedReportContent);
+        const writeResult = await fileSystemService.writeTextFile(
+          reportPath,
+          stringifiedReportContent,
+        );
         if (!writeResult.success) {
-          throw new Error(`Failed to write minimal error report: ${writeResult.error}`);
+          throw new Error(
+            `Failed to write minimal error report: ${writeResult.error}`,
+          );
         }
       } else {
         // Fallback to direct fs operations for backward compatibility
@@ -101,7 +106,10 @@ export async function reportError(
   try {
     if (fileSystemService) {
       // Use FileSystemService for standardized file operations
-      const writeResult = await fileSystemService.writeTextFile(reportPath, stringifiedReportContent);
+      const writeResult = await fileSystemService.writeTextFile(
+        reportPath,
+        stringifiedReportContent,
+      );
       if (!writeResult.success) {
         throw new Error(`Failed to write error report: ${writeResult.error}`);
       }

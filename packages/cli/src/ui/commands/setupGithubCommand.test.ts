@@ -68,8 +68,12 @@ describe('setupGithubCommand', async () => {
       );
     }
 
-  vi.mocked(gitUtils.isGitHubRepository).mockImplementationOnce(() => Promise.resolve(true));
-  vi.mocked(gitUtils.getGitRepoRoot).mockImplementationOnce(() => Promise.resolve(fakeRepoRoot));
+    vi.mocked(gitUtils.isGitHubRepository).mockImplementationOnce(() =>
+      Promise.resolve(true),
+    );
+    vi.mocked(gitUtils.getGitRepoRoot).mockImplementationOnce(() =>
+      Promise.resolve(fakeRepoRoot),
+    );
     vi.mocked(gitUtils.getLatestGitHubRelease).mockResolvedValueOnce(
       fakeReleaseVersion,
     );

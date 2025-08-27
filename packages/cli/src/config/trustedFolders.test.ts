@@ -73,11 +73,15 @@ describe('Trusted Folders Loading', () => {
     mockFsPromisesReadFile = vi.mocked(fs.promises.readFile);
     mockStripJsonComments = vi.mocked(stripJsonComments);
     mockFsWriteFileSync = vi.mocked(fs.writeFileSync);
-    
+
     // Default behavior: access rejects with ENOENT (file doesn't exist)
-    mockFsPromisesAccess.mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
-    mockFsPromisesReadFile.mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
-    
+    mockFsPromisesAccess.mockRejectedValue(
+      Object.assign(new Error('ENOENT'), { code: 'ENOENT' }),
+    );
+    mockFsPromisesReadFile.mockRejectedValue(
+      Object.assign(new Error('ENOENT'), { code: 'ENOENT' }),
+    );
+
     vi.mocked(osActual.homedir).mockReturnValue('/mock/home/user');
     (mockStripJsonComments as unknown as Mock).mockImplementation(
       (jsonString: string) => jsonString,
@@ -98,10 +102,12 @@ describe('Trusted Folders Loading', () => {
 
   it.skip('should load user rules if only user file exists', async () => {
     mockFsPromisesAccess.mockResolvedValue(undefined);
-    mockFsPromisesReadFile.mockImplementation(() => 
-      Promise.resolve(JSON.stringify({
-        '/user/folder': TrustLevel.TRUST_FOLDER,
-      }))
+    mockFsPromisesReadFile.mockImplementation(() =>
+      Promise.resolve(
+        JSON.stringify({
+          '/user/folder': TrustLevel.TRUST_FOLDER,
+        }),
+      ),
     );
 
     const { rules, errors } = await loadTrustedFolders();
@@ -125,7 +131,7 @@ describe('Trusted Folders Loading', () => {
   it.skip('setValue should update the user config and save it', async () => {
     mockFsPromisesAccess.mockResolvedValue(undefined);
     mockFsPromisesReadFile.mockResolvedValue('{}');
-    
+
     const loadedFolders = await loadTrustedFolders();
     loadedFolders.setValue('/new/path', TrustLevel.TRUST_FOLDER);
 

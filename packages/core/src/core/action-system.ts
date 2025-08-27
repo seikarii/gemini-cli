@@ -96,7 +96,8 @@ export class ActionSystem {
   private actionQueue: Action[] = [];
   private activeActions: Map<string, Action> = new Map();
   private completedActions: Action[] = [];
-  private toolRegistry: Map<string, (...args: unknown[]) => Promise<unknown>> = new Map();
+  private toolRegistry: Map<string, (...args: unknown[]) => Promise<unknown>> =
+    new Map();
 
   private config: ActionSystemConfig = {
     maxConcurrentActions: 3,
@@ -141,7 +142,10 @@ export class ActionSystem {
   /**
    * Registra una herramienta disponible para ejecución
    */
-  registerTool(toolName: string, toolFn: (...args: unknown[]) => Promise<unknown>): void {
+  registerTool(
+    toolName: string,
+    toolFn: (...args: unknown[]) => Promise<unknown>,
+  ): void {
     this.toolRegistry.set(toolName, toolFn);
     console.log(`🔧 Herramienta registrada: ${toolName}`);
   }
@@ -154,7 +158,7 @@ export class ActionSystem {
     parameters: Record<string, unknown> = {},
     priority: ActionPriority = ActionPriority.NORMAL,
     metadata: Record<string, unknown> = {},
-    callback?: (result: unknown) => void
+    callback?: (result: unknown) => void,
   ): string {
     const actionId = uuidv4();
 
@@ -221,7 +225,8 @@ export class ActionSystem {
       action.completedAt = new Date().toISOString();
 
       this.stats.totalActionsCompleted++;
-      this.stats.toolsUsage[action.toolName] = (this.stats.toolsUsage[action.toolName] || 0) + 1;
+      this.stats.toolsUsage[action.toolName] =
+        (this.stats.toolsUsage[action.toolName] || 0) + 1;
 
       if (action.callback) {
         action.callback(result);
@@ -250,7 +255,9 @@ export class ActionSystem {
    */
   cancelAction(actionId: string): boolean {
     // Buscar en cola
-    const queueIndex = this.actionQueue.findIndex(action => action.id === actionId);
+    const queueIndex = this.actionQueue.findIndex(
+      (action) => action.id === actionId,
+    );
     if (queueIndex !== -1) {
       const action = this.actionQueue[queueIndex];
       action.status = ActionStatus.CANCELLED;
@@ -282,7 +289,9 @@ export class ActionSystem {
    */
   getActionStatus(actionId: string): Record<string, unknown> | null {
     // Buscar en cola
-    const queueAction = this.actionQueue.find(action => action.id === actionId);
+    const queueAction = this.actionQueue.find(
+      (action) => action.id === actionId,
+    );
     if (queueAction) {
       return this.actionToDict(queueAction);
     }
@@ -293,7 +302,9 @@ export class ActionSystem {
     }
 
     // Buscar en completadas
-    const completedAction = this.completedActions.find(action => action.id === actionId);
+    const completedAction = this.completedActions.find(
+      (action) => action.id === actionId,
+    );
     if (completedAction) {
       return this.actionToDict(completedAction);
     }
@@ -320,11 +331,19 @@ export class ActionSystem {
     // Acciones completadas
     if (!status) {
       actions.push(...this.completedActions);
-    } else if ([ActionStatus.COMPLETED, ActionStatus.FAILED, ActionStatus.CANCELLED].includes(status)) {
-      actions.push(...this.completedActions.filter(action => action.status === status));
+    } else if (
+      [
+        ActionStatus.COMPLETED,
+        ActionStatus.FAILED,
+        ActionStatus.CANCELLED,
+      ].includes(status)
+    ) {
+      actions.push(
+        ...this.completedActions.filter((action) => action.status === status),
+      );
     }
 
-    return actions.map(action => this.actionToDict(action));
+    return actions.map((action) => this.actionToDict(action));
   }
 
   /**
@@ -440,7 +459,9 @@ export class ActionSystem {
       [ActionPriority.LOW]: 3,
     };
 
-    this.actionQueue.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+    this.actionQueue.sort(
+      (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority],
+    );
   }
 
   /**
@@ -473,12 +494,16 @@ export class ActionSystem {
         const end = new Date(action.completedAt).getTime();
         const elapsed = (end - start) / 1000; // segundos
 
-        const total = this.stats.totalActionsCompleted + this.stats.totalActionsFailed;
+        const total =
+          this.stats.totalActionsCompleted + this.stats.totalActionsFailed;
         const prevAvg = this.stats.averageExecutionTime;
-        this.stats.averageExecutionTime = total > 0 ? (prevAvg * (total - 1) + elapsed) / total : elapsed;
+        this.stats.averageExecutionTime =
+          total > 0 ? (prevAvg * (total - 1) + elapsed) / total : elapsed;
       }
     } catch (error) {
-      console.error(`Error al actualizar tiempo promedio de ejecución: ${error}`);
+      console.error(
+        `Error al actualizar tiempo promedio de ejecución: ${error}`,
+      );
     }
   }
 }

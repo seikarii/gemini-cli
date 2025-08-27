@@ -598,7 +598,9 @@ class Session {
               `Path ${pathName} resolved to directory, using glob: ${currentPathSpec}`,
             );
           } else {
-            logger.debug(`Path ${pathName} resolved to file: ${currentPathSpec}`);
+            logger.debug(
+              `Path ${pathName} resolved to file: ${currentPathSpec}`,
+            );
           }
           resolvedSuccessfully = true;
         } else {
@@ -648,9 +650,9 @@ class Session {
                 );
               }
             } catch (globError) {
-        logger.error(
-          `Error during glob search for ${pathName}: ${getErrorMessage(globError)}`,
-        );
+              logger.error(
+                `Error during glob search for ${pathName}: ${getErrorMessage(globError)}`,
+              );
             }
           } else {
             logger.debug(

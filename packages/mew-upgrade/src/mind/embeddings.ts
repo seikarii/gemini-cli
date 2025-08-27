@@ -39,8 +39,8 @@ export class HashingEmbedder {
       keyBuffer[i] = s & 0xff;
     }
     this.key = Buffer.from(keyBuffer);
-  // reference key to satisfy linters (no-op)
-  void this.key;
+    // reference key to satisfy linters (no-op)
+    void this.key;
   }
 
   // Main embedding method
@@ -74,7 +74,7 @@ export class HashingEmbedder {
     const eightBytes = hash.slice(0, 8);
     // Convert 8 bytes to a BigInt, then to a number (might lose precision for very large numbers)
     // For hashing, we primarily care about distribution, so this should be fine.
-  return Number(BigInt('0x' + eightBytes.toString('hex')));
+    return Number(BigInt('0x' + eightBytes.toString('hex')));
   }
 
   private _indexSign(token: string): [number, number] {
@@ -121,7 +121,8 @@ export class HashingEmbedder {
   }
 
   private addNumber(v: number[], x: number): void {
-    const bucket = x !== 0 ? Math.sign(x) * Math.floor(Math.log1p(Math.abs(x) + 1e-12)) : 0;
+    const bucket =
+      x !== 0 ? Math.sign(x) * Math.floor(Math.log1p(Math.abs(x) + 1e-12)) : 0;
     const [idx, s] = this._indexSign(`num|${bucket}`);
     v[idx] += s * (1.0 + Math.min(1.0, Math.abs(x)));
   }
@@ -201,7 +202,8 @@ export class ARPredictor {
       const y_hat = this._matvec(x_list);
       for (let i = 0; i < this.d; i++) {
         const err = y_hat[i] - y_list[i];
-        this.A_diag[i] -= this.lr * (2.0 * err * x_list[i] + 2.0 * this.l2 * this.A_diag[i]);
+        this.A_diag[i] -=
+          this.lr * (2.0 * err * x_list[i] + 2.0 * this.l2 * this.A_diag[i]);
       }
     }
     return this.loss(x_list, y_list);

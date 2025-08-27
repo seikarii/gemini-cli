@@ -27,8 +27,8 @@ export default tseslint.config(
   {
     // Global ignores
     ignores: [
-      "**/*.d.ts",
-      "**/*.js",
+      '**/*.d.ts',
+      '**/*.js',
       '.gemini_checkpoints/**',
       'node_modules/*',
       '.integration-tests/**',
@@ -42,7 +42,8 @@ export default tseslint.config(
       'package/bundle/**',
       '.integration-tests/**',
       'packages/mew-upgrade/**',
-    ],  },
+    ],
+  },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   reactHooks.configs['recommended-latest'],
@@ -169,10 +170,10 @@ export default tseslint.config(
       'license-header': licenseHeader,
     },
     rules: {
-  // License header rule is intentionally disabled for local lint runs to
-  // reduce noise. Keep legal/license checks in CI or re-enable before
-  // publishing if required.
-  'license-header/header': 'off',
+      // License header rule is intentionally disabled for local lint runs to
+      // reduce noise. Keep legal/license checks in CI or re-enable before
+      // publishing if required.
+      'license-header/header': 'off',
     },
   },
   // extra settings for scripts that we run directly with node
@@ -199,7 +200,11 @@ export default tseslint.config(
   // Temporary override for core and cli source: enable Node globals and relax
   // internal-module import checks while we focus on critical runtime issues.
   {
-    files: ['packages/core/src/**/*.{js,ts,tsx}', 'packages/cli/src/**/*.{js,ts,tsx}', 'packages/vscode-ide-companion/src/**/*.{js,ts,tsx}'],
+    files: [
+      'packages/core/src/**/*.{js,ts,tsx}',
+      'packages/cli/src/**/*.{js,ts,tsx}',
+      'packages/vscode-ide-companion/src/**/*.{js,ts,tsx}',
+    ],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -214,11 +219,11 @@ export default tseslint.config(
     rules: {
       // Allow internal relative imports within these packages for now to
       // reduce noise; we'll re-enable stricter rules later.
-  'import/no-internal-modules': 'off',
-  // Temporarily allow `any` in these critical source trees to focus on
-  // higher-risk runtime issues. This should be reverted or replaced
-  // with concrete types in follow-up work.
-  '@typescript-eslint/no-explicit-any': 'error',
+      'import/no-internal-modules': 'off',
+      // Temporarily allow `any` in these critical source trees to focus on
+      // higher-risk runtime issues. This should be reverted or replaced
+      // with concrete types in follow-up work.
+      '@typescript-eslint/no-explicit-any': 'error',
     },
   },
   {

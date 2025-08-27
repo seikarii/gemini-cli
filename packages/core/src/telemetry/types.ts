@@ -132,7 +132,7 @@ export class ToolCallEvent implements BaseTelemetryEvent {
   error_type?: string;
   prompt_id: string;
   tool_type: 'native' | 'mcp';
-   
+
   metadata?: { [key: string]: any };
 
   constructor(call: CompletedToolCall) {

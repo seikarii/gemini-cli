@@ -40,13 +40,7 @@ export class EntityMemory {
     valence = clamp(valence + this.valenceBias, -1.0, 1.0);
     arousal = clamp(arousal + this.affectBias, 0.0, 1.0);
     // this.mind.max_nodes = this.storageBudget; // MentalLaby in TS doesn't have max_nodes directly
-    return this.mind.store(
-      data,
-      kind,
-      valence,
-      arousal,
-      salience,
-    );
+    return this.mind.store(data, kind, valence, arousal, salience);
   }
 
   recall(cue: any): any {
@@ -57,7 +51,9 @@ export class EntityMemory {
   exportState(): object {
     // Delegate to mental laby export
     // @ts-ignore - mental laby export shape is dynamic
-    return (this.mind as any).exportState ? (this.mind as any).exportState() : { nodes: [] };
+    return (this.mind as any).exportState
+      ? (this.mind as any).exportState()
+      : { nodes: [] };
   }
 
   importState(state: any): void {

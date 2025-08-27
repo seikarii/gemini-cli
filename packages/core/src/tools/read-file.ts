@@ -30,7 +30,11 @@ import { FileOperationEvent } from '../telemetry/types.js';
 import fetch from 'node-fetch';
 
 // Import AST analysis tools
-import { readAndParseFile, type ParseResult, type Intentions } from '../ast/parser.js';
+import {
+  readAndParseFile,
+  type ParseResult,
+  type Intentions,
+} from '../ast/parser.js';
 import { findNodes } from '../ast/finder.js';
 import { SourceFile, SyntaxKind } from 'ts-morph';
 
@@ -90,7 +94,10 @@ class ReadFileToolInvocation extends BaseToolInvocation<
   private static mewServerCache: MewServerInfo | null = null;
   private static readonly CACHE_DURATION = 30000; // 30 seconds
   private static readonly DEFAULT_PORTS = [3000, 3001, 3002, 3003, 8080, 8081];
-  private static readonly EXTENDED_PORTS = Array.from({ length: 7000 }, (_, i) => i + 3000); // 3000-9999
+  private static readonly EXTENDED_PORTS = Array.from(
+    { length: 7000 },
+    (_, i) => i + 3000,
+  ); // 3000-9999
   private static readonly FAST_TIMEOUT = 1000; // 1 second for initial checks
   private static readonly SLOW_TIMEOUT = 3000; // 3 seconds for comprehensive checks
   private static readonly MAX_CONCURRENT_CHECKS = 10; // Check 10 ports simultaneously
@@ -118,28 +125,43 @@ class ReadFileToolInvocation extends BaseToolInvocation<
     const now = Date.now();
 
     // Check cache first
-    if (ReadFileToolInvocation.mewServerCache &&
-        (now - ReadFileToolInvocation.mewServerCache.lastChecked) < ReadFileToolInvocation.CACHE_DURATION &&
-        ReadFileToolInvocation.mewServerCache.isAvailable) {
+    if (
+      ReadFileToolInvocation.mewServerCache &&
+      now - ReadFileToolInvocation.mewServerCache.lastChecked <
+        ReadFileToolInvocation.CACHE_DURATION &&
+      ReadFileToolInvocation.mewServerCache.isAvailable
+    ) {
       return ReadFileToolInvocation.mewServerCache.port;
     }
 
     // Try to read port from file first (most reliable method)
     try {
-      const portFilePath = path.join(this.config.getTargetDir(), '.gemini', 'mew_port.txt');
-      const portResult = await this.config.getFileSystemService().readTextFile(portFilePath);
-      if (!portResult.success || typeof portResult.data !== 'string') throw new Error(portResult.error || 'Error reading port file');
+      const portFilePath = path.join(
+        this.config.getTargetDir(),
+        '.gemini',
+        'mew_port.txt',
+      );
+      const portResult = await this.config
+        .getFileSystemService()
+        .readTextFile(portFilePath);
+      if (!portResult.success || typeof portResult.data !== 'string')
+        throw new Error(portResult.error || 'Error reading port file');
       const portStr = portResult.data;
       const parsedPort = parseInt(portStr.trim(), 10);
       if (!isNaN(parsedPort) && parsedPort > 0 && parsedPort < 65536) {
-        const isAvailable = await this.checkPortAvailability(parsedPort, ReadFileToolInvocation.FAST_TIMEOUT);
+        const isAvailable = await this.checkPortAvailability(
+          parsedPort,
+          ReadFileToolInvocation.FAST_TIMEOUT,
+        );
         if (isAvailable) {
           ReadFileToolInvocation.mewServerCache = {
             port: parsedPort,
             lastChecked: now,
-            isAvailable: true
+            isAvailable: true,
           };
-          console.log(`[read_file] Found Mew server on port from file: ${parsedPort}`);
+          console.log(
+            `[read_file] Found Mew server on port from file: ${parsedPort}`,
+          );
           return parsedPort;
         }
       }
@@ -150,12 +172,15 @@ class ReadFileToolInvocation extends BaseToolInvocation<
     // Fast scan of default ports first
     console.log('[read_file] Scanning default ports...');
     for (const port of ReadFileToolInvocation.DEFAULT_PORTS) {
-      const isAvailable = await this.checkPortAvailability(port, ReadFileToolInvocation.FAST_TIMEOUT);
+      const isAvailable = await this.checkPortAvailability(
+        port,
+        ReadFileToolInvocation.FAST_TIMEOUT,
+      );
       if (isAvailable) {
         ReadFileToolInvocation.mewServerCache = {
           port,
           lastChecked: now,
-          isAvailable: true
+          isAvailable: true,
         };
         console.log(`[read_file] Found Mew server on default port: ${port}`);
         return port;
@@ -169,7 +194,7 @@ class ReadFileToolInvocation extends BaseToolInvocation<
       ReadFileToolInvocation.mewServerCache = {
         port,
         lastChecked: now,
-        isAvailable: true
+        isAvailable: true,
       };
       console.log(`[read_file] Found Mew server on scanned port: ${port}`);
       return port;
@@ -179,14 +204,17 @@ class ReadFileToolInvocation extends BaseToolInvocation<
     ReadFileToolInvocation.mewServerCache = {
       port: 0,
       lastChecked: now,
-      isAvailable: false
+      isAvailable: false,
     };
 
     console.log('[read_file] No Mew server found on any scanned ports');
     return null;
   }
 
-  private async checkPortAvailability(port: number, timeout: number = ReadFileToolInvocation.SLOW_TIMEOUT): Promise<boolean> {
+  private async checkPortAvailability(
+    port: number,
+    timeout: number = ReadFileToolInvocation.SLOW_TIMEOUT,
+  ): Promise<boolean> {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -194,7 +222,7 @@ class ReadFileToolInvocation extends BaseToolInvocation<
       const response = await fetch(`http://localhost:${port}/api/health`, {
         method: 'GET',
         signal: controller.signal,
-        headers: { 'User-Agent': 'gemini-cli-read-file' }
+        headers: { 'User-Agent': 'gemini-cli-read-file' },
       });
 
       clearTimeout(timeoutId);
@@ -208,12 +236,22 @@ class ReadFileToolInvocation extends BaseToolInvocation<
     // Check ports in batches to avoid overwhelming the system
     const ports = ReadFileToolInvocation.EXTENDED_PORTS;
 
-    for (let i = 0; i < ports.length; i += ReadFileToolInvocation.MAX_CONCURRENT_CHECKS) {
-      const batch = ports.slice(i, i + ReadFileToolInvocation.MAX_CONCURRENT_CHECKS);
+    for (
+      let i = 0;
+      i < ports.length;
+      i += ReadFileToolInvocation.MAX_CONCURRENT_CHECKS
+    ) {
+      const batch = ports.slice(
+        i,
+        i + ReadFileToolInvocation.MAX_CONCURRENT_CHECKS,
+      );
 
       // Check all ports in this batch concurrently
       const promises = batch.map(async (port: number) => {
-        const isAvailable = await this.checkPortAvailability(port, ReadFileToolInvocation.SLOW_TIMEOUT);
+        const isAvailable = await this.checkPortAvailability(
+          port,
+          ReadFileToolInvocation.SLOW_TIMEOUT,
+        );
         return isAvailable ? port : null;
       });
 
@@ -226,12 +264,15 @@ class ReadFileToolInvocation extends BaseToolInvocation<
         }
       } catch (error) {
         // Continue with next batch if this batch fails
-        console.log(`[read_file] Error checking port batch ${i / ReadFileToolInvocation.MAX_CONCURRENT_CHECKS + 1}:`, error);
+        console.log(
+          `[read_file] Error checking port batch ${i / ReadFileToolInvocation.MAX_CONCURRENT_CHECKS + 1}:`,
+          error,
+        );
       }
 
       // Small delay between batches to avoid overwhelming
       if (i + ReadFileToolInvocation.MAX_CONCURRENT_CHECKS < ports.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
 
@@ -242,17 +283,19 @@ class ReadFileToolInvocation extends BaseToolInvocation<
     try {
       const port = await this.findMewServerPort();
       if (!port) {
-        console.log('[read_file] No Mew server available, skipping window update');
+        console.log(
+          '[read_file] No Mew server available, skipping window update',
+        );
         return;
       }
 
       const url = `http://localhost:${port}/api/mew/set-active-file`;
-      const body = JSON.stringify({ 
+      const body = JSON.stringify({
         filePath,
         timestamp: Date.now(),
-        source: 'gemini-cli-read-file'
+        source: 'gemini-cli-read-file',
       });
-      
+
       console.log(`[read_file] Updating Mew window with file: ${filePath}`);
 
       const controller = new AbortController();
@@ -262,21 +305,25 @@ class ReadFileToolInvocation extends BaseToolInvocation<
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': 'gemini-cli-read-file'
+          'User-Agent': 'gemini-cli-read-file',
         },
         body,
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`[read_file] Mew server error (${response.status}): ${errorText}`);
+        console.error(
+          `[read_file] Mew server error (${response.status}): ${errorText}`,
+        );
         // Invalidate cache on error
         ReadFileToolInvocation.mewServerCache = null;
       } else {
-        console.log(`[read_file] Successfully updated Mew window for: ${filePath}`);
+        console.log(
+          `[read_file] Successfully updated Mew window for: ${filePath}`,
+        );
       }
     } catch (error) {
       console.error('[read_file] Failed to update Mew Window:', error);
@@ -287,23 +334,62 @@ class ReadFileToolInvocation extends BaseToolInvocation<
 
   private isCodeFile(filePath: string): boolean {
     const codeExtensions = [
-      '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs',
-      '.py', '.java', '.cpp', '.c', '.h', '.cs',
-      '.php', '.rb', '.go', '.rs', '.swift', '.kt',
-      '.scala', '.sh', '.bash', '.ps1', '.vue',
-      '.svelte', '.astro', '.json', '.yaml', '.yml',
-      '.xml', '.html', '.htm', '.css', '.scss',
-      '.sass', '.less', '.sql', '.graphql', '.gql'
+      '.ts',
+      '.tsx',
+      '.js',
+      '.jsx',
+      '.mjs',
+      '.cjs',
+      '.py',
+      '.java',
+      '.cpp',
+      '.c',
+      '.h',
+      '.cs',
+      '.php',
+      '.rb',
+      '.go',
+      '.rs',
+      '.swift',
+      '.kt',
+      '.scala',
+      '.sh',
+      '.bash',
+      '.ps1',
+      '.vue',
+      '.svelte',
+      '.astro',
+      '.json',
+      '.yaml',
+      '.yml',
+      '.xml',
+      '.html',
+      '.htm',
+      '.css',
+      '.scss',
+      '.sass',
+      '.less',
+      '.sql',
+      '.graphql',
+      '.gql',
     ];
     const ext = path.extname(filePath).toLowerCase();
     return codeExtensions.includes(ext);
   }
 
-  private buildASTTree(sourceFile: SourceFile, maxDepth: number = 3): ASTTreeNode {
+  private buildASTTree(
+    sourceFile: SourceFile,
+    maxDepth: number = 3,
+  ): ASTTreeNode {
     const buildNode = (node: unknown, depth: number): ASTTreeNode => {
       const astNode: ASTTreeNode = {
-        kind: SyntaxKind[(node as { getKind(): number }).getKind()] || (node as { getKind(): number }).getKind().toString(),
-        line: (node as { getStartLineNumber?: () => number | undefined }).getStartLineNumber?.() || undefined
+        kind:
+          SyntaxKind[(node as { getKind(): number }).getKind()] ||
+          (node as { getKind(): number }).getKind().toString(),
+        line:
+          (
+            node as { getStartLineNumber?: () => number | undefined }
+          ).getStartLineNumber?.() || undefined,
       };
 
       // Add name if available
@@ -316,12 +402,16 @@ class ReadFileToolInvocation extends BaseToolInvocation<
       }
 
       // Add short text preview for leaf nodes or small nodes
-      if (depth >= maxDepth || (node as { getChildren(): unknown[] }).getChildren().length === 0) {
+      if (
+        depth >= maxDepth ||
+        (node as { getChildren(): unknown[] }).getChildren().length === 0
+      ) {
         const text = (node as { getText(): string }).getText();
         if (text && text.length < 100) {
           astNode.text = text.replace(/\s+/g, ' ').trim();
         } else if (text && text.length >= 100) {
-          astNode.text = text.substring(0, 97).replace(/\s+/g, ' ').trim() + '...';
+          astNode.text =
+            text.substring(0, 97).replace(/\s+/g, ' ').trim() + '...';
         }
       }
 
@@ -341,25 +431,29 @@ class ReadFileToolInvocation extends BaseToolInvocation<
     return buildNode(sourceFile, 0);
   }
 
-  private formatASTTree(node: ASTTreeNode, indent: string = '', isLast: boolean = true): string {
+  private formatASTTree(
+    node: ASTTreeNode,
+    indent: string = '',
+    isLast: boolean = true,
+  ): string {
     const connector = isLast ? '└── ' : '├── ';
     const nextIndent = indent + (isLast ? '    ' : '│   ');
-    
+
     let result = indent + connector;
     result += `${node.kind}`;
-    
+
     if (node.name) {
       result += ` "${node.name}"`;
     }
-    
+
     if (node.line) {
       result += ` (line ${node.line})`;
     }
-    
+
     if (node.text && !node.children) {
       result += ` → ${node.text}`;
     }
-    
+
     result += '\n';
 
     if (node.children && node.children.length > 0) {
@@ -379,10 +473,10 @@ class ReadFileToolInvocation extends BaseToolInvocation<
     try {
       // Parse the file using the AST parser
       const parseResult = await readAndParseFile(filePath);
-      
+
       if (parseResult.parseError) {
         return {
-          astContent: `⚠️ AST Parse Error: ${parseResult.parseError}\n\nFile could not be fully parsed into AST.\n`
+          astContent: `⚠️ AST Parse Error: ${parseResult.parseError}\n\nFile could not be fully parsed into AST.\n`,
         };
       }
 
@@ -401,7 +495,7 @@ class ReadFileToolInvocation extends BaseToolInvocation<
         astContent += `- Classes: ${intentions.classes?.length || 0}\n`;
         astContent += `- Imports: ${intentions.imports?.length || 0}\n`;
         astContent += `- Constants: ${intentions.constants?.length || 0}\n`;
-        
+
         if (intentions.parsingErrors && intentions.parsingErrors.length > 0) {
           astContent += `- Parsing errors: ${intentions.parsingErrors.length}\n`;
         }
@@ -415,7 +509,7 @@ class ReadFileToolInvocation extends BaseToolInvocation<
           astContent += `- Cognitive Complexity: ${complexity.cognitiveComplexity}\n`;
           astContent += `- Lines of Code: ${complexity.linesOfCode}\n`;
           astContent += `- Maintainability Index: ${complexity.maintainabilityIndex.toFixed(2)}\n`;
-          
+
           if (complexity.halsteadMetrics) {
             const halstead = complexity.halsteadMetrics;
             astContent += `\n🧮 **Halstead Metrics:**\n`;
@@ -437,7 +531,9 @@ class ReadFileToolInvocation extends BaseToolInvocation<
             if (func.isAsync) astContent += ' (async)';
             if (func.startLine) astContent += ` [line ${func.startLine}]`;
             if (func.params && func.params.length > 0) {
-              const paramNames = func.params.map(p => p.name || '?').join(', ');
+              const paramNames = func.params
+                .map((p) => p.name || '?')
+                .join(', ');
               astContent += ` (${paramNames})`;
             }
             astContent += '\n';
@@ -456,7 +552,7 @@ class ReadFileToolInvocation extends BaseToolInvocation<
             if (cls.isExported) astContent += ' (exported)';
             if (cls.startLine) astContent += ` [line ${cls.startLine}]`;
             if (cls.methods && cls.methods.length > 0) {
-              astContent += ` - Methods: ${cls.methods.map(m => m.name).join(', ')}`;
+              astContent += ` - Methods: ${cls.methods.map((m) => m.name).join(', ')}`;
             }
             astContent += '\n';
           });
@@ -471,12 +567,16 @@ class ReadFileToolInvocation extends BaseToolInvocation<
           astContent += `📦 **Imports:**\n`;
           intentions.imports.slice(0, 8).forEach((imp) => {
             astContent += `- from "${imp.moduleSpecifier}"`;
-            if (imp.defaultImport) astContent += ` default: ${imp.defaultImport}`;
+            if (imp.defaultImport)
+              astContent += ` default: ${imp.defaultImport}`;
             if (imp.namedImports && imp.namedImports.length > 0) {
-              const named = imp.namedImports.map(n => n.alias ? `${n.name} as ${n.alias}` : n.name).join(', ');
+              const named = imp.namedImports
+                .map((n) => (n.alias ? `${n.name} as ${n.alias}` : n.name))
+                .join(', ');
               astContent += ` named: {${named}}`;
             }
-            if (imp.namespaceImport) astContent += ` namespace: ${imp.namespaceImport}`;
+            if (imp.namespaceImport)
+              astContent += ` namespace: ${imp.namespaceImport}`;
             astContent += '\n';
           });
           if (intentions.imports.length > 8) {
@@ -499,13 +599,21 @@ class ReadFileToolInvocation extends BaseToolInvocation<
       if (this.params.ast_query && parseResult.sourceFile) {
         astContent += `🔍 **AST Query Results** (query: "${this.params.ast_query}"):\n`;
         try {
-          const queryResults = findNodes(parseResult.sourceFile, this.params.ast_query);
+          const queryResults = findNodes(
+            parseResult.sourceFile,
+            this.params.ast_query,
+          );
           if (queryResults.length > 0) {
             astContent += `Found ${queryResults.length} matching nodes:\n`;
             queryResults.slice(0, 10).forEach((node, index) => {
-              const kind = SyntaxKind[node.getKind()] || node.getKind().toString();
+              const kind =
+                SyntaxKind[node.getKind()] || node.getKind().toString();
               const line = node.getStartLineNumber?.() || '?';
-              const text = node.getText().substring(0, 100).replace(/\s+/g, ' ').trim();
+              const text = node
+                .getText()
+                .substring(0, 100)
+                .replace(/\s+/g, ' ')
+                .trim();
               astContent += `${index + 1}. ${kind} [line ${line}]: ${text}${text.length === 100 ? '...' : ''}\n`;
             });
             if (queryResults.length > 10) {
@@ -524,7 +632,8 @@ class ReadFileToolInvocation extends BaseToolInvocation<
       if (parseResult.comments && parseResult.comments.length > 0) {
         astContent += `💬 **Comments** (${parseResult.comments.length} found):\n`;
         parseResult.comments.slice(0, 5).forEach((comment, index) => {
-          const preview = comment.length > 100 ? comment.substring(0, 97) + '...' : comment;
+          const preview =
+            comment.length > 100 ? comment.substring(0, 97) + '...' : comment;
           astContent += `${index + 1}. ${preview}\n`;
         });
         if (parseResult.comments.length > 5) {
@@ -536,7 +645,8 @@ class ReadFileToolInvocation extends BaseToolInvocation<
       if (parseResult.jsdocs && parseResult.jsdocs.length > 0) {
         astContent += `📖 **JSDoc Documentation** (${parseResult.jsdocs.length} found):\n`;
         parseResult.jsdocs.slice(0, 3).forEach((jsdoc, index) => {
-          const preview = jsdoc.length > 150 ? jsdoc.substring(0, 147) + '...' : jsdoc;
+          const preview =
+            jsdoc.length > 150 ? jsdoc.substring(0, 147) + '...' : jsdoc;
           astContent += `${index + 1}. ${preview}\n`;
         });
         if (parseResult.jsdocs.length > 3) {
@@ -550,7 +660,7 @@ class ReadFileToolInvocation extends BaseToolInvocation<
       return { astContent, parseResult };
     } catch (error) {
       return {
-        astContent: `❌ **AST Analysis Failed:** ${error}\n\nContinuing with basic file content...\n\n---\n\n`
+        astContent: `❌ **AST Analysis Failed:** ${error}\n\nContinuing with basic file content...\n\n---\n\n`,
       };
     }
   }
@@ -571,7 +681,8 @@ class ReadFileToolInvocation extends BaseToolInvocation<
 
     if (result.error) {
       return {
-        llmContent: result.llmContent || `❌ **Error reading file:** ${result.error}`,
+        llmContent:
+          result.llmContent || `❌ **Error reading file:** ${result.error}`,
         returnDisplay: result.returnDisplay || 'Error reading file',
         error: {
           message: result.error,
@@ -581,10 +692,14 @@ class ReadFileToolInvocation extends BaseToolInvocation<
     }
 
     let finalContent = '';
-    let astAnalysis: { astContent: string; parseResult?: ParseResult } | null = null;
+    let astAnalysis: { astContent: string; parseResult?: ParseResult } | null =
+      null;
 
     // Perform AST analysis for code files (unless explicitly disabled)
-    if (this.params.include_ast !== false && this.isCodeFile(this.params.absolute_path)) {
+    if (
+      this.params.include_ast !== false &&
+      this.isCodeFile(this.params.absolute_path)
+    ) {
       astAnalysis = await this.performASTAnalysis(this.params.absolute_path);
       finalContent += astAnalysis.astContent;
     }
@@ -597,7 +712,7 @@ class ReadFileToolInvocation extends BaseToolInvocation<
       const nextOffset = this.params.offset
         ? this.params.offset + end - start + 1
         : end;
-      
+
       finalContent += `
 ⚠️ **IMPORTANT: File content has been truncated.**
 📊 Status: Showing lines ${start}-${end} of ${total} total lines.
@@ -610,7 +725,8 @@ ${result.llmContent}`;
       finalContent += `📄 **FILE CONTENT:**\n\n${result.llmContent || ''}`;
     }
 
-    const llmContent: PartUnion = finalContent || '📄 **FILE CONTENT:** (empty file)';
+    const llmContent: PartUnion =
+      finalContent || '📄 **FILE CONTENT:** (empty file)';
 
     // Allow llmContent to be either a string (text) or an object with expected parts
     const mimetype = getSpecificMimeType(this.params.absolute_path);
@@ -652,7 +768,9 @@ ${result.llmContent}`;
       };
     }
 
-    const lines = isString ? (result.llmContent as string).split('\n').length : undefined;
+    const lines = isString
+      ? (result.llmContent as string).split('\n').length
+      : undefined;
     logFileOperation(
       this.config,
       new FileOperationEvent(
@@ -737,7 +855,7 @@ Supports text, images (PNG, JPG, GIF, WEBP, SVG, BMP), PDF files, and comprehens
           },
           include_ast: {
             description:
-              "Optional: Whether to include AST analysis for supported code files (default: true). Set to false to skip AST analysis and get only raw file content.",
+              'Optional: Whether to include AST analysis for supported code files (default: true). Set to false to skip AST analysis and get only raw file content.',
             type: 'boolean',
           },
           ast_query: {
@@ -747,7 +865,7 @@ Supports text, images (PNG, JPG, GIF, WEBP, SVG, BMP), PDF files, and comprehens
           },
           show_ast_tree: {
             description:
-              "Optional: Whether to show the visual AST tree structure (default: true). Set to false to get only structural analysis without the tree visualization.",
+              'Optional: Whether to show the visual AST tree structure (default: true). Set to false to get only structural analysis without the tree visualization.',
             type: 'boolean',
           },
         },

@@ -29,7 +29,7 @@ describe('Circular Reference Handling', () => {
     } as unknown as Config;
 
     // Create an object with circular references (similar to HttpsProxyAgent)
-     
+
     const circularObject: any = {
       sockets: {},
       agent: null,

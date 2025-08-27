@@ -39,7 +39,7 @@ export class ToolValidationUtils {
           error: ToolError.fileSystemError(
             ToolErrorType.VALIDATION_FILE_NOT_EXISTS,
             `File does not exist: ${filePath}`,
-            filePath
+            filePath,
           ),
         };
       }
@@ -51,7 +51,7 @@ export class ToolValidationUtils {
           error: ToolError.fileSystemError(
             ToolErrorType.TARGET_IS_DIRECTORY,
             `Path is a directory, not a file: ${filePath}`,
-            filePath
+            filePath,
           ),
         };
       }
@@ -60,7 +60,10 @@ export class ToolValidationUtils {
     } catch (error) {
       return {
         isValid: false,
-        error: ToolError.fromUnknownError(error, ToolErrorType.VALIDATION_FILE_NOT_EXISTS),
+        error: ToolError.fromUnknownError(
+          error,
+          ToolErrorType.VALIDATION_FILE_NOT_EXISTS,
+        ),
       };
     }
   }
@@ -77,7 +80,7 @@ export class ToolValidationUtils {
           error: ToolError.fileSystemError(
             ToolErrorType.SEARCH_PATH_NOT_FOUND,
             `Directory does not exist: ${dirPath}`,
-            dirPath
+            dirPath,
           ),
         };
       }
@@ -89,7 +92,7 @@ export class ToolValidationUtils {
           error: ToolError.fileSystemError(
             ToolErrorType.PATH_IS_NOT_A_DIRECTORY,
             `Path is not a directory: ${dirPath}`,
-            dirPath
+            dirPath,
           ),
         };
       }
@@ -98,7 +101,10 @@ export class ToolValidationUtils {
     } catch (error) {
       return {
         isValid: false,
-        error: ToolError.fromUnknownError(error, ToolErrorType.SEARCH_PATH_NOT_FOUND),
+        error: ToolError.fromUnknownError(
+          error,
+          ToolErrorType.SEARCH_PATH_NOT_FOUND,
+        ),
       };
     }
   }
@@ -108,7 +114,7 @@ export class ToolValidationUtils {
    */
   async validatePathAccessibility(
     filePath: string,
-    requireWrite: boolean = false
+    requireWrite: boolean = false,
   ): Promise<ValidationResult> {
     try {
       const exists = await this.fileSystemService.exists(filePath);
@@ -123,19 +129,20 @@ export class ToolValidationUtils {
               error: ToolError.fileSystemError(
                 ToolErrorType.VALIDATION_PATH_NOT_ACCESSIBLE,
                 `Parent directory does not exist: ${parentDir}`,
-                filePath
+                filePath,
               ),
             };
           }
 
-          const parentInfo = await this.fileSystemService.getFileInfo(parentDir);
+          const parentInfo =
+            await this.fileSystemService.getFileInfo(parentDir);
           if (!parentInfo.success) {
             return {
               isValid: false,
               error: ToolError.fileSystemError(
                 ToolErrorType.VALIDATION_PATH_NOT_ACCESSIBLE,
                 `Cannot get parent directory information: ${parentDir}`,
-                filePath
+                filePath,
               ),
             };
           }
@@ -146,7 +153,7 @@ export class ToolValidationUtils {
               error: ToolError.fileSystemError(
                 ToolErrorType.PERMISSION_DENIED,
                 `No write permission for parent directory: ${parentDir}`,
-                filePath
+                filePath,
               ),
             };
           }
@@ -159,7 +166,7 @@ export class ToolValidationUtils {
             error: ToolError.fileSystemError(
               ToolErrorType.VALIDATION_PATH_NOT_ACCESSIBLE,
               `Path is not accessible: ${filePath}`,
-              filePath
+              filePath,
             ),
           };
         }
@@ -172,7 +179,7 @@ export class ToolValidationUtils {
           error: ToolError.fileSystemError(
             ToolErrorType.VALIDATION_PATH_NOT_ACCESSIBLE,
             `Cannot get file information: ${filePath}`,
-            filePath
+            filePath,
           ),
         };
       }
@@ -184,7 +191,7 @@ export class ToolValidationUtils {
           error: ToolError.fileSystemError(
             ToolErrorType.PERMISSION_DENIED,
             `No read permission for path: ${filePath}`,
-            filePath
+            filePath,
           ),
         };
       }
@@ -195,7 +202,7 @@ export class ToolValidationUtils {
           error: ToolError.fileSystemError(
             ToolErrorType.PERMISSION_DENIED,
             `No write permission for path: ${filePath}`,
-            filePath
+            filePath,
           ),
         };
       }
@@ -204,7 +211,10 @@ export class ToolValidationUtils {
     } catch (error) {
       return {
         isValid: false,
-        error: ToolError.fromUnknownError(error, ToolErrorType.VALIDATION_PATH_NOT_ACCESSIBLE),
+        error: ToolError.fromUnknownError(
+          error,
+          ToolErrorType.VALIDATION_PATH_NOT_ACCESSIBLE,
+        ),
       };
     }
   }
@@ -215,7 +225,7 @@ export class ToolValidationUtils {
   async validateOldStringExists(
     filePath: string,
     oldString: string,
-    expectedOccurrences?: number
+    expectedOccurrences?: number,
   ): Promise<ValidationResult> {
     try {
       const readResult = await this.fileSystemService.readTextFile(filePath);
@@ -225,7 +235,7 @@ export class ToolValidationUtils {
           error: ToolError.fileSystemError(
             ToolErrorType.FILE_NOT_FOUND,
             `Failed to read file for validation: ${filePath}`,
-            filePath
+            filePath,
           ),
         };
       }
@@ -242,12 +252,15 @@ export class ToolValidationUtils {
             {
               filePath,
               metadata: { oldString, contentLength: content.length },
-            }
+            },
           ),
         };
       }
 
-      if (expectedOccurrences !== undefined && occurrences !== expectedOccurrences) {
+      if (
+        expectedOccurrences !== undefined &&
+        occurrences !== expectedOccurrences
+      ) {
         return {
           isValid: false,
           error: ToolError.validationError(
@@ -255,8 +268,12 @@ export class ToolValidationUtils {
             `Expected ${expectedOccurrences} occurrences but found ${occurrences}`,
             {
               filePath,
-              metadata: { oldString, expectedOccurrences, actualOccurrences: occurrences },
-            }
+              metadata: {
+                oldString,
+                expectedOccurrences,
+                actualOccurrences: occurrences,
+              },
+            },
           ),
         };
       }
@@ -265,7 +282,10 @@ export class ToolValidationUtils {
     } catch (error) {
       return {
         isValid: false,
-        error: ToolError.fromUnknownError(error, ToolErrorType.EDIT_PREPARATION_FAILURE),
+        error: ToolError.fromUnknownError(
+          error,
+          ToolErrorType.EDIT_PREPARATION_FAILURE,
+        ),
       };
     }
   }
@@ -279,7 +299,7 @@ export class ToolValidationUtils {
         isValid: false,
         error: ToolError.validationError(
           ToolErrorType.WRITE_FILE_CONTENT_EMPTY,
-          'Content cannot be null or undefined'
+          'Content cannot be null or undefined',
         ),
       };
     }
@@ -289,7 +309,7 @@ export class ToolValidationUtils {
         isValid: false,
         error: ToolError.validationError(
           ToolErrorType.VALIDATION_CONTENT_INVALID,
-          'Content must be a string'
+          'Content must be a string',
         ),
       };
     }
@@ -301,7 +321,7 @@ export class ToolValidationUtils {
         isValid: false,
         error: ToolError.validationError(
           ToolErrorType.FILE_TOO_LARGE,
-          `Content too large: ${content.length} characters (max: ${maxSize})`
+          `Content too large: ${content.length} characters (max: ${maxSize})`,
         ),
       };
     }
@@ -318,7 +338,7 @@ export class ToolValidationUtils {
         isValid: false,
         error: ToolError.validationError(
           ToolErrorType.VALIDATION_PARAMETERS_INVALID,
-          'Command must be a non-empty string'
+          'Command must be a non-empty string',
         ),
       };
     }
@@ -330,7 +350,7 @@ export class ToolValidationUtils {
         isValid: false,
         error: ToolError.validationError(
           ToolErrorType.SHELL_COMMAND_SYNTAX_ERROR,
-          'Command cannot be empty after trimming'
+          'Command cannot be empty after trimming',
         ),
       };
     }
@@ -350,8 +370,9 @@ export class ToolValidationUtils {
           `Command not found in PATH: ${mainCommand}`,
           {
             metadata: { command: mainCommand },
-            suggestedAction: 'Check if the command is installed and available in PATH',
-          }
+            suggestedAction:
+              'Check if the command is installed and available in PATH',
+          },
         ),
       };
     }
@@ -367,7 +388,7 @@ export class ToolValidationUtils {
     startLine: number,
     startColumn: number,
     endLine: number,
-    endColumn: number
+    endColumn: number,
   ): ValidationResult {
     const lines = content.split('\n');
     const totalLines = lines.length;
@@ -377,7 +398,7 @@ export class ToolValidationUtils {
         isValid: false,
         error: ToolError.validationError(
           ToolErrorType.EDIT_INVALID_RANGE,
-          `Start line ${startLine} is out of bounds (0-${totalLines - 1})`
+          `Start line ${startLine} is out of bounds (0-${totalLines - 1})`,
         ),
       };
     }
@@ -387,7 +408,7 @@ export class ToolValidationUtils {
         isValid: false,
         error: ToolError.validationError(
           ToolErrorType.EDIT_INVALID_RANGE,
-          `End line ${endLine} is out of bounds (0-${totalLines - 1})`
+          `End line ${endLine} is out of bounds (0-${totalLines - 1})`,
         ),
       };
     }
@@ -397,7 +418,7 @@ export class ToolValidationUtils {
         isValid: false,
         error: ToolError.validationError(
           ToolErrorType.EDIT_INVALID_RANGE,
-          `Start line ${startLine} cannot be greater than end line ${endLine}`
+          `Start line ${startLine} cannot be greater than end line ${endLine}`,
         ),
       };
     }
@@ -410,7 +431,7 @@ export class ToolValidationUtils {
         isValid: false,
         error: ToolError.validationError(
           ToolErrorType.EDIT_INVALID_RANGE,
-          `Start column ${startColumn} is out of bounds for line ${startLine} (length: ${startLineContent.length})`
+          `Start column ${startColumn} is out of bounds for line ${startLine} (length: ${startLineContent.length})`,
         ),
       };
     }
@@ -420,7 +441,7 @@ export class ToolValidationUtils {
         isValid: false,
         error: ToolError.validationError(
           ToolErrorType.EDIT_INVALID_RANGE,
-          `End column ${endColumn} is out of bounds for line ${endLine} (length: ${endLineContent.length})`
+          `End column ${endColumn} is out of bounds for line ${endLine} (length: ${endLineContent.length})`,
         ),
       };
     }
@@ -430,7 +451,7 @@ export class ToolValidationUtils {
         isValid: false,
         error: ToolError.validationError(
           ToolErrorType.EDIT_INVALID_RANGE,
-          `Start column ${startColumn} cannot be greater than end column ${endColumn} on the same line`
+          `Start column ${startColumn} cannot be greater than end column ${endColumn} on the same line`,
         ),
       };
     }
@@ -445,7 +466,7 @@ export class ToolValidationUtils {
     filePath: string,
     oldString: string,
     newString: string,
-    expectedOccurrences?: number
+    expectedOccurrences?: number,
   ): Promise<ValidationResult> {
     try {
       const readResult = await this.fileSystemService.readTextFile(filePath);
@@ -455,7 +476,7 @@ export class ToolValidationUtils {
           error: ToolError.fileSystemError(
             ToolErrorType.FILE_NOT_FOUND,
             `Failed to read file for dry run validation: ${filePath}`,
-            filePath
+            filePath,
           ),
         };
       }
@@ -472,12 +493,15 @@ export class ToolValidationUtils {
             {
               filePath,
               metadata: { oldString, contentLength: content.length },
-            }
+            },
           ),
         };
       }
 
-      if (expectedOccurrences !== undefined && occurrences !== expectedOccurrences) {
+      if (
+        expectedOccurrences !== undefined &&
+        occurrences !== expectedOccurrences
+      ) {
         return {
           isValid: false,
           error: ToolError.validationError(
@@ -485,14 +509,21 @@ export class ToolValidationUtils {
             `Dry run: Expected ${expectedOccurrences} occurrences but found ${occurrences}`,
             {
               filePath,
-              metadata: { oldString, expectedOccurrences, actualOccurrences: occurrences },
-            }
+              metadata: {
+                oldString,
+                expectedOccurrences,
+                actualOccurrences: occurrences,
+              },
+            },
           ),
         };
       }
 
       // Simulate the replacement to check for potential issues
-      const newContent = content.replace(new RegExp(this.escapeRegExp(oldString), 'g'), newString);
+      const newContent = content.replace(
+        new RegExp(this.escapeRegExp(oldString), 'g'),
+        newString,
+      );
 
       // Check if the replacement would result in an empty file when it shouldn't
       if (newContent.trim().length === 0 && content.trim().length > 0) {
@@ -504,7 +535,7 @@ export class ToolValidationUtils {
             {
               filePath,
               metadata: { oldString, newString },
-            }
+            },
           ),
         };
       }
@@ -513,7 +544,10 @@ export class ToolValidationUtils {
     } catch (error) {
       return {
         isValid: false,
-        error: ToolError.fromUnknownError(error, ToolErrorType.EDIT_PREPARATION_FAILURE),
+        error: ToolError.fromUnknownError(
+          error,
+          ToolErrorType.EDIT_PREPARATION_FAILURE,
+        ),
       };
     }
   }

@@ -20,7 +20,9 @@ export function injectStdinIntoArgs(args: string[], stdin: string): string[] {
   }
 
   const finalArgs = [...args];
-  const promptIndex = finalArgs.findIndex(arg => arg === '--prompt' || arg === '-p');
+  const promptIndex = finalArgs.findIndex(
+    (arg) => arg === '--prompt' || arg === '-p',
+  );
 
   if (promptIndex > -1 && finalArgs.length > promptIndex + 1) {
     // Append stdin to existing prompt

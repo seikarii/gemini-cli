@@ -49,7 +49,7 @@ async function createMockConfig(
   };
   const config = new Config(configParams);
   await config.initialize();
-   
+
   await config.refreshAuth('test-auth' as any);
 
   // Mock ToolRegistry
@@ -123,7 +123,6 @@ describe('subagent.ts', () => {
       ]);
       vi.mocked(createContentGenerator).mockResolvedValue({
         getGenerativeModel: vi.fn(),
-         
       } as any);
 
       mockSendMessageStream = vi.fn();
@@ -182,7 +181,6 @@ describe('subagent.ts', () => {
         };
 
         const { config } = await createMockConfig({
-           
           getTool: vi.fn().mockReturnValue(mockTool as any),
         });
 
@@ -210,7 +208,6 @@ describe('subagent.ts', () => {
           }),
         };
         const { config } = await createMockConfig({
-           
           getTool: vi.fn().mockReturnValue(mockTool as any),
         });
 
@@ -757,7 +754,6 @@ describe('subagent.ts', () => {
         const streamPromise = new Promise<
           AsyncGenerator<unknown, void, unknown>
         >((resolve) => {
-           
           resolveStream = resolve as any;
         });
 
@@ -778,7 +774,7 @@ describe('subagent.ts', () => {
         await vi.advanceTimersByTimeAsync(6 * 60 * 1000);
 
         // Now resolve the stream. The model returns 'stop'.
-         
+
         resolveStream!(createMockStream(['stop'])() as any);
 
         await runPromise;

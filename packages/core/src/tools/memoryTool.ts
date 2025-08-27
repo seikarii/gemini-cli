@@ -1,8 +1,16 @@
 interface Config {
   getFileSystemService(): {
-    readTextFile: (path: string) => Promise<{ success: boolean; data?: string; error?: string }>;
-    writeTextFile: (path: string, data: string) => Promise<{ success: boolean; error?: string }>;
-    createDirectory: (path: string, options: { recursive: boolean }) => Promise<{ success: boolean; error?: string }>;
+    readTextFile: (
+      path: string,
+    ) => Promise<{ success: boolean; data?: string; error?: string }>;
+    writeTextFile: (
+      path: string,
+      data: string,
+    ) => Promise<{ success: boolean; error?: string }>;
+    createDirectory: (
+      path: string,
+      options: { recursive: boolean },
+    ) => Promise<{ success: boolean; error?: string }>;
   };
 }
 
@@ -103,7 +111,6 @@ export function getAllGeminiMdFilenames(): string[] {
   return [currentGeminiMdFilename];
 }
 
-
 function getGlobalMemoryFilePath(): string {
   return path.join(Storage.getGlobalGeminiDir(), getCurrentGeminiMdFilename());
 }
@@ -125,7 +132,9 @@ function ensureNewlineSeparation(currentContent: string): string {
  */
 async function readMemoryFileContent(config: Config): Promise<string> {
   try {
-    const result = await config.getFileSystemService().readTextFile(getGlobalMemoryFilePath());
+    const result = await config
+      .getFileSystemService()
+      .readTextFile(getGlobalMemoryFilePath());
     if (result.success && typeof result.data === 'string') return result.data;
     throw new Error(result.error || 'Error reading memory file');
   } catch (err) {
@@ -184,11 +193,11 @@ class MemoryToolInvocation extends BaseToolInvocation<
   ToolResult
 > {
   private static readonly allowlist: Set<string> = new Set();
-    private config: Config;
+  private config: Config;
 
   constructor(params: SaveMemoryParams, config: unknown) {
     super(params);
-      this.config = config as Config;
+    this.config = config as Config;
   }
 
   getDescription(): string {
@@ -199,15 +208,15 @@ class MemoryToolInvocation extends BaseToolInvocation<
   override async shouldConfirmExecute(
     _abortSignal: AbortSignal,
   ): Promise<ToolEditConfirmationDetails | false> {
-  void _abortSignal;
-  const memoryFilePath = getGlobalMemoryFilePath();
+    void _abortSignal;
+    const memoryFilePath = getGlobalMemoryFilePath();
     const allowlistKey = memoryFilePath;
 
     if (MemoryToolInvocation.allowlist.has(allowlistKey)) {
       return false;
     }
 
-  const currentContent = await readMemoryFileContent(this.config);
+    const currentContent = await readMemoryFileContent(this.config);
     const newContent = computeNewContent(currentContent, this.params.fact);
 
     const fileName = path.basename(memoryFilePath);
@@ -238,15 +247,22 @@ class MemoryToolInvocation extends BaseToolInvocation<
   }
 
   async execute(_signal: AbortSignal): Promise<ToolResult> {
-  void _signal;
-  const { fact, modified_by_user, modified_content } = this.params;
+    void _signal;
+    const { fact, modified_by_user, modified_content } = this.params;
 
     try {
       if (modified_by_user && modified_content !== undefined) {
         // User modified the content in external editor, write it directly
-          await this.config.getFileSystemService().createDirectory(path.dirname(getGlobalMemoryFilePath()), { recursive: true });
-          const writeRes = await this.config.getFileSystemService().writeTextFile(getGlobalMemoryFilePath(), modified_content);
-  if (!writeRes.success) throw new Error(writeRes.error || 'Error writing memory file');
+        await this.config
+          .getFileSystemService()
+          .createDirectory(path.dirname(getGlobalMemoryFilePath()), {
+            recursive: true,
+          });
+        const writeRes = await this.config
+          .getFileSystemService()
+          .writeTextFile(getGlobalMemoryFilePath(), modified_content);
+        if (!writeRes.success)
+          throw new Error(writeRes.error || 'Error writing memory file');
         const successMessage = `Okay, I've updated the memory file with your modifications.`;
         return {
           llmContent: JSON.stringify({
@@ -262,16 +278,23 @@ class MemoryToolInvocation extends BaseToolInvocation<
           getGlobalMemoryFilePath(),
           {
             readFile: async (filePath: string) => {
-                const res = await this.config.getFileSystemService().readTextFile(filePath);
+              const res = await this.config
+                .getFileSystemService()
+                .readTextFile(filePath);
               if (res.success && typeof res.data === 'string') return res.data;
               throw new Error(res.error || 'Error reading file');
             },
             writeFile: async (filePath: string, data: string) => {
-                const res = await this.config.getFileSystemService().writeTextFile(filePath, data);
-              if (!res.success) throw new Error(res.error || 'Error writing file');
+              const res = await this.config
+                .getFileSystemService()
+                .writeTextFile(filePath, data);
+              if (!res.success)
+                throw new Error(res.error || 'Error writing file');
             },
             mkdir: async (dirPath: string) => {
-                await this.config.getFileSystemService().createDirectory(dirPath, { recursive: true });
+              await this.config
+                .getFileSystemService()
+                .createDirectory(dirPath, { recursive: true });
               return undefined;
             },
           },
@@ -411,10 +434,18 @@ export class MemoryTool
   getModifyContext(_abortSignal: AbortSignal): ModifyContext<SaveMemoryParams> {
     void _abortSignal;
     return {
-      getFilePath: (_params: SaveMemoryParams) => { void _params; return getGlobalMemoryFilePath(); },
-  getCurrentContent: async (_params: SaveMemoryParams): Promise<string> => { void _params; return readMemoryFileContent(this.config as Config); },
+      getFilePath: (_params: SaveMemoryParams) => {
+        void _params;
+        return getGlobalMemoryFilePath();
+      },
+      getCurrentContent: async (_params: SaveMemoryParams): Promise<string> => {
+        void _params;
+        return readMemoryFileContent(this.config as Config);
+      },
       getProposedContent: async (params: SaveMemoryParams): Promise<string> => {
-  const currentContent = await readMemoryFileContent(this.config as Config);
+        const currentContent = await readMemoryFileContent(
+          this.config as Config,
+        );
         return computeNewContent(currentContent, params.fact);
       },
       createUpdatedParams: (

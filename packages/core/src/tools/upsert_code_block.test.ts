@@ -16,10 +16,15 @@ vi.mock('fs', () => ({
 }));
 vi.mock('../ast/adapter.js', () => ({
   createProject: () => ({}),
-  parseFileWithProject: (_proj: any, _filePath: string) => ({ sourceFile: { getText: () => 'const a = 1;' }, text: 'const a = 1;' }),
-  dumpSourceFileText: (_sf: any) => 'const a = 2;'
+  parseFileWithProject: (_proj: any, _filePath: string) => ({
+    sourceFile: { getText: () => 'const a = 1;' },
+    text: 'const a = 1;',
+  }),
+  dumpSourceFileText: (_sf: any) => 'const a = 2;',
 }));
-vi.mock('diff', () => ({ createPatch: (_: any, __: any, ___: any) => 'patch' }));
+vi.mock('diff', () => ({
+  createPatch: (_: any, __: any, ___: any) => 'patch',
+}));
 
 describe('UpsertCodeBlockTool (unit)', () => {
   let mockConfig: Config;
@@ -46,12 +51,14 @@ describe('UpsertCodeBlockTool (unit)', () => {
       preview: true,
     } as any;
 
-  const tool = new UpsertCodeBlockTool(mockConfig);
-   
-  const inv = (tool as unknown as { createInvocation: (p: any) => any }).createInvocation(params);
-   
-  const abortSignal = (new (globalThis as any).AbortController()).signal;
-  const res = await inv.execute(abortSignal);
+    const tool = new UpsertCodeBlockTool(mockConfig);
+
+    const inv = (
+      tool as unknown as { createInvocation: (p: any) => any }
+    ).createInvocation(params);
+
+    const abortSignal = new (globalThis as any).AbortController().signal;
+    const res = await inv.execute(abortSignal);
     expect(res.llmContent).toBeDefined();
     expect(res.returnDisplay).toBeDefined();
   });

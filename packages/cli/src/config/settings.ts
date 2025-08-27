@@ -75,10 +75,7 @@ export interface SettingsFile {
 }
 
 // Utility function for deep merging settings objects
-function deepMergeSettings(
-  target: Settings,
-  ...sources: Settings[]
-): Settings {
+function deepMergeSettings(target: Settings, ...sources: Settings[]): Settings {
   const result = { ...target } as Record<string, unknown>;
 
   for (const source of sources) {
@@ -87,15 +84,27 @@ function deepMergeSettings(
         const sourceValue = source[key];
         const targetValue = result[key];
 
-        if (sourceValue !== null && typeof sourceValue === 'object' && !Array.isArray(sourceValue)) {
+        if (
+          sourceValue !== null &&
+          typeof sourceValue === 'object' &&
+          !Array.isArray(sourceValue)
+        ) {
           // Deep merge objects
-          const targetObj = targetValue && typeof targetValue === 'object' && !Array.isArray(targetValue)
-            ? targetValue as Record<string, unknown>
-            : {};
-          result[key] = deepMergeSettings(targetObj as Settings, sourceValue as Settings);
+          const targetObj =
+            targetValue &&
+            typeof targetValue === 'object' &&
+            !Array.isArray(targetValue)
+              ? (targetValue as Record<string, unknown>)
+              : {};
+          result[key] = deepMergeSettings(
+            targetObj as Settings,
+            sourceValue as Settings,
+          );
         } else if (Array.isArray(sourceValue)) {
           // Concatenate arrays
-          const targetArray = Array.isArray(targetValue) ? targetValue as unknown[] : [];
+          const targetArray = Array.isArray(targetValue)
+            ? (targetValue as unknown[])
+            : [];
           result[key] = [...targetArray, ...sourceValue];
         } else {
           // Override with source value
@@ -124,7 +133,7 @@ function mergeSettings(
     {} as Settings,
     system,
     user,
-    safeWorkspaceWithoutFolderTrust
+    safeWorkspaceWithoutFolderTrust,
   );
 }
 
@@ -253,7 +262,9 @@ function resolveEnvVarsInObject<T>(obj: T): T {
     const newObj: Record<string, unknown> = {};
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        newObj[key] = resolveEnvVarsInObject((obj as Record<string, unknown>)[key]);
+        newObj[key] = resolveEnvVarsInObject(
+          (obj as Record<string, unknown>)[key],
+        );
       }
     }
     return newObj as T;
@@ -330,13 +341,13 @@ export async function setUpCloudShellEnvironment(
     try {
       const envFileContent = await fs.promises.readFile(envFilePath);
       const parsedEnv = dotenv.parse(envFileContent as Buffer | string);
-    if (parsedEnv['GOOGLE_CLOUD_PROJECT']) {
-      // .env file takes precedence in Cloud Shell
-      process.env['GOOGLE_CLOUD_PROJECT'] = parsedEnv['GOOGLE_CLOUD_PROJECT'];
-    } else {
-      // If not in .env, set to default and override global
-      process.env['GOOGLE_CLOUD_PROJECT'] = 'cloudshell-gca';
-    }
+      if (parsedEnv['GOOGLE_CLOUD_PROJECT']) {
+        // .env file takes precedence in Cloud Shell
+        process.env['GOOGLE_CLOUD_PROJECT'] = parsedEnv['GOOGLE_CLOUD_PROJECT'];
+      } else {
+        // If not in .env, set to default and override global
+        process.env['GOOGLE_CLOUD_PROJECT'] = 'cloudshell-gca';
+      }
     } catch (error) {
       // Log read/parse errors for debugging but continue with default
       logger.debug('Error reading or parsing .env file in Cloud Shell:', error);
@@ -356,11 +367,18 @@ export async function loadEnvironment(settings?: Settings): Promise<void> {
   // If no settings provided, try to load workspace settings for exclusions
   let resolvedSettings = settings;
   if (!resolvedSettings) {
-    const workspaceSettingsPath = new Storage(process.cwd()).getWorkspaceSettingsPath();
+    const workspaceSettingsPath = new Storage(
+      process.cwd(),
+    ).getWorkspaceSettingsPath();
     try {
       try {
-        const workspaceContent = await fs.promises.readFile(workspaceSettingsPath, 'utf-8');
-        const parsedWorkspaceSettings = JSON.parse(stripJsonComments(workspaceContent)) as Settings;
+        const workspaceContent = await fs.promises.readFile(
+          workspaceSettingsPath,
+          'utf-8',
+        );
+        const parsedWorkspaceSettings = JSON.parse(
+          stripJsonComments(workspaceContent),
+        ) as Settings;
         resolvedSettings = resolveEnvVarsInObject(parsedWorkspaceSettings);
       } catch (error) {
         // Ignore errors loading workspace settings but log for debugging
@@ -377,7 +395,8 @@ export async function loadEnvironment(settings?: Settings): Promise<void> {
       const envFileContent = await fs.promises.readFile(envFilePath, 'utf-8');
       const parsedEnv = dotenv.parse(envFileContent);
 
-      const excludedVars = resolvedSettings?.excludedProjectEnvVars || DEFAULT_EXCLUDED_ENV_VARS;
+      const excludedVars =
+        resolvedSettings?.excludedProjectEnvVars || DEFAULT_EXCLUDED_ENV_VARS;
       const isProjectEnvFile = !envFilePath.includes(GEMINI_DIR);
 
       for (const key in parsedEnv) {
@@ -430,7 +449,9 @@ async function resolveDirectories(workspaceDir: string): Promise<{
     logger.debug('Error resolving home directory path:', error);
   }
 
-  const workspaceSettingsPath = new Storage(workspaceDir).getWorkspaceSettingsPath();
+  const workspaceSettingsPath = new Storage(
+    workspaceDir,
+  ).getWorkspaceSettingsPath();
 
   return {
     realWorkspaceDir,
@@ -488,30 +509,50 @@ function applyLegacyThemeMappings(settings: Settings): void {
  * 6. Resolve environment variables in all settings
  * 7. Create and validate final LoadedSettings object
  */
-export async function loadSettings(workspaceDir: string): Promise<LoadedSettings> {
+export async function loadSettings(
+  workspaceDir: string,
+): Promise<LoadedSettings> {
   const settingsErrors: SettingsError[] = [];
 
   // Step 1: Resolve canonical paths
-  const { realWorkspaceDir, realHomeDir, workspaceSettingsPath } = await resolveDirectories(workspaceDir);
+  const { realWorkspaceDir, realHomeDir, workspaceSettingsPath } =
+    await resolveDirectories(workspaceDir);
 
   // Step 2: Load settings from different scopes
   const systemSettingsPath = getSystemSettingsPath();
-  const systemSettings = await loadSettingsFromFile(systemSettingsPath, settingsErrors);
-  const userSettings = await loadSettingsFromFile(USER_SETTINGS_PATH, settingsErrors);
-  const workspaceSettings = realWorkspaceDir !== realHomeDir
-    ? await loadSettingsFromFile(workspaceSettingsPath, settingsErrors)
-    : {};
+  const systemSettings = await loadSettingsFromFile(
+    systemSettingsPath,
+    settingsErrors,
+  );
+  const userSettings = await loadSettingsFromFile(
+    USER_SETTINGS_PATH,
+    settingsErrors,
+  );
+  const workspaceSettings =
+    realWorkspaceDir !== realHomeDir
+      ? await loadSettingsFromFile(workspaceSettingsPath, settingsErrors)
+      : {};
 
   // Step 3: Apply legacy theme mappings
   applyLegacyThemeMappings(userSettings);
   applyLegacyThemeMappings(workspaceSettings);
 
   // Step 4: Initial trust check (before loading environment)
-  const initialTrustCheckSettings = deepMergeSettings({} as Settings, systemSettings, userSettings);
-  const isTrusted = (await isWorkspaceTrusted(initialTrustCheckSettings)) ?? true;
+  const initialTrustCheckSettings = deepMergeSettings(
+    {} as Settings,
+    systemSettings,
+    userSettings,
+  );
+  const isTrusted =
+    (await isWorkspaceTrusted(initialTrustCheckSettings)) ?? true;
 
   // Step 5: Load environment (depends on settings to avoid circular dependency)
-  const tempMergedSettings = mergeSettings(systemSettings, userSettings, workspaceSettings, isTrusted);
+  const tempMergedSettings = mergeSettings(
+    systemSettings,
+    userSettings,
+    workspaceSettings,
+    isTrusted,
+  );
   await loadEnvironment(tempMergedSettings);
 
   // Step 6: Resolve environment variables in settings

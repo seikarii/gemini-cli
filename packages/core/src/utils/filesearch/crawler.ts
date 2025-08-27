@@ -59,14 +59,14 @@ function toPosixPath(p: string): string {
   if (pathConversionCache.has(p)) {
     return pathConversionCache.get(p)!;
   }
-  
+
   const posixPath = p.split(path.sep).join(path.posix.sep);
-  
+
   // Keep cache size reasonable
   if (pathConversionCache.size > 1000) {
     pathConversionCache.clear();
   }
-  
+
   pathConversionCache.set(p, posixPath);
   return posixPath;
 }
@@ -78,19 +78,19 @@ async function processEntriesInParallel(
   entries: string[],
   dir: string,
   posixCrawlDirectory: string,
-  maxConcurrency: number = 50
+  maxConcurrency: number = 50,
 ): Promise<FileSystemEntry[]> {
   const results: FileSystemEntry[] = [];
-  
+
   // Process entries in batches to avoid overwhelming the system
   for (let i = 0; i < entries.length; i += maxConcurrency) {
     const batch = entries.slice(i, i + maxConcurrency);
-    
+
     const batchPromises = batch.map(async (entry): Promise<FileSystemEntry> => {
       const fullPath = path.join(dir, entry);
       const posixPath = toPosixPath(fullPath);
       const relativePath = path.posix.relative(posixCrawlDirectory, posixPath);
-      
+
       try {
         const stat = await fs.stat(fullPath);
         return {
@@ -113,11 +113,11 @@ async function processEntriesInParallel(
         };
       }
     });
-    
+
     const batchResults = await Promise.all(batchPromises);
     results.push(...batchResults);
   }
-  
+
   return results;
 }
 
@@ -160,7 +160,7 @@ export async function crawl(options: CrawlOptions): Promise<string[]> {
 
   async function walkOptimized(dir: string, depth: number): Promise<void> {
     if (options.maxDepth !== undefined && depth > options.maxDepth) return;
-    
+
     let entries: string[];
     try {
       entries = await fs.readdir(dir);
@@ -179,7 +179,7 @@ export async function crawl(options: CrawlOptions): Promise<string[]> {
       entries,
       dir,
       posixCrawlDirectory,
-      maxConcurrency
+      maxConcurrency,
     );
 
     metrics.concurrentStats += processedEntries.length;
@@ -203,19 +203,21 @@ export async function crawl(options: CrawlOptions): Promise<string[]> {
 
     // Process directories
     for (const dirEntry of directories) {
-      const dirCheck = dirEntry.relativePath === '' ? '' : `${dirEntry.relativePath}/`;
-      
+      const dirCheck =
+        dirEntry.relativePath === '' ? '' : `${dirEntry.relativePath}/`;
+
       if (dirFilter(dirCheck)) {
         metrics.ignoredItems++;
         continue;
       }
-      
+
       metrics.totalDirectories++;
-      
+
       // Push directory entry with trailing slash, use '.' for the root.
-      const dirPath = dirEntry.relativePath === '' ? '.' : `${dirEntry.relativePath}/`;
+      const dirPath =
+        dirEntry.relativePath === '' ? '.' : `${dirEntry.relativePath}/`;
       resultsList.push(dirPath);
-      
+
       // Recursively process subdirectory
       await walkOptimized(dirEntry.fullPath, depth + 1);
     }
@@ -228,11 +230,11 @@ export async function crawl(options: CrawlOptions): Promise<string[]> {
   }
 
   await walkOptimized(options.crawlDirectory, 0);
-  
+
   // Transform results relative to cwd
   const relativeToCrawlDir = path.posix.relative(posixCwd, posixCrawlDirectory);
-  const relativeToCwdResults = resultsList.map((p) => 
-    relativeToCrawlDir === '' ? p : path.posix.join(relativeToCrawlDir, p)
+  const relativeToCwdResults = resultsList.map((p) =>
+    relativeToCrawlDir === '' ? p : path.posix.join(relativeToCrawlDir, p),
   );
 
   // Cache results
@@ -252,9 +254,12 @@ export async function crawl(options: CrawlOptions): Promise<string[]> {
 /**
  * Logs performance metrics for crawl operations.
  */
-function logPerformanceMetrics(metrics: CrawlMetrics, resultCount: number): void {
+function logPerformanceMetrics(
+  metrics: CrawlMetrics,
+  resultCount: number,
+): void {
   const duration = performance.now() - metrics.startTime;
-  
+
   // Only log if performance is concerning or in development mode
   if (duration > 1000 || process.env['NODE_ENV'] === 'development') {
     const logData = {
@@ -266,7 +271,7 @@ function logPerformanceMetrics(metrics: CrawlMetrics, resultCount: number): void
       cacheHit: metrics.cacheHit,
       concurrentStats: metrics.concurrentStats,
     };
-    
+
     if (process.env['NODE_ENV'] === 'development') {
       console.debug('[crawler] Performance metrics:', logData);
     } else if (duration > 5000) {

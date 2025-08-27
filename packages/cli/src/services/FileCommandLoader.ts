@@ -18,9 +18,7 @@ import {
   SlashCommandActionReturn,
 } from '../ui/commands/types.js';
 import { DefaultArgumentProcessor } from './prompt-processors/argumentProcessor.js';
-import {
-  IPromptProcessor,
-} from './prompt-processors/types.js';
+import { IPromptProcessor } from './prompt-processors/types.js';
 import {
   SHORTHAND_ARGS_PLACEHOLDER,
   SHELL_INJECTION_TRIGGER,

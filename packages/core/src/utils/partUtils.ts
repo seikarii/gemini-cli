@@ -5,9 +5,7 @@
  */
 
 import { GenerateContentResponse, PartListUnion, Part } from '@google/genai';
-import {
-  getResponseText as getResponseTextFromUtilities,
-} from './generateContentResponseUtilities.js';
+import { getResponseText as getResponseTextFromUtilities } from './generateContentResponseUtilities.js';
 
 /**
  * Converts a PartListUnion into a string.

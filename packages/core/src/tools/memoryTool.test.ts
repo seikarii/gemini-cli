@@ -301,7 +301,7 @@ describe('MemoryTool', () => {
       memoryTool = new MemoryTool();
       // Clear the allowlist before each test
       const invocation = memoryTool.build({ fact: 'mock-fact' });
-       
+
       (invocation.constructor as any).allowlist.clear();
       // Mock fs.readFile to return empty string (file doesn't exist)
       vi.mocked(fs.readFile).mockResolvedValue('');
@@ -339,7 +339,7 @@ describe('MemoryTool', () => {
 
       const invocation = memoryTool.build(params);
       // Add the memory file to the allowlist
-       
+
       (invocation.constructor as any).allowlist.add(memoryFilePath);
 
       const result = await invocation.shouldConfirmExecute(mockAbortSignal);
@@ -367,7 +367,6 @@ describe('MemoryTool', () => {
 
         // Check that the memory file was added to the allowlist
         expect(
-           
           (invocation.constructor as any).allowlist.has(memoryFilePath),
         ).toBe(true);
       }
@@ -390,7 +389,7 @@ describe('MemoryTool', () => {
       if (result && result.type === 'edit') {
         // Simulate the onConfirm callback with different outcomes
         await result.onConfirm(ToolConfirmationOutcome.ProceedOnce);
-         
+
         const allowlist = (invocation.constructor as any).allowlist;
         expect(allowlist.has(memoryFilePath)).toBe(false);
 

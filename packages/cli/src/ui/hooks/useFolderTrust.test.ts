@@ -163,7 +163,9 @@ describe('useFolderTrust', () => {
   });
 
   it('should set isRestarting to true when trust status changes from false to true', () => {
-    isWorkspaceTrustedSpy.mockResolvedValueOnce(false).mockResolvedValueOnce(true); // Initially untrusted, then trusted
+    isWorkspaceTrustedSpy
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true); // Initially untrusted, then trusted
     const { result } = renderHook(() =>
       useFolderTrust(mockSettings, onTrustChange),
     );

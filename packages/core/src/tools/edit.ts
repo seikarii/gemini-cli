@@ -287,7 +287,8 @@ function optimizeSearchSpace(content: string, searchString: string): string {
   const searchLength = searchString.length;
 
   // For very large files, limit the search to a reasonable subset
-  if (contentLength > 100000 && searchLength < 1000) { // 100KB threshold
+  if (contentLength > 100000 && searchLength < 1000) {
+    // 100KB threshold
     const searchStart = Math.max(0, contentLength - 50000); // Search in last 50KB
     return content.substring(searchStart);
   }
@@ -581,7 +582,8 @@ function validateAutofixInput(
   }
 
   // Check for extremely large content that could cause performance issues
-  if (currentContent.length > 10 * 1024 * 1024) { // 10MB limit
+  if (currentContent.length > 10 * 1024 * 1024) {
+    // 10MB limit
     console.debug('AutofixEdit: Content too large, skipping advanced matching');
     return false;
   }
@@ -627,12 +629,26 @@ async function autofixEdit(
       // Optimize search space for large files
       const optimizedContent = optimizeSearchSpace(currentContent, oldString);
 
-      const unifiedMatch = findBestMatchUnified(optimizedContent, oldString, config);
-      if (unifiedMatch && unifiedMatch.confidence >= config.minSimilarityThreshold) {
+      const unifiedMatch = findBestMatchUnified(
+        optimizedContent,
+        oldString,
+        config,
+      );
+      if (
+        unifiedMatch &&
+        unifiedMatch.confidence >= config.minSimilarityThreshold
+      ) {
         // If we found a match in optimized content, verify it exists in full content
         if (optimizedContent !== currentContent) {
-          const fullContentMatch = findBestMatchUnified(currentContent, oldString, config);
-          if (fullContentMatch && fullContentMatch.confidence >= unifiedMatch.confidence) {
+          const fullContentMatch = findBestMatchUnified(
+            currentContent,
+            oldString,
+            config,
+          );
+          if (
+            fullContentMatch &&
+            fullContentMatch.confidence >= unifiedMatch.confidence
+          ) {
             appliedFixes.push(
               `unified_match_${Math.round(fullContentMatch.confidence * 100)}pct`,
             );
@@ -668,7 +684,10 @@ async function autofixEdit(
       }
     } catch (error) {
       // If advanced matching fails, fall back to basic normalization
-      console.debug('AutofixEdit: Advanced matching failed, using fallback:', error);
+      console.debug(
+        'AutofixEdit: Advanced matching failed, using fallback:',
+        error,
+      );
     }
   }
 
@@ -977,7 +996,12 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
             // small token) and occurs many times, block it to avoid accidental
             // global replacements. This protects against single-character or
             // tiny-token replacements that can drastically alter files.
-            if (!error && finalOldString.length > 0 && finalOldString.length < 4 && totalOccurrences > 3) {
+            if (
+              !error &&
+              finalOldString.length > 0 &&
+              finalOldString.length < 4 &&
+              totalOccurrences > 3
+            ) {
               error = {
                 display: `Suspicious replacement: target snippet is very short and occurs ${totalOccurrences} times. Provide a more specific old_string or an explicit target_occurrence.`,
                 raw: `Suspicious replacement: final_old_string (len=${finalOldString.length}) occurs ${totalOccurrences} times in ${params.file_path}`,
@@ -1161,8 +1185,14 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
       return false;
     }
 
-  const fileName = path.basename(this.params.file_path);
-  const fileDiff = createPatch(fileName, editData.currentContent ?? '', editData.newContent, 'Current', 'Proposed');
+    const fileName = path.basename(this.params.file_path);
+    const fileDiff = createPatch(
+      fileName,
+      editData.currentContent ?? '',
+      editData.newContent,
+      'Current',
+      'Proposed',
+    );
     const ideClient = this.config.getIdeClient();
     const ideConfirmation =
       this.config.getIdeMode() &&
@@ -1235,12 +1265,14 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
    */
   async execute(signal: AbortSignal): Promise<ToolResult> {
     // Pre-execution validation
-    const validator = new ToolValidationUtils(this.config.getFileSystemService());
+    const validator = new ToolValidationUtils(
+      this.config.getFileSystemService(),
+    );
 
     // Validate file path accessibility
     const pathValidation = await validator.validatePathAccessibility(
       this.params.file_path,
-      true // require write access
+      true, // require write access
     );
     if (!pathValidation.isValid) {
       return {
@@ -1258,7 +1290,7 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
       const oldStringValidation = await validator.validateOldStringExists(
         this.params.file_path,
         this.params.old_string,
-        this.params.expected_replacements
+        this.params.expected_replacements,
       );
       if (!oldStringValidation.isValid) {
         return {
@@ -1273,18 +1305,24 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
     }
 
     // For range-based edits, validate the range parameters
-    if (this.params.start_line !== undefined && this.params.start_column !== undefined &&
-        this.params.end_line !== undefined && this.params.end_column !== undefined) {
+    if (
+      this.params.start_line !== undefined &&
+      this.params.start_column !== undefined &&
+      this.params.end_line !== undefined &&
+      this.params.end_column !== undefined
+    ) {
       // First need to read the file to validate the range
       try {
-        const readResult = await this.config.getFileSystemService().readTextFile(this.params.file_path);
+        const readResult = await this.config
+          .getFileSystemService()
+          .readTextFile(this.params.file_path);
         if (readResult.success) {
           const rangeValidation = validator.validateEditRange(
             readResult.data!,
             this.params.start_line,
             this.params.start_column,
             this.params.end_line,
-            this.params.end_column
+            this.params.end_column,
           );
           if (!rangeValidation.isValid) {
             return {
@@ -1304,12 +1342,16 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
     }
 
     // Dry run validation if requested
-    if (this.params.dry_run && this.params.old_string && this.params.new_string) {
+    if (
+      this.params.dry_run &&
+      this.params.old_string &&
+      this.params.new_string
+    ) {
       const dryRunValidation = await validator.validateEditDryRun(
         this.params.file_path,
         this.params.old_string,
         this.params.new_string,
-        this.params.expected_replacements
+        this.params.expected_replacements,
       );
       if (!dryRunValidation.isValid) {
         return {
@@ -1381,7 +1423,9 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
       try {
         // Check if file exists and is writable. If it doesn't exist, creation is allowed.
         // Centralized permission and existence check
-        const fileInfoResult = await this.config.getFileSystemService().getFileInfo(this.params.file_path);
+        const fileInfoResult = await this.config
+          .getFileSystemService()
+          .getFileInfo(this.params.file_path);
         if (fileInfoResult.success && fileInfoResult.data) {
           const info = fileInfoResult.data;
           if (info.exists && !info.permissions.writable) {
@@ -1457,8 +1501,14 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
         displayResult = `Created ${shortenPath(makeRelative(this.params.file_path, this.config.getTargetDir()))}`;
       } else {
         // Generate diff for display, even though core logic doesn't technically need it
-    // The CLI wrapper will use this part of the ToolResult
-    const fileDiff = createPatch(fileName, editData.currentContent ?? '', editData.newContent, 'Current', 'Proposed');
+        // The CLI wrapper will use this part of the ToolResult
+        const fileDiff = createPatch(
+          fileName,
+          editData.currentContent ?? '',
+          editData.newContent,
+          'Current',
+          'Proposed',
+        );
         displayResult = {
           fileDiff,
           fileName,
@@ -1530,7 +1580,9 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
     const dirName = path.dirname(filePath);
     try {
       // Use centralized file system service
-      await this.config.getFileSystemService().createDirectory(dirName, { recursive: true });
+      await this.config
+        .getFileSystemService()
+        .createDirectory(dirName, { recursive: true });
     } catch (err: unknown) {
       // If another process created the directory concurrently, ignore EEXIST.
       const errCode = (err as NodeJS.ErrnoException | undefined)?.code;

@@ -1,4 +1,3 @@
-
 /**
  * @license
  * Copyright 2025 Google LLC
@@ -25,7 +24,7 @@ export const lsCommand: SlashCommand = {
           type: MessageType.ERROR,
           text: 'Configuration is not available.',
         },
-        Date.now()
+        Date.now(),
       );
       return;
     }
@@ -40,22 +39,26 @@ export const lsCommand: SlashCommand = {
     };
 
     try {
-      const result = await executeToolCall(config, toolCallRequest, new AbortController().signal);
+      const result = await executeToolCall(
+        config,
+        toolCallRequest,
+        new AbortController().signal,
+      );
       if (result.error) {
         addItem(
           {
             type: MessageType.ERROR,
             text: `Error listing directory: ${result.error.message}`,
           },
-          Date.now()
+          Date.now(),
         );
       } else {
         addItem(
           {
             type: MessageType.INFO,
-            text: result.responseParts.map(part => part.text || '').join(''),
+            text: result.responseParts.map((part) => part.text || '').join(''),
           },
-          Date.now()
+          Date.now(),
         );
       }
     } catch (error) {
@@ -64,7 +67,7 @@ export const lsCommand: SlashCommand = {
           type: MessageType.ERROR,
           text: `Error executing ls command: ${error instanceof Error ? error.message : String(error)}`,
         },
-        Date.now()
+        Date.now(),
       );
     }
   },

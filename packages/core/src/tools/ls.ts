@@ -138,8 +138,14 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
   async execute(_signal: AbortSignal): Promise<ToolResult> {
     try {
       // Centralized file info and directory listing
-      const fileInfoResult = await this.config.getFileSystemService().getFileInfo(this.params.path);
-      if (!fileInfoResult.success || !fileInfoResult.data || !fileInfoResult.data.exists) {
+      const fileInfoResult = await this.config
+        .getFileSystemService()
+        .getFileInfo(this.params.path);
+      if (
+        !fileInfoResult.success ||
+        !fileInfoResult.data ||
+        !fileInfoResult.data.exists
+      ) {
         return this.errorResult(
           `Error: Directory not found or inaccessible: ${this.params.path}`,
           `Directory not found or inaccessible.`,
@@ -154,8 +160,11 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
         );
       }
 
-      const listResult = await this.config.getFileSystemService().listDirectory(this.params.path);
-      const files = listResult.success && listResult.data ? listResult.data : [];
+      const listResult = await this.config
+        .getFileSystemService()
+        .listDirectory(this.params.path);
+      const files =
+        listResult.success && listResult.data ? listResult.data : [];
 
       const defaultFileIgnores =
         this.config.getFileFilteringOptions() ?? DEFAULT_FILE_FILTERING_OPTIONS;
@@ -213,7 +222,9 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
         }
 
         try {
-          const fileInfoResult = await this.config.getFileSystemService().getFileInfo(fullPath);
+          const fileInfoResult = await this.config
+            .getFileSystemService()
+            .getFileInfo(fullPath);
           if (!fileInfoResult.success || !fileInfoResult.data) continue;
           const isDir = fileInfoResult.data.isDirectory;
           entries.push({

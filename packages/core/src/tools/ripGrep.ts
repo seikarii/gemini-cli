@@ -83,7 +83,9 @@ class GrepToolInvocation extends BaseToolInvocation<
    * @returns The absolute path if valid and exists, or null if no path specified (to search all directories).
    * @throws {Error} If path is outside root, doesn't exist, or isn't a directory.
    */
-  private async resolveAndValidatePath(relativePath?: string): Promise<string | null> {
+  private async resolveAndValidatePath(
+    relativePath?: string,
+  ): Promise<string | null> {
     // If no path specified, return null to indicate searching all workspace directories
     if (!relativePath) {
       return null;
@@ -102,7 +104,9 @@ class GrepToolInvocation extends BaseToolInvocation<
 
     // Check existence and type after resolving
     try {
-      const fileInfo = await this.config.getFileSystemService().getFileInfo(targetPath);
+      const fileInfo = await this.config
+        .getFileSystemService()
+        .getFileInfo(targetPath);
       if (!fileInfo.success || !fileInfo.data?.isDirectory) {
         throw new Error(`Path is not a directory: ${targetPath}`);
       }
@@ -121,13 +125,17 @@ class GrepToolInvocation extends BaseToolInvocation<
   /**
    * Checks if ripgrep dependency is available and executable
    */
-  private async checkRipgrepDependency(): Promise<{ available: boolean; message: string }> {
+  private async checkRipgrepDependency(): Promise<{
+    available: boolean;
+    message: string;
+  }> {
     try {
       // Check if rgPath is defined
       if (!rgPath) {
         return {
           available: false,
-          message: 'ripgrep executable path is not available. Please ensure @lvce-editor/ripgrep is properly installed.',
+          message:
+            'ripgrep executable path is not available. Please ensure @lvce-editor/ripgrep is properly installed.',
         };
       }
 
@@ -152,7 +160,10 @@ class GrepToolInvocation extends BaseToolInvocation<
 
         child.on('close', (code) => {
           if (code === 0) {
-            resolve({ available: true, message: 'ripgrep is available and working' });
+            resolve({
+              available: true,
+              message: 'ripgrep is available and working',
+            });
           } else {
             resolve({
               available: false,
@@ -182,7 +193,9 @@ class GrepToolInvocation extends BaseToolInvocation<
       const dependencyCheck = await this.checkRipgrepDependency();
       if (!dependencyCheck.available) {
         if (this.params.show_dependency_warnings) {
-          console.warn(`Ripgrep dependency warning: ${dependencyCheck.message}`);
+          console.warn(
+            `Ripgrep dependency warning: ${dependencyCheck.message}`,
+          );
         }
         return {
           llmContent: `Error: ${dependencyCheck.message}`,
@@ -209,7 +222,8 @@ class GrepToolInvocation extends BaseToolInvocation<
       }
 
       let allMatches: GrepMatch[] = [];
-      const totalMaxMatches = this.params.max_matches ?? DEFAULT_TOTAL_MAX_MATCHES;
+      const totalMaxMatches =
+        this.params.max_matches ?? DEFAULT_TOTAL_MAX_MATCHES;
 
       if (this.config.getDebugMode()) {
         console.log(`[RipGrepTool] Total result limit: ${totalMaxMatches}`);
@@ -346,7 +360,10 @@ class GrepToolInvocation extends BaseToolInvocation<
   /**
    * Parses standard ripgrep format: filePath:lineNumber:lineContent
    */
-  private parseStandardRipgrepFormat(line: string, basePath: string): GrepMatch | null {
+  private parseStandardRipgrepFormat(
+    line: string,
+    basePath: string,
+  ): GrepMatch | null {
     // Find the index of the first colon.
     const firstColonIndex = line.indexOf(':');
     if (firstColonIndex === -1) return null;
@@ -376,7 +393,10 @@ class GrepToolInvocation extends BaseToolInvocation<
   /**
    * Parses complex path formats with escaped colons or quotes
    */
-  private parseComplexPathRipgrepFormat(line: string, basePath: string): GrepMatch | null {
+  private parseComplexPathRipgrepFormat(
+    line: string,
+    basePath: string,
+  ): GrepMatch | null {
     // Handle quoted file paths
     const quotedMatch = line.match(/^"([^"]+)":(\d+):(.*)$/);
     if (quotedMatch) {
@@ -422,7 +442,10 @@ class GrepToolInvocation extends BaseToolInvocation<
   /**
    * Fallback parser for unrecognized formats
    */
-  private parseFallbackRipgrepFormat(line: string, basePath: string): GrepMatch | null {
+  private parseFallbackRipgrepFormat(
+    line: string,
+    basePath: string,
+  ): GrepMatch | null {
     // Look for any pattern that might contain a line number
     const lineNumberMatch = line.match(/:(\d+):/);
     if (!lineNumberMatch) return null;
@@ -631,10 +654,7 @@ export class RipGrepTool extends BaseDeclarativeTool<
    * @returns An error message string if invalid, null otherwise
    */
   override validateToolParams(params: RipGrepToolParams): string | null {
-    const errors = SchemaValidator.validate(
-      this.schema.parameters,
-      params,
-    );
+    const errors = SchemaValidator.validate(this.schema.parameters, params);
     if (errors) {
       return errors;
     }

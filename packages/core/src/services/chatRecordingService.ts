@@ -101,7 +101,6 @@ export class SimpleTokenEstimator implements TokenEstimator {
  * by considering different text patterns and tokenization rules.
  */
 export class AdvancedTokenEstimator implements TokenEstimator {
-
   async estimateTokens(text: string): Promise<number> {
     try {
       return this.estimateTokensSync(text);
@@ -123,7 +122,9 @@ export class AdvancedTokenEstimator implements TokenEstimator {
     let tokens = 0;
 
     // Split text into words, punctuation, and special characters
-    const words = text.split(/(\s+|[^\w\s]+)/).filter(part => part.length > 0);
+    const words = text
+      .split(/(\s+|[^\w\s]+)/)
+      .filter((part) => part.length > 0);
 
     for (const word of words) {
       if (word.trim().length === 0) {
@@ -259,18 +260,21 @@ export interface ContextCompressionConfig {
  * Available compression strategies.
  */
 export enum CompressionStrategy {
-  MINIMAL = 'minimal',     // Keep most information, light compression
-  MODERATE = 'moderate',   // Balanced compression
+  MINIMAL = 'minimal', // Keep most information, light compression
+  MODERATE = 'moderate', // Balanced compression
   AGGRESSIVE = 'aggressive', // Maximum compression, keep only essentials
   INTELLIGENT = 'intelligent', // Advanced NLP-based compression
-  NO_COMPRESSION = 'no_compression' // No compression, keep all messages as is
+  NO_COMPRESSION = 'no_compression', // No compression, keep all messages as is
 }
 
 /**
  * Compression strategy interface for different compression approaches.
  */
 export interface CompressionStrategyHandler {
-  compress(messages: MessageRecord[], config: ContextCompressionConfig): Promise<CompressedContext>;
+  compress(
+    messages: MessageRecord[],
+    config: ContextCompressionConfig,
+  ): Promise<CompressedContext>;
 }
 
 /**
@@ -361,21 +365,32 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
     this.tokenEstimator = tokenEstimator;
   }
 
-  async compress(messages: MessageRecord[], _config: ContextCompressionConfig): Promise<CompressedContext> {
+  async compress(
+    messages: MessageRecord[],
+    _config: ContextCompressionConfig,
+  ): Promise<CompressedContext> {
     // Just summarize tool calls and preserve most content
     const summary = this.createBriefSummary(messages);
     const keyPoints = this.extractImportantPoints(messages, 15); // Keep more points
     const toolCallsSummary = this.summarizeToolCalls(messages);
-    return await this.buildCompressedContext(messages, summary, keyPoints, toolCallsSummary);
+    return await this.buildCompressedContext(
+      messages,
+      summary,
+      keyPoints,
+      toolCallsSummary,
+    );
   }
 
   private createBriefSummary(messages: MessageRecord[]): string {
-    const userCount = messages.filter(m => m.type === 'user').length;
-    const assistantCount = messages.filter(m => m.type === 'gemini').length;
+    const userCount = messages.filter((m) => m.type === 'user').length;
+    const assistantCount = messages.filter((m) => m.type === 'gemini').length;
     return `Brief exchange: ${userCount} user messages, ${assistantCount} assistant responses`;
   }
 
-  protected extractImportantPoints(messages: MessageRecord[], maxPoints: number): string[] {
+  protected extractImportantPoints(
+    messages: MessageRecord[],
+    maxPoints: number,
+  ): string[] {
     return this.extractKeyPointsFromMessages(messages).slice(-maxPoints);
   }
 
@@ -383,7 +398,7 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
     const keyPoints: string[] = [];
 
     // Extract traditional pattern-based points
-    messages.forEach(msg => {
+    messages.forEach((msg) => {
       const content = msg.content;
       // Extract error patterns
       if (content.match(/error|failed|exception|problem/i)) {
@@ -416,23 +431,23 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
     const keyPoints: string[] = [];
 
     // Combine all message content for analysis
-    const allContent = messages.map(m => m.content).join(' ');
+    const allContent = messages.map((m) => m.content).join(' ');
 
     // Extract keywords using TF-IDF inspired approach
     const keywords = this.extractKeywords(allContent);
-    keywords.slice(0, 5).forEach(keyword => {
+    keywords.slice(0, 5).forEach((keyword) => {
       keyPoints.push(`Keyword: ${keyword}`);
     });
 
     // Extract important phrases (quoted text, capitalized phrases)
     const phrases = this.extractImportantPhrases(allContent);
-    phrases.slice(0, 3).forEach(phrase => {
+    phrases.slice(0, 3).forEach((phrase) => {
       keyPoints.push(`Phrase: ${phrase}`);
     });
 
     // Extract action items and tasks
     const actions = this.extractActionItems(allContent);
-    actions.slice(0, 3).forEach(action => {
+    actions.slice(0, 3).forEach((action) => {
       keyPoints.push(`Action: ${action}`);
     });
 
@@ -444,16 +459,17 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
    */
   protected extractKeywords(text: string): string[] {
     // Simple TF-IDF inspired approach
-    const words = text.toLowerCase()
+    const words = text
+      .toLowerCase()
       .replace(/[^\w\s]/g, ' ')
       .split(/\s+/)
-      .filter(word => word.length > 3); // Filter short words
+      .filter((word) => word.length > 3); // Filter short words
 
     const wordFreq = new Map<string, number>();
     const totalWords = words.length;
 
     // Calculate word frequencies
-    words.forEach(word => {
+    words.forEach((word) => {
       wordFreq.set(word, (wordFreq.get(word) || 0) + 1);
     });
 
@@ -461,11 +477,14 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
     const scoredWords = Array.from(wordFreq.entries())
       .map(([word, freq]) => ({
         word,
-        score: (freq / totalWords) * Math.log(word.length) * (word.match(/[A-Z]/) ? 1.5 : 1) // Boost technical terms
+        score:
+          (freq / totalWords) *
+          Math.log(word.length) *
+          (word.match(/[A-Z]/) ? 1.5 : 1), // Boost technical terms
       }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 10)
-      .map(item => item.word);
+      .map((item) => item.word);
 
     return scoredWords;
   }
@@ -479,7 +498,7 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
     // Extract quoted text
     const quotes = text.match(/"([^"]+)"/g);
     if (quotes) {
-      phrases.push(...quotes.map(q => q.slice(1, -1)));
+      phrases.push(...quotes.map((q) => q.slice(1, -1)));
     }
 
     // Extract capitalized phrases (potential proper nouns, titles)
@@ -494,7 +513,7 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
       phrases.push(...technicalTerms);
     }
 
-    return phrases.filter(phrase => phrase.length > 5).slice(0, 5);
+    return phrases.filter((phrase) => phrase.length > 5).slice(0, 5);
   }
 
   /**
@@ -504,12 +523,16 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
     const actions: string[] = [];
 
     // Look for imperative verbs followed by objects
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
+    const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 10);
 
-    sentences.forEach(sentence => {
+    sentences.forEach((sentence) => {
       const trimmed = sentence.trim();
       // Check for action patterns
-      if (trimmed.match(/^(create|implement|fix|update|add|remove|modify|refactor|optimize)/i)) {
+      if (
+        trimmed.match(
+          /^(create|implement|fix|update|add|remove|modify|refactor|optimize)/i,
+        )
+      ) {
         actions.push(trimmed);
       }
       // Check for TODO/FIXME patterns
@@ -523,8 +546,17 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
 
   protected summarizeToolCalls(messages: MessageRecord[]): string {
     const toolCalls = messages
-      .filter(m => m.type === 'gemini' && 'toolCalls' in m && Array.isArray((m as unknown as { toolCalls?: unknown[] }).toolCalls ?? []) && ((m as unknown as { toolCalls?: unknown[] }).toolCalls ?? []).length > 0)
-      .map(m => (m as unknown as { toolCalls?: unknown[] }).toolCalls ?? [])
+      .filter(
+        (m) =>
+          m.type === 'gemini' &&
+          'toolCalls' in m &&
+          Array.isArray(
+            (m as unknown as { toolCalls?: unknown[] }).toolCalls ?? [],
+          ) &&
+          ((m as unknown as { toolCalls?: unknown[] }).toolCalls ?? []).length >
+            0,
+      )
+      .map((m) => (m as unknown as { toolCalls?: unknown[] }).toolCalls ?? [])
       .flat();
     return `Tool calls: ${toolCalls.length}`;
   }
@@ -533,16 +565,18 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
     messages: MessageRecord[],
     summary: string,
     keyPoints: string[],
-    toolCallsSummary: string
+    toolCallsSummary: string,
   ): Promise<CompressedContext> {
     const timespan = {
       start: messages[0]?.timestamp || '',
-      end: messages[messages.length - 1]?.timestamp || ''
+      end: messages[messages.length - 1]?.timestamp || '',
     };
     const messageCount = messages.length;
-    const originalTokens = await this.tokenEstimator.estimateTokens(JSON.stringify(messages));
+    const originalTokens = await this.tokenEstimator.estimateTokens(
+      JSON.stringify(messages),
+    );
     const compressedTokens = await this.tokenEstimator.estimateTokens(
-      summary + keyPoints.join(' ') + toolCallsSummary
+      summary + keyPoints.join(' ') + toolCallsSummary,
     );
     return {
       summary,
@@ -551,21 +585,25 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
       timespan,
       messageCount,
       originalTokens,
-      compressedTokens
+      compressedTokens,
     };
   }
 
   /**
    * Checks if two strings are similar based on simple text comparison
    */
-  protected areSimilar(text1: string, text2: string, threshold: number = 0.7): boolean {
+  protected areSimilar(
+    text1: string,
+    text2: string,
+    threshold: number = 0.7,
+  ): boolean {
     if (text1 === text2) return true;
 
     // Simple similarity based on common words
     const words1 = new Set(text1.toLowerCase().split(/\s+/));
     const words2 = new Set(text2.toLowerCase().split(/\s+/));
 
-    const intersection = new Set([...words1].filter(x => words2.has(x)));
+    const intersection = new Set([...words1].filter((x) => words2.has(x)));
     const union = new Set([...words1, ...words2]);
 
     const similarity = intersection.size / union.size;
@@ -573,17 +611,18 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
   }
 }
 
-
 /**
  * Aggressive compression strategy - maximum compression.
  */
 export class AggressiveCompressionStrategy extends MinimalCompressionStrategy {
-
-  override async compress(messages: MessageRecord[], _config: ContextCompressionConfig): Promise<CompressedContext> {
+  override async compress(
+    messages: MessageRecord[],
+    _config: ContextCompressionConfig,
+  ): Promise<CompressedContext> {
     // Aggressive compression: keep only most critical info
     const summary = `Aggressive compression: ${messages.length} messages.`;
     const keyPoints: string[] = [];
-    messages.forEach(msg => {
+    messages.forEach((msg) => {
       const content = msg.content;
       if (content.match(/error|failed|exception|problem/i)) {
         keyPoints.push(`Error: ${content.substring(0, 100)}`);
@@ -602,15 +641,20 @@ export class AggressiveCompressionStrategy extends MinimalCompressionStrategy {
       originalTokens += await this.tokenEstimator.estimateTokens(msg.content);
       if (msg.type === 'gemini' && msg.toolCalls) {
         for (const tc of msg.toolCalls) {
-          originalTokens += await this.tokenEstimator.estimateTokens(JSON.stringify(tc.args));
+          originalTokens += await this.tokenEstimator.estimateTokens(
+            JSON.stringify(tc.args),
+          );
           if (tc.result) {
-            originalTokens += await this.tokenEstimator.estimateTokens(JSON.stringify(tc.result));
+            originalTokens += await this.tokenEstimator.estimateTokens(
+              JSON.stringify(tc.result),
+            );
           }
         }
       }
     }
     const compressedContent = `${summary}. ${keyPoints.join('. ')}. ${toolCallsSummary}`;
-    const compressedTokens = await this.tokenEstimator.estimateTokens(compressedContent);
+    const compressedTokens =
+      await this.tokenEstimator.estimateTokens(compressedContent);
     return {
       summary,
       keyPoints,
@@ -631,10 +675,13 @@ export class NoCompressionStrategy extends MinimalCompressionStrategy {
     super(tokenEstimator);
   }
 
-  override async compress(messages: MessageRecord[], _config: ContextCompressionConfig): Promise<CompressedContext> {
+  override async compress(
+    messages: MessageRecord[],
+    _config: ContextCompressionConfig,
+  ): Promise<CompressedContext> {
     // No compression: return all messages as key points
     const summary = `No compression: ${messages.length} messages.`;
-    const keyPoints = messages.map(m => m.content);
+    const keyPoints = messages.map((m) => m.content);
     const toolCallsSummary = '';
     let timespan = { start: '', end: '' };
     if (messages.length > 0) {
@@ -648,7 +695,8 @@ export class NoCompressionStrategy extends MinimalCompressionStrategy {
       originalTokens += await this.tokenEstimator.estimateTokens(msg.content);
     }
     const compressedContent = `${summary}. ${keyPoints.join('. ')}. ${toolCallsSummary}`;
-    const compressedTokens = await this.tokenEstimator.estimateTokens(compressedContent);
+    const compressedTokens =
+      await this.tokenEstimator.estimateTokens(compressedContent);
     return {
       summary,
       keyPoints,
@@ -666,18 +714,31 @@ export class ModerateCompressionStrategy extends MinimalCompressionStrategy {
     super(tokenEstimator);
   }
 
-  override async compress(messages: MessageRecord[], config: ContextCompressionConfig): Promise<CompressedContext> {
+  override async compress(
+    messages: MessageRecord[],
+    config: ContextCompressionConfig,
+  ): Promise<CompressedContext> {
     // Balanced: keep fewer key points, más resumen
     const summary = this.createModerateSummary(messages);
-    const keyPoints = this.extractImportantPoints(messages, Math.max(5, Math.floor(config.preserveRecentMessages / 2)));
+    const keyPoints = this.extractImportantPoints(
+      messages,
+      Math.max(5, Math.floor(config.preserveRecentMessages / 2)),
+    );
     const toolCallsSummary = this.summarizeToolCalls(messages);
-    return await this.buildCompressedContext(messages, summary, keyPoints, toolCallsSummary);
+    return await this.buildCompressedContext(
+      messages,
+      summary,
+      keyPoints,
+      toolCallsSummary,
+    );
   }
 
   protected createModerateSummary(messages: MessageRecord[]): string {
-    const userCount = messages.filter(m => m.type === 'user').length;
-    const assistantCount = messages.filter(m => m.type === 'gemini').length;
-    const withTools = messages.filter(m => m.type === 'gemini' && m.toolCalls?.length).length;
+    const userCount = messages.filter((m) => m.type === 'user').length;
+    const assistantCount = messages.filter((m) => m.type === 'gemini').length;
+    const withTools = messages.filter(
+      (m) => m.type === 'gemini' && m.toolCalls?.length,
+    ).length;
 
     let summary = `Conversation: ${userCount} user msgs, ${assistantCount} assistant msgs`;
     if (withTools > 0) {
@@ -703,13 +764,13 @@ export class ModerateCompressionStrategy extends MinimalCompressionStrategy {
    * Extracts main topics from conversation using keyword analysis
    */
   protected extractConversationTopics(messages: MessageRecord[]): string[] {
-    const allContent = messages.map(m => m.content).join(' ');
+    const allContent = messages.map((m) => m.content).join(' ');
     const keywords = this.extractKeywords(allContent);
 
     // Group related keywords into topics
     const topics = new Map<string, string[]>();
 
-    keywords.forEach(keyword => {
+    keywords.forEach((keyword) => {
       // Simple topic categorization
       if (keyword.match(/error|bug|fix|issue|problem/)) {
         const topic = topics.get('issues') || [];
@@ -738,20 +799,39 @@ export class ModerateCompressionStrategy extends MinimalCompressionStrategy {
    * Analyzes overall sentiment of the conversation
    */
   protected analyzeConversationSentiment(messages: MessageRecord[]): string {
-    const allContent = messages.map(m => m.content).join(' ').toLowerCase();
+    const allContent = messages
+      .map((m) => m.content)
+      .join(' ')
+      .toLowerCase();
 
-    const positiveWords = ['success', 'completed', 'working', 'good', 'excellent', 'great', 'perfect'];
-    const negativeWords = ['error', 'failed', 'problem', 'issue', 'bug', 'broken', 'wrong'];
+    const positiveWords = [
+      'success',
+      'completed',
+      'working',
+      'good',
+      'excellent',
+      'great',
+      'perfect',
+    ];
+    const negativeWords = [
+      'error',
+      'failed',
+      'problem',
+      'issue',
+      'bug',
+      'broken',
+      'wrong',
+    ];
 
     let positiveScore = 0;
     let negativeScore = 0;
 
-    positiveWords.forEach(word => {
+    positiveWords.forEach((word) => {
       const matches = (allContent.match(new RegExp(word, 'g')) || []).length;
       positiveScore += matches;
     });
 
-    negativeWords.forEach(word => {
+    negativeWords.forEach((word) => {
       const matches = (allContent.match(new RegExp(word, 'g')) || []).length;
       negativeScore += matches;
     });
@@ -770,12 +850,20 @@ export class IntelligentCompressionStrategy extends ModerateCompressionStrategy 
     super(tokenEstimator);
   }
 
-  override async compress(messages: MessageRecord[], config: ContextCompressionConfig): Promise<CompressedContext> {
+  override async compress(
+    messages: MessageRecord[],
+    config: ContextCompressionConfig,
+  ): Promise<CompressedContext> {
     // Use advanced NLP techniques for intelligent compression
     const summary = this.createIntelligentSummary(messages);
     const keyPoints = this.extractIntelligentKeyPoints(messages, config);
     const toolCallsSummary = this.summarizeToolCallsIntelligently(messages);
-    return await this.buildCompressedContext(messages, summary, keyPoints, toolCallsSummary);
+    return await this.buildCompressedContext(
+      messages,
+      summary,
+      keyPoints,
+      toolCallsSummary,
+    );
   }
 
   private createIntelligentSummary(messages: MessageRecord[]): string {
@@ -803,8 +891,11 @@ export class IntelligentCompressionStrategy extends ModerateCompressionStrategy 
     return enhancedSummary;
   }
 
-  private extractIntelligentKeyPoints(messages: MessageRecord[], config: ContextCompressionConfig): string[] {
-    const allContent = messages.map(m => m.content).join(' ');
+  private extractIntelligentKeyPoints(
+    messages: MessageRecord[],
+    config: ContextCompressionConfig,
+  ): string[] {
+    const allContent = messages.map((m) => m.content).join(' ');
 
     // Use advanced NLP techniques
     const keywords = this.extractKeywords(allContent);
@@ -815,17 +906,17 @@ export class IntelligentCompressionStrategy extends ModerateCompressionStrategy 
     const intelligentPoints: string[] = [];
 
     // Add top keywords
-    keywords.slice(0, 3).forEach(keyword => {
+    keywords.slice(0, 3).forEach((keyword) => {
       intelligentPoints.push(`Keyword: ${keyword}`);
     });
 
     // Add important phrases
-    phrases.slice(0, 2).forEach(phrase => {
+    phrases.slice(0, 2).forEach((phrase) => {
       intelligentPoints.push(`Phrase: "${phrase}"`);
     });
 
     // Add action items
-    actions.slice(0, 2).forEach(action => {
+    actions.slice(0, 2).forEach((action) => {
       intelligentPoints.push(`Action: ${action}`);
     });
 
@@ -835,7 +926,10 @@ export class IntelligentCompressionStrategy extends ModerateCompressionStrategy 
 
     // Remove duplicates and limit based on config
     const uniquePoints = this.deduplicateKeyPoints(intelligentPoints);
-    const maxPoints = Math.max(8, Math.floor(config.preserveRecentMessages / 1.5));
+    const maxPoints = Math.max(
+      8,
+      Math.floor(config.preserveRecentMessages / 1.5),
+    );
 
     return uniquePoints.slice(0, maxPoints);
   }
@@ -878,8 +972,8 @@ export class IntelligentCompressionStrategy extends ModerateCompressionStrategy 
     const unique: string[] = [];
 
     for (const point of points) {
-      const isDuplicate = unique.some(existing =>
-        this.areSimilar(point, existing, 0.6)
+      const isDuplicate = unique.some((existing) =>
+        this.areSimilar(point, existing, 0.6),
       );
       if (!isDuplicate) {
         unique.push(point);
@@ -891,8 +985,17 @@ export class IntelligentCompressionStrategy extends ModerateCompressionStrategy 
 
   private summarizeToolCallsIntelligently(messages: MessageRecord[]): string {
     const toolCalls = messages
-      .filter(m => m.type === 'gemini' && 'toolCalls' in m && Array.isArray((m as unknown as { toolCalls?: unknown[] }).toolCalls ?? []) && ((m as unknown as { toolCalls?: unknown[] }).toolCalls ?? []).length > 0)
-      .map(m => (m as unknown as { toolCalls?: unknown[] }).toolCalls ?? [])
+      .filter(
+        (m) =>
+          m.type === 'gemini' &&
+          'toolCalls' in m &&
+          Array.isArray(
+            (m as unknown as { toolCalls?: unknown[] }).toolCalls ?? [],
+          ) &&
+          ((m as unknown as { toolCalls?: unknown[] }).toolCalls ?? []).length >
+            0,
+      )
+      .map((m) => (m as unknown as { toolCalls?: unknown[] }).toolCalls ?? [])
       .flat();
 
     if (toolCalls.length === 0) {
@@ -909,12 +1012,14 @@ export class IntelligentCompressionStrategy extends ModerateCompressionStrategy 
 
     // Create intelligent summary
     const topTools = Array.from(toolUsage.entries())
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 3);
 
     let summary = `Tools used: ${toolCalls.length} calls`;
     if (topTools.length > 0) {
-      const toolList = topTools.map(([name, count]) => `${name}(${count})`).join(', ');
+      const toolList = topTools
+        .map(([name, count]) => `${name}(${count})`)
+        .join(', ');
       summary += ` (${toolList})`;
     }
 
@@ -1040,12 +1145,15 @@ export class ChatRecordingService {
   private queuedThoughts: Array<ThoughtSummary & { timestamp: string }> = [];
   private queuedTokens: TokensSummary | null = null;
   private config: Config;
-  
+
   // Dependency injection for better testability
   private fileSystem: FileSystemAdapter;
   private tokenEstimator: TokenEstimator;
-  private compressionStrategies: Map<CompressionStrategy, CompressionStrategyHandler>;
-  
+  private compressionStrategies: Map<
+    CompressionStrategy,
+    CompressionStrategyHandler
+  >;
+
   // Context compression configuration
   private compressionConfig: ContextCompressionConfig = {
     maxContextTokens: 240000, // Increased from 66k to 240k for better context preservation
@@ -1059,24 +1167,42 @@ export class ChatRecordingService {
   };
 
   constructor(
-  config: Config,
+    config: Config,
     fileSystem?: FileSystemAdapter,
-    tokenEstimator?: TokenEstimator
+    tokenEstimator?: TokenEstimator,
   ) {
     this.config = config;
     this.sessionId = config.getSessionId();
-  this.projectHash = getProjectHash(config.getProjectRoot());
-    
+    this.projectHash = getProjectHash(config.getProjectRoot());
+
     // Set up dependencies with defaults
     this.fileSystem = fileSystem || new NodeFileSystemAdapter();
     this.tokenEstimator = tokenEstimator || new AdvancedTokenEstimator();
     // Initialize compression strategies
-    this.compressionStrategies = new Map<CompressionStrategy, CompressionStrategyHandler>([
-      [CompressionStrategy.MINIMAL, new MinimalCompressionStrategy(this.tokenEstimator)],
-      [CompressionStrategy.MODERATE, new ModerateCompressionStrategy(this.tokenEstimator)],
-      [CompressionStrategy.AGGRESSIVE, new AggressiveCompressionStrategy(this.tokenEstimator)],
-      [CompressionStrategy.NO_COMPRESSION, new NoCompressionStrategy(this.tokenEstimator)],
-      [CompressionStrategy.INTELLIGENT, new IntelligentCompressionStrategy(this.tokenEstimator)],
+    this.compressionStrategies = new Map<
+      CompressionStrategy,
+      CompressionStrategyHandler
+    >([
+      [
+        CompressionStrategy.MINIMAL,
+        new MinimalCompressionStrategy(this.tokenEstimator),
+      ],
+      [
+        CompressionStrategy.MODERATE,
+        new ModerateCompressionStrategy(this.tokenEstimator),
+      ],
+      [
+        CompressionStrategy.AGGRESSIVE,
+        new AggressiveCompressionStrategy(this.tokenEstimator),
+      ],
+      [
+        CompressionStrategy.NO_COMPRESSION,
+        new NoCompressionStrategy(this.tokenEstimator),
+      ],
+      [
+        CompressionStrategy.INTELLIGENT,
+        new IntelligentCompressionStrategy(this.tokenEstimator),
+      ],
     ]);
     // Update configuration from environment or config
     this.updateCompressionConfig();
@@ -1097,7 +1223,8 @@ export class ChatRecordingService {
         // Assuming default context is 128k tokens, apply percentage threshold
         const defaultContextTokens = 128000;
         this.compressionConfig.maxContextTokens = Math.floor(
-          defaultContextTokens * (chatCompression.contextPercentageThreshold / 100)
+          defaultContextTokens *
+            (chatCompression.contextPercentageThreshold / 100),
         );
       }
     }
@@ -1110,11 +1237,19 @@ export class ChatRecordingService {
 
     const preserveMessages = process.env['GEMINI_PRESERVE_RECENT_MESSAGES'];
     if (preserveMessages) {
-      this.compressionConfig.preserveRecentMessages = parseInt(preserveMessages, 10);
+      this.compressionConfig.preserveRecentMessages = parseInt(
+        preserveMessages,
+        10,
+      );
     }
 
     const strategy = process.env['GEMINI_COMPRESSION_STRATEGY'];
-    if (strategy && Object.values(CompressionStrategy).includes(strategy as CompressionStrategy)) {
+    if (
+      strategy &&
+      Object.values(CompressionStrategy).includes(
+        strategy as CompressionStrategy,
+      )
+    ) {
       this.compressionConfig.strategy = strategy as CompressionStrategy;
     }
   }
@@ -1129,8 +1264,12 @@ export class ChatRecordingService {
   /**
    * Compresses old context intelligently to stay under token limits.
    */
-  private async compressContextIfNeeded(conversation: EnhancedConversationRecord): Promise<EnhancedConversationRecord> {
-    const userMessages = conversation.messages.filter(msg => msg.type === 'user');
+  private async compressContextIfNeeded(
+    conversation: EnhancedConversationRecord,
+  ): Promise<EnhancedConversationRecord> {
+    const userMessages = conversation.messages.filter(
+      (msg) => msg.type === 'user',
+    );
     const totalUserMessages = userMessages.length;
 
     // CRITICAL: Never compress if neverCompressUserMessages is true
@@ -1141,9 +1280,13 @@ export class ChatRecordingService {
         totalTokens += await this.estimateTokenCount(msg.content);
         if (msg.type === 'gemini' && msg.toolCalls) {
           for (const tc of msg.toolCalls) {
-            totalTokens += await this.estimateTokenCount(JSON.stringify(tc.args));
+            totalTokens += await this.estimateTokenCount(
+              JSON.stringify(tc.args),
+            );
             if (tc.result) {
-              totalTokens += await this.estimateTokenCount(JSON.stringify(tc.result));
+              totalTokens += await this.estimateTokenCount(
+                JSON.stringify(tc.result),
+              );
             }
           }
         }
@@ -1172,7 +1315,9 @@ export class ChatRecordingService {
         for (const tc of msg.toolCalls) {
           totalTokens += await this.estimateTokenCount(JSON.stringify(tc.args));
           if (tc.result) {
-            totalTokens += await this.estimateTokenCount(JSON.stringify(tc.result));
+            totalTokens += await this.estimateTokenCount(
+              JSON.stringify(tc.result),
+            );
           }
         }
       }
@@ -1187,27 +1332,51 @@ export class ChatRecordingService {
       return conversation;
     }
 
-    console.log(`[ChatRecording] Context size ${totalTokens} tokens exceeds limit ${this.compressionConfig.maxContextTokens}. Compressing...`);
+    console.log(
+      `[ChatRecording] Context size ${totalTokens} tokens exceeds limit ${this.compressionConfig.maxContextTokens}. Compressing...`,
+    );
 
     // Separate user and assistant messages
-    const allUserMessages = conversation.messages.filter(msg => msg.type === 'user');
-    const allAssistantMessages = conversation.messages.filter(msg => msg.type === 'gemini');
+    const allUserMessages = conversation.messages.filter(
+      (msg) => msg.type === 'user',
+    );
+    const allAssistantMessages = conversation.messages.filter(
+      (msg) => msg.type === 'gemini',
+    );
 
     // CRITICAL: Always preserve ALL user messages (they contain the mission/context)
     // Only compress old assistant messages
-    const preserveAssistantCount = Math.max(5, Math.floor(this.compressionConfig.preserveRecentMessages / 2));
-    const recentAssistantMessages = allAssistantMessages.slice(-preserveAssistantCount);
-    const oldAssistantMessages = allAssistantMessages.slice(0, -preserveAssistantCount);
+    const preserveAssistantCount = Math.max(
+      5,
+      Math.floor(this.compressionConfig.preserveRecentMessages / 2),
+    );
+    const recentAssistantMessages = allAssistantMessages.slice(
+      -preserveAssistantCount,
+    );
+    const oldAssistantMessages = allAssistantMessages.slice(
+      0,
+      -preserveAssistantCount,
+    );
 
     // Evaluate importance of assistant messages to preserve critical ones
-    const importantAssistantMessages = await this.filterImportantMessages(oldAssistantMessages);
+    const importantAssistantMessages =
+      await this.filterImportantMessages(oldAssistantMessages);
 
     // Combine: ALL user messages + recent assistant messages + important old messages
-    const messagesToKeep = [...allUserMessages, ...recentAssistantMessages, ...importantAssistantMessages];
+    const messagesToKeep = [
+      ...allUserMessages,
+      ...recentAssistantMessages,
+      ...importantAssistantMessages,
+    ];
 
     // Create compressed context from remaining old assistant messages
-    const remainingOldMessages = oldAssistantMessages.filter(msg => !importantAssistantMessages.includes(msg));
-    const newCompressedContext = await this.createCompressedContext(remainingOldMessages, conversation.compressedContext);
+    const remainingOldMessages = oldAssistantMessages.filter(
+      (msg) => !importantAssistantMessages.includes(msg),
+    );
+    const newCompressedContext = await this.createCompressedContext(
+      remainingOldMessages,
+      conversation.compressedContext,
+    );
 
     return {
       ...conversation,
@@ -1221,7 +1390,9 @@ export class ChatRecordingService {
   /**
    * Filters messages based on importance score to preserve critical information.
    */
-  private async filterImportantMessages(messages: MessageRecord[]): Promise<MessageRecord[]> {
+  private async filterImportantMessages(
+    messages: MessageRecord[],
+  ): Promise<MessageRecord[]> {
     if (messages.length === 0) return [];
 
     const importantMessages: MessageRecord[] = [];
@@ -1240,16 +1411,34 @@ export class ChatRecordingService {
    * Calculates importance score for a message (0.0-1.0).
    * Higher scores indicate messages that should be preserved during compression.
    */
-  private async calculateMessageImportance(message: MessageRecord): Promise<number> {
+  private async calculateMessageImportance(
+    message: MessageRecord,
+  ): Promise<number> {
     let score = 0.0;
     const content = message.content.toLowerCase();
 
     // High importance indicators
     const highImportanceKeywords = [
-      'error', 'failed', 'failure', 'exception', 'crash', 'bug', 'critical',
-      'important', 'key', 'summary', 'conclusion', 'result', 'outcome',
-      'decision', 'requirement', 'specification', 'architecture',
-      'security', 'performance', 'breaking change'
+      'error',
+      'failed',
+      'failure',
+      'exception',
+      'crash',
+      'bug',
+      'critical',
+      'important',
+      'key',
+      'summary',
+      'conclusion',
+      'result',
+      'outcome',
+      'decision',
+      'requirement',
+      'specification',
+      'architecture',
+      'security',
+      'performance',
+      'breaking change',
     ];
 
     for (const keyword of highImportanceKeywords) {
@@ -1260,9 +1449,20 @@ export class ChatRecordingService {
 
     // Medium importance indicators
     const mediumImportanceKeywords = [
-      'success', 'completed', 'done', 'fixed', 'resolved',
-      'created', 'modified', 'updated', 'changed',
-      'test', 'function', 'class', 'method', 'api'
+      'success',
+      'completed',
+      'done',
+      'fixed',
+      'resolved',
+      'created',
+      'modified',
+      'updated',
+      'changed',
+      'test',
+      'function',
+      'class',
+      'method',
+      'api',
     ];
 
     for (const keyword of mediumImportanceKeywords) {
@@ -1272,7 +1472,11 @@ export class ChatRecordingService {
     }
 
     // Tool calls are generally important
-    if (message.type === 'gemini' && message.toolCalls && message.toolCalls.length > 0) {
+    if (
+      message.type === 'gemini' &&
+      message.toolCalls &&
+      message.toolCalls.length > 0
+    ) {
       score += 0.3;
     }
 
@@ -1290,8 +1494,8 @@ export class ChatRecordingService {
    * Creates intelligent compressed representation of old messages using the configured strategy.
    */
   private async createCompressedContext(
-    messages: MessageRecord[], 
-    existingCompressed?: CompressedContext
+    messages: MessageRecord[],
+    existingCompressed?: CompressedContext,
   ): Promise<CompressedContext> {
     if (messages.length === 0 && !existingCompressed) {
       return {
@@ -1305,20 +1509,30 @@ export class ChatRecordingService {
       };
     }
     // Get the appropriate compression strategy
-    const strategy = this.compressionStrategies.get(this.compressionConfig.strategy);
+    const strategy = this.compressionStrategies.get(
+      this.compressionConfig.strategy,
+    );
     if (!strategy) {
-      throw new ChatRecordingCompressionError(`Unknown compression strategy: ${this.compressionConfig.strategy}`);
+      throw new ChatRecordingCompressionError(
+        `Unknown compression strategy: ${this.compressionConfig.strategy}`,
+      );
     }
-    if (this.compressionConfig.strategy === CompressionStrategy.NO_COMPRESSION) {
+    if (
+      this.compressionConfig.strategy === CompressionStrategy.NO_COMPRESSION
+    ) {
       // Estimate tokens for all messages
       let originalTokens = 0;
       for (const msg of messages) {
         originalTokens += await this.estimateTokenCount(msg.content);
         if (msg.type === 'gemini' && msg.toolCalls) {
           for (const tc of msg.toolCalls) {
-            originalTokens += await this.estimateTokenCount(JSON.stringify(tc.args));
+            originalTokens += await this.estimateTokenCount(
+              JSON.stringify(tc.args),
+            );
             if (tc.result) {
-              originalTokens += await this.estimateTokenCount(JSON.stringify(tc.result));
+              originalTokens += await this.estimateTokenCount(
+                JSON.stringify(tc.result),
+              );
             }
           }
         }
@@ -1354,7 +1568,7 @@ export class ChatRecordingService {
     } catch (error) {
       throw new ChatRecordingCompressionError(
         `Failed to compress context: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }
@@ -1364,23 +1578,36 @@ export class ChatRecordingService {
    */
   private async mergeCompressedContexts(
     existingCompressed: CompressedContext,
-    newMessages: MessageRecord[]
+    newMessages: MessageRecord[],
   ): Promise<CompressedContext> {
     // Get the compression strategy
-    const strategy = this.compressionStrategies.get(this.compressionConfig.strategy);
+    const strategy = this.compressionStrategies.get(
+      this.compressionConfig.strategy,
+    );
     if (!strategy) {
-      throw new ChatRecordingCompressionError(`Unknown compression strategy: ${this.compressionConfig.strategy}`);
+      throw new ChatRecordingCompressionError(
+        `Unknown compression strategy: ${this.compressionConfig.strategy}`,
+      );
     }
 
     // Compress new messages
-    const newCompressed = await strategy.compress(newMessages, this.compressionConfig);
+    const newCompressed = await strategy.compress(
+      newMessages,
+      this.compressionConfig,
+    );
 
     // Intelligent merging logic
-    const mergedSummary = this.mergeSummaries(existingCompressed.summary, newCompressed.summary);
-    const mergedKeyPoints = this.mergeKeyPoints(existingCompressed.keyPoints, newCompressed.keyPoints);
+    const mergedSummary = this.mergeSummaries(
+      existingCompressed.summary,
+      newCompressed.summary,
+    );
+    const mergedKeyPoints = this.mergeKeyPoints(
+      existingCompressed.keyPoints,
+      newCompressed.keyPoints,
+    );
     const mergedToolCallsSummary = this.mergeToolCallsSummaries(
       existingCompressed.toolCallsSummary,
-      newCompressed.toolCallsSummary
+      newCompressed.toolCallsSummary,
     );
 
     // Update timespan to cover both periods
@@ -1390,8 +1617,10 @@ export class ChatRecordingService {
     };
 
     // Calculate totals
-    const mergedMessageCount = existingCompressed.messageCount + newCompressed.messageCount;
-    const mergedOriginalTokens = existingCompressed.originalTokens + newCompressed.originalTokens;
+    const mergedMessageCount =
+      existingCompressed.messageCount + newCompressed.messageCount;
+    const mergedOriginalTokens =
+      existingCompressed.originalTokens + newCompressed.originalTokens;
 
     // Estimate compressed tokens for the merged content
     const mergedContent = `${mergedSummary}. ${mergedKeyPoints.join('. ')}. ${mergedToolCallsSummary}`;
@@ -1434,14 +1663,17 @@ export class ChatRecordingService {
   /**
    * Merges key points while removing duplicates and prioritizing importance
    */
-  private mergeKeyPoints(existingPoints: string[], newPoints: string[]): string[] {
+  private mergeKeyPoints(
+    existingPoints: string[],
+    newPoints: string[],
+  ): string[] {
     const allPoints = [...existingPoints, ...newPoints];
 
     // Remove duplicates based on similarity
     const uniquePoints: string[] = [];
     for (const point of allPoints) {
-      const isDuplicate = uniquePoints.some(existing =>
-        this.areSimilar(point, existing, 0.7)
+      const isDuplicate = uniquePoints.some((existing) =>
+        this.areSimilar(point, existing, 0.7),
       );
       if (!isDuplicate) {
         uniquePoints.push(point);
@@ -1466,7 +1698,10 @@ export class ChatRecordingService {
   /**
    * Merges tool call summaries intelligently
    */
-  private mergeToolCallsSummaries(existing: string, newSummary: string): string {
+  private mergeToolCallsSummaries(
+    existing: string,
+    newSummary: string,
+  ): string {
     if (!existing) return newSummary;
     if (!newSummary) return existing;
 
@@ -1491,17 +1726,19 @@ export class ChatRecordingService {
    */
   private createConciseSummary(longSummary: string): string {
     // Extract the most important parts
-    const sentences = longSummary.split(/[.!?]+/).filter(s => s.trim().length > 10);
+    const sentences = longSummary
+      .split(/[.!?]+/)
+      .filter((s) => s.trim().length > 10);
 
     // Prioritize sentences with key information
     const prioritized = sentences
-      .map(sentence => ({
+      .map((sentence) => ({
         text: sentence.trim(),
-        score: this.scoreSentenceImportance(sentence)
+        score: this.scoreSentenceImportance(sentence),
       }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 2)
-      .map(item => item.text);
+      .map((item) => item.text);
 
     return prioritized.join('. ') + '.';
   }
@@ -1514,9 +1751,18 @@ export class ChatRecordingService {
     const lowerSentence = sentence.toLowerCase();
 
     // Boost score for important keywords
-    if (lowerSentence.includes('error') || lowerSentence.includes('failed')) score += 3;
-    if (lowerSentence.includes('decision') || lowerSentence.includes('conclusion')) score += 2;
-    if (lowerSentence.includes('implemented') || lowerSentence.includes('completed')) score += 2;
+    if (lowerSentence.includes('error') || lowerSentence.includes('failed'))
+      score += 3;
+    if (
+      lowerSentence.includes('decision') ||
+      lowerSentence.includes('conclusion')
+    )
+      score += 2;
+    if (
+      lowerSentence.includes('implemented') ||
+      lowerSentence.includes('completed')
+    )
+      score += 2;
     if (lowerSentence.includes('tool')) score += 1;
 
     // Boost score for longer sentences (likely more detailed)
@@ -1528,14 +1774,18 @@ export class ChatRecordingService {
   /**
    * Checks if two strings are similar based on simple text comparison
    */
-  protected areSimilar(text1: string, text2: string, threshold: number = 0.7): boolean {
+  protected areSimilar(
+    text1: string,
+    text2: string,
+    threshold: number = 0.7,
+  ): boolean {
     if (text1 === text2) return true;
 
     // Simple similarity based on common words
     const words1 = new Set(text1.toLowerCase().split(/\s+/));
     const words2 = new Set(text2.toLowerCase().split(/\s+/));
 
-    const intersection = new Set([...words1].filter(x => words2.has(x)));
+    const intersection = new Set([...words1].filter((x) => words2.has(x)));
     const union = new Set([...words1, ...words2]);
 
     const similarity = intersection.size / union.size;
@@ -1546,10 +1796,7 @@ export class ChatRecordingService {
    * Generates a consistent file name for a session.
    */
   private generateSessionFileName(sessionId: string): string {
-    const timestamp = new Date()
-      .toISOString()
-      .slice(0, 16)
-      .replace(/:/g, '-');
+    const timestamp = new Date().toISOString().slice(0, 16).replace(/:/g, '-');
     return `session-${timestamp}-${sessionId.slice(0, 8)}.json`;
   }
 
@@ -1597,7 +1844,7 @@ export class ChatRecordingService {
     } catch (error) {
       throw new ChatRecordingInitializationError(
         `Failed to initialize chat recording: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }
@@ -1660,7 +1907,7 @@ export class ChatRecordingService {
     } catch (error) {
       throw new ChatRecordingFileError(
         `Error saving message: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }
@@ -1673,15 +1920,27 @@ export class ChatRecordingService {
 
     try {
       this.queuedThoughts.push({
-  subject: (typeof thought === 'object' && thought !== null && 'subject' in thought && typeof (thought as ThoughtSummary).subject === 'string') ? (thought as ThoughtSummary).subject : '',
-  description: (typeof thought === 'object' && thought !== null && 'description' in thought && typeof (thought as ThoughtSummary).description === 'string') ? (thought as ThoughtSummary).description : '',
+        subject:
+          typeof thought === 'object' &&
+          thought !== null &&
+          'subject' in thought &&
+          typeof (thought as ThoughtSummary).subject === 'string'
+            ? (thought as ThoughtSummary).subject
+            : '',
+        description:
+          typeof thought === 'object' &&
+          thought !== null &&
+          'description' in thought &&
+          typeof (thought as ThoughtSummary).description === 'string'
+            ? (thought as ThoughtSummary).description
+            : '',
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
       if (this.config.getDebugMode()) {
         throw new ChatRecordingError(
           `Error saving thought: ${error instanceof Error ? error.message : String(error)}`,
-          error instanceof Error ? error : undefined
+          error instanceof Error ? error : undefined,
         );
       }
     }
@@ -1715,7 +1974,7 @@ export class ChatRecordingService {
     } catch (error) {
       throw new ChatRecordingFileError(
         `Error updating message tokens: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }
@@ -1798,7 +2057,7 @@ export class ChatRecordingService {
     } catch (error) {
       throw new ChatRecordingFileError(
         `Error adding tool call to message: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }
@@ -1808,13 +2067,17 @@ export class ChatRecordingService {
    */
   private async readConversation(): Promise<EnhancedConversationRecord> {
     try {
-      this.cachedLastConvData = await this.fileSystem.readFile(this.conversationFile!);
-  return this.cachedLastConvData ? (JSON.parse(this.cachedLastConvData) as EnhancedConversationRecord) : ({} as EnhancedConversationRecord);
+      this.cachedLastConvData = await this.fileSystem.readFile(
+        this.conversationFile!,
+      );
+      return this.cachedLastConvData
+        ? (JSON.parse(this.cachedLastConvData) as EnhancedConversationRecord)
+        : ({} as EnhancedConversationRecord);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
         throw new ChatRecordingFileError(
           `Error reading conversation file: ${error instanceof Error ? error.message : String(error)}`,
-          error instanceof Error ? error : undefined
+          error instanceof Error ? error : undefined,
         );
       }
 
@@ -1832,14 +2095,18 @@ export class ChatRecordingService {
   /**
    * Saves the conversation record with intelligent compression.
    */
-  private async writeConversation(conversation: EnhancedConversationRecord): Promise<void> {
+  private async writeConversation(
+    conversation: EnhancedConversationRecord,
+  ): Promise<void> {
     try {
       if (!this.conversationFile) return;
       // Don't write the file yet until there's at least one message.
-      if (conversation.messages.length === 0 && !conversation.compressedContext) return;
+      if (conversation.messages.length === 0 && !conversation.compressedContext)
+        return;
 
       // Apply compression if needed before writing
-      const compressedConversation = await this.compressContextIfNeeded(conversation);
+      const compressedConversation =
+        await this.compressContextIfNeeded(conversation);
 
       // Only write the file if this change would change the file.
       compressedConversation.lastUpdated = new Date().toISOString();
@@ -1852,13 +2119,15 @@ export class ChatRecordingService {
         // Log compression if it occurred
         if (compressedConversation.compressedContext) {
           const ctx = compressedConversation.compressedContext;
-          console.log(`[ChatRecording] Compressed ${ctx.messageCount} messages: ${ctx.originalTokens} → ${ctx.compressedTokens} tokens`);
+          console.log(
+            `[ChatRecording] Compressed ${ctx.messageCount} messages: ${ctx.originalTokens} → ${ctx.compressedTokens} tokens`,
+          );
         }
       }
     } catch (error) {
       throw new ChatRecordingFileError(
         `Error writing conversation file: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }
@@ -1898,10 +2167,11 @@ export class ChatRecordingService {
     }
 
     const conversation = await this.readConversation();
-    
+
     // Apply compression to get optimized version
-  const optimized = await (async () => await this.compressContextIfNeeded(conversation))();
-    
+    const optimized = await (async () =>
+      await this.compressContextIfNeeded(conversation))();
+
     // Calculate statistics
     let totalTokens = 0;
     for (const msg of optimized.messages) {
@@ -1910,7 +2180,9 @@ export class ChatRecordingService {
         for (const tc of msg.toolCalls) {
           totalTokens += await this.estimateTokenCount(JSON.stringify(tc.args));
           if (tc.result) {
-            totalTokens += await this.estimateTokenCount(JSON.stringify(tc.result));
+            totalTokens += await this.estimateTokenCount(
+              JSON.stringify(tc.result),
+            );
           }
         }
       }
@@ -1921,11 +2193,19 @@ export class ChatRecordingService {
     }
 
     let compressionStats;
-    if (optimized.compressedContext && optimized.compressedContext.messageCount > 0) {
-      const originalMessages = optimized.compressedContext.messageCount + optimized.messages.length;
+    if (
+      optimized.compressedContext &&
+      optimized.compressedContext.messageCount > 0
+    ) {
+      const originalMessages =
+        optimized.compressedContext.messageCount + optimized.messages.length;
       const compressedMessages = optimized.messages.length;
-      const tokenReduction = optimized.compressedContext.originalTokens - optimized.compressedContext.compressedTokens;
-      const compressionRatio = optimized.compressedContext.compressedTokens / optimized.compressedContext.originalTokens;
+      const tokenReduction =
+        optimized.compressedContext.originalTokens -
+        optimized.compressedContext.compressedTokens;
+      const compressionRatio =
+        optimized.compressedContext.compressedTokens /
+        optimized.compressedContext.originalTokens;
       compressionStats = {
         originalMessages,
         compressedMessages,
@@ -1947,17 +2227,17 @@ export class ChatRecordingService {
    */
   async forceCompression(): Promise<void> {
     if (!this.conversationFile) return;
-    
-  await this.updateConversation(async (conversation) => {
+
+    await this.updateConversation(async (conversation) => {
       // Temporarily lower the threshold to force compression
       const originalConfig = { ...this.compressionConfig };
       this.compressionConfig.maxContextTokens = 1000; // Very low threshold
-      
-    const compressed = await this.compressContextIfNeeded(conversation);
-      
+
+      const compressed = await this.compressContextIfNeeded(conversation);
+
       // Restore original config
       this.compressionConfig = originalConfig;
-      
+
       // Apply the compression
       conversation.messages = compressed.messages;
       conversation.compressedContext = compressed.compressedContext;
@@ -1990,10 +2270,12 @@ export class ChatRecordingService {
 
     const conversation = await this.readConversation();
     const optimized = await this.getOptimizedContext();
-    
+
     return {
       isCompressed: !!conversation.compressedContext,
-      totalMessages: (conversation.compressedContext?.messageCount || 0) + conversation.messages.length,
+      totalMessages:
+        (conversation.compressedContext?.messageCount || 0) +
+        conversation.messages.length,
       recentMessages: conversation.messages.length,
       compressedMessages: conversation.compressedContext?.messageCount || 0,
       estimatedTokens: optimized.totalEstimatedTokens,
@@ -2026,19 +2308,21 @@ export class ChatRecordingService {
 
     const conversation = await this.readConversation();
     const lastMessage = conversation.messages.at(-1);
-    
+
     if (!lastMessage) {
       return 0;
     }
 
     let tokenCount = await this.estimateTokenCount(lastMessage.content);
-    
+
     // Add tokens from tool calls if present
     if (lastMessage.type === 'gemini' && lastMessage.toolCalls) {
       for (const tc of lastMessage.toolCalls) {
         tokenCount += await this.estimateTokenCount(JSON.stringify(tc.args));
         if (tc.result) {
-          tokenCount += await this.estimateTokenCount(JSON.stringify(tc.result));
+          tokenCount += await this.estimateTokenCount(
+            JSON.stringify(tc.result),
+          );
         }
       }
     }
@@ -2070,18 +2354,22 @@ export class ChatRecordingService {
 
     const conversation = await this.readConversation();
     const optimized = await this.getOptimizedContext();
-    
+
     let messageTokens = 0;
     let toolCallTokens = 0;
-    
+
     // Calculate tokens for all messages
     for (const msg of conversation.messages) {
       messageTokens += await this.estimateTokenCount(msg.content);
       if (msg.type === 'gemini' && msg.toolCalls) {
         for (const tc of msg.toolCalls) {
-          toolCallTokens += await this.estimateTokenCount(JSON.stringify(tc.args));
+          toolCallTokens += await this.estimateTokenCount(
+            JSON.stringify(tc.args),
+          );
           if (tc.result) {
-            toolCallTokens += await this.estimateTokenCount(JSON.stringify(tc.result));
+            toolCallTokens += await this.estimateTokenCount(
+              JSON.stringify(tc.result),
+            );
           }
         }
       }
@@ -2109,16 +2397,18 @@ export class ChatRecordingService {
         this.config.storage.getProjectTempDir(),
         'chats',
       );
-      
+
       // Use the same naming pattern as generateSessionFileName for consistency
-      const sessionPath = path.join(chatsDir, this.generateSessionFileName(sessionId));
+      const sessionPath = path.join(
+        chatsDir,
+        this.generateSessionFileName(sessionId),
+      );
       await this.fileSystem.unlink(sessionPath);
     } catch (error) {
       throw new ChatRecordingFileError(
         `Error deleting session: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }
 }
-

@@ -5,7 +5,13 @@
  */
 
 import crypto from 'crypto';
-import { Project, SourceFile, Node, ClassDeclaration, SyntaxKind } from 'ts-morph';
+import {
+  Project,
+  SourceFile,
+  Node,
+  ClassDeclaration,
+  SyntaxKind,
+} from 'ts-morph';
 import { findNodes } from './finder.js';
 import { ModificationSpec, ModificationOperation } from './models.js';
 
@@ -63,7 +69,7 @@ export class ASTModifier {
 
     const backupId = this.createBackup(sourceText);
 
-  try {
+    try {
       // Group modifications by target nodes if possible, otherwise apply sequentially
       for (const mod of modifications) {
         const targetQuery = (mod as any).targetQuery as any;
@@ -86,7 +92,9 @@ export class ASTModifier {
         try {
           // try prettier if available (dynamic import to avoid require)
           const prettier = await import('prettier');
-          const cfg = await (prettier as any).resolveConfig(filePath).catch(() => ({}));
+          const cfg = await (prettier as any)
+            .resolveConfig(filePath)
+            .catch(() => ({}));
           modifiedText = (prettier as any).format(modifiedText, {
             ...(cfg || {}),
             filepath: filePath,
@@ -284,8 +292,12 @@ export class ASTModifier {
     const block = parent.getFirstChildByKind(SyntaxKind.Block) ?? parent;
     if (Node.isSourceFile(block) || Node.isBlock(block)) {
       // find index of node among block statements
-      const statements = (block as any).getStatements ? (block as any).getStatements() : [];
-      const idx = statements.findIndex((s: Node) => s.getStart() === node.getStart());
+      const statements = (block as any).getStatements
+        ? (block as any).getStatements()
+        : [];
+      const idx = statements.findIndex(
+        (s: Node) => s.getStart() === node.getStart(),
+      );
       if (idx >= 0) {
         if (before) (block as any).insertStatements(idx, code);
         else (block as any).insertStatements(idx + 1, code);
@@ -336,7 +348,7 @@ export class ASTModifier {
     newName: string,
   ) {
     // Walk descendants and replace identifier text when it matches oldName
-  scopeNode.forEachDescendant((n: Node) => {
+    scopeNode.forEachDescendant((n: Node) => {
       try {
         // look for identifiers (VariableDeclaration, Identifier nodes)
         if (
@@ -348,7 +360,11 @@ export class ASTModifier {
           }
         } else {
           // sometimes ts-morph nodes (parameters, variable names) expose getName
-          if (Node.isRenameable(n) && typeof (n as any).getName === 'function' && (n as any).getName() === oldName) {
+          if (
+            Node.isRenameable(n) &&
+            typeof (n as any).getName === 'function' &&
+            (n as any).getName() === oldName
+          ) {
             // rename is optional on some nodes
             try {
               (n as any).rename(newName);
@@ -371,10 +387,13 @@ export class ASTModifier {
       Node.isFunctionExpression(node)
     ) {
       try {
-  // attempt to set parameters by replacing the signature portion
-              const bodyText = (node.getFirstChildByKind(SyntaxKind.Block) as any)?.getText?.() ?? '{}';
-              const name = ((node as any).getName && (node as any).getName()) ?? '<anonymous>';
-  const replaceText = `${name}(${newSignature}) ${bodyText}`;
+        // attempt to set parameters by replacing the signature portion
+        const bodyText =
+          (node.getFirstChildByKind(SyntaxKind.Block) as any)?.getText?.() ??
+          '{}';
+        const name =
+          ((node as any).getName && (node as any).getName()) ?? '<anonymous>';
+        const replaceText = `${name}(${newSignature}) ${bodyText}`;
         // replace whole node with new signature + body (safer than trying to mutate params)
         node.replaceWithText(replaceText);
       } catch {

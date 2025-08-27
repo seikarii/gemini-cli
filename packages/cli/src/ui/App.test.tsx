@@ -361,27 +361,27 @@ describe('App UI', () => {
 
     beforeEach(async () => {
       const { spawn } = await import('node:child_process');
-  spawnEmitter = new EventEmitter() as any;
-  (spawnEmitter as any).stdout = new EventEmitter();
-  (spawnEmitter as any).stderr = new EventEmitter();
-  (spawn as any).mockReturnValue(spawnEmitter);
+      spawnEmitter = new EventEmitter() as any;
+      (spawnEmitter as any).stdout = new EventEmitter();
+      (spawnEmitter as any).stderr = new EventEmitter();
+      (spawn as any).mockReturnValue(spawnEmitter);
     });
 
     afterEach(() => {
-  delete process.env['GEMINI_CLI_DISABLE_AUTOUPDATER'];
+      delete process.env['GEMINI_CLI_DISABLE_AUTOUPDATER'];
     });
 
     it('should not start the update process when running from git', async () => {
       mockedIsGitRepository.mockResolvedValue(true);
-        const info: UpdateObject = {
-          update: {
-            name: '@google/gemini-cli',
-            latest: '1.1.0',
-            current: '1.0.0',
-            type: 'latest',
-          },
-          message: 'Gemini CLI update available!',
-        };
+      const info: UpdateObject = {
+        update: {
+          name: '@google/gemini-cli',
+          latest: '1.1.0',
+          current: '1.0.0',
+          type: 'latest',
+        },
+        message: 'Gemini CLI update available!',
+      };
       mockedCheckForUpdates.mockResolvedValue(info);
       const { spawn } = await import('node:child_process');
 
@@ -401,15 +401,15 @@ describe('App UI', () => {
 
     it('should show a success message when update succeeds', async () => {
       mockedIsGitRepository.mockResolvedValue(false);
-        const info: UpdateObject = {
-          update: {
-            name: '@google/gemini-cli',
-            latest: '1.1.0',
-            current: '1.0.0',
-            type: 'latest',
-          },
-          message: 'Update available',
-        };
+      const info: UpdateObject = {
+        update: {
+          name: '@google/gemini-cli',
+          latest: '1.1.0',
+          current: '1.0.0',
+          type: 'latest',
+        },
+        message: 'Update available',
+      };
       mockedCheckForUpdates.mockResolvedValue(info);
 
       const { lastFrame, unmount } = renderWithProviders(
@@ -432,15 +432,15 @@ describe('App UI', () => {
 
     it('should show an error message when update fails', async () => {
       mockedIsGitRepository.mockResolvedValue(false);
-        const info: UpdateObject = {
-          update: {
-            name: '@google/gemini-cli',
-            latest: '1.1.0',
-            current: '1.0.0',
-            type: 'latest',
-          },
-          message: 'Update available',
-        };
+      const info: UpdateObject = {
+        update: {
+          name: '@google/gemini-cli',
+          latest: '1.1.0',
+          current: '1.0.0',
+          type: 'latest',
+        },
+        message: 'Update available',
+      };
       mockedCheckForUpdates.mockResolvedValue(info);
 
       const { lastFrame, unmount } = renderWithProviders(
@@ -463,15 +463,15 @@ describe('App UI', () => {
 
     it('should show an error message when spawn fails', async () => {
       mockedIsGitRepository.mockResolvedValue(false);
-        const info: UpdateObject = {
-          update: {
-            name: '@google/gemini-cli',
-            latest: '1.1.0',
-            current: '1.0.0',
-            type: 'latest',
-          },
-          message: 'Update available',
-        };
+      const info: UpdateObject = {
+        update: {
+          name: '@google/gemini-cli',
+          latest: '1.1.0',
+          current: '1.0.0',
+          type: 'latest',
+        },
+        message: 'Update available',
+      };
       mockedCheckForUpdates.mockResolvedValue(info);
 
       const { lastFrame, unmount } = renderWithProviders(
@@ -496,7 +496,7 @@ describe('App UI', () => {
 
     it('should not auto-update if GEMINI_CLI_DISABLE_AUTOUPDATER is true', async () => {
       mockedIsGitRepository.mockResolvedValue(false);
-    process.env['GEMINI_CLI_DISABLE_AUTOUPDATER'] = 'true';
+      process.env['GEMINI_CLI_DISABLE_AUTOUPDATER'] = 'true';
       const info: UpdateObject = {
         update: {
           name: '@google/gemini-cli',
@@ -954,7 +954,7 @@ describe('App UI', () => {
     let originalNoColor: string | undefined;
 
     beforeEach(() => {
-  originalNoColor = process.env['NO_COLOR'];
+      originalNoColor = process.env['NO_COLOR'];
       // Ensure no theme is set for these tests
       mockSettings = createMockSettings({});
       mockConfig.getDebugMode.mockReturnValue(false);
@@ -962,11 +962,11 @@ describe('App UI', () => {
     });
 
     afterEach(() => {
-  process.env['NO_COLOR'] = originalNoColor as string | undefined;
+      process.env['NO_COLOR'] = originalNoColor as string | undefined;
     });
 
     it('should display theme dialog if NO_COLOR is not set', async () => {
-  delete process.env['NO_COLOR'];
+      delete process.env['NO_COLOR'];
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
@@ -981,7 +981,7 @@ describe('App UI', () => {
     });
 
     it('should display a message if NO_COLOR is set', async () => {
-  process.env['NO_COLOR'] = 'true';
+      process.env['NO_COLOR'] = 'true';
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
@@ -1010,14 +1010,14 @@ describe('App UI', () => {
   });
 
   it('should render correctly with the prompt input box', () => {
-  vi.mocked(useGeminiStream).mockReturnValue(({
+    vi.mocked(useGeminiStream).mockReturnValue({
       streamingState: StreamingState.Idle,
       submitQuery: (async () => {}) as any,
       initError: null,
       pendingHistoryItems: [],
       thought: null,
       cancelOngoingRequest: () => {},
-    }) as any);
+    } as any);
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
@@ -1036,14 +1036,14 @@ describe('App UI', () => {
 
       mockConfig.getQuestion = vi.fn(() => 'hello from prompt-interactive');
 
-    vi.mocked(useGeminiStream).mockReturnValue(({
+      vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Idle,
-        submitQuery: (mockSubmitQuery as unknown) as (q: any) => Promise<void>,
+        submitQuery: mockSubmitQuery as unknown as (q: any) => Promise<void>,
         initError: null,
         pendingHistoryItems: [],
         thought: null,
         cancelOngoingRequest: () => {},
-  }) as any);
+      } as any);
 
       mockConfig.getGeminiClient.mockReturnValue({
         isInitialized: vi.fn(() => true),
@@ -1184,7 +1184,7 @@ describe('App UI', () => {
     });
 
     it('should render without errors when NO_COLOR is set', async () => {
-  process.env['NO_COLOR'] = 'true';
+      process.env['NO_COLOR'] = 'true';
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
@@ -1230,7 +1230,7 @@ describe('App UI', () => {
         handleFolderTrustSelect: vi.fn(),
         isRestarting: false,
       });
-  mockConfig.isTrustedFolder?.mockReturnValue(false);
+      mockConfig.isTrustedFolder?.mockReturnValue(false);
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
@@ -1252,7 +1252,7 @@ describe('App UI', () => {
         handleFolderTrustSelect: vi.fn(),
         isRestarting: false,
       });
-  mockConfig.isTrustedFolder?.mockReturnValue(false);
+      mockConfig.isTrustedFolder?.mockReturnValue(false);
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
@@ -1280,14 +1280,14 @@ describe('App UI', () => {
     });
 
     it('should queue messages when handleFinalSubmit is called during streaming', () => {
-  vi.mocked(useGeminiStream).mockReturnValue(({
+      vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Responding,
         submitQuery: mockSubmitQuery,
         initError: null,
         pendingHistoryItems: [],
         thought: null,
         cancelOngoingRequest: () => {},
-  }) as any);
+      } as any);
 
       const { unmount } = renderWithProviders(
         <App
@@ -1303,18 +1303,18 @@ describe('App UI', () => {
     });
 
     it('should auto-send queued messages when transitioning from Responding to Idle', async () => {
-  const mockSubmitQueryFn = vi.fn();
-  void mockSubmitQueryFn;
+      const mockSubmitQueryFn = vi.fn();
+      void mockSubmitQueryFn;
 
       // Start with Responding state
-  vi.mocked(useGeminiStream).mockReturnValue(({
+      vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Responding,
         submitQuery: mockSubmitQueryFn,
         initError: null,
         pendingHistoryItems: [],
         thought: null,
         cancelOngoingRequest: () => {},
-  }) as any);
+      } as any);
 
       const { unmount, rerender } = renderWithProviders(
         <App
@@ -1326,14 +1326,14 @@ describe('App UI', () => {
       currentUnmount = unmount;
 
       // Simulate the hook returning Idle state (streaming completed)
-  vi.mocked(useGeminiStream).mockReturnValue(({
+      vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Idle,
         submitQuery: mockSubmitQueryFn,
         initError: null,
         pendingHistoryItems: [],
         thought: null,
         cancelOngoingRequest: () => {},
-  }) as any);
+      } as any);
 
       // Rerender to trigger the useEffect with new state
       rerender(
@@ -1356,14 +1356,14 @@ describe('App UI', () => {
       // and then checking the rendered output for the queued messages
       // with the ▸ prefix and dimColor styling
 
-  vi.mocked(useGeminiStream).mockReturnValue(({
+      vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Responding,
         submitQuery: mockSubmitQuery as any,
         initError: null,
         pendingHistoryItems: [],
         thought: 'Processing...',
         cancelOngoingRequest: () => {},
-  }) as any);
+      } as any);
 
       const { unmount, lastFrame } = renderWithProviders(
         <App
@@ -1381,16 +1381,15 @@ describe('App UI', () => {
     });
 
     it('should clear message queue after sending', async () => {
-
       // Start with idle to allow message queue to process
-  vi.mocked(useGeminiStream).mockReturnValue(({
+      vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Idle,
         submitQuery: (async () => {}) as any,
         initError: null,
         pendingHistoryItems: [],
         thought: null,
         cancelOngoingRequest: () => {},
-  }) as any);
+      } as any);
 
       const { unmount, lastFrame } = renderWithProviders(
         <App
@@ -1413,13 +1412,13 @@ describe('App UI', () => {
       // The handleFinalSubmit function trims and checks if length > 0
       // before adding to queue, so empty messages are filtered
 
-  vi.mocked(useGeminiStream).mockReturnValue(({
+      vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Idle,
         submitQuery: mockSubmitQuery,
         initError: null,
         pendingHistoryItems: [],
         thought: null,
-  }) as any);
+      } as any);
 
       const { unmount } = renderWithProviders(
         <App
@@ -1441,14 +1440,14 @@ describe('App UI', () => {
 
       const mockSubmitQueryFn = vi.fn();
 
-  vi.mocked(useGeminiStream).mockReturnValue(({
+      vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Idle,
         submitQuery: mockSubmitQueryFn,
         initError: null,
         pendingHistoryItems: [],
         thought: null,
         cancelOngoingRequest: () => {},
-  }) as any);
+      } as any);
 
       const { unmount, lastFrame } = renderWithProviders(
         <App
@@ -1470,14 +1469,14 @@ describe('App UI', () => {
       // This test verifies the display logic handles multiple messages correctly
       // by checking that the MAX_DISPLAYED_QUEUED_MESSAGES constant is respected
 
-  vi.mocked(useGeminiStream).mockReturnValue(({
+      vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Responding,
         submitQuery: mockSubmitQuery,
         initError: null,
         pendingHistoryItems: [],
         thought: 'Processing...',
         cancelOngoingRequest: () => {},
-  }) as any);
+      } as any);
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
@@ -1502,14 +1501,14 @@ describe('App UI', () => {
       // Test that the message queue display logic renders correctly
       // This verifies the UI changes for performance improvements work
 
-  vi.mocked(useGeminiStream).mockReturnValue(({
+      vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Responding,
         submitQuery: mockSubmitQuery,
         initError: null,
         pendingHistoryItems: [],
         thought: 'Processing...',
         cancelOngoingRequest: () => {},
-  }) as any);
+      } as any);
 
       const { lastFrame, unmount } = renderWithProviders(
         <App

@@ -23,7 +23,6 @@
     "**/*.spec.ts",
     "src/**/.gemini_checkpoints/**",
     "src/**/*.d.ts"
-  ]
-  ,
+  ],
   "references": [{ "path": "../core" }]
 }

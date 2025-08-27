@@ -20,7 +20,8 @@ import {
   ToolCall,
   Status as CoreStatus,
   EditorType,
- LoopDetectionService } from '@google/gemini-cli-core';
+  LoopDetectionService,
+} from '@google/gemini-cli-core';
 import { useCallback, useState, useMemo } from 'react';
 import {
   HistoryItemToolGroup,
@@ -141,7 +142,7 @@ export function useReactToolScheduler(
       getPreferredEditor,
       config,
       onEditorClose,
-  loopDetectionService: loopService,
+      loopDetectionService: loopService,
     });
   }, [
     config,

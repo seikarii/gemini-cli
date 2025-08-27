@@ -24,34 +24,56 @@ export class AgentSideConnection implements Client {
     const agent = toAgent(this);
 
     // Define method handlers in a decoupled way
-    const methodHandlers = new Map<string, (params: unknown) => Promise<unknown>>([
-      ['initialize', (params) => {
-        const validatedParams = schema.initializeRequestSchema.parse(params);
-        return agent.initialize(validatedParams);
-      }],
-      ['session/new', (params) => {
-        const validatedParams = schema.newSessionRequestSchema.parse(params);
-        return agent.newSession(validatedParams);
-      }],
-      ['session/load', (params) => {
-        if (!agent.loadSession) {
-          throw RequestError.methodNotFound();
-        }
-        const validatedParams = schema.loadSessionRequestSchema.parse(params);
-        return agent.loadSession(validatedParams);
-      }],
-      ['authenticate', (params) => {
-        const validatedParams = schema.authenticateRequestSchema.parse(params);
-        return agent.authenticate(validatedParams);
-      }],
-      ['session/prompt', (params) => {
-        const validatedParams = schema.promptRequestSchema.parse(params);
-        return agent.prompt(validatedParams);
-      }],
-      ['session/cancel', (params) => {
-        const validatedParams = schema.cancelNotificationSchema.parse(params);
-        return agent.cancel(validatedParams);
-      }],
+    const methodHandlers = new Map<
+      string,
+      (params: unknown) => Promise<unknown>
+    >([
+      [
+        'initialize',
+        (params) => {
+          const validatedParams = schema.initializeRequestSchema.parse(params);
+          return agent.initialize(validatedParams);
+        },
+      ],
+      [
+        'session/new',
+        (params) => {
+          const validatedParams = schema.newSessionRequestSchema.parse(params);
+          return agent.newSession(validatedParams);
+        },
+      ],
+      [
+        'session/load',
+        (params) => {
+          if (!agent.loadSession) {
+            throw RequestError.methodNotFound();
+          }
+          const validatedParams = schema.loadSessionRequestSchema.parse(params);
+          return agent.loadSession(validatedParams);
+        },
+      ],
+      [
+        'authenticate',
+        (params) => {
+          const validatedParams =
+            schema.authenticateRequestSchema.parse(params);
+          return agent.authenticate(validatedParams);
+        },
+      ],
+      [
+        'session/prompt',
+        (params) => {
+          const validatedParams = schema.promptRequestSchema.parse(params);
+          return agent.prompt(validatedParams);
+        },
+      ],
+      [
+        'session/cancel',
+        (params) => {
+          const validatedParams = schema.cancelNotificationSchema.parse(params);
+          return agent.cancel(validatedParams);
+        },
+      ],
     ]);
 
     const handler = async (

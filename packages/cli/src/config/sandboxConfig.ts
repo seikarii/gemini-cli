@@ -57,7 +57,9 @@ function getSandboxCommand(
 
   if (typeof sandbox === 'string' && sandbox) {
     if (!isSandboxCommand(sandbox)) {
-      logger.error(ERROR_INVALID_SANDBOX_COMMAND(sandbox, VALID_SANDBOX_COMMANDS));
+      logger.error(
+        ERROR_INVALID_SANDBOX_COMMAND(sandbox, VALID_SANDBOX_COMMANDS),
+      );
       process.exit(1);
     }
     // confirm that specified command exists

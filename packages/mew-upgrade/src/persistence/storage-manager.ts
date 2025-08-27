@@ -26,7 +26,6 @@ export interface StorageBackend {
  * A storage backend that interacts with the local filesystem.
  */
 export class LocalStorageBackend implements StorageBackend {
-
   /**
    * Writes data to a file on the local disk, ensuring the directory exists.
    * Implements an atomic write to prevent data corruption during write.
@@ -42,9 +41,11 @@ export class LocalStorageBackend implements StorageBackend {
       const tempPath = filePath + '.tmp' + Date.now();
       await fs.writeFile(tempPath, data, 'utf-8');
       await fs.rename(tempPath, filePath);
-
     } catch (error) {
-      console.error(`LocalStorageBackend: Failed to write to ${filePath}`, error);
+      console.error(
+        `LocalStorageBackend: Failed to write to ${filePath}`,
+        error,
+      );
       throw new Error(`Failed to write file: ${filePath}`);
     }
   }
@@ -58,7 +59,10 @@ export class LocalStorageBackend implements StorageBackend {
     try {
       return await fs.readFile(filePath, 'utf-8');
     } catch (error) {
-      console.error(`LocalStorageBackend: Failed to read from ${filePath}`, error);
+      console.error(
+        `LocalStorageBackend: Failed to read from ${filePath}`,
+        error,
+      );
       throw new Error(`Failed to read file: ${filePath}`);
     }
   }

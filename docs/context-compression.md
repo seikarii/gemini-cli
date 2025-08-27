@@ -7,6 +7,7 @@ El `ChatRecordingService` original tenía un problema crítico: cuando las conve
 ## 🧠 **Estrategia de Compresión Inteligente**
 
 ### **Principios Clave**
+
 1. **Relevancia Temporal**: Los mensajes recientes son más importantes
 2. **Preservación Selectiva**: Mantener información clave independientemente de la edad
 3. **Compresión Progresiva**: Comprimir más agresivamente el contenido más antiguo
@@ -22,6 +23,7 @@ El `ChatRecordingService` original tenía un problema crítico: cuando las conve
 ## 📊 **Configuración**
 
 ### **Variables de Entorno**
+
 ```bash
 # Límite máximo de tokens antes de comprimir (default: 35000)
 export GEMINI_MAX_CONTEXT_TOKENS=35000
@@ -31,13 +33,14 @@ export GEMINI_PRESERVE_RECENT_MESSAGES=8
 ```
 
 ### **Configuración Programática**
+
 ```typescript
 const compressionConfig: ContextCompressionConfig = {
-  maxContextTokens: 35000,        // Límite de tokens
-  preserveRecentMessages: 8,      // Mensajes recientes a preservar
-  compressionRatio: 0.3,          // Ratio de compresión (30% del original)
-  keywordPreservation: true,      // Preservar palabras clave importantes
-  summarizeToolCalls: true,       // Resumir tool calls antiguos
+  maxContextTokens: 35000, // Límite de tokens
+  preserveRecentMessages: 8, // Mensajes recientes a preservar
+  compressionRatio: 0.3, // Ratio de compresión (30% del original)
+  keywordPreservation: true, // Preservar palabras clave importantes
+  summarizeToolCalls: true, // Resumir tool calls antiguos
 };
 ```
 
@@ -46,6 +49,7 @@ const compressionConfig: ContextCompressionConfig = {
 ### **Proceso de Compresión**
 
 1. **Evaluación de Tamaño**
+
    ```typescript
    const totalTokens = estimateContextSize(conversation);
    if (totalTokens > maxContextTokens) {
@@ -54,6 +58,7 @@ const compressionConfig: ContextCompressionConfig = {
    ```
 
 2. **Separación de Contenido**
+
    ```typescript
    const recentMessages = messages.slice(-preserveRecentMessages);
    const oldMessages = messages.slice(0, -preserveRecentMessages);
@@ -66,6 +71,7 @@ const compressionConfig: ContextCompressionConfig = {
    - **Código**: `function|class|interface|import|export`
 
 4. **Compresión de Tool Calls**
+
    ```typescript
    // Antes: Tool call completo con args y resultado (500+ tokens)
    {
@@ -73,7 +79,7 @@ const compressionConfig: ContextCompressionConfig = {
      "args": { "absolute_path": "/long/path/file.ts", "offset": 100 },
      "result": "... 2000 characters of code ..."
    }
-   
+
    // Después: Resumen comprimido (20 tokens)
    "read_file(1✓, 0✗)"
    ```
@@ -82,23 +88,25 @@ const compressionConfig: ContextCompressionConfig = {
 
 ```typescript
 interface CompressedContext {
-  summary: string;              // "Conversation: 15 user msgs, 18 assistant msgs, 8 with tools. Topics: debugging, file operations"
-  keyPoints: string[];          // ["Error context: TypeError in parser.ts", "File operation: Created new AST finder"]
-  toolCallsSummary: string;     // "Tools used: read_file(12, 11✓, 1✗), write_file(5, 5✓, 0✗)"
-  timespan: { start, end };     // Rango temporal cubierto
-  messageCount: number;         // Mensajes originales comprimidos
-  originalTokens: number;       // Tokens originales estimados
-  compressedTokens: number;     // Tokens después de compresión
+  summary: string; // "Conversation: 15 user msgs, 18 assistant msgs, 8 with tools. Topics: debugging, file operations"
+  keyPoints: string[]; // ["Error context: TypeError in parser.ts", "File operation: Created new AST finder"]
+  toolCallsSummary: string; // "Tools used: read_file(12, 11✓, 1✗), write_file(5, 5✓, 0✗)"
+  timespan: { start; end }; // Rango temporal cubierto
+  messageCount: number; // Mensajes originales comprimidos
+  originalTokens: number; // Tokens originales estimados
+  compressedTokens: number; // Tokens después de compresión
 }
 ```
 
 ## 📈 **Beneficios Medidos**
 
 ### **Reducción de Tokens**
+
 - **Antes**: 50,000+ tokens → Alucinaciones frecuentes
 - **Después**: <35,000 tokens → Respuestas coherentes
 
 ### **Ejemplos de Compresión**
+
 ```
 Conversación Típica:
 - 50 mensajes originales → 8 mensajes recientes + resumen comprimido
@@ -114,13 +122,14 @@ Conversación Larga:
 ## 🛠️ **API de Uso**
 
 ### **Uso Automático**
+
 El sistema funciona automáticamente. Cada vez que se graba un mensaje, se evalúa si es necesaria la compresión.
 
 ```typescript
 // Se aplica compresión automáticamente si es necesario
 chatRecording.recordMessage({
   type: 'user',
-  content: 'Mi pregunta...'
+  content: 'Mi pregunta...',
 });
 ```
 
@@ -157,18 +166,21 @@ Estadísticas de Compresión:
 ## 🎛️ **Tunning y Optimización**
 
 ### **Para Proyectos Pequeños**
+
 ```bash
 export GEMINI_MAX_CONTEXT_TOKENS=50000  # Más tolerante
 export GEMINI_PRESERVE_RECENT_MESSAGES=12  # Más historia reciente
 ```
 
 ### **Para Proyectos Grandes con Muchas Tool Calls**
+
 ```bash
 export GEMINI_MAX_CONTEXT_TOKENS=25000  # Más agresivo
 export GEMINI_PRESERVE_RECENT_MESSAGES=6   # Menos historia
 ```
 
 ### **Para Debug y Desarrollo**
+
 ```bash
 export GEMINI_MAX_CONTEXT_TOKENS=10000  # Forzar compresión frecuente
 export GEMINI_PRESERVE_RECENT_MESSAGES=3   # Mínimo contexto reciente
@@ -184,16 +196,19 @@ export GEMINI_PRESERVE_RECENT_MESSAGES=3   # Mínimo contexto reciente
 ## 🔍 **Casos de Uso Específicos**
 
 ### **Sesiones de Debug Largas**
+
 - Preserva patrones de error importantes
 - Mantiene contexto de archivos modificados
 - Resume tool calls exitosos/fallidos
 
 ### **Desarrollo de Features**
+
 - Extrae decisiones de diseño clave
 - Preserva cambios de configuración
 - Resume iteraciones de código
 
 ### **Sessiones de Refactoring**
+
 - Mantiene contexto de cambios estructurales
 - Preserva patrones de naming
 - Resume operaciones de archivo masivas

@@ -2036,10 +2036,7 @@ ${JSON.stringify(
         },
         {
           role: 'model',
-          parts: [
-            { text: 'thinking...' },
-            { text: 'ok' },
-          ],
+          parts: [{ text: 'thinking...' }, { text: 'ok' }],
         },
       ];
 

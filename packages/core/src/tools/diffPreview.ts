@@ -22,7 +22,7 @@ export function generateUnifiedDiff(
   oldText: string,
   newText: string,
   filePath: string,
-  options: DiffOptions = {}
+  options: DiffOptions = {},
 ): string {
   const {
     timeout = 1000,
@@ -56,7 +56,9 @@ export function generateUnifiedDiff(
     // Format as unified diff with proper headers
     const header = `--- ${filePath}\n+++ ${filePath} (modified)`;
 
-    return patchText.trim() ? `${header}\n${patchText}` : `${header}\n(No changes)`;
+    return patchText.trim()
+      ? `${header}\n${patchText}`
+      : `${header}\n(No changes)`;
   } catch (_error) {
     // Fallback to simple diff if diff-match-patch fails
     const oldLines = oldText.split('\n').length;

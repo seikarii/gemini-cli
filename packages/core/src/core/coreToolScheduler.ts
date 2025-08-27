@@ -295,7 +295,7 @@ export class CoreToolScheduler {
     signal: AbortSignal,
     liveOutputCallback?: (output: string) => void,
     maxRetries: number = 3,
-    baseDelayMs: number = 1000
+    baseDelayMs: number = 1000,
   ): Promise<ToolResult> {
     let lastError: Error | null = null;
 
@@ -318,7 +318,10 @@ export class CoreToolScheduler {
         lastError = error instanceof Error ? error : new Error(String(error));
 
         // If it's not a retryable error or we've exhausted retries, rethrow
-        if (!this.isRetryableErrorFromException(lastError) || attempt === maxRetries) {
+        if (
+          !this.isRetryableErrorFromException(lastError) ||
+          attempt === maxRetries
+        ) {
           throw lastError;
         }
       }
@@ -326,7 +329,7 @@ export class CoreToolScheduler {
       // Wait before retrying with exponential backoff
       if (attempt < maxRetries) {
         const delay = baseDelayMs * Math.pow(2, attempt);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
@@ -367,7 +370,7 @@ export class CoreToolScheduler {
       'network error',
     ];
 
-    return retryablePatterns.some(pattern => errorMessage.includes(pattern));
+    return retryablePatterns.some((pattern) => errorMessage.includes(pattern));
   }
 
   private setStatusInternal(
@@ -655,7 +658,9 @@ export class CoreToolScheduler {
       this.registerToolsWithActionSystem(actionSystem);
 
       // Convert Action Script to Action System actions
-      const actions = this.convertActionScriptToActions(actionScriptRequest.script);
+      const actions = this.convertActionScriptToActions(
+        actionScriptRequest.script,
+      );
 
       // Execute all actions
       const results: ToolCallResponseInfo[] = [];
@@ -663,16 +668,19 @@ export class CoreToolScheduler {
         const actionId = actionSystem.createAction(
           action.toolName,
           action.parameters,
-          action.priority
+          action.priority,
         );
 
         // Wait for the action to complete
         // Note: This is a simplified implementation. In a real scenario,
         // you'd want to use the ActionSystem's event system or polling
-        await new Promise(resolve => setTimeout(resolve, 100)); // Temporary delay
+        await new Promise((resolve) => setTimeout(resolve, 100)); // Temporary delay
 
         // For now, we'll create a mock result
-        const toolResult = await this.convertActionResultToToolResult(actionId, actionScriptRequest.callId);
+        const toolResult = await this.convertActionResultToToolResult(
+          actionId,
+          actionScriptRequest.callId,
+        );
         results.push(toolResult);
       }
 
@@ -991,11 +999,7 @@ export class CoreToolScheduler {
               }
             : undefined;
 
-        this.executeToolWithRetry(
-          invocation,
-          signal,
-          liveOutputCallback
-        )
+        this.executeToolWithRetry(invocation, signal, liveOutputCallback)
           .then(async (toolResult: ToolResult) => {
             if (signal.aborted) {
               this.setStatusInternal(
@@ -1237,7 +1241,9 @@ export class CoreToolScheduler {
         break;
 
       default:
-        console.warn(`Unknown script node type: ${(node as ScriptNode & { type: string }).type}`);
+        console.warn(
+          `Unknown script node type: ${(node as ScriptNode & { type: string }).type}`,
+        );
         break;
     }
   }

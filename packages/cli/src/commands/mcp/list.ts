@@ -127,7 +127,7 @@ export async function listMcpServers(): Promise<void> {
     }
 
     console.log(`${statusIndicator} ${serverInfo} - ${statusText}`);
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 }
 

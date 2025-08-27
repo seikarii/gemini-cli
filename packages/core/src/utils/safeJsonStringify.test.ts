@@ -15,7 +15,6 @@ describe('safeJsonStringify', () => {
   });
 
   it('should handle circular references by replacing them with [Circular]', () => {
-     
     const obj: any = { name: 'test' };
     obj.circular = obj; // Create circular reference
 
@@ -24,7 +23,6 @@ describe('safeJsonStringify', () => {
   });
 
   it('should handle complex circular structures like HttpsProxyAgent', () => {
-     
     const agent: any = {
       sockets: {},
       options: { host: 'example.com' },
@@ -43,7 +41,6 @@ describe('safeJsonStringify', () => {
   });
 
   it('should handle circular references with formatting', () => {
-     
     const obj: any = { name: 'test' };
     obj.circular = obj;
 
@@ -52,7 +49,6 @@ describe('safeJsonStringify', () => {
   });
 
   it('should handle arrays with circular references', () => {
-     
     const arr: any[] = [{ id: 1 }];
     arr[0].parent = arr; // Create circular reference
 

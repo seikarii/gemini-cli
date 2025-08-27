@@ -98,7 +98,7 @@ class RecursiveFileSearch implements FileSearch {
   constructor(private readonly options: FileSearchOptions) {}
 
   async initialize(): Promise<void> {
-  this.ignore = await loadIgnoreRulesAsync(this.options);
+    this.ignore = await loadIgnoreRulesAsync(this.options);
     this.allFiles = await crawl({
       crawlDirectory: this.options.projectRoot,
       cwd: this.options.projectRoot,
@@ -188,7 +188,7 @@ class DirectoryFileSearch implements FileSearch {
   constructor(private readonly options: FileSearchOptions) {}
 
   async initialize(): Promise<void> {
-  this.ignore = await loadIgnoreRulesAsync(this.options);
+    this.ignore = await loadIgnoreRulesAsync(this.options);
   }
 
   async search(

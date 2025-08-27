@@ -12,8 +12,10 @@ import { FileSystemService } from '../services/fileSystemService.js';
 
 // Performance monitoring and logging infrastructure
 const logger = {
-  debug: (...args: unknown[]) => console.debug('[DEBUG] [BfsFileSearch]', ...args),
-  perf: (...args: unknown[]) => console.debug('[PERF] [BfsFileSearch]', ...args),
+  debug: (...args: unknown[]) =>
+    console.debug('[DEBUG] [BfsFileSearch]', ...args),
+  perf: (...args: unknown[]) =>
+    console.debug('[PERF] [BfsFileSearch]', ...args),
 };
 
 interface BfsFileSearchOptions {
@@ -24,10 +26,10 @@ interface BfsFileSearchOptions {
   fileService?: FileDiscoveryService;
   fileFilteringOptions?: FileFilteringOptions;
   // Performance tuning options
-  maxConcurrency?: number;          // Maximum parallel operations (default: 20)
-  batchSize?: number;               // Batch size for ignore checking (default: 50)
-  cacheSize?: number;               // Maximum cache entries (default: 1000)
-  cacheTtlMs?: number;              // Cache TTL in milliseconds (default: 5 minutes)
+  maxConcurrency?: number; // Maximum parallel operations (default: 20)
+  batchSize?: number; // Batch size for ignore checking (default: 50)
+  cacheSize?: number; // Maximum cache entries (default: 1000)
+  cacheTtlMs?: number; // Cache TTL in milliseconds (default: 5 minutes)
   // File system service for standardized operations
   fileSystemService?: FileSystemService;
 }
@@ -56,7 +58,8 @@ class IgnoreCache {
   private readonly maxSize: number;
   private readonly ttlMs: number;
 
-  constructor(maxSize = 1000, ttlMs = 300000) { // 5 minutes default TTL
+  constructor(maxSize = 1000, ttlMs = 300000) {
+    // 5 minutes default TTL
     this.maxSize = maxSize;
     this.ttlMs = ttlMs;
   }
@@ -64,13 +67,13 @@ class IgnoreCache {
   get(path: string): boolean | undefined {
     const entry = this.cache.get(path);
     if (!entry) return undefined;
-    
+
     // Check TTL
     if (Date.now() - entry.timestamp > this.ttlMs) {
       this.cache.delete(path);
       return undefined;
     }
-    
+
     return entry.ignored;
   }
 
@@ -79,7 +82,7 @@ class IgnoreCache {
     if (this.cache.size >= this.maxSize) {
       this.evictOldEntries();
     }
-    
+
     this.cache.set(path, {
       ignored,
       timestamp: Date.now(),
@@ -89,21 +92,22 @@ class IgnoreCache {
   private evictOldEntries(): void {
     const now = Date.now();
     const toDelete: string[] = [];
-    
+
     // Remove expired entries first
     for (const [path, entry] of this.cache.entries()) {
       if (now - entry.timestamp > this.ttlMs) {
         toDelete.push(path);
       }
     }
-    
-    toDelete.forEach(path => this.cache.delete(path));
-    
+
+    toDelete.forEach((path) => this.cache.delete(path));
+
     // If still too large, remove oldest entries
     if (this.cache.size >= this.maxSize) {
-      const entries = Array.from(this.cache.entries())
-        .sort((a, b) => a[1].timestamp - b[1].timestamp);
-      
+      const entries = Array.from(this.cache.entries()).sort(
+        (a, b) => a[1].timestamp - b[1].timestamp,
+      );
+
       const toRemove = entries.slice(0, Math.floor(this.maxSize * 0.3));
       toRemove.forEach(([path]) => this.cache.delete(path));
     }
@@ -131,13 +135,15 @@ interface FileEntry {
  */
 async function readDirectoryWithTypes(
   dirPath: string,
-  fileSystemService?: FileSystemService
+  fileSystemService?: FileSystemService,
 ): Promise<Array<{ name: string; isDirectory(): boolean }>> {
   if (fileSystemService) {
     // Use FileSystemService for standardized file operations
     const listResult = await fileSystemService.listDirectory(dirPath);
     if (!listResult.success) {
-      throw new Error(`Failed to list directory ${dirPath}: ${listResult.error}`);
+      throw new Error(
+        `Failed to list directory ${dirPath}: ${listResult.error}`,
+      );
     }
 
     // Get file type information for each entry
@@ -148,9 +154,10 @@ async function readDirectoryWithTypes(
 
         return {
           name: entryName,
-          isDirectory: () => fileInfo.success ? fileInfo.data?.isDirectory || false : false,
+          isDirectory: () =>
+            fileInfo.success ? fileInfo.data?.isDirectory || false : false,
         };
-      })
+      }),
     );
 
     return entriesWithTypes;
@@ -183,7 +190,9 @@ class BatchIgnoreProcessor {
   /**
    * Process a batch of entries, checking ignore patterns efficiently
    */
-  async processBatch(entries: FileEntry[]): Promise<{ ignored: Set<string>; processed: FileEntry[] }> {
+  async processBatch(
+    entries: FileEntry[],
+  ): Promise<{ ignored: Set<string>; processed: FileEntry[] }> {
     const ignored = new Set<string>();
     const processed: FileEntry[] = [];
     const uncachedEntries: FileEntry[] = [];
@@ -207,30 +216,31 @@ class BatchIgnoreProcessor {
     }
 
     // Second pass: Batch process uncached entries
-      if (uncachedEntries.length > 0) {
-        const ignorePromises = uncachedEntries.map(async (entry) => {
-          const isIgnored = await this.fileService.shouldIgnoreFile(entry.path, {
-            respectGitIgnore: this.fileFilteringOptions?.respectGitIgnore,
-            respectGeminiIgnore: this.fileFilteringOptions?.respectGeminiIgnore,
-          });
-          this.cache.set(entry.path, isIgnored);
-          this.metrics.totalIgnoreChecks++;
-          return { entry, isIgnored };
+    if (uncachedEntries.length > 0) {
+      const ignorePromises = uncachedEntries.map(async (entry) => {
+        const isIgnored = await this.fileService.shouldIgnoreFile(entry.path, {
+          respectGitIgnore: this.fileFilteringOptions?.respectGitIgnore,
+          respectGeminiIgnore: this.fileFilteringOptions?.respectGeminiIgnore,
         });
+        this.cache.set(entry.path, isIgnored);
+        this.metrics.totalIgnoreChecks++;
+        return { entry, isIgnored };
+      });
 
-        const results = await Promise.all(ignorePromises);
+      const results = await Promise.all(ignorePromises);
 
-        for (const { entry, isIgnored } of results) {
-          if (isIgnored) {
-            ignored.add(entry.path);
-          } else {
-            processed.push(entry);
-          }
+      for (const { entry, isIgnored } of results) {
+        if (isIgnored) {
+          ignored.add(entry.path);
+        } else {
+          processed.push(entry);
         }
       }
+    }
 
     const batchTime = performance.now() - batchStart;
-    this.metrics.avgIgnoreCheckMs = (this.metrics.avgIgnoreCheckMs + batchTime) / 2;
+    this.metrics.avgIgnoreCheckMs =
+      (this.metrics.avgIgnoreCheckMs + batchTime) / 2;
     this.metrics.batchesProcessed++;
 
     return { ignored, processed };
@@ -262,7 +272,10 @@ class BatchIgnoreProcessor {
 /**
  * Log comprehensive performance metrics
  */
-function logPerformanceMetrics(metrics: SearchMetrics, options: BfsFileSearchOptions): void {
+function logPerformanceMetrics(
+  metrics: SearchMetrics,
+  options: BfsFileSearchOptions,
+): void {
   const {
     totalDirsScanned,
     totalFilesFound,
@@ -274,25 +287,38 @@ function logPerformanceMetrics(metrics: SearchMetrics, options: BfsFileSearchOpt
     avgIgnoreCheckMs,
   } = metrics;
 
-  const cacheHitRate = cacheHits + cacheMisses > 0 ? (cacheHits / (cacheHits + cacheMisses) * 100).toFixed(1) : '0.0';
-  const dirsPerMs = totalDirsScanned > 0 ? (totalDirsScanned / totalTimeMs).toFixed(2) : '0';
-  const ignoreChecksPerMs = totalIgnoreChecks > 0 ? (totalIgnoreChecks / totalTimeMs).toFixed(2) : '0';
+  const cacheHitRate =
+    cacheHits + cacheMisses > 0
+      ? ((cacheHits / (cacheHits + cacheMisses)) * 100).toFixed(1)
+      : '0.0';
+  const dirsPerMs =
+    totalDirsScanned > 0 ? (totalDirsScanned / totalTimeMs).toFixed(2) : '0';
+  const ignoreChecksPerMs =
+    totalIgnoreChecks > 0 ? (totalIgnoreChecks / totalTimeMs).toFixed(2) : '0';
 
   if (options.debug) {
     logger.perf(`=== BFS Search Performance Metrics ===`);
     logger.perf(`Total time: ${totalTimeMs.toFixed(2)}ms`);
     logger.perf(`Directories scanned: ${totalDirsScanned} (${dirsPerMs}/ms)`);
     logger.perf(`Files found: ${totalFilesFound}`);
-    logger.perf(`Ignore checks: ${totalIgnoreChecks} (${ignoreChecksPerMs}/ms)`);
-    logger.perf(`Cache performance: ${cacheHitRate}% hit rate (${cacheHits} hits, ${cacheMisses} misses)`);
+    logger.perf(
+      `Ignore checks: ${totalIgnoreChecks} (${ignoreChecksPerMs}/ms)`,
+    );
+    logger.perf(
+      `Cache performance: ${cacheHitRate}% hit rate (${cacheHits} hits, ${cacheMisses} misses)`,
+    );
     logger.perf(`Batches processed: ${batchesProcessed}`);
     logger.perf(`Avg ignore check time: ${avgIgnoreCheckMs.toFixed(3)}ms`);
     logger.perf(`=======================================`);
   } else {
     // Always log basic performance summary
-    console.log(`[BFS Search] ${totalFilesFound} files found in ${totalTimeMs.toFixed(2)}ms across ${totalDirsScanned} directories`);
+    console.log(
+      `[BFS Search] ${totalFilesFound} files found in ${totalTimeMs.toFixed(2)}ms across ${totalDirsScanned} directories`,
+    );
     if (totalIgnoreChecks > 0) {
-      console.log(`[BFS Search] Cache efficiency: ${cacheHitRate}% hit rate (${totalIgnoreChecks} ignore checks)`);
+      console.log(
+        `[BFS Search] Cache efficiency: ${cacheHitRate}% hit rate (${totalIgnoreChecks} ignore checks)`,
+      );
     }
   }
 }
@@ -348,7 +374,10 @@ export async function bfsFileSearch(
   if (fileService) {
     batchProcessor = new BatchIgnoreProcessor(
       fileService,
-      options.fileFilteringOptions || { respectGitIgnore: true, respectGeminiIgnore: true },
+      options.fileFilteringOptions || {
+        respectGitIgnore: true,
+        respectGeminiIgnore: true,
+      },
       cache,
       metrics,
     );
@@ -366,7 +395,7 @@ export async function bfsFileSearch(
     while (currentBatch.length < currentBatchSize && queueHead < queue.length) {
       const currentDir = queue[queueHead];
       queueHead++;
-      
+
       if (!visited.has(currentDir)) {
         visited.add(currentDir);
         currentBatch.push(currentDir);
@@ -394,7 +423,10 @@ export async function bfsFileSearch(
           return { currentDir, entries: [], skipped: true };
         }
 
-        const entries = await readDirectoryWithTypes(currentDir, fileSystemService);
+        const entries = await readDirectoryWithTypes(
+          currentDir,
+          fileSystemService,
+        );
         return { currentDir, entries, skipped: false };
       } catch (error) {
         const message = (error as Error)?.message ?? 'Unknown error';
@@ -415,7 +447,7 @@ export async function bfsFileSearch(
       if (skipped || entries.length === 0) continue;
 
       // Convert to FileEntry objects for batch processing
-      const fileEntries: FileEntry[] = entries.map(entry => ({
+      const fileEntries: FileEntry[] = entries.map((entry) => ({
         path: path.join(currentDir, entry.name),
         name: entry.name,
         isDirectory: entry.isDirectory(),
@@ -445,7 +477,7 @@ export async function bfsFileSearch(
         } else if (entry.name === fileName) {
           foundFiles.push(entry.path);
           metrics.totalFilesFound++;
-          
+
           if (debug) {
             logger.debug(`Found target file: ${entry.path}`);
           }
@@ -456,13 +488,15 @@ export async function bfsFileSearch(
 
   // Calculate final metrics
   metrics.totalTimeMs = performance.now() - searchStart;
-  
+
   // Log performance metrics
   logPerformanceMetrics(metrics, options);
 
   if (debug) {
     const cacheStats = cache.getStats();
-    logger.debug(`Cache utilization: ${cacheStats.size}/${cacheStats.maxSize} entries`);
+    logger.debug(
+      `Cache utilization: ${cacheStats.size}/${cacheStats.maxSize} entries`,
+    );
   }
 
   return foundFiles;

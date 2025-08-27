@@ -29,7 +29,8 @@ export const TokenPreview: React.FC<TokenPreviewProps> = ({
   const currentTokens = computedStats.totalPromptTokens;
 
   // Rough estimation: ~4 characters per token
-  const estimatedMessageTokens = estimatedTokens || Math.ceil(messageLength / 4);
+  const estimatedMessageTokens =
+    estimatedTokens || Math.ceil(messageLength / 4);
   const projectedTotal = currentTokens + estimatedMessageTokens;
   const projectedPercentage = (projectedTotal / maxTokens) * 100;
 
@@ -54,21 +55,33 @@ export const TokenPreview: React.FC<TokenPreviewProps> = ({
   const willExceedLimit = projectedTotal > maxTokens;
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor={theme.border.default} padding={1}>
-      <Text bold color={theme.text.accent}>🔮 Context Preview</Text>
+    <Box
+      flexDirection="column"
+      borderStyle="round"
+      borderColor={theme.border.default}
+      padding={1}
+    >
+      <Text bold color={theme.text.accent}>
+        🔮 Context Preview
+      </Text>
 
       <Box marginTop={1}>
         <Box width={25}>
           <Text color={theme.text.secondary}>Current Context:</Text>
         </Box>
-        <Text>{formatNumber(currentTokens)} tokens ({((currentTokens / maxTokens) * 100).toFixed(1)}%)</Text>
+        <Text>
+          {formatNumber(currentTokens)} tokens (
+          {((currentTokens / maxTokens) * 100).toFixed(1)}%)
+        </Text>
       </Box>
 
       <Box>
         <Box width={25}>
           <Text color={theme.text.secondary}>This Message:</Text>
         </Box>
-        <Text color={theme.text.accent}>~{formatNumber(estimatedMessageTokens)} tokens</Text>
+        <Text color={theme.text.accent}>
+          ~{formatNumber(estimatedMessageTokens)} tokens
+        </Text>
       </Box>
 
       <Box>
@@ -76,7 +89,8 @@ export const TokenPreview: React.FC<TokenPreviewProps> = ({
           <Text color={theme.text.secondary}>After Sending:</Text>
         </Box>
         <Text color={getStatusColor(projectedPercentage)}>
-          {formatNumber(projectedTotal)} tokens ({projectedPercentage.toFixed(1)}%)
+          {formatNumber(projectedTotal)} tokens (
+          {projectedPercentage.toFixed(1)}%)
         </Text>
       </Box>
 
@@ -91,7 +105,8 @@ export const TokenPreview: React.FC<TokenPreviewProps> = ({
       {projectedPercentage >= 85 && !willExceedLimit && (
         <Box>
           <Text color={getStatusColor(projectedPercentage)}>
-            {getStatusIcon(projectedPercentage)} High context usage after sending
+            {getStatusIcon(projectedPercentage)} High context usage after
+            sending
           </Text>
         </Box>
       )}

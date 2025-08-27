@@ -77,7 +77,10 @@ export class MentalLaby implements Persistable {
     salience: number = 0.5, // Importance from SignificanceResult
   ): string {
     const embedding = this.createEmbedding(data);
-    const similarNodes = this.findSimilarNodes(embedding, this.K_NEAREST_NEIGHBORS + 1);
+    const similarNodes = this.findSimilarNodes(
+      embedding,
+      this.K_NEAREST_NEIGHBORS + 1,
+    );
 
     // Check if a very similar node already exists
     if (similarNodes.length > 0 && similarNodes[0].similarity > 0.98) {
@@ -104,7 +107,9 @@ export class MentalLaby implements Persistable {
     const neighborsToLink = similarNodes.slice(0, this.K_NEAREST_NEIGHBORS);
     this.linkNodes(newNode, neighborsToLink);
 
-    console.log(`MentalLaby: Stored new memory node ${newNode.id}, linked to ${neighborsToLink.length} neighbors.`);
+    console.log(
+      `MentalLaby: Stored new memory node ${newNode.id}, linked to ${neighborsToLink.length} neighbors.`,
+    );
     return newNode.id;
   }
 
@@ -115,7 +120,10 @@ export class MentalLaby implements Persistable {
     if (this.nodes.size === 0) return [];
 
     const cueEmbedding = this.createEmbedding(cue);
-    const initialMatches = this.findSimilarNodes(cueEmbedding, this.K_NEAREST_NEIGHBORS);
+    const initialMatches = this.findSimilarNodes(
+      cueEmbedding,
+      this.K_NEAREST_NEIGHBORS,
+    );
 
     const activationScores: Map<string, number> = new Map();
 
@@ -152,11 +160,15 @@ export class MentalLaby implements Persistable {
     console.info(`MentalLaby: Reinforced memory node ${node.id}`);
   }
 
-  private findSimilarNodes(embedding: number[], k: number): Array<{ id: string; similarity: number }> {
+  private findSimilarNodes(
+    embedding: number[],
+    k: number,
+  ): Array<{ id: string; similarity: number }> {
     const similarities: Array<{ id: string; similarity: number }> = [];
     for (const node of this.nodes.values()) {
       const similarity = cosineSimilarity(embedding, node.embedding);
-      if (similarity > 0) { // Only consider nodes with some similarity
+      if (similarity > 0) {
+        // Only consider nodes with some similarity
         similarities.push({ id: node.id, similarity });
       }
     }
@@ -164,7 +176,10 @@ export class MentalLaby implements Persistable {
     return similarities.slice(0, k);
   }
 
-  private linkNodes(sourceNode: MemoryNode, targets: Array<{ id: string; similarity: number }>) {
+  private linkNodes(
+    sourceNode: MemoryNode,
+    targets: Array<{ id: string; similarity: number }>,
+  ) {
     for (const target of targets) {
       const targetNode = this.nodes.get(target.id);
       if (targetNode) {
@@ -179,10 +194,10 @@ export class MentalLaby implements Persistable {
     return this.embedder.embed(data);
   }
 
-  // --- Persistence --- 
+  // --- Persistence ---
 
   exportState(): object {
-    const nodesArray = Array.from(this.nodes.values()).map(node => ({
+    const nodesArray = Array.from(this.nodes.values()).map((node) => ({
       ...node,
       edges: Array.from(node.edges.entries()),
     }));
@@ -190,12 +205,19 @@ export class MentalLaby implements Persistable {
   }
 
   importState(state: unknown): void {
-    if (state && typeof state === 'object' && 'nodes' in state && Array.isArray((state as { nodes: unknown[] }).nodes)) {
+    if (
+      state &&
+      typeof state === 'object' &&
+      'nodes' in state &&
+      Array.isArray((state as { nodes: unknown[] }).nodes)
+    ) {
       this.nodes.clear();
       for (const nodeData of (state as { nodes: unknown[] }).nodes) {
         this.nodes.set((nodeData as { id: string }).id, {
           ...(nodeData as MemoryNode),
-          edges: new Map((nodeData as { edges: Array<[string, { weight: number }]> }).edges),
+          edges: new Map(
+            (nodeData as { edges: Array<[string, { weight: number }]> }).edges,
+          ),
         });
       }
     }

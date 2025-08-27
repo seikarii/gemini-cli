@@ -30,21 +30,21 @@ esbuild
       '@lydell/node-pty-linux-x64',
       '@lydell/node-pty-win32-arm64',
       '@lydell/node-pty-win32-x64',
-  // Avoid bundling large or dynamic-require-using libs that can inject
-  // helpers (createRequire, dynamic require fallbacks) into the bundle.
-  // Externalizing them keeps the runtime behavior native and prevents
-  // duplicate identifier / dynamic-require issues.
-  'prettier',
-  'ink',
-  'signal-exit',
-  // Externalize google libs that pull in ESM graphs / top-level-await or
-  // dynamic-require behaviors. Leaving them external lets Node resolve them
-  // natively at runtime and avoids bundling-generated interop wrappers.
-  '@google/genai',
-  'google-auth-library',
-  // File-system search helper used in core; externalize to avoid bundling issues
-  'fdir',
-  'fast-uri',
+      // Avoid bundling large or dynamic-require-using libs that can inject
+      // helpers (createRequire, dynamic require fallbacks) into the bundle.
+      // Externalizing them keeps the runtime behavior native and prevents
+      // duplicate identifier / dynamic-require issues.
+      'prettier',
+      'ink',
+      'signal-exit',
+      // Externalize google libs that pull in ESM graphs / top-level-await or
+      // dynamic-require behaviors. Leaving them external lets Node resolve them
+      // natively at runtime and avoids bundling-generated interop wrappers.
+      '@google/genai',
+      'google-auth-library',
+      // File-system search helper used in core; externalize to avoid bundling issues
+      'fdir',
+      'fast-uri',
     ],
     alias: {
       'is-in-ci': path.resolve(
@@ -55,7 +55,7 @@ esbuild
     define: {
       'process.env.CLI_VERSION': JSON.stringify(pkg.version),
     },
-  // No banner required for CJS bundle; Node will provide __filename/__dirname
+    // No banner required for CJS bundle; Node will provide __filename/__dirname
     loader: { '.node': 'file' },
   })
   .catch(() => process.exit(1));

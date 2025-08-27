@@ -38,7 +38,10 @@ import { resolvePath } from '../utils/resolvePath.js';
 import { isWorkspaceTrusted } from './trustedFolders.js';
 
 import { logger } from './logger.js';
-import { handleConfigError, createValidationErrorMessage } from './errorHandling.js';
+import {
+  handleConfigError,
+  createValidationErrorMessage,
+} from './errorHandling.js';
 
 // Centralized environment variable access
 interface EnvironmentVariables {
@@ -155,7 +158,8 @@ function configurePromptOptions(yargsInstance: ReturnType<typeof yargs>) {
     .option('prompt-interactive', {
       alias: 'i',
       type: 'string',
-      description: 'Execute the provided prompt and continue in interactive mode',
+      description:
+        'Execute the provided prompt and continue in interactive mode',
     });
 }
 
@@ -300,7 +304,9 @@ function configureNetworkOptions(yargsInstance: ReturnType<typeof yargs>) {
   });
 }
 
-function configureAccessibilityOptions(yargsInstance: ReturnType<typeof yargs>) {
+function configureAccessibilityOptions(
+  yargsInstance: ReturnType<typeof yargs>,
+) {
   return yargsInstance.option('screen-reader', {
     type: 'boolean',
     description: 'Enable screen reader mode for accessibility.',
@@ -309,23 +315,29 @@ function configureAccessibilityOptions(yargsInstance: ReturnType<typeof yargs>) 
 }
 
 function configureValidation(yargsInstance: ReturnType<typeof yargs>) {
-  return yargsInstance.check((argv: { [argName: string]: unknown; _: Array<string | number>; $0: string; }) => {
-    if (argv.prompt && argv['promptInteractive']) {
-      handleConfigError(
-        'Cannot use both --prompt (-p) and --prompt-interactive (-i) together',
-        'fatal'
-      );
-      return false;
-    }
-    if (argv.yolo && argv['approvalMode']) {
-      handleConfigError(
-        'Cannot use both --yolo (-y) and --approval-mode together. Use --approval-mode=yolo instead.',
-        'fatal'
-      );
-      return false;
-    }
-    return true;
-  });
+  return yargsInstance.check(
+    (argv: {
+      [argName: string]: unknown;
+      _: Array<string | number>;
+      $0: string;
+    }) => {
+      if (argv.prompt && argv['promptInteractive']) {
+        handleConfigError(
+          'Cannot use both --prompt (-p) and --prompt-interactive (-i) together',
+          'fatal',
+        );
+        return false;
+      }
+      if (argv.yolo && argv['approvalMode']) {
+        handleConfigError(
+          'Cannot use both --yolo (-y) and --approval-mode together. Use --approval-mode=yolo instead.',
+          'fatal',
+        );
+        return false;
+      }
+      return true;
+    },
+  );
 }
 
 async function configureCommands(yargsInstance: ReturnType<typeof yargs>) {
@@ -408,11 +420,27 @@ export async function loadCliConfig(
   configureContextFilename(settings);
 
   // Load memory and file information
-  const { memoryContent, fileCount, extensionContextFilePaths, fileService, includeDirectories } =
-    await loadMemoryAndFiles(settings, activeExtensions, argv, cwd, debugMode, memoryImportFormat);
+  const {
+    memoryContent,
+    fileCount,
+    extensionContextFilePaths,
+    fileService,
+    includeDirectories,
+  } = await loadMemoryAndFiles(
+    settings,
+    activeExtensions,
+    argv,
+    cwd,
+    debugMode,
+    memoryImportFormat,
+  );
 
   // Configure MCP servers
-  const { mcpServers, blockedMcpServers } = configureMcpServers(settings, activeExtensions, argv);
+  const { mcpServers, blockedMcpServers } = configureMcpServers(
+    settings,
+    activeExtensions,
+    argv,
+  );
 
   // Resolve approval and interaction settings
   const question = argv.promptInteractive || argv.prompt || '';
@@ -457,11 +485,11 @@ export async function loadCliConfig(
 // Helper functions for configuration resolution
 function resolveDebugMode(argv: CliArgs): boolean {
   const env = getEnvironmentVariables();
-  return argv.debug ||
-    [env.DEBUG, env.DEBUG_MODE].some(
-      (v) => v === 'true' || v === '1',
-    ) ||
-    false;
+  return (
+    argv.debug ||
+    [env.DEBUG, env.DEBUG_MODE].some((v) => v === 'true' || v === '1') ||
+    false
+  );
 }
 
 function resolveFolderTrust(settings: Settings): boolean {
@@ -570,8 +598,11 @@ function resolveApprovalMode(argv: CliArgs): ApprovalMode {
         return ApprovalMode.DEFAULT;
       default:
         handleConfigError(
-          createValidationErrorMessage('approvalMode', `Invalid value '${argv.approvalMode}'. Valid values are: yolo, auto_edit, default`),
-          'fatal'
+          createValidationErrorMessage(
+            'approvalMode',
+            `Invalid value '${argv.approvalMode}'. Valid values are: yolo, auto_edit, default`,
+          ),
+          'fatal',
         );
         return ApprovalMode.DEFAULT; // This won't be reached, but needed for TypeScript
     }
@@ -581,7 +612,9 @@ function resolveApprovalMode(argv: CliArgs): ApprovalMode {
 }
 
 function resolveInteractiveMode(argv: CliArgs, question: string): boolean {
-  return !!argv.promptInteractive || (process.stdin.isTTY && question.length === 0);
+  return (
+    !!argv.promptInteractive || (process.stdin.isTTY && question.length === 0)
+  );
 }
 
 function resolveExtraExcludes(
@@ -679,10 +712,7 @@ function buildConfigObject(params: {
     userMemory: memoryContent,
     geminiMdFileCount: fileCount,
     approvalMode,
-    showMemoryUsage:
-      argv.showMemoryUsage ||
-      settings.showMemoryUsage ||
-      false,
+    showMemoryUsage: argv.showMemoryUsage || settings.showMemoryUsage || false,
     accessibility: {
       ...settings.accessibility,
       screenReader,

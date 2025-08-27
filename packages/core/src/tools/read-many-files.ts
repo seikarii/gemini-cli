@@ -211,7 +211,9 @@ ${finalExclusionPatternsForDescription
           const fullPath = path.join(dir, normalizedP);
           try {
             // Prefer async check to avoid blocking the event loop
-            const exists = await this.config.getFileSystemService().exists(fullPath);
+            const exists = await this.config
+              .getFileSystemService()
+              .exists(fullPath);
             if (exists) {
               processedPatterns.push(escape(normalizedP));
             } else {

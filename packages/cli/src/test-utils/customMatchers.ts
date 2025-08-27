@@ -19,7 +19,10 @@ import type { TextBuffer } from '../ui/components/shared/text-buffer.js';
 // eslint-disable-next-line no-control-regex
 const invalidCharsRegex = /[\b\x1b]/;
 
-function toHaveOnlyValidCharacters(this: { isNot?: boolean }, buffer: TextBuffer) {
+function toHaveOnlyValidCharacters(
+  this: { isNot?: boolean },
+  buffer: TextBuffer,
+) {
   const { isNot } = this;
   let pass = true;
   const invalidLines: Array<{ line: number; content: string }> = [];

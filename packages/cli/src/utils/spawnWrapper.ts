@@ -14,7 +14,7 @@ import { logger } from '../config/logger.js';
 export function spawnWrapper(
   command: string,
   args: readonly string[] = [],
-  options: SpawnOptions = {}
+  options: SpawnOptions = {},
 ): ReturnType<typeof spawn> {
   logger.debug(`Spawning process: ${command} ${args.join(' ')}`);
 

@@ -185,14 +185,20 @@ export class ActionScriptParser {
       case ScriptNodeType.SEQUENCE:
       case ScriptNodeType.PARALLEL:
         if (!Array.isArray(nodeObj['nodes'])) {
-          throw new Error(`Invalid ${nodeObj['type']} node: nodes must be an array`);
+          throw new Error(
+            `Invalid ${nodeObj['type']} node: nodes must be an array`,
+          );
         }
-        (nodeObj['nodes'] as unknown[]).forEach((childNode: unknown) => this.validateNode(childNode));
+        (nodeObj['nodes'] as unknown[]).forEach((childNode: unknown) =>
+          this.validateNode(childNode),
+        );
         break;
 
       case ScriptNodeType.CONDITION:
         if (!nodeObj['condition'] || !nodeObj['thenNode']) {
-          throw new Error('Invalid condition node: missing condition or thenNode');
+          throw new Error(
+            'Invalid condition node: missing condition or thenNode',
+          );
         }
         this.validateNode(nodeObj['thenNode']);
         if (nodeObj['elseNode']) {
@@ -201,8 +207,14 @@ export class ActionScriptParser {
         break;
 
       case ScriptNodeType.LOOP:
-        if (!nodeObj['variable'] || !Array.isArray(nodeObj['iterable']) || !nodeObj['body']) {
-          throw new Error('Invalid loop node: missing variable, iterable, or body');
+        if (
+          !nodeObj['variable'] ||
+          !Array.isArray(nodeObj['iterable']) ||
+          !nodeObj['body']
+        ) {
+          throw new Error(
+            'Invalid loop node: missing variable, iterable, or body',
+          );
         }
         this.validateNode(nodeObj['body']);
         break;
@@ -256,7 +268,7 @@ export class ActionScriptBuilder {
     toolName: string,
     parameters: Record<string, unknown>,
     priority?: ActionPriority,
-    description?: string
+    description?: string,
   ): ActionNode {
     return {
       type: ScriptNodeType.ACTION,
@@ -284,7 +296,7 @@ export class ActionScriptBuilder {
   static parallel(
     nodes: ScriptNode[],
     maxConcurrency?: number,
-    description?: string
+    description?: string,
   ): ParallelNode {
     return {
       type: ScriptNodeType.PARALLEL,
@@ -301,7 +313,7 @@ export class ActionScriptBuilder {
     condition: string,
     thenNode: ScriptNode,
     elseNode?: ScriptNode,
-    description?: string
+    description?: string,
   ): ConditionNode {
     return {
       type: ScriptNodeType.CONDITION,
@@ -319,7 +331,7 @@ export class ActionScriptBuilder {
     variable: string,
     iterable: unknown[],
     body: ScriptNode,
-    description?: string
+    description?: string,
   ): LoopNode {
     return {
       type: ScriptNodeType.LOOP,
@@ -333,7 +345,11 @@ export class ActionScriptBuilder {
   /**
    * Crea un nodo de variable
    */
-  static variable(name: string, value: unknown, description?: string): VariableNode {
+  static variable(
+    name: string,
+    value: unknown,
+    description?: string,
+  ): VariableNode {
     return {
       type: ScriptNodeType.VARIABLE,
       name,
@@ -346,7 +362,10 @@ export class ActionScriptBuilder {
    * Construye el script final
    */
   build(): ActionScript {
-    if (!this.script.rootNode || Object.keys(this.script.rootNode).length === 0) {
+    if (
+      !this.script.rootNode ||
+      Object.keys(this.script.rootNode).length === 0
+    ) {
       throw new Error('Cannot build script: rootNode is not set');
     }
 
@@ -371,7 +390,7 @@ export class ConditionEvaluator {
       const safeEval = new Function(
         'variables',
         'results',
-        `return ${condition};`
+        `return ${condition};`,
       );
 
       return !!safeEval(variables, results);

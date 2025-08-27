@@ -265,14 +265,14 @@ export class Turn {
           };
         }
       }
-  } catch (_e) {
+    } catch (_e) {
       if (signal.aborted) {
         yield { type: GeminiEventType.UserCancelled };
         // Regular cancellation error, fail gracefully.
         return;
       }
 
-  const error = toFriendlyError(_e);
+      const error = toFriendlyError(_e);
       if (error instanceof UnauthorizedError) {
         throw error;
       }
@@ -323,7 +323,10 @@ export class Turn {
         this.pendingActionScripts.push(actionScriptRequest);
 
         // Yield a request for the action script execution
-        return { type: GeminiEventType.ActionScriptRequest, value: actionScriptRequest };
+        return {
+          type: GeminiEventType.ActionScriptRequest,
+          value: actionScriptRequest,
+        };
       } catch (error) {
         // If parsing fails, treat as regular tool call
         console.warn(`Failed to parse action script: ${error}`);
@@ -352,7 +355,10 @@ export class Turn {
   /**
    * Checks if a function call represents an Action Script request
    */
-  private isActionScriptRequest(name: string, args: Record<string, unknown>): boolean {
+  private isActionScriptRequest(
+    name: string,
+    args: Record<string, unknown>,
+  ): boolean {
     // Check for special function name
     if (name === 'executeActionScript' || name === 'execute_action_script') {
       return true;
@@ -361,17 +367,30 @@ export class Turn {
     // Check if args contain Action Script structure
     if (args.script && typeof args.script === 'object') {
       const script = args.script as Record<string, unknown>;
-      return script.type !== undefined && ['sequence', 'parallel', 'condition', 'loop', 'action'].includes(script.type as string);
+      return (
+        script.type !== undefined &&
+        ['sequence', 'parallel', 'condition', 'loop', 'action'].includes(
+          script.type as string,
+        )
+      );
     }
 
     // Check if the entire args object looks like an Action Script
-    return args.type !== undefined && ['sequence', 'parallel', 'condition', 'loop', 'action'].includes(args.type as string);
+    return (
+      args.type !== undefined &&
+      ['sequence', 'parallel', 'condition', 'loop', 'action'].includes(
+        args.type as string,
+      )
+    );
   }
 
   /**
    * Parses an Action Script from function call arguments
    */
-  private parseActionScript(name: string, args: Record<string, unknown>): ActionScript {
+  private parseActionScript(
+    name: string,
+    args: Record<string, unknown>,
+  ): ActionScript {
     let scriptText: string;
 
     if (name === 'executeActionScript' || name === 'execute_action_script') {

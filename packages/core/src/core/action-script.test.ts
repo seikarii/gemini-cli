@@ -5,7 +5,11 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { ActionScriptParser, ActionScriptBuilder, ActionNode } from './action-script.js';
+import {
+  ActionScriptParser,
+  ActionScriptBuilder,
+  ActionNode,
+} from './action-script.js';
 import { ActionPriority } from './action-system.js';
 
 describe('ActionScriptParser', () => {
@@ -19,8 +23,8 @@ describe('ActionScriptParser', () => {
           type: 'action',
           toolName: 'read_file',
           parameters: { file_path: 'test.txt' },
-          priority: 'normal'
-        }
+          priority: 'normal',
+        },
       });
 
       const result = parser.parse(scriptJson);
@@ -40,19 +44,23 @@ describe('ActionScriptParser', () => {
       const scriptJson = JSON.stringify({
         rootNode: {
           type: 'action',
-          toolName: 'read_file'
-        }
+          toolName: 'read_file',
+        },
       });
 
-      expect(() => parser.parse(scriptJson)).toThrow('Invalid script: missing id or rootNode');
+      expect(() => parser.parse(scriptJson)).toThrow(
+        'Invalid script: missing id or rootNode',
+      );
     });
 
     it('should throw error for missing rootNode', () => {
       const scriptJson = JSON.stringify({
-        id: 'test_script'
+        id: 'test_script',
       });
 
-      expect(() => parser.parse(scriptJson)).toThrow('Invalid script: missing id or rootNode');
+      expect(() => parser.parse(scriptJson)).toThrow(
+        'Invalid script: missing id or rootNode',
+      );
     });
   });
 
@@ -61,7 +69,7 @@ describe('ActionScriptParser', () => {
       const actionNode = {
         type: 'action',
         toolName: 'read_file',
-        parameters: { file_path: 'test.txt' }
+        parameters: { file_path: 'test.txt' },
       };
 
       expect(() => parser['validateNode'](actionNode)).not.toThrow();
@@ -70,10 +78,12 @@ describe('ActionScriptParser', () => {
     it('should throw error for action node without toolName', () => {
       const invalidActionNode = {
         type: 'action',
-        parameters: { file_path: 'test.txt' }
+        parameters: { file_path: 'test.txt' },
       };
 
-      expect(() => parser['validateNode'](invalidActionNode)).toThrow('Invalid action node: missing toolName');
+      expect(() => parser['validateNode'](invalidActionNode)).toThrow(
+        'Invalid action node: missing toolName',
+      );
     });
 
     it('should validate sequence node', () => {
@@ -83,9 +93,9 @@ describe('ActionScriptParser', () => {
           {
             type: 'action',
             toolName: 'read_file',
-            parameters: { file_path: 'test.txt' }
-          }
-        ]
+            parameters: { file_path: 'test.txt' },
+          },
+        ],
       };
 
       expect(() => parser['validateNode'](sequenceNode)).not.toThrow();
@@ -93,10 +103,12 @@ describe('ActionScriptParser', () => {
 
     it('should throw error for sequence node without nodes array', () => {
       const invalidSequenceNode = {
-        type: 'sequence'
+        type: 'sequence',
       };
 
-      expect(() => parser['validateNode'](invalidSequenceNode)).toThrow('Invalid sequence node: nodes must be an array');
+      expect(() => parser['validateNode'](invalidSequenceNode)).toThrow(
+        'Invalid sequence node: nodes must be an array',
+      );
     });
 
     it('should validate condition node', () => {
@@ -106,8 +118,8 @@ describe('ActionScriptParser', () => {
         thenNode: {
           type: 'action',
           toolName: 'read_file',
-          parameters: { file_path: 'test.txt' }
-        }
+          parameters: { file_path: 'test.txt' },
+        },
       };
 
       expect(() => parser['validateNode'](conditionNode)).not.toThrow();
@@ -118,20 +130,24 @@ describe('ActionScriptParser', () => {
         type: 'condition',
         thenNode: {
           type: 'action',
-          toolName: 'read_file'
-        }
+          toolName: 'read_file',
+        },
       };
 
-      expect(() => parser['validateNode'](invalidConditionNode)).toThrow('Invalid condition node: missing condition or thenNode');
+      expect(() => parser['validateNode'](invalidConditionNode)).toThrow(
+        'Invalid condition node: missing condition or thenNode',
+      );
     });
 
     it('should throw error for condition node without thenNode', () => {
       const invalidConditionNode = {
         type: 'condition',
-        condition: 'true'
+        condition: 'true',
       };
 
-      expect(() => parser['validateNode'](invalidConditionNode)).toThrow('Invalid condition node: missing condition or thenNode');
+      expect(() => parser['validateNode'](invalidConditionNode)).toThrow(
+        'Invalid condition node: missing condition or thenNode',
+      );
     });
   });
 });
@@ -143,7 +159,7 @@ describe('ActionScriptBuilder', () => {
         'read_file',
         { file_path: 'test.txt' },
         ActionPriority.NORMAL,
-        'Test action'
+        'Test action',
       );
 
       expect(action.type).toBe('action');
@@ -156,10 +172,17 @@ describe('ActionScriptBuilder', () => {
 
   describe('sequence', () => {
     it('should create a sequence node', () => {
-      const action1 = ActionScriptBuilder.action('read_file', { file_path: 'test1.txt' });
-      const action2 = ActionScriptBuilder.action('read_file', { file_path: 'test2.txt' });
+      const action1 = ActionScriptBuilder.action('read_file', {
+        file_path: 'test1.txt',
+      });
+      const action2 = ActionScriptBuilder.action('read_file', {
+        file_path: 'test2.txt',
+      });
 
-      const sequence = ActionScriptBuilder.sequence([action1, action2], 'Test sequence');
+      const sequence = ActionScriptBuilder.sequence(
+        [action1, action2],
+        'Test sequence',
+      );
 
       expect(sequence.type).toBe('sequence');
       expect(sequence.description).toBe('Test sequence');
@@ -171,10 +194,18 @@ describe('ActionScriptBuilder', () => {
 
   describe('parallel', () => {
     it('should create a parallel node', () => {
-      const action1 = ActionScriptBuilder.action('read_file', { file_path: 'test1.txt' });
-      const action2 = ActionScriptBuilder.action('read_file', { file_path: 'test2.txt' });
+      const action1 = ActionScriptBuilder.action('read_file', {
+        file_path: 'test1.txt',
+      });
+      const action2 = ActionScriptBuilder.action('read_file', {
+        file_path: 'test2.txt',
+      });
 
-      const parallel = ActionScriptBuilder.parallel([action1, action2], 3, 'Test parallel');
+      const parallel = ActionScriptBuilder.parallel(
+        [action1, action2],
+        3,
+        'Test parallel',
+      );
 
       expect(parallel.type).toBe('parallel');
       expect(parallel.description).toBe('Test parallel');
@@ -185,32 +216,58 @@ describe('ActionScriptBuilder', () => {
 
   describe('condition', () => {
     it('should create a condition node', () => {
-      const thenAction = ActionScriptBuilder.action('read_file', { file_path: 'exists.txt' });
-      const elseAction = ActionScriptBuilder.action('run_shell_command', { command: 'echo "not found"' });
+      const thenAction = ActionScriptBuilder.action('read_file', {
+        file_path: 'exists.txt',
+      });
+      const elseAction = ActionScriptBuilder.action('run_shell_command', {
+        command: 'echo "not found"',
+      });
 
       const condition = ActionScriptBuilder.condition(
         'file_exists("test.txt")',
         thenAction,
         elseAction,
-        'Conditional execution'
+        'Conditional execution',
       );
 
       expect(condition.type).toBe('condition');
       expect(condition.condition).toBe('file_exists("test.txt")');
       expect((condition.thenNode as ActionNode).toolName).toBe('read_file');
-      expect((condition.elseNode as ActionNode).toolName).toBe('run_shell_command');
+      expect((condition.elseNode as ActionNode).toolName).toBe(
+        'run_shell_command',
+      );
       expect(condition.description).toBe('Conditional execution');
     });
   });
 
   describe('build', () => {
     it('should build a complete action script', () => {
-      const action1 = ActionScriptBuilder.action('list_dir', { path: '.' }, ActionPriority.NORMAL, 'List directory');
-      const action2 = ActionScriptBuilder.action('read_file', { file_path: 'package.json' }, ActionPriority.HIGH, 'Read package.json');
-      const parallel = ActionScriptBuilder.parallel([action2], undefined, 'Parallel processing');
-      const sequence = ActionScriptBuilder.sequence([action1, parallel], 'Complete test script');
+      const action1 = ActionScriptBuilder.action(
+        'list_dir',
+        { path: '.' },
+        ActionPriority.NORMAL,
+        'List directory',
+      );
+      const action2 = ActionScriptBuilder.action(
+        'read_file',
+        { file_path: 'package.json' },
+        ActionPriority.HIGH,
+        'Read package.json',
+      );
+      const parallel = ActionScriptBuilder.parallel(
+        [action2],
+        undefined,
+        'Parallel processing',
+      );
+      const sequence = ActionScriptBuilder.sequence(
+        [action1, parallel],
+        'Complete test script',
+      );
 
-      const scriptBuilder = new ActionScriptBuilder('Test Script', 'A complete test script');
+      const scriptBuilder = new ActionScriptBuilder(
+        'Test Script',
+        'A complete test script',
+      );
       scriptBuilder.setRoot(sequence);
       const script = scriptBuilder.build();
 

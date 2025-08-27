@@ -6,7 +6,7 @@
 
 import AjvPkg from 'ajv';
 // Ajv's ESM/CJS interop: use 'any' for compatibility as recommended by Ajv docs
- 
+
 const AjvClass = (AjvPkg as any).default || AjvPkg;
 const ajValidator = new AjvClass();
 

@@ -142,10 +142,16 @@ export const useGeminiStream = (
 
   // Function to execute Action Scripts using CoreToolScheduler
   const executeActionScripts = useCallback(
-    async (actionScriptRequests: ActionScriptRequestInfo[], signal: AbortSignal) => {
+    async (
+      actionScriptRequests: ActionScriptRequestInfo[],
+      signal: AbortSignal,
+    ) => {
       for (const actionScriptRequest of actionScriptRequests) {
         try {
-          console.log('Executing Action Script:', actionScriptRequest.script.id);
+          console.log(
+            'Executing Action Script:',
+            actionScriptRequest.script.id,
+          );
 
           // Create CoreToolScheduler instance
           const toolScheduler = new CoreToolScheduler({
@@ -155,7 +161,10 @@ export const useGeminiStream = (
             onAllToolCallsComplete: async (completedToolCalls) => {
               // Handle completion of action script execution
               if (completedToolCalls.length > 0) {
-                console.log('Action Script completed:', actionScriptRequest.script.id);
+                console.log(
+                  'Action Script completed:',
+                  actionScriptRequest.script.id,
+                );
                 // Here we could add the results to history if needed
               }
             },
@@ -166,18 +175,20 @@ export const useGeminiStream = (
           });
 
           // Execute the action script
-          const results = await toolScheduler.executeActionScript(actionScriptRequest, signal);
+          const results = await toolScheduler.executeActionScript(
+            actionScriptRequest,
+            signal,
+          );
 
           // Process results - could add to history or handle responses
           console.log('Action Script results:', results);
-
         } catch (error) {
           console.error('Error executing Action Script:', error);
           // Handle error - could add error message to history
         }
       }
     },
-    [config, getPreferredEditor, onEditorClose]
+    [config, getPreferredEditor, onEditorClose],
   );
 
   const pendingToolCallGroupDisplay = useMemo(
@@ -847,7 +858,10 @@ export const useGeminiStream = (
 
       // Ingest read_file outputs into agent's memory (whisper capability)
       for (const toolCall of geminiTools) {
-        if (toolCall.request.name === 'read_file' && toolCall.status === 'success') {
+        if (
+          toolCall.request.name === 'read_file' &&
+          toolCall.status === 'success'
+        ) {
           const fileContent = toolCall.response.responseParts
             .map((part) => (part as Part).text)
             .join('');

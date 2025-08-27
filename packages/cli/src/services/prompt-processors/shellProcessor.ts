@@ -13,9 +13,7 @@ import {
 } from '@google/gemini-cli-core';
 
 import { CommandContext } from '../../ui/commands/types.js';
-import {
-  IPromptProcessor,
-} from './types.js';
+import { IPromptProcessor } from './types.js';
 import {
   SHELL_INJECTION_TRIGGER,
   SHORTHAND_ARGS_PLACEHOLDER,

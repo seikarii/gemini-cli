@@ -22,6 +22,7 @@ Los Action Scripts permiten a los LLMs expresar secuencias complejas de acciones
 ### Tipos de Nodos Disponibles
 
 #### 1. Acción Básica (`action`)
+
 ```json
 {
   "type": "action",
@@ -36,25 +37,37 @@ Los Action Scripts permiten a los LLMs expresar secuencias complejas de acciones
 ```
 
 #### 2. Secuencia (`sequence`)
+
 ```json
 {
   "type": "sequence",
   "nodes": [
-    { /* acción 1 */ },
-    { /* acción 2 */ },
-    { /* acción 3 */ }
+    {
+      /* acción 1 */
+    },
+    {
+      /* acción 2 */
+    },
+    {
+      /* acción 3 */
+    }
   ],
   "description": "Ejecutar acciones en orden secuencial"
 }
 ```
 
 #### 3. Paralelo (`parallel`)
+
 ```json
 {
   "type": "parallel",
   "nodes": [
-    { /* acción 1 */ },
-    { /* acción 2 */ }
+    {
+      /* acción 1 */
+    },
+    {
+      /* acción 2 */
+    }
   ],
   "maxConcurrency": 3,
   "description": "Ejecutar acciones en paralelo"
@@ -62,28 +75,37 @@ Los Action Scripts permiten a los LLMs expresar secuencias complejas de acciones
 ```
 
 #### 4. Condicional (`condition`)
+
 ```json
 {
   "type": "condition",
   "condition": "file_exists('/path/to/file.txt')",
-  "thenNode": { /* acción si condición es verdadera */ },
-  "elseNode": { /* acción si condición es falsa */ },
+  "thenNode": {
+    /* acción si condición es verdadera */
+  },
+  "elseNode": {
+    /* acción si condición es falsa */
+  },
   "description": "Ejecutar acción basada en condición"
 }
 ```
 
 #### 5. Bucle (`loop`)
+
 ```json
 {
   "type": "loop",
   "variable": "item",
   "iterable": ["item1", "item2", "item3"],
-  "body": { /* acción a repetir */ },
+  "body": {
+    /* acción a repetir */
+  },
   "description": "Repetir acción para cada elemento"
 }
 ```
 
 #### 6. Variable (`variable`)
+
 ```json
 {
   "type": "variable",
@@ -103,6 +125,7 @@ Los Action Scripts permiten a los LLMs expresar secuencias complejas de acciones
 ### Ejemplos de Action Scripts
 
 #### Ejemplo 1: Análisis de Código Simple
+
 ```json
 {
   "id": "code_analysis_001",
@@ -130,6 +153,7 @@ Los Action Scripts permiten a los LLMs expresar secuencias complejas de acciones
 ```
 
 #### Ejemplo 2: Procesamiento Paralelo
+
 ```json
 {
   "id": "parallel_processing_001",
@@ -158,6 +182,7 @@ Los Action Scripts permiten a los LLMs expresar secuencias complejas de acciones
 ```
 
 #### Ejemplo 3: Lógica Condicional
+
 ```json
 {
   "id": "conditional_build_001",
@@ -204,12 +229,12 @@ Para generar un Action Script, usa la siguiente función especial:
 ```javascript
 executeActionScript({
   script: {
-    "id": "script_001",
-    "rootNode": {
+    id: 'script_001',
+    rootNode: {
       // Tu script aquí
-    }
-  }
-})
+    },
+  },
+});
 ```
 
 O simplemente incluye el JSON del script directamente en tus parámetros si usas una función genérica de ejecución de scripts.</content>

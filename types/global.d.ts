@@ -23,7 +23,9 @@ declare namespace vi {
   export type Func = any;
   export type SpyInstance = any;
   export type MockedFunction<T = any> = any;
-  export type MockInstance<T extends ((...args: any[]) => any) | undefined = any> = any;
+  export type MockInstance<
+    T extends ((...args: any[]) => any) | undefined = any,
+  > = any;
   export type MockContext<T = any> = any;
   export function fn(...args: any[]): any;
   export function spyOn(...args: any[]): any;

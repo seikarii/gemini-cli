@@ -24,9 +24,8 @@ import * as path from 'node:path';
 import { EnvHttpProxyAgent } from 'undici';
 
 const logger = {
-   
   debug: (...args: any[]) => console.debug('[DEBUG] [IDEClient]', ...args),
-   
+
   error: (...args: any[]) => console.error('[ERROR] [IDEClient]', ...args),
 };
 

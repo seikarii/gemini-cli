@@ -9,4 +9,11 @@ import type {
   FunctionResponse,
 } from '@google/genai';
 
-export type { Part, PartListUnion, PartUnion, FinishReason, FunctionCall, FunctionResponse };
+export type {
+  Part,
+  PartListUnion,
+  PartUnion,
+  FinishReason,
+  FunctionCall,
+  FunctionResponse,
+};

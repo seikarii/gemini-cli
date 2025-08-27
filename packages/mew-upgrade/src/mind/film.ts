@@ -17,7 +17,7 @@ export interface FilmNode {
   id: string;
   action: string; // The name of the tool to call, e.g., 'run_shell_command'
   params: Record<string, any>; // The parameters for the tool
-  
+
   // --- Learning Metadata ---
   costEnergy: number; // Estimated cost to execute this action
   expectedReward: number; // Expected reward/success probability
@@ -35,16 +35,16 @@ export interface Film {
   id: string;
   description: string; // A natural language description of what this film does
   tags: string[]; // Tags for categorization and retrieval
-  
+
   nodes: Record<string, FilmNode>; // A map of node IDs to FilmNode objects
   edges: Array<{
     sourceNodeId: string;
     targetNodeId: string;
     // A condition to determine if this edge should be traversed.
     // For now, a simple string, but could evolve to a more complex condition.
-    condition?: string; 
+    condition?: string;
   }>;
-  
+
   entryNodeId: string; // The ID of the first node to execute in the film
 
   // --- Learning Metadata ---

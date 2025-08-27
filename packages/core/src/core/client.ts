@@ -16,11 +16,7 @@ import {
   getDirectoryContextString,
   getEnvironmentContext,
 } from '../utils/environmentContext.js';
-import {
-  Turn,
-  ServerGeminiStreamEvent,
-  GeminiEventType,
-} from './turn.js';
+import { Turn, ServerGeminiStreamEvent, GeminiEventType } from './turn.js';
 import { Config } from '../config/config.js';
 import { UserTierId } from '../code_assist/types.js';
 import { getCoreSystemPrompt, getCompressionPrompt } from './prompts.js';
@@ -65,12 +61,20 @@ function isThinkingSupported(model: string) {
  * Exported for testing purposes.
  */
 
-export function findIndexAfterFraction(history: Content[], fraction: number): number {
+export function findIndexAfterFraction(
+  history: Content[],
+  fraction: number,
+): number {
   if (fraction <= 0 || fraction >= 1) {
     throw new Error('Fraction must be between 0 and 1');
   }
-  const contentLengths = history.map((content) => JSON.stringify(content).length);
-  const totalCharacters = contentLengths.reduce((sum, length) => sum + length, 0);
+  const contentLengths = history.map(
+    (content) => JSON.stringify(content).length,
+  );
+  const totalCharacters = contentLengths.reduce(
+    (sum, length) => sum + length,
+    0,
+  );
   const targetCharacters = totalCharacters * fraction;
   let charactersSoFar = 0;
   for (let i = 0; i < contentLengths.length; i++) {
@@ -88,7 +92,6 @@ const MAX_TURNS = 100;
  * Threshold for compression token count as a fraction of the model's token limit.
  * If the chat history exceeds this threshold, it will be compressed.
  */
-
 
 export class GeminiClient {
   private chat?: GeminiChat;
@@ -124,25 +127,37 @@ export class GeminiClient {
     this.chat = await this.startChat();
   }
 
-  async tryCompressChat(prompt_id: string, force = false): Promise<{ originalTokenCount: number; newTokenCount: number } | null> {
+  async tryCompressChat(
+    prompt_id: string,
+    force = false,
+  ): Promise<{ originalTokenCount: number; newTokenCount: number } | null> {
     const curatedHistory = this.getChat().getHistory(true);
     if (curatedHistory.length === 0) return null;
 
     const model = this.config.getModel();
-    const { totalTokens: originalTokenCount } = await this.getContentGenerator().countTokens({ model, contents: curatedHistory });
+    const { totalTokens: originalTokenCount } =
+      await this.getContentGenerator().countTokens({
+        model,
+        contents: curatedHistory,
+      });
     if (originalTokenCount === undefined) return null;
 
-    const contextPercentageThreshold = this.config.getChatCompression()?.contextPercentageThreshold;
+    const contextPercentageThreshold =
+      this.config.getChatCompression()?.contextPercentageThreshold;
     if (!force) {
       const threshold = contextPercentageThreshold ?? 0.7;
       if (originalTokenCount < threshold * tokenLimit(model)) return null;
     }
 
     const COMPRESSION_PRESERVE_THRESHOLD = 0.3;
-    let compressBeforeIndex = findIndexAfterFraction(curatedHistory, 1 - COMPRESSION_PRESERVE_THRESHOLD);
+    let compressBeforeIndex = findIndexAfterFraction(
+      curatedHistory,
+      1 - COMPRESSION_PRESERVE_THRESHOLD,
+    );
     while (
       compressBeforeIndex < curatedHistory.length &&
-      (curatedHistory[compressBeforeIndex]?.role === 'model' || isFunctionResponse(curatedHistory[compressBeforeIndex]))
+      (curatedHistory[compressBeforeIndex]?.role === 'model' ||
+        isFunctionResponse(curatedHistory[compressBeforeIndex]))
     ) {
       compressBeforeIndex++;
     }
@@ -154,7 +169,9 @@ export class GeminiClient {
 
     const { text: summary } = await this.getChat().sendMessage(
       {
-        message: { text: 'First, reason in your scratchpad. Then, generate the <state_snapshot>.' },
+        message: {
+          text: 'First, reason in your scratchpad. Then, generate the <state_snapshot>.',
+        },
         config: { systemInstruction: { text: getCompressionPrompt() } },
       },
       prompt_id,
@@ -162,16 +179,29 @@ export class GeminiClient {
 
     this.chat = await this.startChat([
       { role: 'user', parts: [{ text: summary }] },
-      { role: 'model', parts: [{ text: 'Got it. Thanks for the additional context!' }] },
+      {
+        role: 'model',
+        parts: [{ text: 'Got it. Thanks for the additional context!' }],
+      },
       ...historyToKeep,
     ]);
 
     this.forceFullIdeContext = true;
 
-    const { totalTokens: newTokenCount } = await this.getContentGenerator().countTokens({ model: this.config.getModel(), contents: this.getChat().getHistory() });
+    const { totalTokens: newTokenCount } =
+      await this.getContentGenerator().countTokens({
+        model: this.config.getModel(),
+        contents: this.getChat().getHistory(),
+      });
     if (newTokenCount === undefined) return null;
 
-    logChatCompression(this.config, makeChatCompressionEvent({ tokens_before: originalTokenCount, tokens_after: newTokenCount }));
+    logChatCompression(
+      this.config,
+      makeChatCompressionEvent({
+        tokens_before: originalTokenCount,
+        tokens_after: newTokenCount,
+      }),
+    );
 
     return { originalTokenCount, newTokenCount };
   }
@@ -539,7 +569,6 @@ export class GeminiClient {
 
     const turn = new Turn(this.getChat(), prompt_id);
 
-
     const loopDetected = await this.loopDetector.turnStarted(signal);
     if (loopDetected) {
       yield { type: GeminiEventType.LoopDetected };
@@ -797,8 +826,6 @@ export class GeminiClient {
     });
   }
 
-
-
   /**
    * Handles falling back to Flash model when persistent 429 errors occur for OAuth users.
    * Uses a fallback handler if provided by the config; otherwise, returns null.
@@ -846,5 +873,3 @@ export class GeminiClient {
     return null;
   }
 }
-
-

@@ -93,9 +93,15 @@ export class WorkspaceContext {
    * @param directory The directory path to add (can be relative or absolute)
    * @param basePath Optional base path for resolving relative paths (defaults to cwd)
    */
-  async addDirectoryAsync(directory: string, basePath: string = process.cwd()): Promise<void> {
+  async addDirectoryAsync(
+    directory: string,
+    basePath: string = process.cwd(),
+  ): Promise<void> {
     try {
-      const resolved = await this.resolveAndValidateDirAsync(directory, basePath);
+      const resolved = await this.resolveAndValidateDirAsync(
+        directory,
+        basePath,
+      );
       if (this.directories.has(resolved)) {
         return;
       }
@@ -144,7 +150,9 @@ export class WorkspaceContext {
       // Use FileSystemService for standardized file operations
       const fileInfo = await this.fileSystemService.getFileInfo(absolutePath);
       if (!fileInfo.success) {
-        throw new Error(`Failed to get file info for ${absolutePath}: ${fileInfo.error}`);
+        throw new Error(
+          `Failed to get file info for ${absolutePath}: ${fileInfo.error}`,
+        );
       }
       if (!fileInfo.data?.exists) {
         throw new Error(`Directory does not exist: ${absolutePath}`);
@@ -292,7 +300,7 @@ export class WorkspaceContext {
         e.path &&
         // realpathSync does not set e.path correctly for symlinks to
         // non-existent files.
-        !await this.isFileSymlinkAsync(e.path)
+        !(await this.isFileSymlinkAsync(e.path))
       ) {
         // If it doesn't exist, e.path contains the fully resolved path.
         return e.path;

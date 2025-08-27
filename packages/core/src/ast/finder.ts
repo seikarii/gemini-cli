@@ -151,11 +151,7 @@ class EnhancedXPathParser {
  */
 export function findNodes(
   sourceFile: SourceFile,
-  query:
-    | DictionaryQuery
-    | string
-    | XPathQuery
-    | CustomQuery,
+  query: DictionaryQuery | string | XPathQuery | CustomQuery,
 ): Node[] {
   // Support raw xpath string directly
   if (typeof query === 'string') {
@@ -266,10 +262,18 @@ function findByXPath(
 /**
  * Evaluate parsed predicate conditions against a node.
  */
-function matchesParsedConditions(node: Node, conditions: ParsedCondition[]): boolean {
+function matchesParsedConditions(
+  node: Node,
+  conditions: ParsedCondition[],
+): boolean {
   if (!conditions || conditions.length === 0) return true;
   for (const cond of conditions) {
-    if (cond.type === 'attribute' && cond.field && cond.operator && cond.value) {
+    if (
+      cond.type === 'attribute' &&
+      cond.field &&
+      cond.operator &&
+      cond.value
+    ) {
       const val = extractAttributeValue(node, cond.field);
       if (!compareValues(val, cond.value, cond.operator)) return false;
     } else if (cond.type === 'raw' && cond.raw) {
@@ -290,14 +294,17 @@ function matchesParsedConditions(node: Node, conditions: ParsedCondition[]): boo
 function extractAttributeValue(node: Node, field: string): string | undefined {
   try {
     // named nodes
-    if ((node as NodeWithName).getName && typeof (node as NodeWithName).getName === 'function') {
+    if (
+      (node as NodeWithName).getName &&
+      typeof (node as NodeWithName).getName === 'function'
+    ) {
       const name = (node as NodeWithName).getName!();
       if (field === 'name') return name;
     }
     // special cases
     if (field === 'text') return node.getText();
     if (field === 'kind') return SyntaxKind[node.getKind()];
-    
+
     // fallback to text search
     return node.getText();
   } catch {
@@ -308,7 +315,11 @@ function extractAttributeValue(node: Node, field: string): string | undefined {
 /**
  * Compare helper supporting eq, ne, contains, starts_with.
  */
-function compareValues(actual: string | undefined, expected: string, operator: string): boolean {
+function compareValues(
+  actual: string | undefined,
+  expected: string,
+  operator: string,
+): boolean {
   if (actual === undefined) return false;
   if (operator === 'eq') return String(actual) === String(expected);
   if (operator === 'ne') return String(actual) !== String(expected);
@@ -324,7 +335,7 @@ function compareValues(actual: string | undefined, expected: string, operator: s
 function matchesQuery(node: Node, query: DictionaryQuery): boolean {
   const { conditions } = query;
 
-  // Check kind  
+  // Check kind
   if (conditions.kind) {
     const kinds = Array.isArray(conditions.kind)
       ? conditions.kind
@@ -332,7 +343,9 @@ function matchesQuery(node: Node, query: DictionaryQuery): boolean {
     // Convert to string for comparison to avoid SyntaxKind version conflicts
     const nodeKind = node.getKind();
     const nodeKindString = SyntaxKind[nodeKind] || nodeKind.toString();
-    const kindsAsStrings = kinds.map(k => typeof k === 'string' ? k : SyntaxKind[k] || k.toString());
+    const kindsAsStrings = kinds.map((k) =>
+      typeof k === 'string' ? k : SyntaxKind[k] || k.toString(),
+    );
     if (!kindsAsStrings.includes(nodeKindString)) {
       return false;
     }
@@ -342,7 +355,8 @@ function matchesQuery(node: Node, query: DictionaryQuery): boolean {
   if (conditions.name) {
     // Named nodes in ts-morph may have getName()
     const name =
-      (node as NodeWithName).getName && typeof (node as NodeWithName).getName === 'function'
+      (node as NodeWithName).getName &&
+      typeof (node as NodeWithName).getName === 'function'
         ? (node as NodeWithName).getName!()
         : undefined;
     if (name !== conditions.name) return false;

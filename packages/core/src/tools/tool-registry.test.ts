@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
- 
 import {
   describe,
   it,
@@ -17,7 +16,12 @@ import {
 import { Config, ConfigParameters, ApprovalMode } from '../config/config.js';
 import { ToolRegistry, DiscoveredTool } from './tool-registry.js';
 import { DiscoveredMCPTool } from './mcp-tool.js';
-import { FunctionDeclaration, CallableTool, mcpToTool, Type } from '@google/genai';
+import {
+  FunctionDeclaration,
+  CallableTool,
+  mcpToTool,
+  Type,
+} from '@google/genai';
 import { spawn } from 'node:child_process';
 
 import fs from 'node:fs';

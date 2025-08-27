@@ -9,6 +9,7 @@ El Action System es una infraestructura avanzada para la orquestación inteligen
 ### Componentes Principales
 
 #### 1. Action System (`action-system.ts`)
+
 - **Propósito**: Gestiona la cola de acciones, prioridades y ejecución concurrente
 - **Características**:
   - Cola de prioridades adaptable
@@ -18,6 +19,7 @@ El Action System es una infraestructura avanzada para la orquestación inteligen
   - Historial de acciones completadas
 
 #### 2. Action Script Parser (`action-script.ts`)
+
 - **Propósito**: Parsea y valida scripts JSON que expresan lógica compleja
 - **Características**:
   - Validación de estructura JSON
@@ -26,6 +28,7 @@ El Action System es una infraestructura avanzada para la orquestación inteligen
   - Sistema de tipos TypeScript completo
 
 #### 3. Core Tool Scheduler (`coreToolScheduler.ts`)
+
 - **Propósito**: Punto de entrada para ejecutar tanto tool calls individuales como action scripts
 - **Características**:
   - Integración con Action System
@@ -34,6 +37,7 @@ El Action System es una infraestructura avanzada para la orquestación inteligen
   - Conversión entre formatos
 
 #### 4. Turn Handler (`turn.ts`)
+
 - **Propósito**: Detecta y procesa action scripts en respuestas del LLM
 - **Características**:
   - Detección automática de action scripts
@@ -45,7 +49,10 @@ El Action System es una infraestructura avanzada para la orquestación inteligen
 ### Ejecutar un Action Script
 
 ```typescript
-import { CoreToolScheduler, ActionScriptRequestInfo } from '@google/gemini-cli-core';
+import {
+  CoreToolScheduler,
+  ActionScriptRequestInfo,
+} from '@google/gemini-cli-core';
 
 const scheduler = new CoreToolScheduler({
   config: myConfig,
@@ -53,7 +60,7 @@ const scheduler = new CoreToolScheduler({
   onEditorClose: () => {},
   onAllToolCallsComplete: (results) => {
     console.log('Action Script completado:', results);
-  }
+  },
 });
 
 const actionScriptRequest: ActionScriptRequestInfo = {
@@ -67,15 +74,18 @@ const actionScriptRequest: ActionScriptRequestInfo = {
           type: 'action',
           toolName: 'read_file',
           parameters: { file_path: 'package.json' },
-          priority: 'high'
-        }
-      ]
-    }
+          priority: 'high',
+        },
+      ],
+    },
   },
-  prompt_id: 'prompt_123'
+  prompt_id: 'prompt_123',
 };
 
-const results = await scheduler.executeActionScript(actionScriptRequest, abortSignal);
+const results = await scheduler.executeActionScript(
+  actionScriptRequest,
+  abortSignal,
+);
 ```
 
 ### Crear un Action Script Programáticamente
@@ -89,10 +99,25 @@ const builder = new ActionScriptBuilder();
 const script = builder
   .sequence('Análisis de proyecto')
   .action('list_dir', { path: '.' }, 'normal', 'Listar archivos')
-  .action('read_file', { file_path: 'package.json' }, 'high', 'Leer package.json')
+  .action(
+    'read_file',
+    { file_path: 'package.json' },
+    'high',
+    'Leer package.json',
+  )
   .parallel('Procesamiento paralelo')
-    .action('run_shell_command', { command: 'npm test' }, 'normal', 'Ejecutar tests')
-    .action('run_shell_command', { command: 'npm run lint' }, 'normal', 'Ejecutar linter')
+  .action(
+    'run_shell_command',
+    { command: 'npm test' },
+    'normal',
+    'Ejecutar tests',
+  )
+  .action(
+    'run_shell_command',
+    { command: 'npm run lint' },
+    'normal',
+    'Ejecutar linter',
+  )
   .build();
 
 console.log(JSON.stringify(script, null, 2));
@@ -127,6 +152,7 @@ console.log(JSON.stringify(script, null, 2));
 ### Tipos de Nodos
 
 #### Action Node
+
 ```json
 {
   "type": "action",
@@ -141,24 +167,34 @@ console.log(JSON.stringify(script, null, 2));
 ```
 
 #### Sequence Node
+
 ```json
 {
   "type": "sequence",
   "nodes": [
-    {/* action 1 */},
-    {/* action 2 */}
+    {
+      /* action 1 */
+    },
+    {
+      /* action 2 */
+    }
   ],
   "description": "Ejecutar en orden"
 }
 ```
 
 #### Parallel Node
+
 ```json
 {
   "type": "parallel",
   "nodes": [
-    {/* action 1 */},
-    {/* action 2 */}
+    {
+      /* action 1 */
+    },
+    {
+      /* action 2 */
+    }
   ],
   "maxConcurrency": 3,
   "description": "Ejecutar en paralelo"
@@ -166,28 +202,37 @@ console.log(JSON.stringify(script, null, 2));
 ```
 
 #### Condition Node
+
 ```json
 {
   "type": "condition",
   "condition": "file_exists('/path/to/file.txt')",
-  "thenNode": {/* action si true */},
-  "elseNode": {/* action si false */},
+  "thenNode": {
+    /* action si true */
+  },
+  "elseNode": {
+    /* action si false */
+  },
   "description": "Ejecutar condicionalmente"
 }
 ```
 
 #### Loop Node
+
 ```json
 {
   "type": "loop",
   "variable": "item",
   "iterable": ["a", "b", "c"],
-  "body": {/* action usando variable */},
+  "body": {
+    /* action usando variable */
+  },
   "description": "Iterar sobre elementos"
 }
 ```
 
 #### Variable Node
+
 ```json
 {
   "type": "variable",
@@ -201,21 +246,22 @@ console.log(JSON.stringify(script, null, 2));
 
 ```typescript
 const actionSystem = new ActionSystem({
-  maxConcurrentActions: 5,        // Máximo de acciones concurrentes
-  maxQueueSize: 100,              // Tamaño máximo de cola
-  enableActionHistory: true,      // Habilitar historial
-  maxHistorySize: 1000,           // Tamaño máximo de historial
-  autoCleanupCompleted: true,     // Limpiar automáticamente completadas
-  cleanupInterval: 300,           // Intervalo de limpieza (segundos)
+  maxConcurrentActions: 5, // Máximo de acciones concurrentes
+  maxQueueSize: 100, // Tamaño máximo de cola
+  enableActionHistory: true, // Habilitar historial
+  maxHistorySize: 1000, // Tamaño máximo de historial
+  autoCleanupCompleted: true, // Limpiar automáticamente completadas
+  cleanupInterval: 300, // Intervalo de limpieza (segundos)
   enablePriorityScheduling: true, // Habilitar scheduling por prioridad
-  defaultTimeout: 300,            // Timeout por defecto (segundos)
-  adaptivePriority: true          // Adaptar prioridades dinámicamente
+  defaultTimeout: 300, // Timeout por defecto (segundos)
+  adaptivePriority: true, // Adaptar prioridades dinámicamente
 });
 ```
 
 ## Manejo de Eventos
 
 ### En Turn.ts
+
 ```typescript
 // Los action scripts se detectan automáticamente y emiten:
 {
@@ -225,6 +271,7 @@ const actionSystem = new ActionSystem({
 ```
 
 ### En useGeminiStream.ts
+
 ```typescript
 // Se procesan automáticamente usando CoreToolScheduler
 if (actionScriptRequests.length > 0) {
@@ -247,12 +294,14 @@ console.log('Uso de herramientas:', stats.toolsUsage);
 ## Integración con Sistema Existente
 
 ### Compatibilidad
+
 - ✅ Funciona con tool calls individuales existentes
 - ✅ Mantiene interfaz `ToolCallResponseInfo`
 - ✅ Compatible con sistema de aprobaciones
 - ✅ Integrado con logging y telemetry
 
 ### Migración
+
 - Los tool calls individuales siguen funcionando sin cambios
 - Action Scripts se detectan automáticamente
 - Sistema de prioridades es opcional (default: normal)
@@ -261,6 +310,7 @@ console.log('Uso de herramientas:', stats.toolsUsage);
 ## Debugging y Troubleshooting
 
 ### Logs Útiles
+
 ```typescript
 // Habilitar logs detallados
 console.log('Action Script parseado:', parsedScript);
@@ -269,12 +319,14 @@ console.log('Resultados de ejecución:', results);
 ```
 
 ### Errores Comunes
+
 1. **Script JSON inválido**: Verificar sintaxis JSON
 2. **Tool no encontrado**: Asegurar que la herramienta esté registrada
 3. **Parámetros incorrectos**: Verificar esquema de herramienta
 4. **Timeout**: Ajustar `defaultTimeout` en configuración
 
 ### Testing
+
 ```typescript
 // Crear tests unitarios
 import { ActionScriptParser } from '@google/gemini-cli-core';

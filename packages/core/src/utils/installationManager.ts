@@ -49,12 +49,18 @@ export class InstallationManager {
 
     if (this.fileSystemService) {
       // Use FileSystemService for standardized file operations
-      void this.fileSystemService.createDirectory(dir, { recursive: true }).catch(() => {});
-      void this.fileSystemService.writeTextFile(installationIdFile, installationId).catch(() => {});
+      void this.fileSystemService
+        .createDirectory(dir, { recursive: true })
+        .catch(() => {});
+      void this.fileSystemService
+        .writeTextFile(installationIdFile, installationId)
+        .catch(() => {});
     } else {
       // Fallback to direct fs operations for backward compatibility
       void fsp.mkdir(dir, { recursive: true }).catch(() => {});
-      void fsp.writeFile(installationIdFile, installationId, 'utf-8').catch(() => {});
+      void fsp
+        .writeFile(installationIdFile, installationId, 'utf-8')
+        .catch(() => {});
     }
   }
 

@@ -50,12 +50,16 @@ export const ContextUsageDisplay = ({
       <Box flexDirection="column">
         <Box>
           <Text color={getStatusColor(percentage)}>
-            {getStatusIndicator(percentage)} {remainingPercentage.toFixed(0)}% context left
+            {getStatusIndicator(percentage)} {remainingPercentage.toFixed(0)}%
+            context left
           </Text>
         </Box>
         <Box>
           <Text color={Colors.Gray}>
-            Used: {formatNumber(computedStats.totalPromptTokens)} | Remaining: {formatNumber(Math.max(0, maxTokens - computedStats.totalPromptTokens))}
+            Used: {formatNumber(computedStats.totalPromptTokens)} | Remaining:{' '}
+            {formatNumber(
+              Math.max(0, maxTokens - computedStats.totalPromptTokens),
+            )}
           </Text>
         </Box>
         {percentage >= 75 && (

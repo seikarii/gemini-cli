@@ -62,10 +62,10 @@ describe('loadExtensions', () => {
       JSON.stringify(config),
     );
 
-  const extensions = await loadExtensions(tempWorkspaceDir);
-  expect(extensions).toHaveLength(1);
-  expect(extensions[0].path).toBe(extensionDir);
-  expect(extensions[0].config.name).toBe('test-extension');
+    const extensions = await loadExtensions(tempWorkspaceDir);
+    expect(extensions).toHaveLength(1);
+    expect(extensions[0].path).toBe(extensionDir);
+    expect(extensions[0].config.name).toBe('test-extension');
   });
 
   it('should load context file path when GEMINI.md is present', async () => {
@@ -77,9 +77,9 @@ describe('loadExtensions', () => {
     createExtension(workspaceExtensionsDir, 'ext1', '1.0.0', true);
     createExtension(workspaceExtensionsDir, 'ext2', '2.0.0');
 
-  const extensions = await loadExtensions(tempWorkspaceDir);
+    const extensions = await loadExtensions(tempWorkspaceDir);
 
-  expect(extensions).toHaveLength(2);
+    expect(extensions).toHaveLength(2);
     const ext1 = extensions.find((e) => e.config.name === 'ext1');
     const ext2 = extensions.find((e) => e.config.name === 'ext2');
     expect(ext1?.contextFiles).toEqual([
@@ -102,9 +102,9 @@ describe('loadExtensions', () => {
       'my-context-file.md',
     );
 
-  const extensions = await loadExtensions(tempWorkspaceDir);
+    const extensions = await loadExtensions(tempWorkspaceDir);
 
-  expect(extensions).toHaveLength(1);
+    expect(extensions).toHaveLength(1);
     const ext1 = extensions.find((e) => e.config.name === 'ext1');
     expect(ext1?.contextFiles).toEqual([
       path.join(workspaceExtensionsDir, 'ext1', 'my-context-file.md'),

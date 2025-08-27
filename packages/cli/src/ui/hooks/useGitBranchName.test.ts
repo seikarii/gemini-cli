@@ -20,7 +20,6 @@ import { fs, vol } from 'memfs'; // For mocking fs
 import { EventEmitter } from 'node:events';
 import { exec as mockExec, type ChildProcess } from 'node:child_process';
 
-
 // Mock child_process
 vi.mock('child_process');
 
@@ -215,7 +214,7 @@ describe('useGitBranchName', () => {
     // The memfs FSWatcher type is incompatible with node's FSWatcher type; this
     // test is only checking that close() is called on unmount. Silence strict
     // type checking here to avoid build-time type mismatch errors.
-  const watchMock = vi.spyOn(fs, 'watch').mockReturnValue({
+    const watchMock = vi.spyOn(fs, 'watch').mockReturnValue({
       close: closeMock,
     } as unknown as ReturnType<typeof fs.watch>);
 

@@ -4,10 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-
 import { SlashCommand, CommandKind } from './types.js';
-
-
 
 export const mewCommand: SlashCommand = {
   kind: CommandKind.BUILT_IN,
@@ -38,7 +35,9 @@ export const mewCommand: SlashCommand = {
     );
 
     try {
-      const { GeminiAgent } = await import('@google/gemini-cli-mew-upgrade/agent/gemini-agent.js');
+      const { GeminiAgent } = await import(
+        '@google/gemini-cli-mew-upgrade/agent/gemini-agent.js'
+      );
       const agent = new (GeminiAgent as any)(context.services.config);
       await agent.start();
 
@@ -51,7 +50,8 @@ export const mewCommand: SlashCommand = {
         content: 'Mew agent started at http://localhost:3000',
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       context.ui.addItem(
         {
           type: 'error',

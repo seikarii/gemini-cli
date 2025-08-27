@@ -92,7 +92,9 @@ export class UserAccountManager {
         // Use FileSystemService for standardized file operations
         const readResult = await this.fileSystemService.readTextFile(filePath);
         if (!readResult.success || !readResult.data) {
-          throw new Error(`Failed to read file ${filePath}: ${readResult.error || 'No data returned'}`);
+          throw new Error(
+            `Failed to read file ${filePath}: ${readResult.error || 'No data returned'}`,
+          );
         }
         content = readResult.data;
       } else {
@@ -118,7 +120,9 @@ export class UserAccountManager {
 
     if (this.fileSystemService) {
       // Use FileSystemService for standardized file operations
-      await this.fileSystemService.createDirectory(path.dirname(filePath), { recursive: true });
+      await this.fileSystemService.createDirectory(path.dirname(filePath), {
+        recursive: true,
+      });
     } else {
       // Fallback to direct fs operations for backward compatibility
       await fsp.mkdir(path.dirname(filePath), { recursive: true });
@@ -139,9 +143,14 @@ export class UserAccountManager {
 
     if (this.fileSystemService) {
       // Use FileSystemService for standardized file operations
-      const writeResult = await this.fileSystemService.writeTextFile(filePath, JSON.stringify(accounts, null, 2));
+      const writeResult = await this.fileSystemService.writeTextFile(
+        filePath,
+        JSON.stringify(accounts, null, 2),
+      );
       if (!writeResult.success) {
-        throw new Error(`Failed to write accounts file ${filePath}: ${writeResult.error}`);
+        throw new Error(
+          `Failed to write accounts file ${filePath}: ${writeResult.error}`,
+        );
       }
     } else {
       // Fallback to direct fs operations for backward compatibility
@@ -178,9 +187,14 @@ export class UserAccountManager {
 
     if (this.fileSystemService) {
       // Use FileSystemService for standardized file operations
-      const writeResult = await this.fileSystemService.writeTextFile(filePath, JSON.stringify(accounts, null, 2));
+      const writeResult = await this.fileSystemService.writeTextFile(
+        filePath,
+        JSON.stringify(accounts, null, 2),
+      );
       if (!writeResult.success) {
-        throw new Error(`Failed to write accounts file ${filePath}: ${writeResult.error}`);
+        throw new Error(
+          `Failed to write accounts file ${filePath}: ${writeResult.error}`,
+        );
       }
     } else {
       // Fallback to direct fs operations for backward compatibility

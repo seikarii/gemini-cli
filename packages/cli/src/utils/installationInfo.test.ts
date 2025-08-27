@@ -96,25 +96,25 @@ describe('getInstallationInfo', () => {
   it('should detect running via npx', async () => {
     const npxPath = `/Users/test/.npm/_npx/12345/bin/gemini`;
     process.argv[1] = npxPath;
-  mockedRealPath.mockResolvedValue(npxPath);
+    mockedRealPath.mockResolvedValue(npxPath);
 
-  const info = await getInstallationInfo(projectRoot, false);
+    const info = await getInstallationInfo(projectRoot, false);
 
-  expect(info.packageManager).toBe(PackageManager.NPX);
-  expect(info.isGlobal).toBe(false);
-  expect(info.updateMessage).toBe('Running via npx, update not applicable.');
+    expect(info.packageManager).toBe(PackageManager.NPX);
+    expect(info.isGlobal).toBe(false);
+    expect(info.updateMessage).toBe('Running via npx, update not applicable.');
   });
 
   it('should detect running via pnpx', async () => {
     const pnpxPath = `/Users/test/.pnpm/_pnpx/12345/bin/gemini`;
     process.argv[1] = pnpxPath;
-  mockedRealPath.mockResolvedValue(pnpxPath);
+    mockedRealPath.mockResolvedValue(pnpxPath);
 
-  const info = await getInstallationInfo(projectRoot, false);
+    const info = await getInstallationInfo(projectRoot, false);
 
-  expect(info.packageManager).toBe(PackageManager.PNPX);
-  expect(info.isGlobal).toBe(false);
-  expect(info.updateMessage).toBe('Running via pnpx, update not applicable.');
+    expect(info.packageManager).toBe(PackageManager.PNPX);
+    expect(info.isGlobal).toBe(false);
+    expect(info.updateMessage).toBe('Running via pnpx, update not applicable.');
   });
 
   it('should detect running via bunx', async () => {
@@ -138,15 +138,18 @@ describe('getInstallationInfo', () => {
     });
     const cliPath = '/usr/local/bin/gemini';
     process.argv[1] = cliPath;
-  mockedRealPath.mockResolvedValue(cliPath);
-  mockedExec.mockResolvedValue({ stdout: Buffer.from('gemini-cli') } as any);
+    mockedRealPath.mockResolvedValue(cliPath);
+    mockedExec.mockResolvedValue({ stdout: Buffer.from('gemini-cli') } as any);
 
-  const info = await getInstallationInfo(projectRoot, false);
+    const info = await getInstallationInfo(projectRoot, false);
 
-  expect(mockedExec).toHaveBeenCalledWith('brew list -1 | grep -q "^gemini-cli$"', { stdio: 'ignore' } as any);
-  expect(info.packageManager).toBe(PackageManager.HOMEBREW);
-  expect(info.isGlobal).toBe(true);
-  expect(info.updateMessage).toContain('brew upgrade');
+    expect(mockedExec).toHaveBeenCalledWith(
+      'brew list -1 | grep -q "^gemini-cli$"',
+      { stdio: 'ignore' } as any,
+    );
+    expect(info.packageManager).toBe(PackageManager.HOMEBREW);
+    expect(info.isGlobal).toBe(true);
+    expect(info.updateMessage).toContain('brew upgrade');
   });
 
   it('should fall through if brew command fails', async () => {
@@ -162,7 +165,10 @@ describe('getInstallationInfo', () => {
 
     const info = await getInstallationInfo(projectRoot, false);
 
-    expect(mockedExec).toHaveBeenCalledWith('brew list -1 | grep -q "^gemini-cli$"', { stdio: 'ignore' } as any);
+    expect(mockedExec).toHaveBeenCalledWith(
+      'brew list -1 | grep -q "^gemini-cli$"',
+      { stdio: 'ignore' } as any,
+    );
     // Should fall back to default global npm
     expect(info.packageManager).toBe(PackageManager.NPM);
     expect(info.isGlobal).toBe(true);

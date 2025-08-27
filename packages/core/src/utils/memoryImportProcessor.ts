@@ -12,11 +12,11 @@ import { FileSystemService } from '../services/fileSystemService.js';
 
 // Simple console logger for import processing
 const logger = {
-   
   debug: (...args: unknown[]) =>
     console.debug('[DEBUG] [ImportProcessor]', ...args),
 
-  warn: (...args: unknown[]) => console.warn('[WARN] [ImportProcessor]', ...args),
+  warn: (...args: unknown[]) =>
+    console.warn('[WARN] [ImportProcessor]', ...args),
 
   error: (...args: unknown[]) =>
     console.error('[ERROR] [ImportProcessor]', ...args),
@@ -49,7 +49,10 @@ export interface ProcessImportsResult {
 }
 
 // Helper to find the project root (looks for .git directory)
-async function findProjectRoot(startDir: string, fileSystemService?: FileSystemService): Promise<string> {
+async function findProjectRoot(
+  startDir: string,
+  fileSystemService?: FileSystemService,
+): Promise<string> {
   let currentDir = path.resolve(startDir);
   while (true) {
     const gitPath = path.join(currentDir, '.git');
@@ -309,7 +312,9 @@ export async function processImports(
             }
             const readResult = await fileSystemService.readTextFile(fullPath);
             if (!readResult.success) {
-              logger.warn(`Failed to read file ${fullPath}: ${readResult.error}`);
+              logger.warn(
+                `Failed to read file ${fullPath}: ${readResult.error}`,
+              );
               continue;
             }
             importedContent = readResult.data || '';

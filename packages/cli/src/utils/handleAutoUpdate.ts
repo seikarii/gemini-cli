@@ -16,7 +16,7 @@ import { type ChildProcess, type SpawnOptions } from 'child_process';
 type SpawnFunction = (
   command: string,
   args?: readonly string[],
-  options?: SpawnOptions
+  options?: SpawnOptions,
 ) => ChildProcess;
 
 export async function handleAutoUpdate(
@@ -56,7 +56,10 @@ export async function handleAutoUpdate(
     '@latest',
     isNightly ? '@nightly' : `@${info.update.latest}`,
   );
-  const updateProcess = spawnFn(updateCommand, [], { stdio: 'pipe', shell: true });
+  const updateProcess = spawnFn(updateCommand, [], {
+    stdio: 'pipe',
+    shell: true,
+  });
   let errorOutput = '';
   updateProcess.stderr.on('data', (data) => {
     errorOutput += data.toString();

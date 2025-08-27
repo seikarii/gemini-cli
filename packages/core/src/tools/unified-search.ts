@@ -98,7 +98,9 @@ class UnifiedSearchToolInvocation extends BaseToolInvocation<
   /**
    * Checks if a path is within the root directory and resolves it.
    */
-  private async resolveAndValidatePath(relativePath?: string): Promise<string | null> {
+  private async resolveAndValidatePath(
+    relativePath?: string,
+  ): Promise<string | null> {
     if (!relativePath) {
       return null;
     }
@@ -116,7 +118,9 @@ class UnifiedSearchToolInvocation extends BaseToolInvocation<
 
     // Check existence and type
     try {
-      const fileInfo = await this.config.getFileSystemService().getFileInfo(targetPath);
+      const fileInfo = await this.config
+        .getFileSystemService()
+        .getFileInfo(targetPath);
       if (!fileInfo.success || !fileInfo.data?.isDirectory) {
         throw new Error(`Path is not a directory: ${targetPath}`);
       }
@@ -194,10 +198,17 @@ class UnifiedSearchToolInvocation extends BaseToolInvocation<
 
       // Check codebase size (rough estimate)
       try {
-        const files = await fs.promises.readdir(searchPath, { recursive: true });
-        const codeFiles = files.filter((file: string) =>
-          file.endsWith('.py') || file.endsWith('.js') || file.endsWith('.ts') ||
-          file.endsWith('.java') || file.endsWith('.cpp') || file.endsWith('.c')
+        const files = await fs.promises.readdir(searchPath, {
+          recursive: true,
+        });
+        const codeFiles = files.filter(
+          (file: string) =>
+            file.endsWith('.py') ||
+            file.endsWith('.js') ||
+            file.endsWith('.ts') ||
+            file.endsWith('.java') ||
+            file.endsWith('.cpp') ||
+            file.endsWith('.c'),
         );
         result.hasLargeCodebase = codeFiles.length > 100;
       } catch (_error) {
@@ -221,8 +232,13 @@ class UnifiedSearchToolInvocation extends BaseToolInvocation<
    */
   private determineSearchMode(
     query: string,
-    projectType: { isPython: boolean; isJavaScript: boolean; isTypeScript: boolean; hasLargeCodebase: boolean },
-    requestedMode: UnifiedSearchToolParams['mode']
+    projectType: {
+      isPython: boolean;
+      isJavaScript: boolean;
+      isTypeScript: boolean;
+      hasLargeCodebase: boolean;
+    },
+    requestedMode: UnifiedSearchToolParams['mode'],
   ): 'text' | 'semantic' | 'functions' | 'classes' {
     // If user explicitly requested a mode, use it
     if (requestedMode && requestedMode !== 'auto') {
@@ -245,7 +261,8 @@ class UnifiedSearchToolInvocation extends BaseToolInvocation<
     // For Python projects, prefer semantic search for natural language queries
     if (projectType.isPython) {
       // Check if query looks like natural language (contains spaces, common words)
-      const naturalLanguageIndicators = /\b(function|class|method|variable|code|implementation|handle|process|create|find|get|set|convert|parse|validate)\b/i;
+      const naturalLanguageIndicators =
+        /\b(function|class|method|variable|code|implementation|handle|process|create|find|get|set|convert|parse|validate)\b/i;
       const hasSpaces = query.includes(' ');
 
       if (hasSpaces || naturalLanguageIndicators.test(query)) {
@@ -273,7 +290,15 @@ class UnifiedSearchToolInvocation extends BaseToolInvocation<
   private async executeTextSearch(
     searchPath: string,
     params: UnifiedSearchToolParams,
-  ): Promise<Array<{ file_path: string; line_number: number; content: string; type: string; similarity: number }>> {
+  ): Promise<
+    Array<{
+      file_path: string;
+      line_number: number;
+      content: string;
+      type: string;
+      similarity: number;
+    }>
+  > {
     const useRipgrep = this.config.getUseRipgrep();
 
     // Import tools dynamically to avoid circular dependencies
@@ -300,12 +325,20 @@ class UnifiedSearchToolInvocation extends BaseToolInvocation<
 
     // Convert PartListUnion to string for processing
     const contentString = Array.isArray(result.llmContent)
-      ? result.llmContent.map(part => typeof part === 'string' ? part : String(part)).join('')
+      ? result.llmContent
+          .map((part) => (typeof part === 'string' ? part : String(part)))
+          .join('')
       : String(result.llmContent);
 
     // Parse results (this is a simplified parsing - actual implementation would need to match the tool's output format)
     const lines = contentString.split('\n');
-    const results: Array<{ file_path: string; line_number: number; content: string; type: string; similarity: number }> = [];
+    const results: Array<{
+      file_path: string;
+      line_number: number;
+      content: string;
+      type: string;
+      similarity: number;
+    }> = [];
 
     for (const line of lines) {
       if (line.includes(':')) {
@@ -341,20 +374,29 @@ class UnifiedSearchToolInvocation extends BaseToolInvocation<
         this.config.getTargetDir(),
         'crisalida_lib',
         'ASTRAL_TOOLS',
-        'semantic_search.py'
+        'semantic_search.py',
       );
 
       // Map mode to semantic search action
-      const action = mode === 'functions' ? 'search_functions' :
-                    mode === 'classes' ? 'search_classes' : 'search_semantic';
+      const action =
+        mode === 'functions'
+          ? 'search_functions'
+          : mode === 'classes'
+            ? 'search_classes'
+            : 'search_semantic';
 
       const args = [
         scriptPath,
-        '--action', action,
-        '--query', params.query,
-        '--path', searchPath,
-        '--max-results', (params.max_results || 10).toString(),
-        '--min-similarity', '0.1',
+        '--action',
+        action,
+        '--query',
+        params.query,
+        '--path',
+        searchPath,
+        '--max-results',
+        (params.max_results || 10).toString(),
+        '--min-similarity',
+        '0.1',
       ];
 
       const child = spawn(pythonPath, args, {
@@ -383,10 +425,16 @@ class UnifiedSearchToolInvocation extends BaseToolInvocation<
             const results = JSON.parse(stdout.trim());
             resolve(results);
           } catch (parseError) {
-            reject(new Error(`Failed to parse semantic search results: ${parseError}`));
+            reject(
+              new Error(
+                `Failed to parse semantic search results: ${parseError}`,
+              ),
+            );
           }
         } else {
-          reject(new Error(`Semantic search failed with code ${code}: ${stderr}`));
+          reject(
+            new Error(`Semantic search failed with code ${code}: ${stderr}`),
+          );
         }
       });
 
@@ -427,7 +475,7 @@ class UnifiedSearchToolInvocation extends BaseToolInvocation<
       const searchMode = this.determineSearchMode(
         this.params.query,
         primaryProjectType,
-        this.params.mode
+        this.params.mode,
       );
 
       // Execute search across all directories
@@ -441,21 +489,32 @@ class UnifiedSearchToolInvocation extends BaseToolInvocation<
 
           if (searchMode === 'text') {
             results = await this.executeTextSearch(searchDir, this.params);
-          } else if (projectType.isPython && (searchMode === 'semantic' || searchMode === 'functions' || searchMode === 'classes')) {
-            results = await this.executeSemanticSearch(searchDir, this.params, searchMode);
+          } else if (
+            projectType.isPython &&
+            (searchMode === 'semantic' ||
+              searchMode === 'functions' ||
+              searchMode === 'classes')
+          ) {
+            results = await this.executeSemanticSearch(
+              searchDir,
+              this.params,
+              searchMode,
+            );
           } else {
             // Fallback to text search for non-Python projects or unsupported modes
             results = await this.executeTextSearch(searchDir, this.params);
           }
 
           // Add directory context to results
-          results.forEach(result => {
+          results.forEach((result) => {
             result.search_directory = searchDir;
           });
 
           allResults = allResults.concat(results);
         } catch (error) {
-          console.warn(`Search failed for ${searchDir}: ${getErrorMessage(error)}`);
+          console.warn(
+            `Search failed for ${searchDir}: ${getErrorMessage(error)}`,
+          );
           // Continue with other directories
         }
       }
@@ -568,7 +627,7 @@ export class UnifiedSearchTool extends BaseDeclarativeTool<
         properties: {
           query: {
             description:
-              "The search query (supports both exact text and natural language for Python projects).",
+              'The search query (supports both exact text and natural language for Python projects).',
             type: 'string',
           },
           path: {
@@ -618,11 +677,19 @@ export class UnifiedSearchTool extends BaseDeclarativeTool<
       return "The 'query' parameter cannot be empty.";
     }
 
-    if (params.max_results && (params.max_results < 1 || params.max_results > 100)) {
+    if (
+      params.max_results &&
+      (params.max_results < 1 || params.max_results > 100)
+    ) {
       return 'max_results must be between 1 and 100.';
     }
 
-    if (params.mode && !['auto', 'text', 'semantic', 'functions', 'classes'].includes(params.mode)) {
+    if (
+      params.mode &&
+      !['auto', 'text', 'semantic', 'functions', 'classes'].includes(
+        params.mode,
+      )
+    ) {
       return 'mode must be one of: auto, text, semantic, functions, classes.';
     }
 

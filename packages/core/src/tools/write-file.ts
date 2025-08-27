@@ -261,12 +261,14 @@ class WriteFileToolInvocation extends BaseToolInvocation<
 
   async execute(abortSignal: AbortSignal): Promise<ToolResult> {
     // Pre-execution validation
-    const validator = new ToolValidationUtils(this.config.getFileSystemService());
+    const validator = new ToolValidationUtils(
+      this.config.getFileSystemService(),
+    );
 
     // Validate file path accessibility
     const pathValidation = await validator.validatePathAccessibility(
       this.params.file_path,
-      true // require write access
+      true, // require write access
     );
     if (!pathValidation.isValid) {
       return {
@@ -280,7 +282,9 @@ class WriteFileToolInvocation extends BaseToolInvocation<
     }
 
     // Validate content
-    const contentValidation = validator.validateWriteContent(this.params.content);
+    const contentValidation = validator.validateWriteContent(
+      this.params.content,
+    );
     if (!contentValidation.isValid) {
       return {
         llmContent: `Error: ${contentValidation.error!.message}`,
@@ -293,7 +297,10 @@ class WriteFileToolInvocation extends BaseToolInvocation<
     }
 
     // Validate mode parameter
-    if (this.params.mode && !['overwrite', 'append'].includes(this.params.mode)) {
+    if (
+      this.params.mode &&
+      !['overwrite', 'append'].includes(this.params.mode)
+    ) {
       return {
         llmContent: `Error: Invalid mode '${this.params.mode}'. Must be 'overwrite' or 'append'.`,
         returnDisplay: `Error: Invalid mode '${this.params.mode}'. Must be 'overwrite' or 'append'.`,
@@ -313,17 +320,19 @@ class WriteFileToolInvocation extends BaseToolInvocation<
       skip_correction,
     } = this.params;
 
-  if (mode === 'append' && !(await this.config.getFileSystemService().exists(file_path))) {
+    if (
+      mode === 'append' &&
+      !(await this.config.getFileSystemService().exists(file_path))
+    ) {
       // If appending to a non-existent file, it's the same as overwriting an empty file.
       mode = 'overwrite';
     }
 
     // Safeguard against accidental file wipe
-    if (
-      mode === 'overwrite' &&
-      !content
-    ) {
-      const fileInfo = await this.config.getFileSystemService().getFileInfo(file_path);
+    if (mode === 'overwrite' && !content) {
+      const fileInfo = await this.config
+        .getFileSystemService()
+        .getFileInfo(file_path);
       if (fileInfo.success && fileInfo.data && fileInfo.data.size > 0) {
         const errorMsg = `Attempted to overwrite a non-empty file with empty content. Operation aborted to prevent data loss.`;
         return {
@@ -392,7 +401,9 @@ class WriteFileToolInvocation extends BaseToolInvocation<
       fileExists = await this.config.getFileSystemService().exists(file_path);
       isNewFile = !fileExists;
       if (fileExists) {
-        const readResult = await this.config.getFileSystemService().readTextFile(file_path);
+        const readResult = await this.config
+          .getFileSystemService()
+          .readTextFile(file_path);
         if (readResult.success) {
           originalContent = readResult.data!;
         } else {
@@ -406,7 +417,9 @@ class WriteFileToolInvocation extends BaseToolInvocation<
     try {
       const dirName = path.dirname(file_path);
       if (!(await this.config.getFileSystemService().exists(dirName))) {
-        const createResult = await this.config.getFileSystemService().createDirectory(dirName, { recursive: true });
+        const createResult = await this.config
+          .getFileSystemService()
+          .createDirectory(dirName, { recursive: true });
         if (!createResult.success) {
           throw new Error(createResult.error);
         }
@@ -415,14 +428,17 @@ class WriteFileToolInvocation extends BaseToolInvocation<
       const backupPath = `${file_path}.backup`;
       try {
         if (await this.config.getFileSystemService().exists(file_path)) {
-          const copyResult = await this.config.getFileSystemService().copyFile(file_path, backupPath);
+          const copyResult = await this.config
+            .getFileSystemService()
+            .copyFile(file_path, backupPath);
           if (!copyResult.success) {
             throw new Error(copyResult.error);
           }
         }
       } catch (_e) {
         // ignore backup creation failures; proceed to write but log in debug
-        if (this.config.getDebugMode()) console.debug('Failed to create backup before write', _e);
+        if (this.config.getDebugMode())
+          console.debug('Failed to create backup before write', _e);
       }
 
       await this.config
@@ -431,22 +447,34 @@ class WriteFileToolInvocation extends BaseToolInvocation<
 
       // Verify the write by reading file back. If mismatch, retry once and restore from backup on persistent failure.
       try {
-        const verify = await this.config.getFileSystemService().readTextFile(file_path);
+        const verify = await this.config
+          .getFileSystemService()
+          .readTextFile(file_path);
         if (!verify.success || verify.data !== fileContent) {
           // retry write once
-          await this.config.getFileSystemService().writeTextFile(file_path, fileContent);
-          const verify2 = await this.config.getFileSystemService().readTextFile(file_path);
+          await this.config
+            .getFileSystemService()
+            .writeTextFile(file_path, fileContent);
+          const verify2 = await this.config
+            .getFileSystemService()
+            .readTextFile(file_path);
           if (!verify2.success || verify2.data !== fileContent) {
             // restore from backup if available
             try {
               if (await this.config.getFileSystemService().exists(backupPath)) {
-                const restoreResult = await this.config.getFileSystemService().copyFile(backupPath, file_path);
+                const restoreResult = await this.config
+                  .getFileSystemService()
+                  .copyFile(backupPath, file_path);
                 if (!restoreResult.success) {
                   throw new Error(restoreResult.error);
                 }
               }
             } catch (_restoreErr) {
-              if (this.config.getDebugMode()) console.error('Failed to restore backup after failed write verification', _restoreErr);
+              if (this.config.getDebugMode())
+                console.error(
+                  'Failed to restore backup after failed write verification',
+                  _restoreErr,
+                );
             }
             const errMsg = `File write verification failed for ${file_path}. Restored from backup if available.`;
             return {
@@ -460,7 +488,8 @@ class WriteFileToolInvocation extends BaseToolInvocation<
           }
         }
       } catch (verifyErr) {
-        if (this.config.getDebugMode()) console.error('Error during write verification:', verifyErr);
+        if (this.config.getDebugMode())
+          console.error('Error during write verification:', verifyErr);
       }
       resetEditCorrectorCaches();
 

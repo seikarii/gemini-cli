@@ -37,11 +37,15 @@ export class ActionSystem {
   constructor() {
     // Placeholder for tool registration
     this.toolRegistry['run_shell_command'] = async (params) => {
-      console.log(`ActionSystem: Pretending to run shell command: ${params.command}`);
+      console.log(
+        `ActionSystem: Pretending to run shell command: ${params.command}`,
+      );
       return { success: true, output: 'Command executed (simulation).' };
     };
     this.toolRegistry['write_file'] = async (params) => {
-      console.log(`ActionSystem: Pretending to write file: ${params.file_path}`);
+      console.log(
+        `ActionSystem: Pretending to write file: ${params.file_path}`,
+      );
       return { success: true };
     };
   }
@@ -51,7 +55,9 @@ export class ActionSystem {
    * @param plan The plan to execute.
    */
   submitPlan(plan: PlanDeAccion): void {
-    console.log(`ActionSystem: Plan ${plan.id} submitted with ${plan.steps.length} steps.`);
+    console.log(
+      `ActionSystem: Plan ${plan.id} submitted with ${plan.steps.length} steps.`,
+    );
     this.actionQueue.push(...plan.steps);
     this.run();
   }
@@ -62,8 +68,10 @@ export class ActionSystem {
 
     while (this.actionQueue.length > 0) {
       const action = this.actionQueue.shift()!;
-      console.info(`ActionSystem: Executing action ${action.id}: ${action.tool}`);
-      
+      console.info(
+        `ActionSystem: Executing action ${action.id}: ${action.tool}`,
+      );
+
       const toolExecutor = this.toolRegistry[action.tool];
       if (toolExecutor) {
         try {
@@ -71,7 +79,10 @@ export class ActionSystem {
           // In a real system, the result could be fed back into memory.
           console.log(`ActionSystem: Action ${action.id} completed.`);
         } catch (error) {
-          console.error(`ActionSystem: Error executing action ${action.id}`, error);
+          console.error(
+            `ActionSystem: Error executing action ${action.id}`,
+            error,
+          );
         }
       } else {
         console.error(`ActionSystem: Tool not found: ${action.tool}`);
@@ -79,6 +90,6 @@ export class ActionSystem {
     }
 
     this.isRunning = false;
-    console.log("ActionSystem: All actions complete.");
+    console.log('ActionSystem: All actions complete.');
   }
 }

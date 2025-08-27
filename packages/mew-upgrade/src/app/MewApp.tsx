@@ -14,7 +14,13 @@ interface FileTreeNode {
   path: string;
 }
 
-const Directory = ({ node, onFileSelect }: { node: FileTreeNode, onFileSelect: (path: string) => void }) => {
+const Directory = ({
+  node,
+  onFileSelect,
+}: {
+  node: FileTreeNode;
+  onFileSelect: (path: string) => void;
+}) => {
   const [isOpen, setIsOpen] = useState(node.isOpen || false);
   const [children, setChildren] = useState<FileTreeNode[]>(node.children || []);
 
@@ -22,9 +28,16 @@ const Directory = ({ node, onFileSelect }: { node: FileTreeNode, onFileSelect: (
     setIsOpen(!isOpen);
     if (!children.length) {
       try {
-        const response = await fetch(`/api/file-tree?path=${encodeURIComponent(node.path)}`);
+        const response = await fetch(
+          `/api/file-tree?path=${encodeURIComponent(node.path)}`,
+        );
         const data = await response.json();
-        setChildren(data.map((child: any) => ({ ...child, path: `${node.path}/${child.name}` })));
+        setChildren(
+          data.map((child: any) => ({
+            ...child,
+            path: `${node.path}/${child.name}`,
+          })),
+        );
       } catch (error) {
         console.error('Error fetching directory contents:', error);
       }
@@ -38,12 +51,15 @@ const Directory = ({ node, onFileSelect }: { node: FileTreeNode, onFileSelect: (
       </div>
       {isOpen && (
         <div style={{ paddingLeft: '20px' }}>
-          {children.map(child => (
+          {children.map((child) => (
             <div key={child.name}>
               {child.type === 'directory' ? (
                 <Directory node={child} onFileSelect={onFileSelect} />
               ) : (
-                <div onClick={() => onFileSelect(child.path)} style={{ cursor: 'pointer' }}>
+                <div
+                  onClick={() => onFileSelect(child.path)}
+                  style={{ cursor: 'pointer' }}
+                >
                   [F] {child.name}
                 </div>
               )}
@@ -55,7 +71,13 @@ const Directory = ({ node, onFileSelect }: { node: FileTreeNode, onFileSelect: (
   );
 };
 
-const FileTree = ({ onFileSelect, refreshTrigger }: { onFileSelect: (path: string) => void, refreshTrigger: number }) => {
+const FileTree = ({
+  onFileSelect,
+  refreshTrigger,
+}: {
+  onFileSelect: (path: string) => void;
+  refreshTrigger: number;
+}) => {
   const [root, setRoot] = useState<FileTreeNode | null>(null);
 
   useEffect(() => {
@@ -63,7 +85,12 @@ const FileTree = ({ onFileSelect, refreshTrigger }: { onFileSelect: (path: strin
       try {
         const response = await fetch('/api/file-tree');
         const data = await response.json();
-        setRoot({ name: '/', type: 'directory', children: data.map((child: any) => ({ ...child, path: child.name })), path: '' });
+        setRoot({
+          name: '/',
+          type: 'directory',
+          children: data.map((child: any) => ({ ...child, path: child.name })),
+          path: '',
+        });
       } catch (error) {
         console.error('Error fetching root directory:', error);
       }
@@ -79,11 +106,17 @@ const FileTree = ({ onFileSelect, refreshTrigger }: { onFileSelect: (path: strin
 };
 
 export const MewApp = () => {
-  const [agentOutput, setAgentOutput] = useState<string>('Waiting for agent output...');
+  const [agentOutput, setAgentOutput] = useState<string>(
+    'Waiting for agent output...',
+  );
   const [whisperInput, setWhisperInput] = useState<string>('');
   const [currentFilePath, setCurrentFilePath] = useState<string>('');
-  const [fileContent, setFileContent] = useState<string>('// Load a file to see its content');
-  const [activeFileFromServer, setActiveFileFromServer] = useState<string | null>(null);
+  const [fileContent, setFileContent] = useState<string>(
+    '// Load a file to see its content',
+  );
+  const [activeFileFromServer, setActiveFileFromServer] = useState<
+    string | null
+  >(null);
   const [fileTreeRefreshTrigger, setFileTreeRefreshTrigger] = useState(0);
 
   // Fetch agent status/logs
@@ -110,7 +143,9 @@ export const MewApp = () => {
     const a = path || currentFilePath;
     if (a.trim() === '') return;
     try {
-      const response = await fetch(`/api/file-content?path=${encodeURIComponent(a)}`);
+      const response = await fetch(
+        `/api/file-content?path=${encodeURIComponent(a)}`,
+      );
       if (response.ok) {
         const data = await response.json();
         setFileContent(data.content);
@@ -154,17 +189,52 @@ export const MewApp = () => {
   };
 
   return (
-    <div style={{ border: '1px solid grey', padding: '10px', borderRadius: '5px', display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: 'monospace' }}>
+    <div
+      style={{
+        border: '1px solid grey',
+        padding: '10px',
+        borderRadius: '5px',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        fontFamily: 'monospace',
+      }}
+    >
       <h1 style={{ fontSize: '1.5em', marginBottom: '10px' }}>Mew Window</h1>
       <div style={{ display: 'flex', flexGrow: 1 }}>
-        <div style={{ width: '30%', borderRight: '1px solid lightgrey', overflowY: 'auto' }}>
-          <button onClick={() => setFileTreeRefreshTrigger(prev => prev + 1)} style={{ marginBottom: '10px', padding: '5px 10px' }}>Refresh Tree</button>
-          <FileTree onFileSelect={handleLoadFile} refreshTrigger={fileTreeRefreshTrigger} />
+        <div
+          style={{
+            width: '30%',
+            borderRight: '1px solid lightgrey',
+            overflowY: 'auto',
+          }}
+        >
+          <button
+            onClick={() => setFileTreeRefreshTrigger((prev) => prev + 1)}
+            style={{ marginBottom: '10px', padding: '5px 10px' }}
+          >
+            Refresh Tree
+          </button>
+          <FileTree
+            onFileSelect={handleLoadFile}
+            refreshTrigger={fileTreeRefreshTrigger}
+          />
         </div>
         <div style={{ width: '70%', display: 'flex', flexDirection: 'column' }}>
           {/* Agent Output / Logs */}
-          <div style={{ flexGrow: 1, border: '1px solid lightgrey', padding: '5px', overflowY: 'auto', marginBottom: '10px', backgroundColor: '#f0f0f0' }}>
-            <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{agentOutput}</pre>
+          <div
+            style={{
+              flexGrow: 1,
+              border: '1px solid lightgrey',
+              padding: '5px',
+              overflowY: 'auto',
+              marginBottom: '10px',
+              backgroundColor: '#f0f0f0',
+            }}
+          >
+            <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              {agentOutput}
+            </pre>
           </div>
 
           {/* Whisper Input */}
@@ -173,13 +243,28 @@ export const MewApp = () => {
               type="text"
               value={whisperInput}
               onChange={(e) => setWhisperInput(e.target.value)}
-              onKeyPress={(e) => { if (e.key === 'Enter') handleWhisperSubmit(); }}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') handleWhisperSubmit();
+              }}
               placeholder="Whisper to agent..."
-              style={{ flexGrow: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+              style={{
+                flexGrow: 1,
+                padding: '8px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+              }}
             />
             <button
               onClick={handleWhisperSubmit}
-              style={{ marginLeft: '10px', padding: '8px 15px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              style={{
+                marginLeft: '10px',
+                padding: '8px 15px',
+                backgroundColor: '#007bff',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
             >
               Whisper
             </button>
@@ -191,13 +276,28 @@ export const MewApp = () => {
               type="text"
               value={currentFilePath}
               onChange={(e) => setCurrentFilePath(e.target.value)}
-              onKeyPress={(e) => { if (e.key === 'Enter') handleLoadFile(); }}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') handleLoadFile();
+              }}
               placeholder="Enter file path to load..."
-              style={{ flexGrow: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+              style={{
+                flexGrow: 1,
+                padding: '8px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+              }}
             />
             <button
               onClick={() => handleLoadFile()}
-              style={{ marginLeft: '10px', padding: '8px 15px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              style={{
+                marginLeft: '10px',
+                padding: '8px 15px',
+                backgroundColor: '#28a745',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
             >
               Load File
             </button>
@@ -205,11 +305,17 @@ export const MewApp = () => {
           <textarea
             value={fileContent}
             readOnly
-            style={{ flexGrow: 2, border: '1px solid lightgrey', padding: '5px', overflowY: 'auto', backgroundColor: '#e9ecef', minHeight: '150px' }}
+            style={{
+              flexGrow: 2,
+              border: '1px solid lightgrey',
+              padding: '5px',
+              overflowY: 'auto',
+              backgroundColor: '#e9ecef',
+              minHeight: '150px',
+            }}
           ></textarea>
         </div>
       </div>
     </div>
   );
 };
-

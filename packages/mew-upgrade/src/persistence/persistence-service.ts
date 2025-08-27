@@ -23,11 +23,17 @@ export class PersistenceService {
   private serializer: StateSerializer;
   private basePath: string;
 
-  constructor(basePath: string, storage?: StorageBackend, serializer?: StateSerializer) {
+  constructor(
+    basePath: string,
+    storage?: StorageBackend,
+    serializer?: StateSerializer,
+  ) {
     this.basePath = basePath;
     this.storage = storage || new LocalStorageBackend();
     this.serializer = serializer || new StateSerializer();
-    console.log(`PersistenceService initialized at base path: ${this.basePath}`);
+    console.log(
+      `PersistenceService initialized at base path: ${this.basePath}`,
+    );
   }
 
   /**
@@ -40,10 +46,9 @@ export class PersistenceService {
       const state = component.exportState();
       const serializedData = this.serializer.serialize(state);
       const filePath = `${this.basePath}/${key}.json.gz`; // Example file path
-      
+
       await this.storage.write(filePath, serializedData);
       console.log(`State for '${key}' saved successfully to ${filePath}`);
-
     } catch (error) {
       console.error(`Failed to save state for key '${key}'`, error);
       throw error;
@@ -60,18 +65,17 @@ export class PersistenceService {
     try {
       const filePath = `${this.basePath}/${key}.json.gz`;
 
-      if (!await this.storage.exists(filePath)) {
+      if (!(await this.storage.exists(filePath))) {
         console.info(`No saved state found for key '${key}' at ${filePath}.`);
         return false;
       }
 
       const serializedData = await this.storage.read(filePath);
       const state = this.serializer.deserialize(serializedData);
-      
+
       component.importState(state);
       console.log(`State for '${key}' loaded successfully from ${filePath}`);
       return true;
-
     } catch (error) {
       console.error(`Failed to load state for key '${key}'`, error);
       throw error;

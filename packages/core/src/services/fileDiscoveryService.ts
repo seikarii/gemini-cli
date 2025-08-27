@@ -58,7 +58,9 @@ export class FileDiscoveryService {
     const isGitRepo = isGitRepository(this.projectRoot);
 
     if (this.config.enableLogging) {
-      console.debug(`FileDiscoveryService: Git repository detection: ${isGitRepo ? 'YES' : 'NO'} at ${this.projectRoot}`);
+      console.debug(
+        `FileDiscoveryService: Git repository detection: ${isGitRepo ? 'YES' : 'NO'} at ${this.projectRoot}`,
+      );
     }
 
     if (isGitRepo) {
@@ -69,7 +71,9 @@ export class FileDiscoveryService {
 
         if (this.config.enableLogging) {
           const patternCount = parser.getPatterns().length;
-          console.debug(`FileDiscoveryService: Loaded ${patternCount} Git ignore patterns`);
+          console.debug(
+            `FileDiscoveryService: Loaded ${patternCount} Git ignore patterns`,
+          );
         }
       } catch (error) {
         const errorMessage = `Failed to load .gitignore patterns: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -80,12 +84,16 @@ export class FileDiscoveryService {
         }
 
         if (this.config.strictMode) {
-          throw new Error(`FileDiscoveryService initialization failed: ${errorMessage}`);
+          throw new Error(
+            `FileDiscoveryService initialization failed: ${errorMessage}`,
+          );
         }
       }
     } else {
       if (this.config.enableLogging) {
-        console.debug('FileDiscoveryService: Skipping .gitignore loading (not a Git repository)');
+        console.debug(
+          'FileDiscoveryService: Skipping .gitignore loading (not a Git repository)',
+        );
       }
     }
   }
@@ -101,7 +109,9 @@ export class FileDiscoveryService {
 
       if (this.config.enableLogging) {
         const patternCount = parser.getPatterns().length;
-        console.debug(`FileDiscoveryService: Loaded ${patternCount} Gemini ignore patterns`);
+        console.debug(
+          `FileDiscoveryService: Loaded ${patternCount} Gemini ignore patterns`,
+        );
       }
     } catch (error) {
       const errorMessage = `Failed to load .geminiignore patterns: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -112,7 +122,9 @@ export class FileDiscoveryService {
       }
 
       if (this.config.strictMode) {
-        throw new Error(`FileDiscoveryService initialization failed: ${errorMessage}`);
+        throw new Error(
+          `FileDiscoveryService initialization failed: ${errorMessage}`,
+        );
       }
     }
   }
@@ -129,7 +141,9 @@ export class FileDiscoveryService {
   ): string[] {
     if (!Array.isArray(filePaths)) {
       if (this.config.enableLogging) {
-        console.warn('FileDiscoveryService: filterFiles called with non-array input');
+        console.warn(
+          'FileDiscoveryService: filterFiles called with non-array input',
+        );
       }
       return [];
     }
@@ -138,7 +152,10 @@ export class FileDiscoveryService {
       // Validate and normalize the file path
       const normalizedPath = this.normalizeFilePath(filePath);
 
-      if (options.respectGitIgnore && this.shouldGitIgnoreFile(normalizedPath)) {
+      if (
+        options.respectGitIgnore &&
+        this.shouldGitIgnoreFile(normalizedPath)
+      ) {
         return false;
       }
       if (
@@ -183,7 +200,10 @@ export class FileDiscoveryService {
       return this.gitIgnoreFilter.isIgnored(filePath);
     } catch (error) {
       if (this.config.enableLogging) {
-        console.warn(`FileDiscoveryService: Error checking Git ignore for ${filePath}:`, error);
+        console.warn(
+          `FileDiscoveryService: Error checking Git ignore for ${filePath}:`,
+          error,
+        );
       }
       return false;
     }
@@ -205,7 +225,10 @@ export class FileDiscoveryService {
       return this.geminiIgnoreFilter.isIgnored(filePath);
     } catch (error) {
       if (this.config.enableLogging) {
-        console.warn(`FileDiscoveryService: Error checking Gemini ignore for ${filePath}:`, error);
+        console.warn(
+          `FileDiscoveryService: Error checking Gemini ignore for ${filePath}:`,
+          error,
+        );
       }
       return false;
     }
@@ -272,7 +295,8 @@ export class FileDiscoveryService {
       gitIgnoreLoaded: this.gitIgnoreFilter !== null,
       geminiIgnoreLoaded: this.geminiIgnoreFilter !== null,
       gitIgnorePatternCount: this.gitIgnoreFilter?.getPatterns().length ?? 0,
-      geminiIgnorePatternCount: this.geminiIgnoreFilter?.getPatterns().length ?? 0,
+      geminiIgnorePatternCount:
+        this.geminiIgnoreFilter?.getPatterns().length ?? 0,
       loadErrors: [...this.loadErrors],
     };
   }

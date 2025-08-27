@@ -117,7 +117,6 @@ describe('useAutoAcceptIndicator', () => {
       },
     );
 
-     
     mockConfigInstance = new (Config as any)() as MockConfigInstanceShape;
   });
 

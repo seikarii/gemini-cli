@@ -61,7 +61,8 @@ async function createTempFilesForModify(
     await fsp.mkdir(diffDir, { recursive: true });
   } catch (err: unknown) {
     // Re-throw unless it's a benign EEXIST race or similar.
-    if (!isNodeError(err) || (err as NodeJS.ErrnoException).code !== 'EEXIST') throw err;
+    if (!isNodeError(err) || (err as NodeJS.ErrnoException).code !== 'EEXIST')
+      throw err;
   }
 
   const ext = path.extname(file_path);
@@ -94,14 +95,16 @@ async function getUpdatedParams<ToolParams>(
   try {
     oldContent = await fsp.readFile(tmpOldPath, 'utf8');
   } catch (err: unknown) {
-    if (!isNodeError(err) || (err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+    if (!isNodeError(err) || (err as NodeJS.ErrnoException).code !== 'ENOENT')
+      throw err;
     oldContent = '';
   }
 
   try {
     newContent = await fsp.readFile(tempNewPath, 'utf8');
   } catch (err: unknown) {
-    if (!isNodeError(err) || (err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+    if (!isNodeError(err) || (err as NodeJS.ErrnoException).code !== 'ENOENT')
+      throw err;
     newContent = '';
   }
 
@@ -122,7 +125,10 @@ async function getUpdatedParams<ToolParams>(
   return { updatedParams, updatedDiff };
 }
 
-async function deleteTempFiles(oldPath: string, newPath: string): Promise<void> {
+async function deleteTempFiles(
+  oldPath: string,
+  newPath: string,
+): Promise<void> {
   try {
     await fsp.unlink(oldPath);
   } catch (err: unknown) {

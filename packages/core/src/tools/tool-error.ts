@@ -121,7 +121,7 @@ export class ToolError extends Error {
     type: ToolErrorType,
     message: string,
     context?: ErrorContext,
-    isRetryable: boolean = false
+    isRetryable: boolean = false,
   ) {
     super(message);
     this.name = 'ToolError';
@@ -138,7 +138,10 @@ export class ToolError extends Error {
   /**
    * Create a ToolError from an unknown error
    */
-  static fromUnknownError(error: unknown, type: ToolErrorType = ToolErrorType.UNKNOWN): ToolError {
+  static fromUnknownError(
+    error: unknown,
+    type: ToolErrorType = ToolErrorType.UNKNOWN,
+  ): ToolError {
     const message = error instanceof Error ? error.message : String(error);
     return new ToolError(type, message, {
       cause: error instanceof Error ? error : undefined,
@@ -152,7 +155,7 @@ export class ToolError extends Error {
     type: ToolErrorType,
     message: string,
     filePath?: string,
-    cause?: Error
+    cause?: Error,
   ): ToolError {
     return new ToolError(type, message, {
       filePath,
@@ -167,7 +170,7 @@ export class ToolError extends Error {
   static validationError(
     type: ToolErrorType,
     message: string,
-    context?: Partial<ErrorContext>
+    context?: Partial<ErrorContext>,
   ): ToolError {
     return new ToolError(type, message, {
       ...context,

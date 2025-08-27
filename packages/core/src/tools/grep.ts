@@ -88,7 +88,9 @@ class GrepToolInvocation extends BaseToolInvocation<
    * @returns The absolute path if valid and exists, or null if no path specified (to search all directories).
    * @throws {Error} If path is outside root, doesn't exist, or isn't a directory.
    */
-  private async resolveAndValidatePath(relativePath?: string): Promise<string | null> {
+  private async resolveAndValidatePath(
+    relativePath?: string,
+  ): Promise<string | null> {
     // If no path specified, return null to indicate searching all workspace directories
     if (!relativePath) {
       return null;
@@ -107,7 +109,9 @@ class GrepToolInvocation extends BaseToolInvocation<
 
     // Check existence and type after resolving
     try {
-      const fileInfo = await this.config.getFileSystemService().getFileInfo(targetPath);
+      const fileInfo = await this.config
+        .getFileSystemService()
+        .getFileInfo(targetPath);
       if (!fileInfo.success || !fileInfo.data?.isDirectory) {
         throw new Error(`Path is not a directory: ${targetPath}`);
       }
@@ -141,7 +145,8 @@ class GrepToolInvocation extends BaseToolInvocation<
 
       // Collect matches from all search directories
       let allMatches: GrepMatch[] = [];
-      const totalMaxMatches = this.params.max_matches ?? DEFAULT_TOTAL_MAX_MATCHES;
+      const totalMaxMatches =
+        this.params.max_matches ?? DEFAULT_TOTAL_MAX_MATCHES;
 
       if (this.config.getDebugMode()) {
         console.log(`[GrepTool] Total result limit: ${totalMaxMatches}`);
@@ -318,7 +323,10 @@ class GrepToolInvocation extends BaseToolInvocation<
   /**
    * Parses standard grep format: filePath:lineNumber:lineContent
    */
-  private parseStandardGrepFormat(line: string, basePath: string): GrepMatch | null {
+  private parseStandardGrepFormat(
+    line: string,
+    basePath: string,
+  ): GrepMatch | null {
     // Find the index of the first colon.
     const firstColonIndex = line.indexOf(':');
     if (firstColonIndex === -1) return null;
@@ -348,7 +356,10 @@ class GrepToolInvocation extends BaseToolInvocation<
   /**
    * Parses complex path formats with escaped colons or quotes
    */
-  private parseComplexPathFormat(line: string, basePath: string): GrepMatch | null {
+  private parseComplexPathFormat(
+    line: string,
+    basePath: string,
+  ): GrepMatch | null {
     // Handle quoted file paths
     const quotedMatch = line.match(/^"([^"]+)":(\d+):(.*)$/);
     if (quotedMatch) {
@@ -394,7 +405,10 @@ class GrepToolInvocation extends BaseToolInvocation<
   /**
    * Fallback parser for unrecognized formats
    */
-  private parseFallbackFormat(line: string, basePath: string): GrepMatch | null {
+  private parseFallbackFormat(
+    line: string,
+    basePath: string,
+  ): GrepMatch | null {
     // Look for any pattern that might contain a line number
     const lineNumberMatch = line.match(/:(\d+):/);
     if (!lineNumberMatch) return null;
@@ -471,7 +485,7 @@ class GrepToolInvocation extends BaseToolInvocation<
 
     try {
       // --- Strategy 1: ripgrep ---
-      const ripgrepAvailable = await this.isCommandAvailable('rg') || rgPath;
+      const ripgrepAvailable = (await this.isCommandAvailable('rg')) || rgPath;
       if (ripgrepAvailable) {
         strategyUsed = 'ripgrep';
         const rgArgs = [

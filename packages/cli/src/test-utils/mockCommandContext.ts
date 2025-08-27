@@ -33,13 +33,13 @@ export const createMockCommandContext = (
     getModel: () => 'gemini-pro',
   } as unknown as NonNullable<CommandContext['services']>['config'];
 
-  const mockLogger = ({
+  const mockLogger = {
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
     debug: vi.fn(),
     log: vi.fn(),
-  } as unknown) as NonNullable<CommandContext['services']>['logger'];
+  } as unknown as NonNullable<CommandContext['services']>['logger'];
 
   const defaultContext: CommandContext = {
     invocation: { raw: '', name: '', args: '' },
@@ -57,7 +57,8 @@ export const createMockCommandContext = (
       setPendingItem: vi.fn(),
       loadHistory: vi.fn(),
       toggleCorgiMode: vi.fn(),
-      toggleVimEnabled: (async () => false) as CommandContext['ui']['toggleVimEnabled'],
+      toggleVimEnabled: (async () =>
+        false) as CommandContext['ui']['toggleVimEnabled'],
       setGeminiMdFileCount: vi.fn(),
       reloadCommands: vi.fn(),
     },
@@ -88,7 +89,9 @@ export const createMockCommandContext = (
     });
   };
 
-  deepMerge(defaultContext as unknown as Record<string, unknown>,
-    overrides as unknown as Record<string, unknown>);
+  deepMerge(
+    defaultContext as unknown as Record<string, unknown>,
+    overrides as unknown as Record<string, unknown>,
+  );
   return defaultContext;
 };

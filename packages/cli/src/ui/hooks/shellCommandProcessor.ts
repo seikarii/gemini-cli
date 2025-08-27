@@ -225,7 +225,9 @@ export const useShellCommandProcessor = (
 
               if (pwdFilePath) {
                 try {
-                  const finalPwd = (await fsp.readFile(pwdFilePath, 'utf8')).trim();
+                  const finalPwd = (
+                    await fsp.readFile(pwdFilePath, 'utf8')
+                  ).trim();
                   if (finalPwd && finalPwd !== targetDir) {
                     const warning = `WARNING: shell mode is stateless; the directory change to '${finalPwd}' will not persist.`;
                     finalOutput = `${warning}\n\n${finalOutput}`;
@@ -269,7 +271,7 @@ export const useShellCommandProcessor = (
                 userMessageTimestamp,
               );
             })
-              .finally(() => {
+            .finally(() => {
               abortSignal.removeEventListener('abort', abortHandler);
               if (pwdFilePath) {
                 void fsp.unlink(pwdFilePath).catch(() => {});

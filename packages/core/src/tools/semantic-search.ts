@@ -48,7 +48,11 @@ export interface SemanticSearchToolParams {
   /**
    * Type of search to perform
    */
-  action?: 'search_semantic' | 'search_functions' | 'search_classes' | 'analyze_structure';
+  action?:
+    | 'search_semantic'
+    | 'search_functions'
+    | 'search_classes'
+    | 'analyze_structure';
 
   /**
    * Maximum number of results to return (optional, defaults to 10)
@@ -75,7 +79,9 @@ class SemanticSearchToolInvocation extends BaseToolInvocation<
   /**
    * Checks if a path is within the root directory and resolves it.
    */
-  private async resolveAndValidatePath(relativePath?: string): Promise<string | null> {
+  private async resolveAndValidatePath(
+    relativePath?: string,
+  ): Promise<string | null> {
     if (!relativePath) {
       return null;
     }
@@ -93,7 +99,9 @@ class SemanticSearchToolInvocation extends BaseToolInvocation<
 
     // Check existence and type
     try {
-      const fileInfo = await this.config.getFileSystemService().getFileInfo(targetPath);
+      const fileInfo = await this.config
+        .getFileSystemService()
+        .getFileInfo(targetPath);
       if (!fileInfo.success || !fileInfo.data?.isDirectory) {
         throw new Error(`Path is not a directory: ${targetPath}`);
       }
@@ -136,7 +144,7 @@ class SemanticSearchToolInvocation extends BaseToolInvocation<
 
       // Check if there are any .py files in the directory
       const files = await fs.promises.readdir(searchPath);
-      const hasPythonFiles = files.some(file => file.endsWith('.py'));
+      const hasPythonFiles = files.some((file) => file.endsWith('.py'));
 
       return hasPythonFiles;
     } catch (error) {
@@ -158,17 +166,22 @@ class SemanticSearchToolInvocation extends BaseToolInvocation<
         this.config.getTargetDir(),
         'crisalida_lib',
         'ASTRAL_TOOLS',
-        'semantic_search.py'
+        'semantic_search.py',
       );
 
       // Prepare arguments for the Python script
       const args = [
         scriptPath,
-        '--action', params.action || 'search_semantic',
-        '--query', params.query,
-        '--path', searchPath,
-        '--max-results', (params.max_results || 10).toString(),
-        '--min-similarity', (params.min_similarity || 0.1).toString(),
+        '--action',
+        params.action || 'search_semantic',
+        '--query',
+        params.query,
+        '--path',
+        searchPath,
+        '--max-results',
+        (params.max_results || 10).toString(),
+        '--min-similarity',
+        (params.min_similarity || 0.1).toString(),
       ];
 
       const child = spawn(pythonPath, args, {
@@ -198,10 +211,16 @@ class SemanticSearchToolInvocation extends BaseToolInvocation<
             const results = JSON.parse(stdout.trim());
             resolve(results);
           } catch (parseError) {
-            reject(new Error(`Failed to parse semantic search results: ${parseError}`));
+            reject(
+              new Error(
+                `Failed to parse semantic search results: ${parseError}`,
+              ),
+            );
           }
         } else {
-          reject(new Error(`Semantic search failed with code ${code}: ${stderr}`));
+          reject(
+            new Error(`Semantic search failed with code ${code}: ${stderr}`),
+          );
         }
       });
 
@@ -251,10 +270,15 @@ class SemanticSearchToolInvocation extends BaseToolInvocation<
         }
 
         try {
-          const results = await this.executeSemanticSearch(searchDir, this.params);
+          const results = await this.executeSemanticSearch(
+            searchDir,
+            this.params,
+          );
           allResults = allResults.concat(results);
         } catch (error) {
-          console.warn(`Semantic search failed for ${searchDir}: ${getErrorMessage(error)}`);
+          console.warn(
+            `Semantic search failed for ${searchDir}: ${getErrorMessage(error)}`,
+          );
           // Continue with other directories
         }
       }
@@ -365,7 +389,12 @@ export class SemanticSearchTool extends BaseDeclarativeTool<
             description:
               'Optional: Type of search - "search_semantic" (general), "search_functions", "search_classes", or "analyze_structure". Defaults to "search_semantic".',
             type: 'string',
-            enum: ['search_semantic', 'search_functions', 'search_classes', 'analyze_structure'],
+            enum: [
+              'search_semantic',
+              'search_functions',
+              'search_classes',
+              'analyze_structure',
+            ],
           },
           max_results: {
             description:
@@ -398,15 +427,29 @@ export class SemanticSearchTool extends BaseDeclarativeTool<
       return "The 'query' parameter cannot be empty.";
     }
 
-    if (params.max_results && (params.max_results < 1 || params.max_results > 100)) {
+    if (
+      params.max_results &&
+      (params.max_results < 1 || params.max_results > 100)
+    ) {
       return 'max_results must be between 1 and 100.';
     }
 
-    if (params.min_similarity && (params.min_similarity < 0 || params.min_similarity > 1)) {
+    if (
+      params.min_similarity &&
+      (params.min_similarity < 0 || params.min_similarity > 1)
+    ) {
       return 'min_similarity must be between 0 and 1.';
     }
 
-    if (params.action && !['search_semantic', 'search_functions', 'search_classes', 'analyze_structure'].includes(params.action)) {
+    if (
+      params.action &&
+      ![
+        'search_semantic',
+        'search_functions',
+        'search_classes',
+        'analyze_structure',
+      ].includes(params.action)
+    ) {
       return 'action must be one of: search_semantic, search_functions, search_classes, analyze_structure.';
     }
 

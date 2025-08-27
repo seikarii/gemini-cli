@@ -9,7 +9,8 @@ import * as fs from 'node:fs';
 import { Writable } from 'node:stream';
 import { ProxyAgent } from 'undici';
 
-import { CommandContext ,
+import {
+  CommandContext,
   CommandKind,
   SlashCommand,
   SlashCommandActionReturn,
@@ -97,7 +98,7 @@ export const setupGithubCommand: SlashCommand = {
   ): Promise<SlashCommandActionReturn> => {
     const abortController = new AbortController();
 
-  if (!(await isGitHubRepository())) {
+    if (!(await isGitHubRepository())) {
       throw new Error(
         'Unable to determine the GitHub repository. /setup-github must be run from a git repository.',
       );
@@ -199,7 +200,7 @@ export const setupGithubCommand: SlashCommand = {
     commands.push(
       `echo "Successfully downloaded ${workflows.length} workflows and updated .gitignore. Follow the steps in ${readmeUrl} (skipping the /setup-github step) to complete setup."`,
     );
-  commands.push(...(await getOpenUrlsCommands(readmeUrl)));
+    commands.push(...(await getOpenUrlsCommands(readmeUrl)));
 
     const command = `(${commands.join(' && ')})`;
     return {

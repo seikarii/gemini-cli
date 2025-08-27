@@ -13,12 +13,18 @@ import { HashingEmbedder, cosSim, clamp } from './embeddings.js';
 
 export interface SignificanceResult {
   importance: number; // 0.0-1.0 (higher = more important)
-  valence: number;    // -1.0 to 1.0 (negative = bad/error, positive = good/success)
-  arousal: number;    // 0.0-1.0 (higher = more emotionally intense/urgent)
+  valence: number; // -1.0 to 1.0 (negative = bad/error, positive = good/success)
+  arousal: number; // 0.0-1.0 (higher = more emotionally intense/urgent)
 }
 
 interface DataContext {
-  dataType?: 'file_content' | 'tool_output' | 'user_input' | 'system_event' | 'error' | 'success';
+  dataType?:
+    | 'file_content'
+    | 'tool_output'
+    | 'user_input'
+    | 'system_event'
+    | 'error'
+    | 'success';
   filePath?: string;
   toolName?: string;
   timestamp?: number;
@@ -34,44 +40,56 @@ export function calculateDataSignificance(
   currentMission: string,
   agentHistorySummary: string,
   hashingEmbedder: HashingEmbedder,
-  context?: DataContext
+  context?: DataContext,
 ): SignificanceResult {
-  
   // Generate embedding for incoming data
   const dataEmbedding = hashingEmbedder.embed(incomingData);
   const missionEmbedding = hashingEmbedder.embed(currentMission);
   // const historyEmbedding = hashingEmbedder.embed(agentHistorySummary); // not used yet
   // Calculate base components
-  const missionRelevance = calculateMissionRelevance(dataEmbedding, missionEmbedding);
-  const novelty = calculateNovelty(dataEmbedding, currentProjectStateEmbeddings);
+  const missionRelevance = calculateMissionRelevance(
+    dataEmbedding,
+    missionEmbedding,
+  );
+  const novelty = calculateNovelty(
+    dataEmbedding,
+    currentProjectStateEmbeddings,
+  );
   const criticalityScore = calculateCriticality(incomingData, context);
   const temporalRelevance = calculateTemporalRelevance(context);
   const contextualSignals = extractContextualSignals(incomingData, context);
-  
+
   // Combine factors for final importance score
   const importance = computeImportance(
     missionRelevance,
     novelty,
     criticalityScore,
     temporalRelevance,
-    contextualSignals
+    contextualSignals,
   );
-  
+
   // Calculate emotional dimensions
   const valence = calculateValence(incomingData, criticalityScore, context);
-  const arousal = calculateArousal(criticalityScore, novelty, contextualSignals);
-  
+  const arousal = calculateArousal(
+    criticalityScore,
+    novelty,
+    contextualSignals,
+  );
+
   return {
     importance: clamp(importance, 0, 1),
     valence: clamp(valence, -1, 1),
-    arousal: clamp(arousal, 0, 1)
+    arousal: clamp(arousal, 0, 1),
   };
 }
 
 /**
  * Measures how relevant the data is to the current mission.
  */
-function calculateMissionRelevance(dataEmbedding: number[], missionEmbedding: number[]): number {
+function calculateMissionRelevance(
+  dataEmbedding: number[],
+  missionEmbedding: number[],
+): number {
   const similarity = cosSim(dataEmbedding, missionEmbedding); // Use cosSim
   // Transform similarity to emphasize high relevance
   return Math.pow(Math.max(0, similarity), 1.5);
@@ -80,19 +98,22 @@ function calculateMissionRelevance(dataEmbedding: number[], missionEmbedding: nu
 /**
  * Measures how novel/new the information is compared to existing project state.
  */
-function calculateNovelty(dataEmbedding: number[], projectStateEmbeddings: number[][]): number {
+function calculateNovelty(
+  dataEmbedding: number[],
+  projectStateEmbeddings: number[][],
+): number {
   if (projectStateEmbeddings.length === 0) return 1.0; // Everything is novel if no history
-  
+
   // Find maximum similarity with existing memories
   const maxSimilarity = Math.max(
-    ...projectStateEmbeddings.map(embedding => 
-      cosSim(dataEmbedding, embedding) // Use cosSim
-    )
+    ...projectStateEmbeddings.map(
+      (embedding) => cosSim(dataEmbedding, embedding), // Use cosSim
+    ),
   );
-  
+
   // Novelty is inverse of similarity (high similarity = low novelty)
   const novelty = 1.0 - Math.max(0, maxSimilarity);
-  
+
   // Apply curve to make highly novel items stand out more
   return Math.pow(novelty, 0.7);
 }
@@ -103,34 +124,46 @@ function calculateNovelty(dataEmbedding: number[], projectStateEmbeddings: numbe
 function calculateCriticality(data: any, context?: DataContext): number {
   let score = 0.0;
   const dataStr = String(data).toLowerCase();
-  
+
   // Error indicators (high criticality)
   if (hasErrorSignals(dataStr)) score += 0.8;
-  
+
   // Success indicators (moderate-high criticality)
   if (hasSuccessSignals(dataStr)) score += 0.6;
-  
+
   // Change indicators (moderate criticality)
   if (hasChangeSignals(dataStr)) score += 0.4;
-  
+
   // Critical file paths
   if (context?.filePath && isCriticalFile(context.filePath)) score += 0.5;
-  
+
   // Important tools
   if (context?.toolName && isCriticalTool(context.toolName)) score += 0.3;
-  
+
   // Data type criticality
   if (context?.dataType) {
     switch (context.dataType) {
-      case 'error': score += 0.9; break;
-      case 'success': score += 0.7; break;
-      case 'user_input': score += 0.6; break;
-      case 'system_event': score += 0.4; break;
-      case 'file_content': score += 0.3; break;
-      case 'tool_output': score += 0.2; break;
+      case 'error':
+        score += 0.9;
+        break;
+      case 'success':
+        score += 0.7;
+        break;
+      case 'user_input':
+        score += 0.6;
+        break;
+      case 'system_event':
+        score += 0.4;
+        break;
+      case 'file_content':
+        score += 0.3;
+        break;
+      case 'tool_output':
+        score += 0.2;
+        break;
     }
   }
-  
+
   return Math.min(1.0, score);
 }
 
@@ -139,17 +172,17 @@ function calculateCriticality(data: any, context?: DataContext): number {
  */
 function calculateTemporalRelevance(context?: DataContext): number {
   if (!context?.timestamp) return 0.5; // Neutral if no timestamp
-  
+
   const now = Date.now();
   const ageMs = now - context.timestamp;
   const ageHours = ageMs / (1000 * 60 * 60);
-  
+
   // Recency decay curve - more recent data is more relevant
-  if (ageHours < 1) return 1.0;        // Very recent
-  if (ageHours < 6) return 0.8;        // Recent
-  if (ageHours < 24) return 0.6;       // Today
-  if (ageHours < 168) return 0.4;      // This week
-  return 0.2;                          // Older
+  if (ageHours < 1) return 1.0; // Very recent
+  if (ageHours < 6) return 0.8; // Recent
+  if (ageHours < 24) return 0.6; // Today
+  if (ageHours < 168) return 0.4; // This week
+  return 0.2; // Older
 }
 
 /**
@@ -158,27 +191,41 @@ function calculateTemporalRelevance(context?: DataContext): number {
 function extractContextualSignals(data: any, context?: DataContext): number {
   let signals = 0.0;
   const dataStr = String(data).toLowerCase();
-  
+
   // Keywords that suggest high importance
   const importantKeywords = [
-    'critical', 'urgent', 'important', 'breaking', 'failed', 'error',
-    'success', 'completed', 'fixed', 'resolved', 'breaking change',
-    'security', 'performance', 'bug', 'feature', 'release'
+    'critical',
+    'urgent',
+    'important',
+    'breaking',
+    'failed',
+    'error',
+    'success',
+    'completed',
+    'fixed',
+    'resolved',
+    'breaking change',
+    'security',
+    'performance',
+    'bug',
+    'feature',
+    'release',
   ];
-  
+
   for (const keyword of importantKeywords) {
     if (dataStr.includes(keyword)) {
       signals += 0.1;
     }
   }
-  
+
   // File size considerations (very large or very small files might be important)
   if (context?.size) {
-    if (context.size > 100000 || context.size < 100) { // Very large or very small
+    if (context.size > 100000 || context.size < 100) {
+      // Very large or very small
       signals += 0.2;
     }
   }
-  
+
   return Math.min(1.0, signals);
 }
 
@@ -190,58 +237,68 @@ function computeImportance(
   novelty: number,
   criticality: number,
   temporalRelevance: number,
-  contextualSignals: number
+  contextualSignals: number,
 ): number {
   // Weighted combination - criticality and mission alignment are most important
-  const weightedScore = (
-    missionRelevance * 0.35 +    // Mission alignment is crucial
-    criticality * 0.30 +         // Errors/successes are important
-    novelty * 0.20 +             // New information matters
-    temporalRelevance * 0.10 +   // Recent data is more relevant
-    contextualSignals * 0.05     // Contextual hints
-  );
-  
+  const weightedScore =
+    missionRelevance * 0.35 + // Mission alignment is crucial
+    criticality * 0.3 + // Errors/successes are important
+    novelty * 0.2 + // New information matters
+    temporalRelevance * 0.1 + // Recent data is more relevant
+    contextualSignals * 0.05; // Contextual hints
+
   // Apply boost for highly critical items regardless of other factors
   if (criticality > 0.8) {
     return Math.max(weightedScore, 0.8);
   }
-  
+
   return weightedScore;
 }
 
 /**
  * Calculates emotional valence (positive/negative).
  */
-function calculateValence(data: any, criticality: number, context?: DataContext): number {
+function calculateValence(
+  data: any,
+  criticality: number,
+  context?: DataContext,
+): number {
   const dataStr = String(data).toLowerCase();
   let valence = 0.0;
-  
+
   // Negative indicators
   if (hasErrorSignals(dataStr) || context?.dataType === 'error') {
     valence -= 0.8;
   }
-  
+
   // Positive indicators
   if (hasSuccessSignals(dataStr) || context?.dataType === 'success') {
     valence += 0.7;
   }
-  
+
   // Neutral adjustment based on criticality
   if (criticality > 0.6 && Math.abs(valence) < 0.3) {
     valence = valence < 0 ? -0.3 : 0.3; // Ensure critical items have some emotional weight
   }
-  
+
   return valence;
 }
 
 /**
  * Calculates emotional arousal (intensity/urgency).
  */
-function calculateArousal(criticality: number, novelty: number, contextualSignals: number): number {
+function calculateArousal(
+  criticality: number,
+  novelty: number,
+  contextualSignals: number,
+): number {
   // High criticality = high arousal
   // High novelty = moderate arousal
   // Strong contextual signals = moderate arousal
-  return Math.min(1.0, criticality * 0.6 + novelty * 0.3 + contextualSignals * 0.1);
+  return Math.min(
+    1.0,
+    criticality * 0.6 + novelty * 0.3 + contextualSignals * 0.1,
+  );
 }
 
 // === Utility Functions ===
@@ -250,43 +307,87 @@ function calculateArousal(criticality: number, novelty: number, contextualSignal
 
 function hasErrorSignals(text: string): boolean {
   const errorPatterns = [
-    'error', 'failed', 'failure', 'exception', 'crash', 'bug',
-    'broken', 'issue', 'problem', 'warning', 'fatal', 'critical error'
+    'error',
+    'failed',
+    'failure',
+    'exception',
+    'crash',
+    'bug',
+    'broken',
+    'issue',
+    'problem',
+    'warning',
+    'fatal',
+    'critical error',
   ];
-  return errorPatterns.some(pattern => text.includes(pattern));
+  return errorPatterns.some((pattern) => text.includes(pattern));
 }
 
 function hasSuccessSignals(text: string): boolean {
   const successPatterns = [
-    'success', 'completed', 'done', 'finished', 'resolved', 'fixed',
-    'working', 'passed', 'ok', 'successful', 'achieved', 'accomplished'
+    'success',
+    'completed',
+    'done',
+    'finished',
+    'resolved',
+    'fixed',
+    'working',
+    'passed',
+    'ok',
+    'successful',
+    'achieved',
+    'accomplished',
   ];
-  return successPatterns.some(pattern => text.includes(pattern));
+  return successPatterns.some((pattern) => text.includes(pattern));
 }
 
 function hasChangeSignals(text: string): boolean {
   const changePatterns = [
-    'modified', 'changed', 'updated', 'added', 'removed', 'deleted',
-    'created', 'new', 'edit', 'patch', 'diff'
+    'modified',
+    'changed',
+    'updated',
+    'added',
+    'removed',
+    'deleted',
+    'created',
+    'new',
+    'edit',
+    'patch',
+    'diff',
   ];
-  return changePatterns.some(pattern => text.includes(pattern));
+  return changePatterns.some((pattern) => text.includes(pattern));
 }
 
 function isCriticalFile(filePath: string): boolean {
   const criticalPatterns = [
-    'package.json', 'tsconfig.json', '.env', 'config',
-    'index.', 'main.', 'app.', 'server.',
-    '/src/', '/lib/', '/core/'
+    'package.json',
+    'tsconfig.json',
+    '.env',
+    'config',
+    'index.',
+    'main.',
+    'app.',
+    'server.',
+    '/src/',
+    '/lib/',
+    '/core/',
   ];
-  return criticalPatterns.some(pattern => filePath.includes(pattern));
+  return criticalPatterns.some((pattern) => filePath.includes(pattern));
 }
 
 function isCriticalTool(toolName: string): boolean {
   const criticalTools = [
-    'git', 'npm', 'build', 'test', 'deploy', 'compile',
-    'lint', 'format', 'typecheck'
+    'git',
+    'npm',
+    'build',
+    'test',
+    'deploy',
+    'compile',
+    'lint',
+    'format',
+    'typecheck',
   ];
-  return criticalTools.some(tool => toolName.includes(tool));
+  return criticalTools.some((tool) => toolName.includes(tool));
 }
 
 // === Integration Helper ===
@@ -297,7 +398,7 @@ function isCriticalTool(toolName: string): boolean {
  */
 export function shouldStoreInMemory(
   significance: SignificanceResult,
-  importanceThreshold: number = 0.3
+  importanceThreshold: number = 0.3,
 ): boolean {
   return significance.importance >= importanceThreshold;
 }
@@ -307,11 +408,11 @@ export function shouldStoreInMemory(
  */
 export function enhanceMemoryNodeData(
   originalData: any,
-  significance: SignificanceResult
+  significance: SignificanceResult,
 ): any {
   return {
     ...originalData,
     _significance: significance,
-    _timestamp: Date.now()
+    _timestamp: Date.now(),
   };
 }

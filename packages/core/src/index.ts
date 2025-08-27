@@ -7,7 +7,7 @@
 // Export config
 export * from './config/config.js';
 // Export model constants
-export { 
+export {
   DEFAULT_GEMINI_MODEL,
   DEFAULT_GEMINI_FLASH_MODEL,
   DEFAULT_GEMINI_FLASH_LITE_MODEL,
@@ -122,7 +122,14 @@ export * from './utils/browser.js';
 export { Storage } from './config/storage.js';
 
 // Re-export minimal @google/genai types (provided via types/genai-shims.d.ts)
-export type { Part, PartListUnion, PartUnion, FinishReason, FunctionCall, FunctionResponse } from './types/genai-shims.js';
+export type {
+  Part,
+  PartListUnion,
+  PartUnion,
+  FinishReason,
+  FunctionCall,
+  FunctionResponse,
+} from './types/genai-shims.js';
 
 // Explicitly re-export ambiguous members to resolve TS2308
 export { Config } from './config/config.js';

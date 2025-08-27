@@ -281,10 +281,7 @@ export abstract class BaseDeclarativeTool<
   }
 
   override validateToolParams(params: TParams): string | null {
-    const errors = SchemaValidator.validate(
-      this.schema.parameters,
-      params,
-    );
+    const errors = SchemaValidator.validate(this.schema.parameters, params);
 
     if (errors) {
       return errors;

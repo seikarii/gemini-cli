@@ -321,7 +321,7 @@ describe('mcp-client', () => {
         );
 
         expect(transport).toBeInstanceOf(StreamableHTTPClientTransport);
-         
+
         const authProvider = (transport as any)._authProvider;
         expect(authProvider).toBeInstanceOf(GoogleCredentialProvider);
       });
@@ -340,7 +340,7 @@ describe('mcp-client', () => {
         );
 
         expect(transport).toBeInstanceOf(SSEClientTransport);
-         
+
         const authProvider = (transport as any)._authProvider;
         expect(authProvider).toBeInstanceOf(GoogleCredentialProvider);
       });

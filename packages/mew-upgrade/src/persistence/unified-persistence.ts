@@ -36,12 +36,12 @@ export class UnifiedPersistence {
    * @param agent The main agent instance.
    */
   async backup(agent: Agent): Promise<void> {
-    console.log("--- Starting Agent State Backup ---");
+    console.log('--- Starting Agent State Backup ---');
     const components = agent.getPersistableComponents();
     for (const key in components) {
       await this.service.save(components[key], key);
     }
-    console.info("--- Agent State Backup Complete ---");
+    console.info('--- Agent State Backup Complete ---');
   }
 
   /**
@@ -49,11 +49,11 @@ export class UnifiedPersistence {
    * @param agent The main agent instance.
    */
   async restore(agent: Agent): Promise<void> {
-    console.log("--- Starting Agent State Restore ---");
+    console.log('--- Starting Agent State Restore ---');
     const components = agent.getPersistableComponents();
     for (const key in components) {
       await this.service.load(components[key], key);
     }
-    console.log("--- Agent State Restore Complete ---");
+    console.log('--- Agent State Restore Complete ---');
   }
 }

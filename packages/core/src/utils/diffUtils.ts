@@ -3,9 +3,21 @@ import * as Diff from 'diff';
 /**
  * Wrapper around Diff.createPatch to centralize patch formatting and options.
  */
-export function createPatch(fileName: string, oldStr: string, newStr: string, oldHeader?: string, newHeader?: string) {
+export function createPatch(
+  fileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader?: string,
+  newHeader?: string,
+) {
   // Use default options from the diff library; callers can post-process if needed
-  return Diff.createPatch(fileName, oldStr, newStr, oldHeader ?? '', newHeader ?? '');
+  return Diff.createPatch(
+    fileName,
+    oldStr,
+    newStr,
+    oldHeader ?? '',
+    newHeader ?? '',
+  );
 }
 
 export function getSimpleDiffStat(patchText: string) {

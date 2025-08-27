@@ -55,7 +55,11 @@ import { SettingsContext } from './ui/contexts/SettingsContext.js';
 class OptimizedLogger {
   private static instance: OptimizedLogger;
   private debugMode = false;
-  private logQueue: Array<{ level: string; message: string; timestamp: number }> = [];
+  private logQueue: Array<{
+    level: string;
+    message: string;
+    timestamp: number;
+  }> = [];
   private isFlushingLogs = false;
 
   static getInstance(): OptimizedLogger {
@@ -71,7 +75,7 @@ class OptimizedLogger {
 
   private async flushLogs(): Promise<void> {
     if (this.isFlushingLogs || this.logQueue.length === 0) return;
-    
+
     this.isFlushingLogs = true;
     const logsToFlush = [...this.logQueue];
     this.logQueue = [];
@@ -81,7 +85,7 @@ class OptimizedLogger {
       for (const log of logsToFlush) {
         const timestamp = new Date(log.timestamp).toISOString();
         const message = `[${timestamp}] [${log.level}] ${log.message}`;
-        
+
         if (log.level === 'ERROR') {
           console.error(message);
         } else if (log.level === 'WARN') {
@@ -140,21 +144,26 @@ class MemoryManager {
 
   static getOptimizedMemoryArgs(config: Config): string[] {
     const now = Date.now();
-    
+
     // Use cached values if still valid
     if (
       MemoryManager.memoryStatsCache &&
-      now - MemoryManager.memoryStatsCache.timestamp < MemoryManager.CACHE_TTL_MS
+      now - MemoryManager.memoryStatsCache.timestamp <
+        MemoryManager.CACHE_TTL_MS
     ) {
-      const { currentMaxOldSpaceSizeMb, targetMaxOldSpaceSizeInMB } = MemoryManager.memoryStatsCache;
-      
+      const { currentMaxOldSpaceSizeMb, targetMaxOldSpaceSizeInMB } =
+        MemoryManager.memoryStatsCache;
+
       if (config.getDebugMode()) {
         OptimizedLogger.getInstance().debug(
-          `Using cached memory stats: current=${currentMaxOldSpaceSizeMb}MB, target=${targetMaxOldSpaceSizeInMB}MB`
+          `Using cached memory stats: current=${currentMaxOldSpaceSizeMb}MB, target=${targetMaxOldSpaceSizeInMB}MB`,
         );
       }
 
-      return MemoryManager.shouldRelaunch(currentMaxOldSpaceSizeMb, targetMaxOldSpaceSizeInMB)
+      return MemoryManager.shouldRelaunch(
+        currentMaxOldSpaceSizeMb,
+        targetMaxOldSpaceSizeInMB,
+      )
         ? [`--max-old-space-size=${targetMaxOldSpaceSizeInMB}`]
         : [];
     }
@@ -162,14 +171,16 @@ class MemoryManager {
     // Calculate fresh memory stats
     const totalMemoryMB = os.totalmem() / (1024 * 1024);
     const heapStats = v8.getHeapStatistics();
-    const currentMaxOldSpaceSizeMb = Math.floor(heapStats.heap_size_limit / 1024 / 1024);
+    const currentMaxOldSpaceSizeMb = Math.floor(
+      heapStats.heap_size_limit / 1024 / 1024,
+    );
 
     // Optimized memory target: 50% of total memory, but with minimum and maximum bounds
     const minMemoryMB = 1024; // 1GB minimum
     const maxMemoryMB = Math.min(8192, totalMemoryMB * 0.8); // 8GB maximum or 80% of total
     const targetMaxOldSpaceSizeInMB = Math.max(
       minMemoryMB,
-      Math.min(maxMemoryMB, Math.floor(totalMemoryMB * 0.5))
+      Math.min(maxMemoryMB, Math.floor(totalMemoryMB * 0.5)),
     );
 
     // Cache the calculated values
@@ -182,7 +193,7 @@ class MemoryManager {
 
     if (config.getDebugMode()) {
       OptimizedLogger.getInstance().debug(
-        `Memory analysis: total=${totalMemoryMB.toFixed(0)}MB, current=${currentMaxOldSpaceSizeMb}MB, target=${targetMaxOldSpaceSizeInMB}MB`
+        `Memory analysis: total=${totalMemoryMB.toFixed(0)}MB, current=${currentMaxOldSpaceSizeMb}MB, target=${targetMaxOldSpaceSizeInMB}MB`,
       );
     }
 
@@ -190,7 +201,10 @@ class MemoryManager {
       return [];
     }
 
-    return MemoryManager.shouldRelaunch(currentMaxOldSpaceSizeMb, targetMaxOldSpaceSizeInMB)
+    return MemoryManager.shouldRelaunch(
+      currentMaxOldSpaceSizeMb,
+      targetMaxOldSpaceSizeInMB,
+    )
       ? [`--max-old-space-size=${targetMaxOldSpaceSizeInMB}`]
       : [];
   }
@@ -210,11 +224,12 @@ class OptimizedStdinReader {
 
   static async readStdinOptimized(): Promise<string> {
     const now = Date.now();
-    
+
     // Return cached value if still valid
     if (
       OptimizedStdinReader.cache !== null &&
-      now - OptimizedStdinReader.cacheTimestamp < OptimizedStdinReader.CACHE_TTL_MS
+      now - OptimizedStdinReader.cacheTimestamp <
+        OptimizedStdinReader.CACHE_TTL_MS
     ) {
       return OptimizedStdinReader.cache;
     }
@@ -226,31 +241,35 @@ class OptimizedStdinReader {
 
       return new Promise((resolve, reject) => {
         process.stdin.setEncoding('utf8');
-        
+
         const timeout = setTimeout(() => {
           reject(new Error('Stdin read timeout after 10 seconds'));
         }, 10000);
 
         process.stdin.on('data', (chunk: string) => {
           totalSize += chunk.length;
-          
+
           if (totalSize > maxSize) {
             clearTimeout(timeout);
-            reject(new Error(`Input too large: ${totalSize} bytes (max: ${maxSize})`));
+            reject(
+              new Error(
+                `Input too large: ${totalSize} bytes (max: ${maxSize})`,
+              ),
+            );
             return;
           }
-          
+
           chunks.push(chunk);
         });
 
         process.stdin.on('end', () => {
           clearTimeout(timeout);
           const result = chunks.join('');
-          
+
           // Cache the result
           OptimizedStdinReader.cache = result;
           OptimizedStdinReader.cacheTimestamp = now;
-          
+
           resolve(result);
         });
 
@@ -272,7 +291,7 @@ class DynamicImportManager {
 
   static async loadGeminiAgent(config: Config): Promise<unknown> {
     const cacheKey = 'gemini-agent';
-    
+
     if (DynamicImportManager.importCache.has(cacheKey)) {
       return DynamicImportManager.importCache.get(cacheKey);
     }
@@ -280,27 +299,34 @@ class DynamicImportManager {
     const importPromise = (async () => {
       try {
         const startTime = performance.now();
-        
+
         // Dynamic import with timeout protection
-        const importPromise = import('@google/gemini-cli-mew-upgrade/agent/gemini-agent.js');
+        const importPromise = import(
+          '@google/gemini-cli-mew-upgrade/agent/gemini-agent.js'
+        );
         const timeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Import timeout')), 5000);
         });
 
-        const moduleResult = await Promise.race([importPromise, timeoutPromise]) as {
+        const moduleResult = (await Promise.race([
+          importPromise,
+          timeoutPromise,
+        ])) as {
           GeminiAgent: new (config: unknown) => unknown;
         };
-        
+
         const loadTime = performance.now() - startTime;
         if (config.getDebugMode()) {
-          OptimizedLogger.getInstance().debug(`GeminiAgent loaded in ${loadTime.toFixed(2)}ms`);
+          OptimizedLogger.getInstance().debug(
+            `GeminiAgent loaded in ${loadTime.toFixed(2)}ms`,
+          );
         }
 
         return new moduleResult.GeminiAgent(config as unknown);
       } catch (err) {
         if (config.getDebugMode()) {
           OptimizedLogger.getInstance().warn(
-            `Failed to load GeminiAgent: ${err instanceof Error ? err.message : String(err)}`
+            `Failed to load GeminiAgent: ${err instanceof Error ? err.message : String(err)}`,
           );
         }
         return undefined;
@@ -319,34 +345,37 @@ class StartupOrchestrator {
     const logger = OptimizedLogger.getInstance();
 
     // Phase 1: Independent operations that can run in parallel
-    const [
-      settings,
-      argv,
-      extensions,
-      checkpointCleanup,
-      version,
-    ] = await Promise.allSettled([
-      loadSettings(workspaceRoot),
-      parseArguments(),
-      loadExtensions(workspaceRoot),
-      cleanupCheckpoints(),
-      getCliVersion(),
-    ]);
+    const [settings, argv, extensions, checkpointCleanup, version] =
+      await Promise.allSettled([
+        loadSettings(workspaceRoot),
+        parseArguments(),
+        loadExtensions(workspaceRoot),
+        cleanupCheckpoints(),
+        getCliVersion(),
+      ]);
     console.log('[DEBUG] StartupOrchestrator: Phase 1 completed.');
 
     // Handle errors from parallel operations
-    const settingsValue = settings.status === 'fulfilled' ? settings.value : (() => {
-      logger.error('Failed to load settings');
-      process.exit(1);
-    })();
+    const settingsValue =
+      settings.status === 'fulfilled'
+        ? settings.value
+        : (() => {
+            logger.error('Failed to load settings');
+            process.exit(1);
+          })();
 
-    const argvValue = argv.status === 'fulfilled' ? argv.value : (() => {
-      logger.error('Failed to parse arguments');
-      process.exit(1);
-    })();
+    const argvValue =
+      argv.status === 'fulfilled'
+        ? argv.value
+        : (() => {
+            logger.error('Failed to parse arguments');
+            process.exit(1);
+          })();
 
-    const extensionsValue = extensions.status === 'fulfilled' ? extensions.value : [];
-    const versionValue = version.status === 'fulfilled' ? version.value : 'unknown';
+    const extensionsValue =
+      extensions.status === 'fulfilled' ? extensions.value : [];
+    const versionValue =
+      version.status === 'fulfilled' ? version.value : 'unknown';
 
     if (checkpointCleanup.status === 'rejected') {
       logger.warn(`Checkpoint cleanup failed: ${checkpointCleanup.reason}`);
@@ -367,10 +396,10 @@ class StartupOrchestrator {
       // DNS configuration
       Promise.resolve().then(() => {
         dns.setDefaultResultOrder(
-          validateDnsResolutionOrder(settingsValue.merged.dnsResolutionOrder)
+          validateDnsResolutionOrder(settingsValue.merged.dnsResolutionOrder),
         );
       }),
-      
+
       // Console patcher setup
       Promise.resolve().then(() => {
         const consolePatcher = new ConsolePatcher({
@@ -436,9 +465,11 @@ function getNodeMemoryArgs(config: Config): string[] {
 }
 
 // Optimized relaunch function with better error handling
-async function relaunchWithAdditionalArgs(additionalArgs: string[]): Promise<void> {
+async function relaunchWithAdditionalArgs(
+  additionalArgs: string[],
+): Promise<void> {
   const logger = OptimizedLogger.getInstance();
-  
+
   try {
     const nodeArgs = [...additionalArgs, ...process.argv.slice(1)];
     const newEnv = { ...process.env, GEMINI_CLI_NO_RELAUNCH: 'true' };
@@ -458,10 +489,10 @@ async function relaunchWithAdditionalArgs(additionalArgs: string[]): Promise<voi
           reject(new Error(`Child process exited with code ${code}`));
         }
       });
-      
+
       child.on('error', reject);
     });
-    
+
     process.exit(0);
   } catch (error) {
     logger.error(`Failed to relaunch: ${error}`);
@@ -473,7 +504,7 @@ import { runZedIntegration } from './zed-integration/zedIntegration.js';
 export function setupUnhandledRejectionHandler(): void {
   let unhandledRejectionOccurred = false;
   const logger = OptimizedLogger.getInstance();
-  
+
   process.on('unhandledRejection', (reason, _promise) => {
     const errorMessage = `=========================================
 This is an unexpected error. Please file a bug report using the /bug tool.
@@ -486,10 +517,10 @@ Stack trace:
 ${reason.stack}`
         : ''
     }`;
-    
+
     logger.error(errorMessage);
     appEvents.emit(AppEvent.LogError, errorMessage);
-    
+
     if (!unhandledRejectionOccurred) {
       unhandledRejectionOccurred = true;
       appEvents.emit(AppEvent.OpenDebugConsole);
@@ -509,19 +540,17 @@ export async function startInteractiveUI(
 
   try {
     // Parallel initialization of UI components
-    const [
-      version,
-      agentInstance,
-      kittyResult,
-    ] = await Promise.allSettled([
+    const [version, agentInstance, kittyResult] = await Promise.allSettled([
       getCliVersion(),
       DynamicImportManager.loadGeminiAgent(config),
       detectAndEnableKittyProtocol(),
     ]);
 
     // Handle results from parallel operations
-    const versionValue = version.status === 'fulfilled' ? version.value : 'unknown';
-    const agentValue = agentInstance.status === 'fulfilled' ? agentInstance.value : undefined;
+    const versionValue =
+      version.status === 'fulfilled' ? version.value : 'unknown';
+    const agentValue =
+      agentInstance.status === 'fulfilled' ? agentInstance.value : undefined;
 
     if (kittyResult.status === 'rejected') {
       logger.debug(`Kitty protocol detection failed: ${kittyResult.reason}`);
@@ -546,9 +575,9 @@ export async function startInteractiveUI(
           />
         </SettingsContext.Provider>
       </React.StrictMode>,
-      { 
-        exitOnCtrlC: false, 
-        isScreenReaderEnabled: config.getScreenReader() 
+      {
+        exitOnCtrlC: false,
+        isScreenReaderEnabled: config.getScreenReader(),
       },
     );
 
@@ -562,10 +591,9 @@ export async function startInteractiveUI(
       });
 
     registerCleanup(() => instance.unmount());
-    
+
     const totalTime = performance.now() - startTime;
     logger.debug(`Interactive UI fully started in ${totalTime.toFixed(2)}ms`);
-    
   } catch (error) {
     logger.error(`Failed to start interactive UI: ${error}`);
     throw error;
@@ -576,7 +604,7 @@ export async function startInteractiveUI(
 export async function main(): Promise<void> {
   const mainStartTime = performance.now();
   setupUnhandledRejectionHandler();
-  
+
   const workspaceRoot = process.cwd();
   const logger = OptimizedLogger.getInstance();
 
@@ -593,10 +621,10 @@ export async function main(): Promise<void> {
     // Early validation of settings errors
     if (settings.errors.length > 0) {
       for (const error of settings.errors) {
-        const colorizedMessage = process.env['NO_COLOR'] 
+        const colorizedMessage = process.env['NO_COLOR']
           ? `Error in ${error.path}: ${error.message}`
           : `\x1b[31mError in ${error.path}: ${error.message}\x1b[0m`;
-        
+
         logger.error(colorizedMessage);
         logger.error(`Please fix ${error.path} and try again.`);
       }
@@ -613,28 +641,34 @@ export async function main(): Promise<void> {
     }
 
     // Parallel validation and checks
-    const [
-      promptInteractiveCheck,
-      _authTypeSetup,
-      configInitialization,
-    ] = await Promise.allSettled([
-      // Validate prompt interactive flag
-      Promise.resolve().then(() => {
-        if (argv.promptInteractive && !process.stdin.isTTY) {
-          throw new Error('The --prompt-interactive flag is not supported when piping input from stdin.');
-        }
-      }),
+    const [promptInteractiveCheck, _authTypeSetup, configInitialization] =
+      await Promise.allSettled([
+        // Validate prompt interactive flag
+        Promise.resolve().then(() => {
+          if (argv.promptInteractive && !process.stdin.isTTY) {
+            throw new Error(
+              'The --prompt-interactive flag is not supported when piping input from stdin.',
+            );
+          }
+        }),
 
-      // Set default auth type if needed
-      Promise.resolve().then(() => {
-        if (!settings.merged.selectedAuthType && process.env['CLOUD_SHELL'] === 'true') {
-          settings.setValue(SettingScope.User, 'selectedAuthType', AuthType.CLOUD_SHELL);
-        }
-      }),
+        // Set default auth type if needed
+        Promise.resolve().then(() => {
+          if (
+            !settings.merged.selectedAuthType &&
+            process.env['CLOUD_SHELL'] === 'true'
+          ) {
+            settings.setValue(
+              SettingScope.User,
+              'selectedAuthType',
+              AuthType.CLOUD_SHELL,
+            );
+          }
+        }),
 
-      // Initialize config
-      config.initialize(),
-    ]);
+        // Initialize config
+        config.initialize(),
+      ]);
 
     // Handle validation errors
     if (promptInteractiveCheck.status === 'rejected') {
@@ -643,7 +677,9 @@ export async function main(): Promise<void> {
     }
 
     if (configInitialization.status === 'rejected') {
-      logger.error(`Failed to initialize config: ${configInitialization.reason}`);
+      logger.error(
+        `Failed to initialize config: ${configInitialization.reason}`,
+      );
       process.exit(1);
     }
 
@@ -655,8 +691,11 @@ export async function main(): Promise<void> {
       setupPromises.push(
         (async () => {
           await config.getIdeClient().connect();
-          logIdeConnection(config, new IdeConnectionEvent(IdeConnectionType.START));
-        })()
+          logIdeConnection(
+            config,
+            new IdeConnectionEvent(IdeConnectionType.START),
+          );
+        })(),
       );
     }
 
@@ -673,23 +712,30 @@ export async function main(): Promise<void> {
         : [];
 
       const sandboxConfig = config.getSandbox();
-      
+
       if (sandboxConfig) {
         // Parallel authentication and stdin reading for sandbox
         const sandboxPrep = await Promise.allSettled([
           // Authentication
           (async () => {
-            if (settings.merged.selectedAuthType && !settings.merged.useExternalAuth) {
-              const authError = validateAuthMethod(settings.merged.selectedAuthType);
+            if (
+              settings.merged.selectedAuthType &&
+              !settings.merged.useExternalAuth
+            ) {
+              const authError = validateAuthMethod(
+                settings.merged.selectedAuthType,
+              );
               if (authError) {
                 throw new Error(authError);
               }
               await config.refreshAuth(settings.merged.selectedAuthType);
             }
           })(),
-          
+
           // Stdin reading
-          process.stdin.isTTY ? Promise.resolve('') : OptimizedStdinReader.readStdinOptimized(),
+          process.stdin.isTTY
+            ? Promise.resolve('')
+            : OptimizedStdinReader.readStdinOptimized(),
         ]);
 
         // Handle authentication errors
@@ -698,21 +744,28 @@ export async function main(): Promise<void> {
           process.exit(1);
         }
 
-        const stdinData = sandboxPrep[1].status === 'fulfilled' ? sandboxPrep[1].value : '';
+        const stdinData =
+          sandboxPrep[1].status === 'fulfilled' ? sandboxPrep[1].value : '';
 
         // Optimized stdin injection
-        const injectStdinIntoArgs = (args: string[], stdin?: string): string[] => {
+        const injectStdinIntoArgs = (
+          args: string[],
+          stdin?: string,
+        ): string[] => {
           if (!stdin) return [...args];
-          
+
           const finalArgs = [...args];
-          const promptIndex = finalArgs.findIndex(arg => arg === '--prompt' || arg === '-p');
-          
+          const promptIndex = finalArgs.findIndex(
+            (arg) => arg === '--prompt' || arg === '-p',
+          );
+
           if (promptIndex > -1 && finalArgs.length > promptIndex + 1) {
-            finalArgs[promptIndex + 1] = `${stdin}\n\n${finalArgs[promptIndex + 1]}`;
+            finalArgs[promptIndex + 1] =
+              `${stdin}\n\n${finalArgs[promptIndex + 1]}`;
           } else {
             finalArgs.push('--prompt', stdin);
           }
-          
+
           return finalArgs;
         };
 
@@ -737,95 +790,109 @@ export async function main(): Promise<void> {
     }
 
     // Parallel startup warnings and input processing
-    const [
-      startupWarnings,
-      inputProcessing,
-    ] = await Promise.allSettled([
+    const [startupWarnings, inputProcessing] = await Promise.allSettled([
       Promise.all([
         getStartupWarnings(),
         getUserStartupWarnings(workspaceRoot),
       ]).then(([startup, user]) => [...startup, ...user]),
-      
+
       (async () => {
         let input = config.getQuestion();
-        
+
         if (!config.isInteractive() && !process.stdin.isTTY) {
           const stdinData = await OptimizedStdinReader.readStdinOptimized();
           if (stdinData) {
             input = `${stdinData}\n\n${input}`;
           }
         }
-        
+
         return input;
       })(),
     ]);
 
-    const startupWarningsValue = startupWarnings.status === 'fulfilled' ? startupWarnings.value : [];
-    const inputValue = inputProcessing.status === 'fulfilled' ? inputProcessing.value : '';
+    const startupWarningsValue =
+      startupWarnings.status === 'fulfilled' ? startupWarnings.value : [];
+    const inputValue =
+      inputProcessing.status === 'fulfilled' ? inputProcessing.value : '';
 
     // Launch interactive UI
     if (config.isInteractive()) {
       const setupTime = performance.now() - mainStartTime;
       logger.debug(`Total startup time: ${setupTime.toFixed(2)}ms`);
-      
-      await startInteractiveUI(config, settings, startupWarningsValue, workspaceRoot);
+
+      await startInteractiveUI(
+        config,
+        settings,
+        startupWarningsValue,
+        workspaceRoot,
+      );
       return;
     }
 
     // Non-interactive mode
     if (!inputValue) {
-      logger.error('No input provided via stdin. Input can be provided by piping data into gemini or using the --prompt option.');
+      logger.error(
+        'No input provided via stdin. Input can be provided by piping data into gemini or using the --prompt option.',
+      );
       process.exit(1);
     }
 
     // Parallel non-interactive setup
     const promptId = Math.random().toString(16).slice(2);
-    
-    const [
-      _loggingResult,
-      nonInteractiveConfig,
-      agentInstance,
-    ] = await Promise.allSettled([
-      // User prompt logging
-      Promise.resolve().then(() => {
-        logUserPrompt(config, {
-          'event.name': 'user_prompt',
-          'event.timestamp': new Date().toISOString(),
-          prompt: inputValue,
-          prompt_id: promptId,
-          auth_type: config.getContentGeneratorConfig()?.authType,
-          prompt_length: inputValue.length,
-        });
-      }),
-      
-      // Validate non-interactive auth
-      validateNonInteractiveAuth(
-        settings.merged.selectedAuthType,
-        settings.merged.useExternalAuth,
-        config,
-      ),
-      
-      // Load agent
-      DynamicImportManager.loadGeminiAgent(config),
-    ]);
+
+    const [_loggingResult, nonInteractiveConfig, agentInstance] =
+      await Promise.allSettled([
+        // User prompt logging
+        Promise.resolve().then(() => {
+          logUserPrompt(config, {
+            'event.name': 'user_prompt',
+            'event.timestamp': new Date().toISOString(),
+            prompt: inputValue,
+            prompt_id: promptId,
+            auth_type: config.getContentGeneratorConfig()?.authType,
+            prompt_length: inputValue.length,
+          });
+        }),
+
+        // Validate non-interactive auth
+        validateNonInteractiveAuth(
+          settings.merged.selectedAuthType,
+          settings.merged.useExternalAuth,
+          config,
+        ),
+
+        // Load agent
+        DynamicImportManager.loadGeminiAgent(config),
+      ]);
 
     // Handle errors
     if (nonInteractiveConfig.status === 'rejected') {
-      logger.error(`Authentication validation failed: ${nonInteractiveConfig.reason}`);
+      logger.error(
+        `Authentication validation failed: ${nonInteractiveConfig.reason}`,
+      );
       process.exit(1);
     }
 
-    const agent = agentInstance.status === 'fulfilled' ? agentInstance.value : (() => {
-      logger.error('Failed to load GeminiAgent for non-interactive mode');
-      process.exit(1);
-    })();
+    const agent =
+      agentInstance.status === 'fulfilled'
+        ? agentInstance.value
+        : (() => {
+            logger.error('Failed to load GeminiAgent for non-interactive mode');
+            process.exit(1);
+          })();
 
     const totalSetupTime = performance.now() - mainStartTime;
-    logger.debug(`Non-interactive setup completed in ${totalSetupTime.toFixed(2)}ms`);
+    logger.debug(
+      `Non-interactive setup completed in ${totalSetupTime.toFixed(2)}ms`,
+    );
 
-    await runNonInteractive(agent, nonInteractiveConfig.value, inputValue, promptId);
+    await runNonInteractive(
+      agent,
+      nonInteractiveConfig.value,
+      inputValue,
+      promptId,
+    );
     process.exit(0);
-
   } catch (error) {
     logger.error(`Fatal error in main: ${error}`);
     process.exit(1);
@@ -841,12 +908,12 @@ function setWindowTitle(title: string, settings: LoadedSettings): void {
     // More efficient control character removal using character codes
     const sanitizedTitle = rawTitle
       .split('')
-      .filter(char => {
+      .filter((char) => {
         const code = char.charCodeAt(0);
         return code >= 32 && code !== 127; // Remove control characters
       })
       .join('');
-    
+
     process.stdout.write(`\x1b]2;${sanitizedTitle}\x07`);
 
     // Clean up on exit

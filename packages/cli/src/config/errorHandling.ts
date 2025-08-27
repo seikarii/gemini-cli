@@ -42,7 +42,10 @@ export function handleConfigError(
 /**
  * Creates a standardized error message for configuration validation failures.
  */
-export function createValidationErrorMessage(field: string, reason: string): string {
+export function createValidationErrorMessage(
+  field: string,
+  reason: string,
+): string {
   return `Configuration validation failed for '${field}': ${reason}`;
 }
 

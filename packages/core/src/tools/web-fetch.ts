@@ -78,8 +78,10 @@ class WebFetchToolInvocation extends BaseToolInvocation<
     const urls = extractUrls(this.params.prompt);
     if (urls.length === 0) {
       return {
-        llmContent: 'Error: No URLs found in the prompt for fallback processing.',
-        returnDisplay: 'Error: No URLs found in the prompt for fallback processing.',
+        llmContent:
+          'Error: No URLs found in the prompt for fallback processing.',
+        returnDisplay:
+          'Error: No URLs found in the prompt for fallback processing.',
         error: {
           message: 'No URLs found in the prompt for fallback processing.',
           type: ToolErrorType.WEB_FETCH_FALLBACK_FAILED,
@@ -95,13 +97,19 @@ class WebFetchToolInvocation extends BaseToolInvocation<
         let processedUrl = url;
 
         // Convert GitHub blob URL to raw URL
-        if (processedUrl.includes('github.com') && processedUrl.includes('/blob/')) {
+        if (
+          processedUrl.includes('github.com') &&
+          processedUrl.includes('/blob/')
+        ) {
           processedUrl = processedUrl
             .replace('github.com', 'raw.githubusercontent.com')
             .replace('/blob/', '/');
         }
 
-        const response = await fetchWithTimeout(processedUrl, URL_FETCH_TIMEOUT_MS);
+        const response = await fetchWithTimeout(
+          processedUrl,
+          URL_FETCH_TIMEOUT_MS,
+        );
         if (!response.ok) {
           throw new Error(
             `Request failed with status code ${response.status} ${response.statusText}`,
@@ -115,11 +123,17 @@ class WebFetchToolInvocation extends BaseToolInvocation<
 
         // Validate processed content quality before sending to LLM
         if (!this.isContentValidForLLM(processedContent)) {
-          throw new Error(`Unable to extract meaningful content from ${processedUrl}. The page may be dynamically loaded, require JavaScript, or have restricted access.`);
+          throw new Error(
+            `Unable to extract meaningful content from ${processedUrl}. The page may be dynamically loaded, require JavaScript, or have restricted access.`,
+          );
         }
 
         // Create a more focused and intelligent prompt for the LLM
-        const llmPrompt = this.createIntelligentPrompt(processedContent, processedUrl, this.params.prompt);
+        const llmPrompt = this.createIntelligentPrompt(
+          processedContent,
+          processedUrl,
+          this.params.prompt,
+        );
 
         const geminiClient = this.config.getGeminiClient();
         const result = await geminiClient.generateContent(
@@ -172,7 +186,11 @@ class WebFetchToolInvocation extends BaseToolInvocation<
     return processedText;
   }
 
-  private attemptHtmlProcessing(html: string, url: string, attempt: number): string {
+  private attemptHtmlProcessing(
+    html: string,
+    url: string,
+    attempt: number,
+  ): string {
     const strategies = [
       // Strategy 1: Comprehensive content extraction
       () => this.extractWithComprehensiveStrategy(html, url),
@@ -296,7 +314,11 @@ class WebFetchToolInvocation extends BaseToolInvocation<
     return this.finalizeContent(processedText, html, url);
   }
 
-  private finalizeContent(processedText: string, html: string, url: string): string {
+  private finalizeContent(
+    processedText: string,
+    html: string,
+    url: string,
+  ): string {
     // Clean up excessive whitespace and normalize
     let cleanedText = processedText
       .replace(/\n{3,}/g, '\n\n') // Replace 3+ newlines with 2
@@ -309,7 +331,8 @@ class WebFetchToolInvocation extends BaseToolInvocation<
 
     // Limit content length to prevent token overuse
     if (cleanedText.length > MAX_CONTENT_LENGTH) {
-      cleanedText = cleanedText.substring(0, MAX_CONTENT_LENGTH - 100) +
+      cleanedText =
+        cleanedText.substring(0, MAX_CONTENT_LENGTH - 100) +
         '\n\n[Content truncated due to length...]';
     }
 
@@ -354,7 +377,9 @@ class WebFetchToolInvocation extends BaseToolInvocation<
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     const title = titleMatch ? titleMatch[1].trim() : 'No title available';
 
-    const descriptionMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["'][^>]*>/i);
+    const descriptionMatch = html.match(
+      /<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["'][^>]*>/i,
+    );
     const description = descriptionMatch ? descriptionMatch[1].trim() : '';
 
     let fallbackContent = `Source: ${url}\nTitle: ${title}\n\n`;
@@ -375,7 +400,11 @@ class WebFetchToolInvocation extends BaseToolInvocation<
     }
 
     // Additional checks for LLM suitability
-    const contentWithoutMetadata = content.split('\n\n').slice(1).join('\n\n').trim();
+    const contentWithoutMetadata = content
+      .split('\n\n')
+      .slice(1)
+      .join('\n\n')
+      .trim();
 
     // Check minimum useful content length for LLM processing
     if (contentWithoutMetadata.length < 200) {
@@ -400,7 +429,9 @@ class WebFetchToolInvocation extends BaseToolInvocation<
     }
 
     // Check if content has enough substantive information
-    const words = contentWithoutMetadata.split(/\s+/).filter(word => word.length > 3);
+    const words = contentWithoutMetadata
+      .split(/\s+/)
+      .filter((word) => word.length > 3);
     if (words.length < 10) {
       return false;
     }
@@ -408,11 +439,23 @@ class WebFetchToolInvocation extends BaseToolInvocation<
     return true;
   }
 
-  private createIntelligentPrompt(content: string, url: string, userPrompt: string): string {
+  private createIntelligentPrompt(
+    content: string,
+    url: string,
+    userPrompt: string,
+  ): string {
     // Extract key information from content
     const lines = content.split('\n');
-    const title = lines.find(line => line.startsWith('Title:'))?.replace('Title:', '').trim() || '';
-    const source = lines.find(line => line.startsWith('Source:'))?.replace('Source:', '').trim() || '';
+    const title =
+      lines
+        .find((line) => line.startsWith('Title:'))
+        ?.replace('Title:', '')
+        .trim() || '';
+    const source =
+      lines
+        .find((line) => line.startsWith('Source:'))
+        ?.replace('Source:', '')
+        .trim() || '';
     const mainContent = lines.slice(2).join('\n').trim(); // Skip metadata lines
 
     // Create a more intelligent prompt based on content analysis
@@ -442,7 +485,11 @@ Please provide a comprehensive and focused response based on the user's request.
 `;
 
     // Detect content type
-    if (content.includes('function') || content.includes('const') || content.includes('var')) {
+    if (
+      content.includes('function') ||
+      content.includes('const') ||
+      content.includes('var')
+    ) {
       analysis += `- Content type: Appears to contain code or technical documentation
 `;
     } else if (content.match(/\b\d{4}-\d{2}-\d{2}\b/)) {

@@ -324,21 +324,25 @@ export class ShellExecutionService {
         ? ['/c', commandToExecute]
         : ['-c', commandToExecute];
 
-  const ptyProcess = (ptyInfo?.module as unknown as PtyModule).spawn(shell, args, {
-        cwd,
-        name: 'xterm-color',
-        cols,
-        rows,
-        env: {
-          ...process.env,
-          GEMINI_CLI: '1',
-          TERM: 'xterm-256color',
-          PAGER: 'cat',
+      const ptyProcess = (ptyInfo?.module as unknown as PtyModule).spawn(
+        shell,
+        args,
+        {
+          cwd,
+          name: 'xterm-color',
+          cols,
+          rows,
+          env: {
+            ...process.env,
+            GEMINI_CLI: '1',
+            TERM: 'xterm-256color',
+            PAGER: 'cat',
+          },
+          handleFlowControl: true,
         },
-        handleFlowControl: true,
-      });
+      );
 
-  const result = new Promise<ShellExecutionResult>((resolve) => {
+      const result = new Promise<ShellExecutionResult>((resolve) => {
         const headlessTerminal = new Terminal({
           allowProposedApi: true,
           cols,
@@ -403,7 +407,7 @@ export class ShellExecutionService {
           );
         };
 
-  ptyProcess.onData((data: string) => {
+        ptyProcess.onData((data: string) => {
           const bufferData = Buffer.from(data, 'utf-8');
           handleOutput(bufferData);
         });

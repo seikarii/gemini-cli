@@ -1742,7 +1742,9 @@ export function useTextBuffer({
         process.env['VISUAL'] ??
         process.env['EDITOR'] ??
         (process.platform === 'win32' ? 'notepad' : 'vi');
-      const tmpDir = await fsp.mkdtemp(pathMod.join(os.tmpdir(), 'gemini-edit-'));
+      const tmpDir = await fsp.mkdtemp(
+        pathMod.join(os.tmpdir(), 'gemini-edit-'),
+      );
       const filePath = pathMod.join(tmpDir, 'buffer.txt');
       await fsp.writeFile(filePath, text, 'utf8');
 
@@ -1750,7 +1752,10 @@ export function useTextBuffer({
 
       const wasRaw = stdin?.isRaw ?? false;
 
-      const spawnEditor = (cmd: string, args: string[]): Promise<{ code: number | null; signal: NodeJS.Signals | null }> =>
+      const spawnEditor = (
+        cmd: string,
+        args: string[],
+      ): Promise<{ code: number | null; signal: NodeJS.Signals | null }> =>
         new Promise((resolve, reject) => {
           const child = spawn(cmd, args, { stdio: 'inherit' });
           child.on('error', (err) => reject(err));
@@ -1760,7 +1765,8 @@ export function useTextBuffer({
       try {
         setRawMode?.(false);
         const { code, signal } = await spawnEditor(editor, [filePath]);
-        if (signal) throw new Error(`External editor terminated by signal ${signal}`);
+        if (signal)
+          throw new Error(`External editor terminated by signal ${signal}`);
         if (typeof code === 'number' && code !== 0)
           throw new Error(`External editor exited with status ${code}`);
 

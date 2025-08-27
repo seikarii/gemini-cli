@@ -19,11 +19,24 @@ import { WebFetchToolParams } from '../tools/web-fetch.js';
 import { ReadManyFilesParams } from '../tools/read-many-files.js';
 import { ShellToolParams } from '../tools/shell.js';
 import { SaveMemoryParams } from '../tools/memoryTool.js';
-import { WebSearchToolParams, WebSearchToolResult } from '../tools/web-search.js';
-import { SemanticSearchTool, SemanticSearchToolParams } from '../tools/semantic-search.js';
-import { UnifiedSearchTool, UnifiedSearchToolParams } from '../tools/unified-search.js';
+import {
+  WebSearchToolParams,
+  WebSearchToolResult,
+} from '../tools/web-search.js';
+import {
+  SemanticSearchTool,
+  SemanticSearchToolParams,
+} from '../tools/semantic-search.js';
+import {
+  UnifiedSearchTool,
+  UnifiedSearchToolParams,
+} from '../tools/unified-search.js';
 import { ToolResult } from '../tools/tools.js';
-import { AuthType, ContentGeneratorConfig, createContentGeneratorConfig } from '../core/contentGenerator.js';
+import {
+  AuthType,
+  ContentGeneratorConfig,
+  createContentGeneratorConfig,
+} from '../core/contentGenerator.js';
 import { PromptRegistry } from '../prompts/prompt-registry.js';
 import { ToolRegistry } from '../tools/tool-registry.js';
 import { LSTool } from '../tools/ls.js';
@@ -393,9 +406,9 @@ export class Config {
     this.useRipgrep = params.useRipgrep ?? false;
     this.shouldUseNodePtyShell = params.shouldUseNodePtyShell ?? false;
     this.skipNextSpeakerCheck = params.skipNextSpeakerCheck ?? false;
-  // Create a synchronous Storage instance for code that expects it immediately.
-  // The real async initialization (ensuring directories exist) happens in initialize().
-  this.storage = new Storage(this.targetDir);
+    // Create a synchronous Storage instance for code that expects it immediately.
+    // The real async initialization (ensuring directories exist) happens in initialize().
+    this.storage = new Storage(this.targetDir);
     this.enablePromptCompletion = params.enablePromptCompletion ?? false;
     this.fileExclusions = new FileExclusions(this);
 
@@ -848,10 +861,13 @@ export class Config {
     const registry = new ToolRegistry(this);
 
     // helper to create & register core tools that are enabled
-     
-    const registerCoreTool = <TParams extends object, TResult extends import("../tools/tools.js").ToolResult>(
+
+    const registerCoreTool = <
+      TParams extends object,
+      TResult extends import('../tools/tools.js').ToolResult,
+    >(
       ToolClass: ToolConstructor<TParams, TResult>,
-      config?: import("../config/config.js").Config
+      config?: import('../config/config.js').Config,
     ) => {
       const className = ToolClass.name;
       const toolName = ToolClass.Name || className;
@@ -895,16 +911,27 @@ export class Config {
     registerCoreTool<GlobToolParams, ToolResult>(GlobTool, this);
     registerCoreTool<EditToolParams, ToolResult>(EditTool, this);
     registerCoreTool<WriteFileToolParams, ToolResult>(WriteFileTool, this);
-    registerCoreTool<UpsertCodeBlockToolParams, ToolResult>(UpsertCodeBlockTool);
+    registerCoreTool<UpsertCodeBlockToolParams, ToolResult>(
+      UpsertCodeBlockTool,
+    );
     registerCoreTool<ASTFindToolParams, ToolResult>(ASTFindTool, this);
     registerCoreTool<ASTEditToolParams, ToolResult>(ASTEditTool, this);
     registerCoreTool<WebFetchToolParams, ToolResult>(WebFetchTool, this);
     registerCoreTool<ReadManyFilesParams, ToolResult>(ReadManyFilesTool, this);
     registerCoreTool<ShellToolParams, ToolResult>(ShellTool, this);
     registerCoreTool<SaveMemoryParams, ToolResult>(MemoryTool);
-    registerCoreTool<WebSearchToolParams, WebSearchToolResult>(WebSearchTool, this);
-    registerCoreTool<SemanticSearchToolParams, ToolResult>(SemanticSearchTool, this);
-    registerCoreTool<UnifiedSearchToolParams, ToolResult>(UnifiedSearchTool, this);
+    registerCoreTool<WebSearchToolParams, WebSearchToolResult>(
+      WebSearchTool,
+      this,
+    );
+    registerCoreTool<SemanticSearchToolParams, ToolResult>(
+      SemanticSearchTool,
+      this,
+    );
+    registerCoreTool<UnifiedSearchToolParams, ToolResult>(
+      UnifiedSearchTool,
+      this,
+    );
 
     await registry.discoverAllTools();
     return registry;
@@ -913,8 +940,13 @@ export class Config {
 
 // Export model constants for use in CLI
 export { DEFAULT_GEMINI_FLASH_MODEL };
-interface ToolConstructor<TParams extends object, TResult extends import("../tools/tools.js").ToolResult> {
-  new (config: import("../config/config.js").Config): import("../tools/tools.js").DeclarativeTool<TParams, TResult>;
+interface ToolConstructor<
+  TParams extends object,
+  TResult extends import('../tools/tools.js').ToolResult,
+> {
+  new (
+    config: import('../config/config.js').Config,
+  ): import('../tools/tools.js').DeclarativeTool<TParams, TResult>;
   Name?: string; // Static property
   name: string; // Static property
 }

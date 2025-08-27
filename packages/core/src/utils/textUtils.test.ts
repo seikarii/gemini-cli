@@ -10,7 +10,7 @@ import { isBinary } from './textUtils.js';
 describe('isBinary', () => {
   it('returns false for null or undefined', () => {
     expect(isBinary(null)).toBe(false);
-  expect(isBinary(undefined as unknown as Buffer)).toBe(false);
+    expect(isBinary(undefined as unknown as Buffer)).toBe(false);
   });
 
   it('returns false for plain ASCII text', () => {

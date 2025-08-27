@@ -15,7 +15,7 @@
     "moduleResolution": "nodenext",
     "target": "es2022",
     "types": ["node", "vitest/globals", "undici"],
-  "typeRoots": ["./types", "./node_modules/@types", "./node_modules"],
+    "typeRoots": ["./types", "./node_modules/@types", "./node_modules"],
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
@@ -26,8 +26,7 @@
       "@google/gemini-cli-mew-upgrade/*": ["packages/mew-upgrade/src/*"],
       "@google/gemini-cli-test-utils/*": ["packages/test-utils/src/*"]
     }
-  }
-  ,
+  },
   "exclude": [
     "**/*.test.ts",
     "**/*.test.tsx",
@@ -35,9 +34,9 @@
     "**/*.spec.tsx",
     "test",
     "**/test/**",
-  "integration-tests",
-  "**/integration-tests/**",
-  // packages/mew-upgrade previously excluded; remove to include updated mew-upgrade sources in the build
-  // "packages/mew-upgrade"
+    "integration-tests",
+    "**/integration-tests/**"
+    // packages/mew-upgrade previously excluded; remove to include updated mew-upgrade sources in the build
+    // "packages/mew-upgrade"
   ]
 }

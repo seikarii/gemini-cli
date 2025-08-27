@@ -25,7 +25,7 @@ import {
   normalizeWhitespace,
   countOccurrences,
   calculateStringSimilarity,
-  escapeRegExp
+  escapeRegExp,
 } from './stringUtils.js';
 
 // Re-export certain utils for backwards compatibility with existing imports/tests
@@ -192,7 +192,7 @@ export async function ensureCorrectEdit(
       newStringPotentiallyEscaped,
       client,
       abortSignal,
-      cacheKey
+      cacheKey,
     );
   }
 
@@ -204,24 +204,28 @@ export async function ensureCorrectEdit(
   // replacements. In that case skip AST correction and rely on string-based
   // heuristics (unescaping/trimming) which are safe for occurrence-aware ops.
   const callerRequestedSpecificOccurrence =
-    originalParams && (originalParams as EditToolParams).target_occurrence !== undefined;
+    originalParams &&
+    (originalParams as EditToolParams).target_occurrence !== undefined;
 
   if (!callerRequestedSpecificOccurrence) {
     const astCorrectionResult = await tryASTCorrection(
       currentContent,
       filePath,
       finalOldString,
-      expectedReplacements
+      expectedReplacements,
     );
 
     if (astCorrectionResult.success) {
-        if (astCorrectionResult.correctedOldString !== undefined && astCorrectionResult.occurrences !== undefined) {
-          // correctedOldString and occurrences are optional on the result type;
-          // narrow and cast to satisfy the compiler that they're present.
-          finalOldString = astCorrectionResult.correctedOldString as string;
-          occurrences = astCorrectionResult.occurrences as number;
-        }
-      
+      if (
+        astCorrectionResult.correctedOldString !== undefined &&
+        astCorrectionResult.occurrences !== undefined
+      ) {
+        // correctedOldString and occurrences are optional on the result type;
+        // narrow and cast to satisfy the compiler that they're present.
+        finalOldString = astCorrectionResult.correctedOldString as string;
+        occurrences = astCorrectionResult.occurrences as number;
+      }
+
       return await finalizeResult(
         originalParams,
         finalOldString,
@@ -230,7 +234,7 @@ export async function ensureCorrectEdit(
         newStringPotentiallyEscaped,
         client,
         abortSignal,
-        cacheKey
+        cacheKey,
       );
     }
   }
@@ -239,11 +243,14 @@ export async function ensureCorrectEdit(
   const stringCorrectionResult = tryStringBasedCorrections(
     currentContent,
     finalOldString,
-    expectedReplacements
+    expectedReplacements,
   );
 
   if (stringCorrectionResult.success) {
-    if (stringCorrectionResult.correctedOldString !== undefined && stringCorrectionResult.occurrences !== undefined) {
+    if (
+      stringCorrectionResult.correctedOldString !== undefined &&
+      stringCorrectionResult.occurrences !== undefined
+    ) {
       // same non-null assertion as above for string-based corrections
       finalOldString = stringCorrectionResult.correctedOldString as string;
       occurrences = stringCorrectionResult.occurrences as number;
@@ -257,13 +264,19 @@ export async function ensureCorrectEdit(
       newStringPotentiallyEscaped,
       client,
       abortSignal,
-      cacheKey
+      cacheKey,
     );
   }
 
   // Handle cases with too many occurrences
   if (occurrences > expectedReplacements) {
-    return createResult(originalParams, finalOldString, finalNewString, occurrences, cacheKey);
+    return createResult(
+      originalParams,
+      finalOldString,
+      finalNewString,
+      occurrences,
+      cacheKey,
+    );
   }
 
   // Fallback to LLM-based correction
@@ -278,7 +291,7 @@ export async function ensureCorrectEdit(
     client,
     abortSignal,
     cacheKey,
-    fileSystemService
+    fileSystemService,
   );
 }
 
@@ -289,20 +302,29 @@ async function tryASTCorrection(
   currentContent: string,
   filePath: string,
   oldString: string,
-  expectedReplacements: number
-): Promise<{ success: boolean; correctedOldString?: string; occurrences?: number }> {
+  expectedReplacements: number,
+): Promise<{
+  success: boolean;
+  correctedOldString?: string;
+  occurrences?: number;
+}> {
   try {
     const { sourceFile, error: parseErr } = parseSourceToSourceFile(
       currentContent,
-      filePath ?? '/virtual-file.ts'
+      filePath ?? '/virtual-file.ts',
     );
-    
+
     if (!sourceFile || parseErr) {
       return { success: false };
     }
 
     // Strategy 1: Direct text matching with node specificity
-    const directMatchResult = tryDirectNodeMatching(sourceFile, oldString, expectedReplacements, currentContent);
+    const directMatchResult = tryDirectNodeMatching(
+      sourceFile,
+      oldString,
+      expectedReplacements,
+      currentContent,
+    );
     if (directMatchResult.success) {
       return directMatchResult;
     }
@@ -310,20 +332,35 @@ async function tryASTCorrection(
     // Strategy 2: Unescaped string matching
     const unescapedOldString = unescapeStringForGeminiBug(oldString);
     if (unescapedOldString !== oldString) {
-      const unescapedMatchResult = tryDirectNodeMatching(sourceFile, unescapedOldString, expectedReplacements, currentContent);
+      const unescapedMatchResult = tryDirectNodeMatching(
+        sourceFile,
+        unescapedOldString,
+        expectedReplacements,
+        currentContent,
+      );
       if (unescapedMatchResult.success) {
         return unescapedMatchResult;
       }
     }
 
     // Strategy 3: Semantic node matching for common code patterns
-    const semanticResult = trySemanticNodeMatching(sourceFile, oldString, expectedReplacements, currentContent);
+    const semanticResult = trySemanticNodeMatching(
+      sourceFile,
+      oldString,
+      expectedReplacements,
+      currentContent,
+    );
     if (semanticResult.success) {
       return semanticResult;
     }
 
     // Strategy 4: Fuzzy matching with whitespace normalization
-    const fuzzyResult = tryFuzzyNodeMatching(sourceFile, oldString, expectedReplacements, currentContent);
+    const fuzzyResult = tryFuzzyNodeMatching(
+      sourceFile,
+      oldString,
+      expectedReplacements,
+      currentContent,
+    );
     if (fuzzyResult.success) {
       return fuzzyResult;
     }
@@ -342,16 +379,21 @@ function tryDirectNodeMatching(
   sourceFile: any,
   searchString: string,
   expectedReplacements: number,
-  currentContent: string
+  currentContent: string,
 ): { success: boolean; correctedOldString?: string; occurrences?: number } {
-  const candidates: Array<{ node: any; text: string; specificity: number }> = [];
+  const candidates: Array<{ node: any; text: string; specificity: number }> =
+    [];
 
   for (const node of sourceFile.getDescendants()) {
     try {
       const nodeText = node.getText();
       if (nodeText && nodeText.includes(searchString)) {
         // Calculate specificity score (prefer smaller, more specific nodes)
-        const specificity = calculateNodeSpecificity(node, searchString, nodeText);
+        const specificity = calculateNodeSpecificity(
+          node,
+          searchString,
+          nodeText,
+        );
         candidates.push({ node, text: nodeText, specificity });
       }
     } catch {
@@ -373,7 +415,7 @@ function tryDirectNodeMatching(
       return {
         success: true,
         correctedOldString: candidate.text,
-        occurrences
+        occurrences,
       };
     }
   }
@@ -388,19 +430,19 @@ function trySemanticNodeMatching(
   sourceFile: any,
   oldString: string,
   expectedReplacements: number,
-  currentContent: string
+  currentContent: string,
 ): { success: boolean; correctedOldString?: string; occurrences?: number } {
   try {
     // Look for specific node types that commonly contain the target string
     const semanticQueries = [
       '//FunctionDeclaration',
-      '//MethodDeclaration', 
+      '//MethodDeclaration',
       '//VariableStatement',
       '//ClassDeclaration',
       '//PropertyAssignment',
       '//CallExpression',
       '//StringLiteral',
-      '//TemplateExpression'
+      '//TemplateExpression',
     ];
 
     for (const query of semanticQueries) {
@@ -415,7 +457,7 @@ function trySemanticNodeMatching(
                 return {
                   success: true,
                   correctedOldString: nodeText,
-                  occurrences
+                  occurrences,
                 };
               }
             }
@@ -441,7 +483,7 @@ function tryFuzzyNodeMatching(
   sourceFile: any,
   oldString: string,
   expectedReplacements: number,
-  currentContent: string
+  currentContent: string,
 ): { success: boolean; correctedOldString?: string; occurrences?: number } {
   const normalizedTarget = normalizeWhitespace(oldString);
   const candidates: Array<{ text: string; similarity: number }> = [];
@@ -452,11 +494,15 @@ function tryFuzzyNodeMatching(
       if (!nodeText) continue;
 
       const normalizedNodeText = normalizeWhitespace(nodeText);
-      
+
       // Check if normalized versions match or have high similarity
       if (normalizedNodeText.includes(normalizedTarget)) {
-        const similarity = calculateStringSimilarity(normalizedTarget, normalizedNodeText);
-        if (similarity > 0.8) { // 80% similarity threshold
+        const similarity = calculateStringSimilarity(
+          normalizedTarget,
+          normalizedNodeText,
+        );
+        if (similarity > 0.8) {
+          // 80% similarity threshold
           candidates.push({ text: nodeText, similarity });
         }
       }
@@ -474,7 +520,7 @@ function tryFuzzyNodeMatching(
       return {
         success: true,
         correctedOldString: candidate.text,
-        occurrences
+        occurrences,
       };
     }
   }
@@ -485,7 +531,11 @@ function tryFuzzyNodeMatching(
 /**
  * Calculate node specificity score for ranking candidates
  */
-function calculateNodeSpecificity(node: any, searchString: string, nodeText: string): number {
+function calculateNodeSpecificity(
+  node: any,
+  searchString: string,
+  nodeText: string,
+): number {
   let score = 0;
 
   // Prefer smaller nodes (inverse relationship with length)
@@ -499,8 +549,12 @@ function calculateNodeSpecificity(node: any, searchString: string, nodeText: str
   try {
     const kindName = node.getKindName ? node.getKindName() : '';
     const preferredTypes = [
-      'VariableStatement', 'FunctionDeclaration', 'MethodDeclaration',
-      'PropertyAssignment', 'StringLiteral', 'CallExpression'
+      'VariableStatement',
+      'FunctionDeclaration',
+      'MethodDeclaration',
+      'PropertyAssignment',
+      'StringLiteral',
+      'CallExpression',
     ];
     if (preferredTypes.includes(kindName)) {
       score += 200;
@@ -524,7 +578,7 @@ function calculateNodeSpecificity(node: any, searchString: string, nodeText: str
 function tryStringBasedCorrections(
   currentContent: string,
   oldString: string,
-  expectedReplacements: number
+  expectedReplacements: number,
 ): { success: boolean; correctedOldString?: string; occurrences?: number } {
   const strategies = [
     // Unescaping
@@ -548,7 +602,7 @@ function tryStringBasedCorrections(
           return {
             success: true,
             correctedOldString: corrected,
-            occurrences
+            occurrences,
           };
         }
       }
@@ -589,7 +643,9 @@ async function tryLLMCorrection(
           // Use FileSystemService for standardized file operations
           const fileInfo = await fileSystemService.getFileInfo(filePath);
           if (!fileInfo.success) {
-            console.warn(`Failed to get file info for ${filePath}: ${fileInfo.error}`);
+            console.warn(
+              `Failed to get file info for ${filePath}: ${fileInfo.error}`,
+            );
             fileMtimeMs = 0;
           } else {
             fileMtimeMs = fileInfo.data?.mtimeMs || 0;
@@ -602,7 +658,13 @@ async function tryLLMCorrection(
 
         const diff = fileMtimeMs - lastEditedByUsTime;
         if (diff > 2000) {
-          return createResult(originalParams, finalOldString, finalNewString, 0, cacheKey);
+          return createResult(
+            originalParams,
+            finalOldString,
+            finalNewString,
+            0,
+            cacheKey,
+          );
         }
       }
     }
@@ -617,7 +679,10 @@ async function tryLLMCorrection(
       unescapedOldString,
       abortSignal,
     );
-    const llmOldOccurrences = countOccurrences(currentContent, llmCorrectedOldString);
+    const llmOldOccurrences = countOccurrences(
+      currentContent,
+      llmCorrectedOldString,
+    );
 
     if (llmOldOccurrences === expectedReplacements) {
       finalOldString = llmCorrectedOldString;
@@ -635,12 +700,21 @@ async function tryLLMCorrection(
           unescapeStringForGeminiBug(finalNewString),
           abortSignal,
         );
-        if (typeof correctedNewString === 'string' && correctedNewString.length > 0) {
+        if (
+          typeof correctedNewString === 'string' &&
+          correctedNewString.length > 0
+        ) {
           finalNewString = correctedNewString;
         }
       }
     } else {
-      return createResult(originalParams, finalOldString, finalNewString, 0, cacheKey);
+      return createResult(
+        originalParams,
+        finalOldString,
+        finalNewString,
+        0,
+        cacheKey,
+      );
     }
   }
 
@@ -649,10 +723,16 @@ async function tryLLMCorrection(
     finalOldString,
     finalNewString,
     currentContent,
-    expectedReplacements
+    expectedReplacements,
   );
 
-  return createResult(originalParams, targetString, pair, countOccurrences(currentContent, targetString), cacheKey);
+  return createResult(
+    originalParams,
+    targetString,
+    pair,
+    countOccurrences(currentContent, targetString),
+    cacheKey,
+  );
 }
 
 /**
@@ -666,21 +746,27 @@ async function finalizeResult(
   newStringPotentiallyEscaped: boolean,
   client: GeminiClient,
   abortSignal: AbortSignal,
-  cacheKey: string
+  cacheKey: string,
 ): Promise<CorrectedEditResult> {
-      if (newStringPotentiallyEscaped) {
-        const maybeCorrected = await correctNewStringEscaping(
-          client,
-          finalOldString,
-          finalNewString,
-          abortSignal,
-        );
+  if (newStringPotentiallyEscaped) {
+    const maybeCorrected = await correctNewStringEscaping(
+      client,
+      finalOldString,
+      finalNewString,
+      abortSignal,
+    );
     if (typeof maybeCorrected === 'string' && maybeCorrected.length > 0) {
       finalNewString = maybeCorrected;
     }
   }
 
-  return createResult(originalParams, finalOldString, finalNewString, occurrences, cacheKey);
+  return createResult(
+    originalParams,
+    finalOldString,
+    finalNewString,
+    occurrences,
+    cacheKey,
+  );
 }
 
 /**
@@ -691,20 +777,29 @@ function createResult(
   finalOldString: string,
   finalNewString: string,
   occurrences: number,
-  cacheKey: string
+  cacheKey: string,
 ): CorrectedEditResult {
   // Helper to choose a non-empty string preference order:
   // 1) finalNewString (result of correction) if non-empty
   // 2) originalParams.new_string (what was requested) if non-empty
   // 3) fallback to empty string (explicit)
-  function chooseNonEmpty(candidate: string | undefined, fallback?: string | undefined): string {
+  function chooseNonEmpty(
+    candidate: string | undefined,
+    fallback?: string | undefined,
+  ): string {
     if (typeof candidate === 'string' && candidate.length > 0) return candidate;
     if (typeof fallback === 'string' && fallback.length > 0) return fallback;
     return '';
   }
 
-  const safeNewString = chooseNonEmpty(finalNewString, originalParams.new_string as string | undefined);
-  const safeOldString = typeof finalOldString === 'string' ? finalOldString : (originalParams.old_string ?? '');
+  const safeNewString = chooseNonEmpty(
+    finalNewString,
+    originalParams.new_string as string | undefined,
+  );
+  const safeOldString =
+    typeof finalOldString === 'string'
+      ? finalOldString
+      : (originalParams.old_string ?? '');
 
   // Defensive guard: never return or cache an empty old_string because
   // performing a replacement with an empty target can be destructive
@@ -735,7 +830,10 @@ function createResult(
   // If we had to fallback to the original param because the correction
   // returned empty, log a warning in debug modes to aid troubleshooting.
   try {
-    if ((finalNewString === undefined || finalNewString === '') && originalParams.new_string) {
+    if (
+      (finalNewString === undefined || finalNewString === '') &&
+      originalParams.new_string
+    ) {
       // Avoid noisy logging in production; rely on consumers to enable debug
       // mode if they want detailed telemetry. Use console.warn for visibility.
       console.warn(
@@ -749,7 +847,7 @@ function createResult(
   const result: CorrectedEditResult = {
     params: {
       file_path: originalParams.file_path,
-  old_string: safeOldString,
+      old_string: safeOldString,
       new_string: safeNewString,
     },
     occurrences,
@@ -770,28 +868,31 @@ function createResult(
  * Unescapes a string that might have been overly escaped by an LLM.
  */
 export function unescapeStringForGeminiBug(inputString: string): string {
-  return inputString.replace(/\\+(n|t|r|'|"|`|\\|\n)/g, (match, capturedChar) => {
-    switch (capturedChar) {
-      case 'n':
-        return '\n';
-      case 't':
-        return '\t';
-      case 'r':
-        return '\r';
-      case "'":
-        return "'";
-      case '"':
-        return '"';
-      case '`':
-        return '`';
-      case '\\':
-        return '\\';
-      case '\n':
-        return '\n';
-      default:
-        return match;
-    }
-  });
+  return inputString.replace(
+    /\\+(n|t|r|'|"|`|\\|\n)/g,
+    (match, capturedChar) => {
+      switch (capturedChar) {
+        case 'n':
+          return '\n';
+        case 't':
+          return '\t';
+        case 'r':
+          return '\r';
+        case "'":
+          return "'";
+        case '"':
+          return '"';
+        case '`':
+          return '`';
+        case '\\':
+          return '\\';
+        case '\n':
+          return '\n';
+        default:
+          return match;
+      }
+    },
+  );
 }
 
 /**
@@ -899,12 +1000,16 @@ Return ONLY the corrected target snippet in the specified JSON format with the k
     )) as Record<string, unknown> | undefined;
     if (result) {
       const corrected = result['corrected_target_snippet'];
-      if (typeof corrected === 'string' && corrected.length > 0) return corrected;
+      if (typeof corrected === 'string' && corrected.length > 0)
+        return corrected;
     }
     return problematicSnippet;
   } catch (error) {
     if (abortSignal.aborted) throw error;
-    console.error('Error during LLM call for old string snippet correction:', error);
+    console.error(
+      'Error during LLM call for old string snippet correction:',
+      error,
+    );
     return problematicSnippet;
   }
 }
@@ -953,7 +1058,8 @@ Return ONLY the corrected string in the specified JSON format with the key 'corr
     )) as Record<string, unknown> | undefined;
     if (result) {
       const corrected = result['corrected_new_string'];
-      if (typeof corrected === 'string' && corrected.length > 0) return corrected;
+      if (typeof corrected === 'string' && corrected.length > 0)
+        return corrected;
     }
     return originalNewString;
   } catch (error) {
@@ -992,14 +1098,19 @@ Task: Analyze the potentially_problematic_new_string. If it's syntactically inva
     )) as Record<string, unknown> | undefined;
     if (result) {
       const corrected1 = result['corrected_new_string_escaping'];
-      if (typeof corrected1 === 'string' && corrected1.length > 0) return corrected1;
+      if (typeof corrected1 === 'string' && corrected1.length > 0)
+        return corrected1;
       const corrected2 = result['corrected_new_string'];
-      if (typeof corrected2 === 'string' && corrected2.length > 0) return corrected2;
+      if (typeof corrected2 === 'string' && corrected2.length > 0)
+        return corrected2;
     }
     return potentiallyProblematicNewString;
   } catch (error) {
     if (abortSignal.aborted) throw error;
-    console.error('Error during LLM call for new_string escaping correction:', error);
+    console.error(
+      'Error during LLM call for new_string escaping correction:',
+      error,
+    );
     return potentiallyProblematicNewString;
   }
 }
@@ -1033,12 +1144,16 @@ Return ONLY the corrected string in the specified JSON format with the key 'corr
     )) as Record<string, unknown> | undefined;
     if (result) {
       const corrected = result['corrected_string_escaping'];
-      if (typeof corrected === 'string' && corrected.length > 0) return corrected;
+      if (typeof corrected === 'string' && corrected.length > 0)
+        return corrected;
     }
     return potentiallyProblematicString;
   } catch (error) {
     if (abortSignal.aborted) throw error;
-    console.error('Error during LLM call for string escaping correction:', error);
+    console.error(
+      'Error during LLM call for string escaping correction:',
+      error,
+    );
     return potentiallyProblematicString;
   }
 }
@@ -1051,7 +1166,10 @@ function trimPairIfPossible(
 ): { targetString: string; pair: string } {
   const trimmedTargetString = target.trim();
   if (target.length !== trimmedTargetString.length) {
-    const trimmedTargetOccurrences = countOccurrences(currentContent, trimmedTargetString);
+    const trimmedTargetOccurrences = countOccurrences(
+      currentContent,
+      trimmedTargetString,
+    );
     if (trimmedTargetOccurrences === expectedReplacements) {
       const trimmedReactiveString = trimIfTargetTrims.trim();
       return { targetString: trimmedTargetString, pair: trimmedReactiveString };
@@ -1071,13 +1189,18 @@ export async function ensureCorrectFileContent(
   const cached = fileContentCorrectionCache.get(content);
   if (cached) return cached;
 
-  const contentPotentiallyEscaped = unescapeStringForGeminiBug(content) !== content;
+  const contentPotentiallyEscaped =
+    unescapeStringForGeminiBug(content) !== content;
   if (!contentPotentiallyEscaped) {
     fileContentCorrectionCache.set(content, content);
     return content;
   }
 
-  const correctedContent = await correctStringEscaping(content, client, abortSignal);
+  const correctedContent = await correctStringEscaping(
+    content,
+    client,
+    abortSignal,
+  );
   fileContentCorrectionCache.set(content, correctedContent);
   return correctedContent;
 }

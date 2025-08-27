@@ -40,8 +40,10 @@ export const isGitHubRepository = async (): Promise<boolean> => {
 export const getGitRepoRoot = async (): Promise<string> => {
   const gitRepoRoot = (
     (await new Promise<string>((resolve, reject) =>
-      exec('git rev-parse --show-toplevel', { encoding: 'utf-8' }, (err, stdout) =>
-        err ? reject(err) : resolve(stdout || ''),
+      exec(
+        'git rev-parse --show-toplevel',
+        { encoding: 'utf-8' },
+        (err, stdout) => (err ? reject(err) : resolve(stdout || '')),
       ),
     )) || ''
   ).trim();
@@ -100,7 +102,10 @@ export const getLatestGitHubRelease = async (
  * @returns the owner and repository of the github repo.
  * @throws error if the exec command fails.
  */
-export async function getGitHubRepoInfo(): Promise<{ owner: string; repo: string }> {
+export async function getGitHubRepoInfo(): Promise<{
+  owner: string;
+  repo: string;
+}> {
   const remoteUrl = (
     (await new Promise<string>((resolve, reject) =>
       exec('git remote get-url origin', { encoding: 'utf-8' }, (err, stdout) =>

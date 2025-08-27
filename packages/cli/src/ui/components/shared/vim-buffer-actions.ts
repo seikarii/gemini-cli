@@ -49,14 +49,7 @@ function handleChangeMovementVertical(
 
   if (totalLines === 1) {
     const currentLine = state.lines[0] || '';
-    return replaceRangeInternal(
-      nextState,
-      0,
-      0,
-      0,
-      cpLen(currentLine),
-      '',
-    );
+    return replaceRangeInternal(nextState, 0, 0, 0, cpLen(currentLine), '');
   }
 
   let startRow: number;
@@ -65,7 +58,8 @@ function handleChangeMovementVertical(
   if (direction === 'down') {
     startRow = cursorRow;
     linesToChange = Math.min(count, totalLines - cursorRow);
-  } else { // direction === 'up'
+  } else {
+    // direction === 'up'
     startRow = Math.max(0, cursorRow - count + 1);
     linesToChange = cursorRow - startRow + 1;
   }
@@ -79,8 +73,12 @@ function handleChangeMovementVertical(
     linesToChange,
     nextState.lines,
   );
-  const { startRow: newStartRow, startCol, endRow, endCol } =
-    getPositionFromOffsets(startOffset, endOffset, nextState.lines);
+  const {
+    startRow: newStartRow,
+    startCol,
+    endRow,
+    endCol,
+  } = getPositionFromOffsets(startOffset, endOffset, nextState.lines);
 
   const resultState = replaceRangeInternal(
     nextState,

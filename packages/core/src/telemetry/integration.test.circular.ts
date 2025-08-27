@@ -26,13 +26,12 @@ describe('Circular Reference Integration Test', () => {
     } as unknown as Config;
 
     // Simulate the structure that causes the circular reference error
-     
+
     const proxyAgentLike: any = {
       sockets: {},
       options: { proxy: 'http://proxy.example.com:8080' },
     };
 
-     
     const socketLike: any = {
       _httpMessage: {
         agent: proxyAgentLike,
@@ -56,7 +55,6 @@ describe('Circular Reference Integration Test', () => {
     const logger = ClearcutLogger.getInstance(mockConfig);
 
     expect(() => {
-       
       logger?.enqueueLogEvent(problematicEvent as any);
     }).not.toThrow();
   });

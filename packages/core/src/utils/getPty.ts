@@ -11,7 +11,11 @@ export interface PtyProcess {
   kill(signal?: string): void;
 }
 export interface PtyModule {
-  spawn(command: string, args: string[], opts: Record<string, unknown>): PtyProcess;
+  spawn(
+    command: string,
+    args: string[],
+    opts: Record<string, unknown>,
+  ): PtyProcess;
 }
 
 export type PtyImplementation = {

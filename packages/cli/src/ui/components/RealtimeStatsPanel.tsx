@@ -40,7 +40,8 @@ export const RealtimeStatsPanel: React.FC<RealtimeStatsPanelProps> = ({
     return (
       <Box>
         <Text color={theme.text.secondary}>
-          📊 {formatDuration(sessionDuration)} • {stats.promptCount}p • {formatNumber(computedStats.totalPromptTokens)}ctx
+          📊 {formatDuration(sessionDuration)} • {stats.promptCount}p •{' '}
+          {formatNumber(computedStats.totalPromptTokens)}ctx
           {getTokensPerMinute() > 0 && ` • ${getTokensPerMinute()}ctx/min`}
         </Text>
       </Box>
@@ -48,8 +49,15 @@ export const RealtimeStatsPanel: React.FC<RealtimeStatsPanelProps> = ({
   }
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor={theme.border.default} padding={1}>
-      <Text bold color={theme.text.accent}>📊 Session Stats</Text>
+    <Box
+      flexDirection="column"
+      borderStyle="round"
+      borderColor={theme.border.default}
+      padding={1}
+    >
+      <Text bold color={theme.text.accent}>
+        📊 Session Stats
+      </Text>
 
       <Box marginTop={1}>
         <Box width={20}>
@@ -86,7 +94,13 @@ export const RealtimeStatsPanel: React.FC<RealtimeStatsPanelProps> = ({
           <Box width={20}>
             <Text color={theme.text.secondary}>Cache Efficiency:</Text>
           </Box>
-          <Text color={computedStats.cacheEfficiency > 50 ? theme.status.success : theme.text.primary}>
+          <Text
+            color={
+              computedStats.cacheEfficiency > 50
+                ? theme.status.success
+                : theme.text.primary
+            }
+          >
             {computedStats.cacheEfficiency.toFixed(1)}%
           </Text>
         </Box>

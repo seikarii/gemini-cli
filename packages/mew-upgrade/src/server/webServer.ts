@@ -22,7 +22,10 @@ let activeFilePath: string | null = null;
 
 const MAX_ALLOWED_FILE_BYTES = 200 * 1024; // 200 KiB
 
-async function getDirContents(dirPath: string, projectRoot: string): Promise<Omit<DirEntry, 'children'>[]> {
+async function getDirContents(
+  dirPath: string,
+  projectRoot: string,
+): Promise<Omit<DirEntry, 'children'>[]> {
   let dirents;
   try {
     dirents = await fs.readdir(dirPath, { withFileTypes: true });
@@ -38,7 +41,10 @@ async function getDirContents(dirPath: string, projectRoot: string): Promise<Omi
       if (rel.startsWith('..') || path.isAbsolute(rel)) {
         continue;
       }
-      children.push({ name: dirent.name, type: dirent.isDirectory() ? 'directory' : 'file' });
+      children.push({
+        name: dirent.name,
+        type: dirent.isDirectory() ? 'directory' : 'file',
+      });
     } catch (err) {
       continue;
     }
@@ -52,7 +58,9 @@ function findFreePort(startPort: number): Promise<number> {
     server.unref();
     server.on('error', (err: any) => {
       if (err.code === 'EADDRINUSE') {
-        findFreePort(startPort + 1).then(resolve).catch(reject);
+        findFreePort(startPort + 1)
+          .then(resolve)
+          .catch(reject);
       } else {
         reject(err);
       }
@@ -73,7 +81,11 @@ export async function startWebServer(agent: GeminiAgent) {
   try {
     const geminiDir = path.resolve(__dirname, '..', '..', '.gemini');
     await fs.mkdir(geminiDir, { recursive: true });
-    await fs.writeFile(path.join(geminiDir, 'mew_port.txt'), port.toString(), 'utf8');
+    await fs.writeFile(
+      path.join(geminiDir, 'mew_port.txt'),
+      port.toString(),
+      'utf8',
+    );
   } catch (error) {
     console.error('Failed to write mew_port.txt', error);
   }
@@ -100,18 +112,22 @@ export async function startWebServer(agent: GeminiAgent) {
   app.get('/api/file-tree', async (req, res) => {
     try {
       const projectRoot = path.resolve(__dirname, '..', '..', '..', '..');
-      const requestedPath = (req.query as any)['path'] as string || '';
+      const requestedPath = ((req.query as any)['path'] as string) || '';
       const targetPath = path.resolve(projectRoot, requestedPath);
 
       const rel = path.relative(projectRoot, targetPath);
       if (rel.startsWith('..') || path.isAbsolute(rel)) {
-        return res.status(403).json({ message: 'Access to the requested path is forbidden.' });
+        return res
+          .status(403)
+          .json({ message: 'Access to the requested path is forbidden.' });
       }
 
       const tree = await getDirContents(targetPath, projectRoot);
       return res.status(200).json(tree);
     } catch (error: any) {
-      return res.status(500).json({ message: `Error getting file tree: ${error.message}` });
+      return res
+        .status(500)
+        .json({ message: `Error getting file tree: ${error.message}` });
     }
   });
 
@@ -133,27 +149,40 @@ export async function startWebServer(agent: GeminiAgent) {
         const resolved = path.resolve(projectRoot, filePath);
         const rel = path.relative(projectRoot, resolved);
         if (rel.startsWith('..') || path.isAbsolute(rel)) {
-          return res.status(403).json({ message: 'Access to the requested path is forbidden.' });
+          return res
+            .status(403)
+            .json({ message: 'Access to the requested path is forbidden.' });
         }
 
         // Ensure it's a file and not a directory
         const stat = await fs.stat(resolved);
         if (!stat.isFile()) {
-          return res.status(400).json({ message: 'Requested path is not a file.' });
+          return res
+            .status(400)
+            .json({ message: 'Requested path is not a file.' });
         }
 
         // Enforce a file size limit to avoid large reads
         if (stat.size > MAX_ALLOWED_FILE_BYTES) {
-          return res.status(413).json({ message: 'Requested file is too large.' });
+          return res
+            .status(413)
+            .json({ message: 'Requested file is too large.' });
         }
 
-  const content = await fs.readFile(resolved, 'utf-8');
-  return res.status(200).json({ filePath: path.relative(projectRoot, resolved), content });
-      } catch (error: any) { // Added : any for error type
-  return res.status(500).json({ message: `Error reading file: ${error.message}` });
+        const content = await fs.readFile(resolved, 'utf-8');
+        return res
+          .status(200)
+          .json({ filePath: path.relative(projectRoot, resolved), content });
+      } catch (error: any) {
+        // Added : any for error type
+        return res
+          .status(500)
+          .json({ message: `Error reading file: ${error.message}` });
       }
     } else {
-  return res.status(400).json({ message: 'Missing filePath query parameter.' });
+      return res
+        .status(400)
+        .json({ message: 'Missing filePath query parameter.' });
     }
   });
 
@@ -167,7 +196,7 @@ export async function startWebServer(agent: GeminiAgent) {
       status: 'Agent is running',
       lastUpdated: new Date().toISOString(),
       thoughts: 'Thinking about the project...',
-      activeFilePath: activeFilePath
+      activeFilePath: activeFilePath,
     });
   });
 

@@ -195,15 +195,15 @@ export interface HalsteadMetrics {
  */
 import fs from 'fs/promises';
 import path from 'path';
-import { 
-  Project, 
-  SourceFile, 
-  SyntaxKind, 
-  JSDoc, 
-  ImportSpecifier, 
-  ParameterDeclaration, 
+import {
+  Project,
+  SourceFile,
+  SyntaxKind,
+  JSDoc,
+  ImportSpecifier,
+  ParameterDeclaration,
   MethodDeclaration,
-  Node
+  Node,
 } from 'ts-morph';
 
 const MAX_FILE_SIZE_MB = 50; // maximum file size to process
@@ -213,7 +213,7 @@ const MAX_FILE_SIZE_MB = 50; // maximum file size to process
  */
 function calculateCyclomaticComplexity(node: Node): number {
   let complexity = 1; // base complexity
-  
+
   const complexityNodes = [
     SyntaxKind.IfStatement,
     SyntaxKind.WhileStatement,
@@ -224,7 +224,7 @@ function calculateCyclomaticComplexity(node: Node): number {
     SyntaxKind.CaseClause,
     SyntaxKind.ConditionalExpression,
     SyntaxKind.TryStatement,
-    SyntaxKind.CatchClause
+    SyntaxKind.CatchClause,
   ];
 
   node.forEachDescendant((child) => {
@@ -246,15 +246,27 @@ function calculateHalsteadMetrics(sourceFile: SourceFile): HalsteadMetrics {
   let operandCount = 0;
 
   const operatorKinds = [
-    SyntaxKind.PlusToken, SyntaxKind.MinusToken, SyntaxKind.AsteriskToken,
-    SyntaxKind.SlashToken, SyntaxKind.PercentToken, SyntaxKind.AmpersandToken,
-    SyntaxKind.BarToken, SyntaxKind.CaretToken, SyntaxKind.ExclamationToken,
-    SyntaxKind.EqualsEqualsToken, SyntaxKind.ExclamationEqualsToken,
-    SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken,
-    SyntaxKind.LessThanEqualsToken, SyntaxKind.GreaterThanEqualsToken,
-    SyntaxKind.AmpersandAmpersandToken, SyntaxKind.BarBarToken,
-    SyntaxKind.EqualsToken, SyntaxKind.PlusEqualsToken,
-    SyntaxKind.MinusEqualsToken, SyntaxKind.AsteriskEqualsToken
+    SyntaxKind.PlusToken,
+    SyntaxKind.MinusToken,
+    SyntaxKind.AsteriskToken,
+    SyntaxKind.SlashToken,
+    SyntaxKind.PercentToken,
+    SyntaxKind.AmpersandToken,
+    SyntaxKind.BarToken,
+    SyntaxKind.CaretToken,
+    SyntaxKind.ExclamationToken,
+    SyntaxKind.EqualsEqualsToken,
+    SyntaxKind.ExclamationEqualsToken,
+    SyntaxKind.LessThanToken,
+    SyntaxKind.GreaterThanToken,
+    SyntaxKind.LessThanEqualsToken,
+    SyntaxKind.GreaterThanEqualsToken,
+    SyntaxKind.AmpersandAmpersandToken,
+    SyntaxKind.BarBarToken,
+    SyntaxKind.EqualsToken,
+    SyntaxKind.PlusEqualsToken,
+    SyntaxKind.MinusEqualsToken,
+    SyntaxKind.AsteriskEqualsToken,
   ];
 
   sourceFile.forEachDescendant((node) => {
@@ -264,8 +276,11 @@ function calculateHalsteadMetrics(sourceFile: SourceFile): HalsteadMetrics {
     if (operatorKinds.includes(kind)) {
       operators.add(text);
       operatorCount++;
-    } else if (kind === SyntaxKind.Identifier || kind === SyntaxKind.StringLiteral || 
-               kind === SyntaxKind.NumericLiteral) {
+    } else if (
+      kind === SyntaxKind.Identifier ||
+      kind === SyntaxKind.StringLiteral ||
+      kind === SyntaxKind.NumericLiteral
+    ) {
       operands.add(text);
       operandCount++;
     }
@@ -291,7 +306,7 @@ function calculateHalsteadMetrics(sourceFile: SourceFile): HalsteadMetrics {
     difficulty,
     effort,
     timeRequired,
-    bugsDelivered
+    bugsDelivered,
   };
 }
 
@@ -301,15 +316,18 @@ function calculateHalsteadMetrics(sourceFile: SourceFile): HalsteadMetrics {
 function calculateMaintainabilityIndex(
   halstead: HalsteadMetrics,
   cyclomaticComplexity: number,
-  linesOfCode: number
+  linesOfCode: number,
 ): number {
   if (linesOfCode === 0 || halstead.programLength === 0) return 100;
-  
-  const maintainabilityIndex = Math.max(0, 
-    171 - 5.2 * Math.log(halstead.programLength) - 
-    0.23 * cyclomaticComplexity - 16.2 * Math.log(linesOfCode)
+
+  const maintainabilityIndex = Math.max(
+    0,
+    171 -
+      5.2 * Math.log(halstead.programLength) -
+      0.23 * cyclomaticComplexity -
+      16.2 * Math.log(linesOfCode),
   );
-  
+
   return Math.min(100, maintainabilityIndex);
 }
 
@@ -319,15 +337,15 @@ function calculateMaintainabilityIndex(
 function extractComplexityMetrics(sourceFile: SourceFile): ComplexityMetrics {
   let totalCyclomaticComplexity = 0;
   let functionCount = 0;
-  
+
   // Count functions and their complexity
-  sourceFile.getFunctions().forEach(func => {
+  sourceFile.getFunctions().forEach((func) => {
     totalCyclomaticComplexity += calculateCyclomaticComplexity(func);
     functionCount++;
   });
-  
-  sourceFile.getClasses().forEach(cls => {
-    cls.getMethods().forEach(method => {
+
+  sourceFile.getClasses().forEach((cls) => {
+    cls.getMethods().forEach((method) => {
       totalCyclomaticComplexity += calculateCyclomaticComplexity(method);
       functionCount++;
     });
@@ -335,18 +353,19 @@ function extractComplexityMetrics(sourceFile: SourceFile): ComplexityMetrics {
 
   const halsteadMetrics = calculateHalsteadMetrics(sourceFile);
   const linesOfCode = sourceFile.getEndLineNumber();
-  const avgCyclomaticComplexity = functionCount > 0 ? totalCyclomaticComplexity / functionCount : 0;
-  
+  const avgCyclomaticComplexity =
+    functionCount > 0 ? totalCyclomaticComplexity / functionCount : 0;
+
   return {
     cyclomaticComplexity: totalCyclomaticComplexity,
     cognitiveComplexity: totalCyclomaticComplexity, // Simplified - could be enhanced
     halsteadMetrics,
     linesOfCode,
     maintainabilityIndex: calculateMaintainabilityIndex(
-      halsteadMetrics, 
-      avgCyclomaticComplexity, 
-      linesOfCode
-    )
+      halsteadMetrics,
+      avgCyclomaticComplexity,
+      linesOfCode,
+    ),
   };
 }
 export interface ParseResult {
@@ -509,7 +528,8 @@ export function extractCommentsAndJsDoc(
       for (const nd of sourceFile.getDescendants()) {
         try {
           const getJsDocs = (nd as { getJsDocs?: () => JSDoc[] }).getJsDocs;
-          const js = typeof getJsDocs === 'function' ? getJsDocs.call(nd) ?? [] : [];
+          const js =
+            typeof getJsDocs === 'function' ? (getJsDocs.call(nd) ?? []) : [];
           if (Array.isArray(js) && js.length > 0) {
             for (const d of js) {
               const txt =
@@ -559,13 +579,13 @@ export function extractIntentionsFromSourceFile(
         difficulty: 0,
         effort: 0,
         timeRequired: 0,
-        bugsDelivered: 0
+        bugsDelivered: 0,
       },
       linesOfCode: 0,
-      maintainabilityIndex: 100
-    }
+      maintainabilityIndex: 100,
+    },
   };
-  
+
   if (!sourceFile) {
     intents.parsingErrors.push('sourceFile not available');
     return intents;
@@ -584,7 +604,7 @@ export function extractIntentionsFromSourceFile(
           const mappedNamed = namedImports.map((spec: ImportSpecifier) => ({
             name: spec.getName(),
             alias: spec.getAliasNode()?.getText() ?? undefined,
-            isTypeOnly: spec.isTypeOnly()
+            isTypeOnly: spec.isTypeOnly(),
           }));
 
           intents.imports.push({
@@ -593,28 +613,29 @@ export function extractIntentionsFromSourceFile(
             defaultImport: imp.getDefaultImport()?.getText?.() ?? undefined,
             namespaceImport: imp.getNamespaceImport()?.getText?.() ?? undefined,
             isTypeOnly: imp.isTypeOnly(),
-            startLine: imp.getStartLineNumber()
+            startLine: imp.getStartLineNumber(),
           });
-          } catch (e: unknown) {
-            intents.parsingErrors.push(`import node error: ${String(e)}`);
-          }
-      }
         } catch (e: unknown) {
-          intents.parsingErrors.push(`imports extraction failed: ${String(e)}`);
+          intents.parsingErrors.push(`import node error: ${String(e)}`);
         }
+      }
+    } catch (e: unknown) {
+      intents.parsingErrors.push(`imports extraction failed: ${String(e)}`);
+    }
 
     // Functions
     try {
       const funcs = sourceFile.getFunctions();
       for (const f of funcs) {
         try {
-          const params: ParameterInfo[] = f.getParameters?.().map((p: ParameterDeclaration) => ({
-            name: p.getName?.() || '',
-            type: p.getType?.().getText?.() ?? '',
-            isOptional: p.hasQuestionToken(),
-            hasDefault: p.hasInitializer(),
-            defaultValue: p.getInitializer()?.getText()
-          })) ?? [];
+          const params: ParameterInfo[] =
+            f.getParameters?.().map((p: ParameterDeclaration) => ({
+              name: p.getName?.() || '',
+              type: p.getType?.().getText?.() ?? '',
+              isOptional: p.hasQuestionToken(),
+              hasDefault: p.hasInitializer(),
+              defaultValue: p.getInitializer()?.getText(),
+            })) ?? [];
 
           intents.functions.push({
             name: f.getName?.() ?? '<anonymous>',
@@ -626,7 +647,7 @@ export function extractIntentionsFromSourceFile(
             params,
             returnType: f.getReturnTypeNode()?.getText(),
             visibility: 'public', // functions are always public in TS
-            complexity: calculateCyclomaticComplexity(f)
+            complexity: calculateCyclomaticComplexity(f),
           });
         } catch (e: unknown) {
           intents.parsingErrors.push(`function node error: ${String(e)}`);
@@ -641,43 +662,46 @@ export function extractIntentionsFromSourceFile(
       const classes = sourceFile.getClasses();
       for (const c of classes) {
         try {
-          const methods: MethodInfo[] = c.getMethods?.().map((m: MethodDeclaration) => ({
-            name: m.getName?.() || '',
-            isAsync: m.isAsync?.() ?? false,
-            isStatic: m.isStatic(),
-            isAbstract: m.isAbstract(),
-            visibility: m.getScope() || 'public',
-            params: m.getParameters().map((p: ParameterDeclaration) => ({
-              name: p.getName() || '',
-              type: p.getType().getText() || '',
-              isOptional: p.hasQuestionToken(),
-              hasDefault: p.hasInitializer(),
-              defaultValue: p.getInitializer()?.getText()
-            })),
-            returnType: m.getReturnTypeNode()?.getText(),
-            complexity: calculateCyclomaticComplexity(m)
-          })) ?? [];
+          const methods: MethodInfo[] =
+            c.getMethods?.().map((m: MethodDeclaration) => ({
+              name: m.getName?.() || '',
+              isAsync: m.isAsync?.() ?? false,
+              isStatic: m.isStatic(),
+              isAbstract: m.isAbstract(),
+              visibility: m.getScope() || 'public',
+              params: m.getParameters().map((p: ParameterDeclaration) => ({
+                name: p.getName() || '',
+                type: p.getType().getText() || '',
+                isOptional: p.hasQuestionToken(),
+                hasDefault: p.hasInitializer(),
+                defaultValue: p.getInitializer()?.getText(),
+              })),
+              returnType: m.getReturnTypeNode()?.getText(),
+              complexity: calculateCyclomaticComplexity(m),
+            })) ?? [];
 
-          const properties: PropertyInfo[] = c.getProperties().map(p => ({
+          const properties: PropertyInfo[] = c.getProperties().map((p) => ({
             name: p.getName() || '',
             type: p.getType().getText(),
             isStatic: p.isStatic(),
             isReadonly: p.isReadonly(),
             visibility: p.getScope() || 'public',
-            hasInitializer: p.hasInitializer()
+            hasInitializer: p.hasInitializer(),
           }));
 
-          const constructors: ConstructorInfo[] = c.getConstructors().map(ctor => ({
-            params: ctor.getParameters().map((p: ParameterDeclaration) => ({
-              name: p.getName() || '',
-              type: p.getType().getText() || '',
-              isOptional: p.hasQuestionToken(),
-              hasDefault: p.hasInitializer(),
-              defaultValue: p.getInitializer()?.getText()
-            })),
-            visibility: ctor.getScope() || 'public',
-            complexity: calculateCyclomaticComplexity(ctor)
-          }));
+          const constructors: ConstructorInfo[] = c
+            .getConstructors()
+            .map((ctor) => ({
+              params: ctor.getParameters().map((p: ParameterDeclaration) => ({
+                name: p.getName() || '',
+                type: p.getType().getText() || '',
+                isOptional: p.hasQuestionToken(),
+                hasDefault: p.hasInitializer(),
+                defaultValue: p.getInitializer()?.getText(),
+              })),
+              visibility: ctor.getScope() || 'public',
+              complexity: calculateCyclomaticComplexity(ctor),
+            }));
 
           intents.classes.push({
             name: c.getName?.() ?? '<anonymous>',
@@ -689,7 +713,7 @@ export function extractIntentionsFromSourceFile(
             properties,
             constructors,
             extends: c.getExtends()?.getText(),
-            implements: c.getImplements().map(i => i.getText())
+            implements: c.getImplements().map((i) => i.getText()),
           });
         } catch (e: unknown) {
           intents.parsingErrors.push(`class node error: ${String(e)}`);
@@ -704,25 +728,29 @@ export function extractIntentionsFromSourceFile(
       const interfaces = sourceFile.getInterfaces();
       for (const iface of interfaces) {
         try {
-          const properties: InterfacePropertyInfo[] = iface.getProperties().map(p => ({
-            name: p.getName() || '',
-            type: p.getType().getText(),
-            isOptional: p.hasQuestionToken(),
-            isReadonly: p.isReadonly()
-          }));
-
-          const methods: InterfaceMethodInfo[] = iface.getMethods().map(m => ({
-            name: m.getName() || '',
-            params: m.getParameters().map((p: ParameterDeclaration) => ({
+          const properties: InterfacePropertyInfo[] = iface
+            .getProperties()
+            .map((p) => ({
               name: p.getName() || '',
-              type: p.getType().getText() || '',
+              type: p.getType().getText(),
               isOptional: p.hasQuestionToken(),
-              hasDefault: p.hasInitializer(),
-              defaultValue: p.getInitializer()?.getText()
-            })),
-            returnType: m.getReturnTypeNode()?.getText(),
-            isOptional: m.hasQuestionToken()
-          }));
+              isReadonly: p.isReadonly(),
+            }));
+
+          const methods: InterfaceMethodInfo[] = iface
+            .getMethods()
+            .map((m) => ({
+              name: m.getName() || '',
+              params: m.getParameters().map((p: ParameterDeclaration) => ({
+                name: p.getName() || '',
+                type: p.getType().getText() || '',
+                isOptional: p.hasQuestionToken(),
+                hasDefault: p.hasInitializer(),
+                defaultValue: p.getInitializer()?.getText(),
+              })),
+              returnType: m.getReturnTypeNode()?.getText(),
+              isOptional: m.hasQuestionToken(),
+            }));
 
           intents.interfaces.push({
             name: iface.getName(),
@@ -731,7 +759,7 @@ export function extractIntentionsFromSourceFile(
             endLine: iface.getEndLineNumber(),
             properties,
             methods,
-            extends: iface.getExtends().map(e => e.getText())
+            extends: iface.getExtends().map((e) => e.getText()),
           });
         } catch (e: unknown) {
           intents.parsingErrors.push(`interface node error: ${String(e)}`);
@@ -750,14 +778,16 @@ export function extractIntentionsFromSourceFile(
             name: ta.getName(),
             isExported: ta.isExported(),
             definition: ta.getTypeNode()?.getText() || '',
-            startLine: ta.getStartLineNumber()
+            startLine: ta.getStartLineNumber(),
           });
         } catch (e: unknown) {
           intents.parsingErrors.push(`type alias node error: ${String(e)}`);
         }
       }
     } catch (e) {
-      intents.parsingErrors.push(`type aliases extraction failed: ${String(e)}`);
+      intents.parsingErrors.push(
+        `type aliases extraction failed: ${String(e)}`,
+      );
     }
 
     // Enums
@@ -765,10 +795,10 @@ export function extractIntentionsFromSourceFile(
       const enums = sourceFile.getEnums();
       for (const en of enums) {
         try {
-          const members: EnumMemberInfo[] = en.getMembers().map(m => ({
+          const members: EnumMemberInfo[] = en.getMembers().map((m) => ({
             name: m.getName(),
             value: m.getValue(),
-            hasInitializer: m.hasInitializer()
+            hasInitializer: m.hasInitializer(),
           }));
 
           intents.enums.push({
@@ -777,7 +807,7 @@ export function extractIntentionsFromSourceFile(
             isConst: false, // ts-morph doesn't expose isConst directly
             startLine: en.getStartLineNumber(),
             endLine: en.getEndLineNumber(),
-            members
+            members,
           });
         } catch (e: unknown) {
           intents.parsingErrors.push(`enum node error: ${String(e)}`);
@@ -810,9 +840,16 @@ export function extractIntentionsFromSourceFile(
                   type: decl.getType().getText(),
                   isExported,
                   startLine: decl.getStartLineNumber?.() ?? null,
-                  isReadonly: decl.getParent()?.getKind() === SyntaxKind.VariableDeclarationList &&
-                              decl.getParent()?.getParent()?.getKind() === SyntaxKind.VariableStatement &&
-                              (decl.getParent()?.getParent() as { getDeclarationKind?: () => string })?.getDeclarationKind?.() === 'const'
+                  isReadonly:
+                    decl.getParent()?.getKind() ===
+                      SyntaxKind.VariableDeclarationList &&
+                    decl.getParent()?.getParent()?.getKind() ===
+                      SyntaxKind.VariableStatement &&
+                    (
+                      decl.getParent()?.getParent() as {
+                        getDeclarationKind?: () => string;
+                      }
+                    )?.getDeclarationKind?.() === 'const',
                 });
               }
             } catch (e: unknown) {
@@ -835,11 +872,14 @@ export function extractIntentionsFromSourceFile(
       for (const exp of exports) {
         try {
           intents.exports.push({
-            name: exp.getNamedExports().map(ne => ne.getName()).join(', '),
+            name: exp
+              .getNamedExports()
+              .map((ne) => ne.getName())
+              .join(', '),
             isDefault: false,
             isReExport: !!exp.getModuleSpecifier(),
             moduleSpecifier: exp.getModuleSpecifierValue(),
-            type: 'variable' // simplified
+            type: 'variable', // simplified
           });
         } catch (e: unknown) {
           intents.parsingErrors.push(`export node error: ${String(e)}`);
@@ -848,7 +888,6 @@ export function extractIntentionsFromSourceFile(
     } catch (e) {
       intents.parsingErrors.push(`exports extraction failed: ${String(e)}`);
     }
-
   } catch (e: unknown) {
     intents.parsingErrors.push(
       `intentions overall extraction failed: ${String(e)}`,
@@ -966,34 +1005,34 @@ export class ASTReader {
         parts.push(`✅ Parse Status: Success`);
       }
 
-  const intents: Intentions = r.intentions as Intentions || {
-    functions: [],
-    classes: [],
-    imports: [],
-    constants: [],
-    exports: [],
-    interfaces: [],
-    types: [],
-    enums: [],
-    parsingErrors: [],
-    complexity: {
-      cyclomaticComplexity: 0,
-      cognitiveComplexity: 0,
-      halsteadMetrics: {
-        operatorsCount: 0,
-        operandsCount: 0,
-        vocabularySize: 0,
-        programLength: 0,
-        difficulty: 0,
-        effort: 0,
-        timeRequired: 0,
-        bugsDelivered: 0
-      },
-      linesOfCode: 0,
-      maintainabilityIndex: 100
-    }
-  };
-  if (intents && !('extraction_error' in intents)) {
+      const intents: Intentions = (r.intentions as Intentions) || {
+        functions: [],
+        classes: [],
+        imports: [],
+        constants: [],
+        exports: [],
+        interfaces: [],
+        types: [],
+        enums: [],
+        parsingErrors: [],
+        complexity: {
+          cyclomaticComplexity: 0,
+          cognitiveComplexity: 0,
+          halsteadMetrics: {
+            operatorsCount: 0,
+            operandsCount: 0,
+            vocabularySize: 0,
+            programLength: 0,
+            difficulty: 0,
+            effort: 0,
+            timeRequired: 0,
+            bugsDelivered: 0,
+          },
+          linesOfCode: 0,
+          maintainabilityIndex: 100,
+        },
+      };
+      if (intents && !('extraction_error' in intents)) {
         const fnCount = Array.isArray(intents.functions)
           ? intents.functions.length
           : 0;
@@ -1022,8 +1061,7 @@ export class ASTReader {
 
       const output = parts.join('\n');
 
-   
-  const metadata: Partial<ParseResult> = {
+      const metadata: Partial<ParseResult> = {
         fileInfo: r.fileInfo,
         parseError: r.parseError,
         intentions:

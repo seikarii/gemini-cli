@@ -197,7 +197,7 @@ export interface FileSystemService {
   isPathSafe(filePath: string, allowedRoots?: string[]): boolean;
   clearCache(filePath?: string): void;
   getCacheStats(): { size: number; hitRate: number; totalRequests: number };
-  
+
   // Performance optimization methods
   batchReadTextFiles(
     filePaths: string[],
@@ -279,26 +279,35 @@ export class StandardFileSystemService implements FileSystemService {
   /**
    * Record performance metrics for operations
    */
-  private recordMetric(operation: string, startTime: number, options?: FileSystemOptions): void {
+  private recordMetric(
+    operation: string,
+    startTime: number,
+    options?: FileSystemOptions,
+  ): void {
     if (!options?.enableMetrics) return;
 
     const duration = Date.now() - startTime;
     this.performanceMetrics.totalOperations++;
-    
+
     // Update operation count
-    const currentCount = this.performanceMetrics.operationCounts.get(operation) || 0;
+    const currentCount =
+      this.performanceMetrics.operationCounts.get(operation) || 0;
     this.performanceMetrics.operationCounts.set(operation, currentCount + 1);
-    
+
     // Update operation times
-    const currentTimes = this.performanceMetrics.operationTimes.get(operation) || [];
+    const currentTimes =
+      this.performanceMetrics.operationTimes.get(operation) || [];
     currentTimes.push(duration);
     this.performanceMetrics.operationTimes.set(operation, currentTimes);
-    
+
     // Update average
-    const totalTime = Array.from(this.performanceMetrics.operationTimes.values())
+    const totalTime = Array.from(
+      this.performanceMetrics.operationTimes.values(),
+    )
       .flat()
       .reduce((sum, time) => sum + time, 0);
-    this.performanceMetrics.averageOperationTime = totalTime / this.performanceMetrics.totalOperations;
+    this.performanceMetrics.averageOperationTime =
+      totalTime / this.performanceMetrics.totalOperations;
   }
 
   /**
@@ -316,8 +325,10 @@ export class StandardFileSystemService implements FileSystemService {
     content: string,
     opts: Required<Omit<FileSystemOptions, 'bypassCache' | 'maxCacheEntries'>>,
   ): Promise<void> {
-    const shouldUseAtomicWrites = opts.performanceMode === 'safe' ? true : opts.atomicWrites;
-    const shouldCreateCheckpoint = opts.performanceMode === 'fast' ? false : opts.createCheckpoint;
+    const shouldUseAtomicWrites =
+      opts.performanceMode === 'safe' ? true : opts.atomicWrites;
+    const shouldCreateCheckpoint =
+      opts.performanceMode === 'fast' ? false : opts.createCheckpoint;
 
     if (shouldUseAtomicWrites) {
       // Optimized checkpoint creation - only for 'safe' and 'balanced' modes
@@ -349,22 +360,33 @@ export class StandardFileSystemService implements FileSystemService {
   /**
    * Optimized checkpoint creation with better error handling
    */
-  private async createOptimizedCheckpoint(filePath: string, opts: Required<Omit<FileSystemOptions, 'bypassCache' | 'maxCacheEntries'>>): Promise<void> {
+  private async createOptimizedCheckpoint(
+    filePath: string,
+    opts: Required<Omit<FileSystemOptions, 'bypassCache' | 'maxCacheEntries'>>,
+  ): Promise<void> {
     try {
       const stat = await fs.stat(filePath).catch(() => null);
       if (stat && stat.isFile()) {
         // Use cached content if available and valid
         let existing: string | null = null;
-        
+
         if (opts.performanceMode !== 'fast') {
           try {
-            const cacheResult = await this.getCachedOrFreshContent(filePath, opts.encoding, false);
+            const cacheResult = await this.getCachedOrFreshContent(
+              filePath,
+              opts.encoding,
+              false,
+            );
             existing = cacheResult.content;
           } catch {
-            existing = await fs.readFile(filePath, opts.encoding).catch(() => null);
+            existing = await fs
+              .readFile(filePath, opts.encoding)
+              .catch(() => null);
           }
         } else {
-          existing = await fs.readFile(filePath, opts.encoding).catch(() => null);
+          existing = await fs
+            .readFile(filePath, opts.encoding)
+            .catch(() => null);
         }
 
         if (existing !== null) {
@@ -373,10 +395,13 @@ export class StandardFileSystemService implements FileSystemService {
             '.gemini_checkpoints',
             `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           );
-          
+
           await fs.mkdir(checkpointDir, { recursive: true }).catch(() => null);
-          const checkpointPath = path.join(checkpointDir, path.basename(filePath));
-          
+          const checkpointPath = path.join(
+            checkpointDir,
+            path.basename(filePath),
+          );
+
           try {
             await fs.writeFile(checkpointPath, existing, opts.encoding);
           } catch {
@@ -397,12 +422,15 @@ export class StandardFileSystemService implements FileSystemService {
     const pathSafetyConfig = this.defaultOptions.pathSafetyConfig;
 
     // Dynamic performance mode - could be configured per instance
-    const performanceMode: PerformanceMode = this.defaultOptions.performanceMode;
+    const performanceMode: PerformanceMode =
+      this.defaultOptions.performanceMode;
 
     if (performanceMode === 'fast') {
       // Basic check only for fast mode - respect configuration
-      const hasTraversal = !pathSafetyConfig.allowPathTraversal && filePath.includes('..');
-      const hasTilde = !pathSafetyConfig.allowTildeExpansion && filePath.includes('~');
+      const hasTraversal =
+        !pathSafetyConfig.allowPathTraversal && filePath.includes('..');
+      const hasTilde =
+        !pathSafetyConfig.allowTildeExpansion && filePath.includes('~');
       return !hasTraversal && !hasTilde;
     }
 
@@ -413,7 +441,7 @@ export class StandardFileSystemService implements FileSystemService {
 
     // Check cache first
     const cached = this.pathSafetyCache.get(cacheKey);
-    if (cached && (now - cached.cachedAt) < this.pathSafetyCacheTTL) {
+    if (cached && now - cached.cachedAt < this.pathSafetyCacheTTL) {
       this.performanceMetrics.pathSafetyCacheHits++;
       return cached.isSafe;
     }
@@ -440,7 +468,10 @@ export class StandardFileSystemService implements FileSystemService {
       if (pathSafetyConfig.strictValidation) {
         const suspiciousChars = /[<>:"|?*]/;
         const additionalChars = pathSafetyConfig.allowedChars || '';
-        const allowedChars = new RegExp(`[<>:"|?*${additionalChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`, 'g');
+        const allowedChars = new RegExp(
+          `[<>:"|?*${additionalChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`,
+          'g',
+        );
 
         if (suspiciousChars.test(filePath) && !allowedChars.test(filePath)) {
           this.cachePathSafetyResult(cacheKey, false, allowedRootsHash, now);
@@ -449,7 +480,10 @@ export class StandardFileSystemService implements FileSystemService {
       }
 
       // Validate against allowed roots (merge configured roots with parameter roots)
-      const allAllowedRoots = [...(pathSafetyConfig.allowedRoots || []), ...allowedRoots];
+      const allAllowedRoots = [
+        ...(pathSafetyConfig.allowedRoots || []),
+        ...allowedRoots,
+      ];
       if (allAllowedRoots.length > 0) {
         const isInAllowedRoot = allAllowedRoots.some((root) => {
           const normalizedRoot = path.resolve(root);
@@ -516,14 +550,18 @@ export class StandardFileSystemService implements FileSystemService {
       }
     }
 
-    toDelete.forEach(key => this.pathSafetyCache.delete(key));
+    toDelete.forEach((key) => this.pathSafetyCache.delete(key));
 
     // If still too full, remove oldest entries
     if (this.pathSafetyCache.size >= this.pathSafetyCacheSize) {
-      const entries = Array.from(this.pathSafetyCache.entries())
-        .sort((a, b) => a[1].cachedAt - b[1].cachedAt);
-      
-      const toRemove = entries.slice(0, Math.floor(this.pathSafetyCacheSize * 0.3));
+      const entries = Array.from(this.pathSafetyCache.entries()).sort(
+        (a, b) => a[1].cachedAt - b[1].cachedAt,
+      );
+
+      const toRemove = entries.slice(
+        0,
+        Math.floor(this.pathSafetyCacheSize * 0.3),
+      );
       toRemove.forEach(([key]) => this.pathSafetyCache.delete(key));
     }
   }
@@ -641,7 +679,7 @@ export class StandardFileSystemService implements FileSystemService {
     try {
       const currentMtimeMs = await this.getFileMtimeMs(filePath);
       return currentMtimeMs === cacheEntry.mtimeMs;
-  } catch (_error) {
+    } catch (_error) {
       // If we can't stat the file, cache is invalid
       return false;
     }
@@ -962,8 +1000,8 @@ export class StandardFileSystemService implements FileSystemService {
       }
 
       if (opts.atomicWrites) {
-          // Use optimized write method with conditional checkpointing
-          await this.performOptimizedWrite(filePath, content, opts);
+        // Use optimized write method with conditional checkpointing
+        await this.performOptimizedWrite(filePath, content, opts);
       } else {
         // Direct write
         const operation = fs.writeFile(filePath, content, opts.encoding);
@@ -1545,7 +1583,9 @@ export class StandardFileSystemService implements FileSystemService {
         }
 
         // Avoid processing the same directory twice (symlink protection)
-        const resolvedPath = await fs.realpath(currentPath).catch(() => currentPath);
+        const resolvedPath = await fs
+          .realpath(currentPath)
+          .catch(() => currentPath);
         if (processedDirs.has(resolvedPath)) {
           return;
         }
@@ -1557,7 +1597,7 @@ export class StandardFileSystemService implements FileSystemService {
         const batchSize = 100;
         for (let i = 0; i < entries.length; i += batchSize) {
           const batch = entries.slice(i, i + batchSize);
-          
+
           for (const entry of batch) {
             const fullPath = path.join(currentPath, entry.name);
             const relativePath = path.relative(dirPath, fullPath);
@@ -1577,9 +1617,10 @@ export class StandardFileSystemService implements FileSystemService {
       await scanDirectory(dirPath, 0);
 
       // Optimized sorting: only sort if needed and use efficient algorithm
-      const sortedEntries = allEntries.length > 1000 
-        ? allEntries.sort() // Standard sort for large arrays
-        : allEntries.sort((a, b) => a.localeCompare(b)); // Locale-aware sort for smaller arrays
+      const sortedEntries =
+        allEntries.length > 1000
+          ? allEntries.sort() // Standard sort for large arrays
+          : allEntries.sort((a, b) => a.localeCompare(b)); // Locale-aware sort for smaller arrays
 
       // Record performance metrics
       this.recordMetric('listDirectoryRecursive', startTime);
@@ -1612,8 +1653,12 @@ export class StandardFileSystemService implements FileSystemService {
   ): Promise<BatchOperationResult<string>> {
     const startTime = Date.now();
     const opts = { ...this.defaultOptions, ...options };
-    const successful: Array<{ path: string; result: FileOperationResult<string> }> = [];
-    const failed: Array<{ path: string; error: string; errorCode?: string }> = [];
+    const successful: Array<{
+      path: string;
+      result: FileOperationResult<string>;
+    }> = [];
+    const failed: Array<{ path: string; error: string; errorCode?: string }> =
+      [];
 
     // Process in batches to control memory usage and concurrency
     const batchSize = opts.batchSize;
@@ -1629,10 +1674,10 @@ export class StandardFileSystemService implements FileSystemService {
         if (result.success) {
           successful.push({ path: filePath, result });
         } else {
-          failed.push({ 
-            path: filePath, 
+          failed.push({
+            path: filePath,
             error: result.error || 'Unknown error',
-            errorCode: result.errorCode 
+            errorCode: result.errorCode,
           });
         }
       });
@@ -1657,7 +1702,8 @@ export class StandardFileSystemService implements FileSystemService {
     const startTime = Date.now();
     const opts = { ...this.defaultOptions, ...options };
     const successful: Array<{ path: string; result: FileOperationResult }> = [];
-    const failed: Array<{ path: string; error: string; errorCode?: string }> = [];
+    const failed: Array<{ path: string; error: string; errorCode?: string }> =
+      [];
 
     // Process in batches to control memory usage and concurrency
     const batchSize = opts.batchSize;
@@ -1669,14 +1715,18 @@ export class StandardFileSystemService implements FileSystemService {
     for (const batch of batches) {
       // Process batch in parallel with controlled concurrency
       const promises = batch.map(async (operation) => {
-        const result = await this.writeTextFile(operation.path, operation.content, options);
+        const result = await this.writeTextFile(
+          operation.path,
+          operation.content,
+          options,
+        );
         if (result.success) {
           successful.push({ path: operation.path, result });
         } else {
-          failed.push({ 
-            path: operation.path, 
+          failed.push({
+            path: operation.path,
             error: result.error || 'Unknown error',
-            errorCode: result.errorCode 
+            errorCode: result.errorCode,
           });
         }
       });
@@ -1723,21 +1773,20 @@ export class StandardFileSystemService implements FileSystemService {
 
   optimizeCache(): void {
     // Perform cache optimization based on usage patterns
-    
+
     // Clean up expired path safety cache entries
     this.evictOldPathSafetyEntries();
-    
+
     // Optimize file cache by removing least frequently used entries
     if (this.fileCache.size > this.maxCacheEntries * 0.8) {
-      const entries = Array.from(this.fileCache.entries())
-        .sort((a, b) => {
-          // Sort by access count (ascending) then by last accessed (ascending)
-          if (a[1].accessCount !== b[1].accessCount) {
-            return a[1].accessCount - b[1].accessCount;
-          }
-          return a[1].lastAccessed - b[1].lastAccessed;
-        });
-      
+      const entries = Array.from(this.fileCache.entries()).sort((a, b) => {
+        // Sort by access count (ascending) then by last accessed (ascending)
+        if (a[1].accessCount !== b[1].accessCount) {
+          return a[1].accessCount - b[1].accessCount;
+        }
+        return a[1].lastAccessed - b[1].lastAccessed;
+      });
+
       // Remove bottom 30% of entries
       const toRemove = entries.slice(0, Math.floor(entries.length * 0.3));
       toRemove.forEach(([key]) => {
@@ -1745,7 +1794,7 @@ export class StandardFileSystemService implements FileSystemService {
         this.cacheStats.invalidations++;
       });
     }
-    
+
     // Update cache statistics
     this.performanceMetrics.cacheHits = this.cacheStats.hits;
     this.performanceMetrics.cacheMisses = this.cacheStats.misses;
@@ -1798,15 +1847,19 @@ export class StandardFileSystemService implements FileSystemService {
       misses: number;
     };
   } {
-    const fileCacheHitRate = this.cacheStats.hits + this.cacheStats.misses > 0
-      ? this.cacheStats.hits / (this.cacheStats.hits + this.cacheStats.misses)
-      : 0;
+    const fileCacheHitRate =
+      this.cacheStats.hits + this.cacheStats.misses > 0
+        ? this.cacheStats.hits / (this.cacheStats.hits + this.cacheStats.misses)
+        : 0;
 
-    const pathSafetyHitRate = this.performanceMetrics.pathSafetyCacheHits +
-      this.performanceMetrics.pathSafetyCacheMisses > 0
-      ? this.performanceMetrics.pathSafetyCacheHits /
-        (this.performanceMetrics.pathSafetyCacheHits + this.performanceMetrics.pathSafetyCacheMisses)
-      : 0;
+    const pathSafetyHitRate =
+      this.performanceMetrics.pathSafetyCacheHits +
+        this.performanceMetrics.pathSafetyCacheMisses >
+      0
+        ? this.performanceMetrics.pathSafetyCacheHits /
+          (this.performanceMetrics.pathSafetyCacheHits +
+            this.performanceMetrics.pathSafetyCacheMisses)
+        : 0;
 
     return {
       fileCache: {
@@ -1830,7 +1883,9 @@ export class StandardFileSystemService implements FileSystemService {
    */
   getDiagnostics(): {
     cacheMetrics: ReturnType<StandardFileSystemService['getCacheMetrics']>;
-    performanceMetrics: ReturnType<StandardFileSystemService['getPerformanceMetrics']>;
+    performanceMetrics: ReturnType<
+      StandardFileSystemService['getPerformanceMetrics']
+    >;
     configuration: {
       defaultTimeout: number;
       defaultMaxFileSize: number;

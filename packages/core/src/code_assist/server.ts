@@ -206,12 +206,15 @@ export class CodeAssistServer implements ContentGenerator {
           bufferedLines = []; // Reset the buffer after yielding
         } else if (line.startsWith('data: ')) {
           bufferedLines.push(line.slice(6).trim());
-        } else if (line.startsWith('{')) { // New condition: try to parse as direct JSON
+        } else if (line.startsWith('{')) {
+          // New condition: try to parse as direct JSON
           try {
             yield JSON.parse(line) as T;
           } catch (e) {
             // If it's not valid JSON, then it's truly an unexpected format
-            throw new Error(`Unexpected line format in response: ${line}. Failed to parse as JSON: ${e}`);
+            throw new Error(
+              `Unexpected line format in response: ${line}. Failed to parse as JSON: ${e}`,
+            );
           }
         } else {
           throw new Error(`Unexpected line format in response: ${line}`);

@@ -12,7 +12,10 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { EXTENSIONS_CONFIG_FILENAME, DEFAULT_CONTEXT_FILENAME } from './constants.js';
+import {
+  EXTENSIONS_CONFIG_FILENAME,
+  DEFAULT_CONTEXT_FILENAME,
+} from './constants.js';
 import { logger } from './logger.js';
 
 export interface Extension {
@@ -29,7 +32,9 @@ export interface ExtensionConfig {
   excludeTools?: string[];
 }
 
-export async function loadExtensions(workspaceDir: string): Promise<Extension[]> {
+export async function loadExtensions(
+  workspaceDir: string,
+): Promise<Extension[]> {
   const fromWorkspace = await loadExtensionsFromDir(workspaceDir);
   const fromHome = await loadExtensionsFromDir(os.homedir());
 
@@ -55,7 +60,9 @@ async function loadExtensionsFromDir(dir: string): Promise<Extension[]> {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
       return [];
     }
-    logger.warn(`Error accessing extensions directory ${extensionsDir}: ${error}`);
+    logger.warn(
+      `Error accessing extensions directory ${extensionsDir}: ${error}`,
+    );
     return [];
   }
 
@@ -77,9 +84,7 @@ async function loadExtension(extensionDir: string): Promise<Extension | null> {
   try {
     const stat = await fs.promises.stat(extensionDir);
     if (!stat.isDirectory()) {
-      logger.warn(
-        `unexpected file ${extensionDir} in extensions directory.`,
-      );
+      logger.warn(`unexpected file ${extensionDir} in extensions directory.`);
       return null;
     }
   } catch (error) {
@@ -87,7 +92,9 @@ async function loadExtension(extensionDir: string): Promise<Extension | null> {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
       return null;
     }
-    logger.warn(`Error accessing extension directory ${extensionDir}: ${error}`);
+    logger.warn(
+      `Error accessing extension directory ${extensionDir}: ${error}`,
+    );
     return null;
   }
 
@@ -125,8 +132,16 @@ async function loadExtension(extensionDir: string): Promise<Extension | null> {
         contextFiles.push(contextFilePath);
       } catch (error) {
         // Only ignore ENOENT (context file doesn't exist), log other errors
-        if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) {
-          logger.warn(`Error accessing context file ${contextFilePath}: ${error}`);
+        if (
+          !(
+            error instanceof Error &&
+            'code' in error &&
+            error.code === 'ENOENT'
+          )
+        ) {
+          logger.warn(
+            `Error accessing context file ${contextFilePath}: ${error}`,
+          );
         }
         // If ENOENT or other error, skip this context file
       }
@@ -138,9 +153,7 @@ async function loadExtension(extensionDir: string): Promise<Extension | null> {
       contextFiles,
     };
   } catch (e) {
-    logger.error(
-      `error parsing extension config in ${configFilePath}: ${e}`,
-    );
+    logger.error(`error parsing extension config in ${configFilePath}: ${e}`);
     return null;
   }
 }

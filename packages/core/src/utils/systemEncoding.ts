@@ -93,9 +93,13 @@ async function detectSystemEncodingAsync(): Promise<string | null> {
           return windowsCodePageToEncoding(codePage);
         }
       }
-      console.warn(`Unable to parse Windows code page from 'chcp' output "${output.trim()}".`);
+      console.warn(
+        `Unable to parse Windows code page from 'chcp' output "${output.trim()}".`,
+      );
     } catch (error) {
-      console.warn(`Failed to get Windows code page using 'chcp' command: ${error instanceof Error ? error.message : String(error)}.`);
+      console.warn(
+        `Failed to get Windows code page using 'chcp' command: ${error instanceof Error ? error.message : String(error)}.`,
+      );
     }
     return null;
   }

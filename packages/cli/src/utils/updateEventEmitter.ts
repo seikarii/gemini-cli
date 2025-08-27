@@ -29,10 +29,10 @@ export const updateEventEmitter = new EventEmitter() as EventEmitter & {
   ): boolean;
   on<K extends keyof UpdateEvents>(
     event: K,
-    listener: (...args: UpdateEvents[K]) => void
+    listener: (...args: UpdateEvents[K]) => void,
   ): EventEmitter;
   off<K extends keyof UpdateEvents>(
     event: K,
-    listener: (...args: UpdateEvents[K]) => void
+    listener: (...args: UpdateEvents[K]) => void,
   ): EventEmitter;
 };

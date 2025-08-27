@@ -26,7 +26,8 @@ import { FileSystemService } from '../services/fileSystemService.js';
 const logger = {
   debug: (...args: unknown[]) =>
     console.debug('[DEBUG] [MemoryDiscovery]', ...args),
-  warn: (...args: unknown[]) => console.warn('[WARN] [MemoryDiscovery]', ...args),
+  warn: (...args: unknown[]) =>
+    console.warn('[WARN] [MemoryDiscovery]', ...args),
   error: (...args: unknown[]) =>
     console.error('[ERROR] [MemoryDiscovery]', ...args),
 };
@@ -38,7 +39,10 @@ interface GeminiFileContent {
 
 const projectRootCache = new Map<string, string | null>();
 
-async function findProjectRoot(startDir: string, fileSystemService?: FileSystemService): Promise<string | null> {
+async function findProjectRoot(
+  startDir: string,
+  fileSystemService?: FileSystemService,
+): Promise<string | null> {
   if (projectRootCache.has(startDir)) {
     return projectRootCache.get(startDir)!;
   }
@@ -301,7 +305,9 @@ async function readGeminiMdFiles(
             // Use FileSystemService for standardized file operations
             const readResult = await fileSystemService.readTextFile(filePath);
             if (!readResult.success) {
-              logger.warn(`Failed to read file ${filePath}: ${readResult.error}`);
+              logger.warn(
+                `Failed to read file ${filePath}: ${readResult.error}`,
+              );
               return { filePath, content: null };
             }
             content = readResult.data || '';

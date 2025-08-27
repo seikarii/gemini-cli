@@ -37,7 +37,10 @@ interface FolderStructureOptions {
 }
 // Define a type for the merged options where fileIncludePattern remains optional
 type MergedFolderStructureOptions = Required<
-  Omit<FolderStructureOptions, 'fileIncludePattern' | 'fileService' | 'fileSystemService'>
+  Omit<
+    FolderStructureOptions,
+    'fileIncludePattern' | 'fileService' | 'fileSystemService'
+  >
 > & {
   fileIncludePattern?: RegExp;
   fileService?: FileDiscoveryService;
@@ -103,44 +106,51 @@ async function readFullStructure(
     try {
       if (options.fileSystemService) {
         // Use FileSystemService for standardized file operations
-        const listResult = await options.fileSystemService.listDirectory(currentPath);
+        const listResult =
+          await options.fileSystemService.listDirectory(currentPath);
         if (!listResult.success) {
-          throw new Error(`Failed to list directory ${currentPath}: ${listResult.error}`);
+          throw new Error(
+            `Failed to list directory ${currentPath}: ${listResult.error}`,
+          );
         }
         // Convert string array to Dirent-like objects for compatibility
-        entries = (listResult.data || []).map(name => {
-          const fullPath = path.join(currentPath, name);
-          // We need to stat each file to determine if it's a directory
-          // This is less efficient but maintains compatibility
-          try {
-            const stats = fsSync.statSync(fullPath);
-            return {
-              name,
-              isFile: () => stats.isFile(),
-              isDirectory: () => stats.isDirectory(),
-              isBlockDevice: () => stats.isBlockDevice(),
-              isCharacterDevice: () => stats.isCharacterDevice(),
-              isSymbolicLink: () => stats.isSymbolicLink(),
-              isFIFO: () => stats.isFIFO(),
-              isSocket: () => stats.isSocket(),
-            } as Dirent;
-          } catch {
-            // If we can't stat, assume it's a file
-            return {
-              name,
-              isFile: () => true,
-              isDirectory: () => false,
-              isBlockDevice: () => false,
-              isCharacterDevice: () => false,
-              isSymbolicLink: () => false,
-              isFIFO: () => false,
-              isSocket: () => false,
-            } as Dirent;
-          }
-        }).sort((a, b) => a.name.localeCompare(b.name));
+        entries = (listResult.data || [])
+          .map((name) => {
+            const fullPath = path.join(currentPath, name);
+            // We need to stat each file to determine if it's a directory
+            // This is less efficient but maintains compatibility
+            try {
+              const stats = fsSync.statSync(fullPath);
+              return {
+                name,
+                isFile: () => stats.isFile(),
+                isDirectory: () => stats.isDirectory(),
+                isBlockDevice: () => stats.isBlockDevice(),
+                isCharacterDevice: () => stats.isCharacterDevice(),
+                isSymbolicLink: () => stats.isSymbolicLink(),
+                isFIFO: () => stats.isFIFO(),
+                isSocket: () => stats.isSocket(),
+              } as Dirent;
+            } catch {
+              // If we can't stat, assume it's a file
+              return {
+                name,
+                isFile: () => true,
+                isDirectory: () => false,
+                isBlockDevice: () => false,
+                isCharacterDevice: () => false,
+                isSymbolicLink: () => false,
+                isFIFO: () => false,
+                isSocket: () => false,
+              } as Dirent;
+            }
+          })
+          .sort((a, b) => a.name.localeCompare(b.name));
       } else {
         // Fallback to direct fs operations for backward compatibility
-        const rawEntries = await fs.readdir(currentPath, { withFileTypes: true });
+        const rawEntries = await fs.readdir(currentPath, {
+          withFileTypes: true,
+        });
         // Sort entries alphabetically by name for consistent processing order
         entries = rawEntries.sort((a, b) => a.name.localeCompare(b.name));
       }

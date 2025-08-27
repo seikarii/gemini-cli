@@ -157,7 +157,11 @@ class GlobToolInvocation extends BaseToolInvocation<
         const fullPath = path.join(searchDir, pattern);
 
         // Optimize file existence check - only check if pattern looks like a specific file
-        if (!pattern.includes('*') && !pattern.includes('?') && !pattern.includes('{')) {
+        if (
+          !pattern.includes('*') &&
+          !pattern.includes('?') &&
+          !pattern.includes('{')
+        ) {
           try {
             if (fs.existsSync(fullPath)) {
               pattern = escape(pattern);
@@ -251,7 +255,7 @@ class GlobToolInvocation extends BaseToolInvocation<
       } else {
         // Sort alphabetically for better performance
         finalEntries = [...filteredEntries].sort((a, b) =>
-          a.fullpath().localeCompare(b.fullpath())
+          a.fullpath().localeCompare(b.fullpath()),
         );
       }
 
@@ -260,9 +264,7 @@ class GlobToolInvocation extends BaseToolInvocation<
         finalEntries = finalEntries.slice(0, maxResults);
       }
 
-      const sortedAbsolutePaths = finalEntries.map((entry) =>
-        entry.fullpath(),
-      );
+      const sortedAbsolutePaths = finalEntries.map((entry) => entry.fullpath());
       const fileListDescription = sortedAbsolutePaths.join('\n');
       const fileCount = sortedAbsolutePaths.length;
 
@@ -276,9 +278,10 @@ class GlobToolInvocation extends BaseToolInvocation<
         resultMessage += ` (${gitIgnoredCount} additional files were git-ignored)`;
       }
 
-      const sortDescription = this.params.sort_by_time === false
-        ? ', sorted alphabetically'
-        : ', sorted by modification time (newest first)';
+      const sortDescription =
+        this.params.sort_by_time === false
+          ? ', sorted alphabetically'
+          : ', sorted by modification time (newest first)';
 
       resultMessage += `${sortDescription}:\n${fileListDescription}`;
 

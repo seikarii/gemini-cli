@@ -75,19 +75,62 @@ class EmbeddingSimilarity {
    */
   private static tokenizeAndNormalize(text: string): string[] {
     const stopwords = new Set([
-      'the', 'and', 'for', 'that', 'this', 'with', 'from', 'you', 'your',
-      'are', 'was', 'were', 'has', 'have', 'but', 'not', 'can', 'will',
-      'its', 'they', 'their', 'them', 'our', 'we', 'us', 'a', 'an', 'of',
-      'in', 'on', 'to', 'is', 'it', 'be', 'by', 'or', 'as', 'at', 'an',
-      'if', 'do', 'does', 'did', 'done', 'doing', 'would', 'could', 'should'
+      'the',
+      'and',
+      'for',
+      'that',
+      'this',
+      'with',
+      'from',
+      'you',
+      'your',
+      'are',
+      'was',
+      'were',
+      'has',
+      'have',
+      'but',
+      'not',
+      'can',
+      'will',
+      'its',
+      'they',
+      'their',
+      'them',
+      'our',
+      'we',
+      'us',
+      'a',
+      'an',
+      'of',
+      'in',
+      'on',
+      'to',
+      'is',
+      'it',
+      'be',
+      'by',
+      'or',
+      'as',
+      'at',
+      'an',
+      'if',
+      'do',
+      'does',
+      'did',
+      'done',
+      'doing',
+      'would',
+      'could',
+      'should',
     ]);
 
     return text
       .toLowerCase()
       .replace(/[^\w\s]/g, ' ')
       .split(/\s+/)
-      .filter(word => word.length > 2 && !stopwords.has(word))
-      .map(word => this.stem(word)); // Simple stemming
+      .filter((word) => word.length > 2 && !stopwords.has(word))
+      .map((word) => this.stem(word)); // Simple stemming
   }
 
   /**
@@ -95,7 +138,18 @@ class EmbeddingSimilarity {
    */
   private static stem(word: string): string {
     // Remove common suffixes
-    const suffixes = ['ing', 'ly', 'ed', 'ies', 'ied', 'ies', 'ied', 'ies', 'ied', 's'];
+    const suffixes = [
+      'ing',
+      'ly',
+      'ed',
+      'ies',
+      'ied',
+      'ies',
+      'ied',
+      'ies',
+      'ied',
+      's',
+    ];
     for (const suffix of suffixes) {
       if (word.endsWith(suffix) && word.length > suffix.length + 1) {
         return word.slice(0, -suffix.length);
@@ -107,7 +161,10 @@ class EmbeddingSimilarity {
   /**
    * Calculate TF-IDF vector for a document
    */
-  private static calculateTFIDFVector(tokens: string[], documentId: string): Map<string, number> {
+  private static calculateTFIDFVector(
+    tokens: string[],
+    documentId: string,
+  ): Map<string, number> {
     const vector = new Map<string, number>();
     const termFreq = new Map<string, number>();
 
@@ -119,9 +176,9 @@ class EmbeddingSimilarity {
     // Get all unique terms across all documents seen
     const allTerms = new Set<string>();
     for (const docTokens of this.documentCache.values()) {
-      docTokens.forEach(token => allTerms.add(token));
+      docTokens.forEach((token) => allTerms.add(token));
     }
-    tokens.forEach(token => allTerms.add(token));
+    tokens.forEach((token) => allTerms.add(token));
 
     // Calculate TF-IDF
     const numDocuments = this.documentCache.size;
@@ -155,7 +212,10 @@ class EmbeddingSimilarity {
   /**
    * Calculate cosine similarity between two TF-IDF vectors
    */
-  private static cosineSimilarity(vector1: Map<string, number>, vector2: Map<string, number>): number {
+  private static cosineSimilarity(
+    vector1: Map<string, number>,
+    vector2: Map<string, number>,
+  ): number {
     const terms = new Set([...vector1.keys(), ...vector2.keys()]);
 
     let dotProduct = 0;
@@ -462,9 +522,9 @@ export class LoopDetectionService {
       case GeminiEventType.Content:
         isLoop = this.checkEnhancedContentLoop(event.value);
         break;
-    default:
-      // For other event types, we assume no loop.
-      break;
+      default:
+        // For other event types, we assume no loop.
+        break;
     }
 
     if (isLoop) {
@@ -534,7 +594,8 @@ export class LoopDetectionService {
     ) {
       this.suggestLoopBreakActions(
         [LoopBreakAction.REQUEST_USER_INPUT, LoopBreakAction.CHANGE_STRATEGY],
-        `Consecutive failures of 'replace' detected. Consider using 'upsert_code_block' or 'ast_edit' for more robust code modifications. ` + reasoning,
+        `Consecutive failures of 'replace' detected. Consider using 'upsert_code_block' or 'ast_edit' for more robust code modifications. ` +
+          reasoning,
       );
       this.loopDetected = true; // Set the flag to stop execution.
       return true; // Signal that a loop was detected and we should stop.
@@ -559,7 +620,10 @@ export class LoopDetectionService {
 
     // C) Default case for any other loop type (e.g., chanting).
     // Action: Hard stop.
-    this.suggestLoopBreakActions([LoopBreakAction.REQUEST_USER_INPUT], reasoning);
+    this.suggestLoopBreakActions(
+      [LoopBreakAction.REQUEST_USER_INPUT],
+      reasoning,
+    );
     this.loopDetected = true;
     return true;
   }
@@ -618,7 +682,7 @@ export class LoopDetectionService {
     }
     */
 
-  // No warning state to reset here.
+    // No warning state to reset here.
     return false;
   }
 
@@ -705,12 +769,13 @@ export class LoopDetectionService {
     // Accept CRLF or LF line starts, require at least one whitespace after markers
     const hasTable = /(^|\r?\n)\s*(\|.*\||[|+-]{3,})/.test(content);
     const hasListItem =
-      /(^|\r?\n)\s*[*+-]\s+/.test(content) || /(^|\r?\n)\s*\d+\.\s+/.test(content);
+      /(^|\r?\n)\s*[*+-]\s+/.test(content) ||
+      /(^|\r?\n)\s*\d+\.\s+/.test(content);
     const hasHeading = /(^|\r?\n)#+\s+/.test(content);
     const hasBlockquote = /(^|\r?\n)>\s+/.test(content);
-  // Treat lines composed mostly of punctuation or box-drawing characters as dividers.
-  // Include the Unicode box-drawing range U+2500 - U+257F.
-  const isDivider = /^(?:[-+_=*\u2500-\u257F]\s*)+$/u.test(content.trim());
+    // Treat lines composed mostly of punctuation or box-drawing characters as dividers.
+    // Include the Unicode box-drawing range U+2500 - U+257F.
+    const isDivider = /^(?:[-+_=*\u2500-\u257F]\s*)+$/u.test(content.trim());
 
     // If we detect structural markdown tokens (tables, lists, headings, blockquotes,
     // dividers) we should consider this a natural reset point and skip further
@@ -719,7 +784,8 @@ export class LoopDetectionService {
     if (numFences > 0) {
       // Toggle code block state based on parity of fences in this event
       const wasInCodeBlock = this.inCodeBlock;
-      this.inCodeBlock = numFences % 2 === 0 ? this.inCodeBlock : !this.inCodeBlock;
+      this.inCodeBlock =
+        numFences % 2 === 0 ? this.inCodeBlock : !this.inCodeBlock;
       // Reset tracking at structural boundaries
       this.resetContentTracking();
       // If we're now inside a code block or were already, skip analysis
@@ -729,7 +795,13 @@ export class LoopDetectionService {
 
     if (hasTable || hasListItem || hasHeading || hasBlockquote || isDivider) {
       try {
-        console.log('structuralResetDetected', { hasTable, hasListItem, hasHeading, hasBlockquote, isDivider });
+        console.log('structuralResetDetected', {
+          hasTable,
+          hasListItem,
+          hasHeading,
+          hasBlockquote,
+          isDivider,
+        });
       } catch (_e) {
         /* noop */
       }
@@ -831,12 +903,17 @@ export class LoopDetectionService {
   }
 
   private _analyzeSemanticContentLoop(): boolean {
-    if (this.semanticContentChunks.length < CONTENT_LOOP_THRESHOLD) return false;
+    if (this.semanticContentChunks.length < CONTENT_LOOP_THRESHOLD)
+      return false;
 
     // Check for consecutive identical chunks at the tail of the buffer.
     let consecutive = 1;
     const recent = this.semanticContentChunks;
-    for (let i = recent.length - 1; i > 0 && consecutive < CONTENT_LOOP_THRESHOLD; i--) {
+    for (
+      let i = recent.length - 1;
+      i > 0 && consecutive < CONTENT_LOOP_THRESHOLD;
+      i--
+    ) {
       if (recent[i].hash === recent[i - 1].hash) {
         consecutive++;
       } else {
@@ -869,7 +946,8 @@ export class LoopDetectionService {
         maxSimilarity = Math.max(maxSimilarity, similarity);
 
         // Adaptive threshold based on content characteristics
-        const avgLength = (recentWindow[i].content.length + recentWindow[j].content.length) / 2;
+        const avgLength =
+          (recentWindow[i].content.length + recentWindow[j].content.length) / 2;
         const adaptiveThreshold = avgLength > 300 ? 0.7 : 0.8;
 
         if (similarity > adaptiveThreshold) {
@@ -886,7 +964,10 @@ export class LoopDetectionService {
 
     // Enhanced confidence calculation considering multiple factors
     if (similarityRatio > 0.4 || maxSimilarity > 0.85) {
-      const baseConfidence = Math.min(1.0, similarityRatio * 1.4 + maxSimilarity * 0.3);
+      const baseConfidence = Math.min(
+        1.0,
+        similarityRatio * 1.4 + maxSimilarity * 0.3,
+      );
 
       // Boost confidence for patterns that indicate loops
       let patternBonus = 0;
@@ -915,7 +996,9 @@ export class LoopDetectionService {
   /**
    * Detect if similar pairs form a repetitive pattern
    */
-  private detectRepetitivePattern(pairIndices: Array<[number, number]>): boolean {
+  private detectRepetitivePattern(
+    pairIndices: Array<[number, number]>,
+  ): boolean {
     if (pairIndices.length < 3) return false;
 
     // Check for A-B-A-B pattern or similar repetitive structure
@@ -983,7 +1066,10 @@ export class LoopDetectionService {
 
     // Also allow periodic checks after a certain number of turns to satisfy
     // tests and provide a safety net during long-running prompts.
-    if (this.turnsInCurrentPrompt - this.lastCheckTurn >= LLM_CHECK_AFTER_TURNS) {
+    if (
+      this.turnsInCurrentPrompt - this.lastCheckTurn >=
+      LLM_CHECK_AFTER_TURNS
+    ) {
       try {
         console.debug('shouldPerformLLMCheck triggered by turn count', {
           turnsInCurrentPrompt: this.turnsInCurrentPrompt,
@@ -1299,7 +1385,10 @@ Analyze the conversation and provide:
         totalPairs++;
 
         // Use a more sophisticated threshold based on content length and type
-        const contentLength = Math.max(recentWindow[i].content.length, recentWindow[j].content.length);
+        const contentLength = Math.max(
+          recentWindow[i].content.length,
+          recentWindow[j].content.length,
+        );
         const adaptiveThreshold = contentLength > 500 ? 0.75 : 0.85; // Lower threshold for longer content
 
         if (similarity > adaptiveThreshold) {
@@ -1344,9 +1433,9 @@ Analyze the conversation and provide:
       loop_type: loopType,
       prompt_id: this.promptId,
       confidence: this.lastLoopConfidence,
-  } as unknown;
+    } as unknown;
 
-  logLoopDetected(this.config, eventObj as unknown as LoopDetectedEvent);
+    logLoopDetected(this.config, eventObj as unknown as LoopDetectedEvent);
   }
 
   private notifyActionSuggestions(
@@ -1381,14 +1470,17 @@ Analyze the conversation and provide:
     }
     this.contentStats.clear();
     this.lastContentIndex = 0;
-  this.recentChunkHashes = [];
-  this.semanticContentChunks = [];
-  this.recentContentEvents = [];
-  // Mark the sequence number at which we reset so that subsequent
-  // event-based identical checks ignore events from before this reset.
-  this.lastResetSequenceNumber = this.eventSequenceNumber;
+    this.recentChunkHashes = [];
+    this.semanticContentChunks = [];
+    this.recentContentEvents = [];
+    // Mark the sequence number at which we reset so that subsequent
+    // event-based identical checks ignore events from before this reset.
+    this.lastResetSequenceNumber = this.eventSequenceNumber;
     try {
-      console.log('resetContentTracking', { recentChunkHashes: this.recentChunkHashes.length, semanticChunks: this.semanticContentChunks.length });
+      console.log('resetContentTracking', {
+        recentChunkHashes: this.recentChunkHashes.length,
+        semanticChunks: this.semanticContentChunks.length,
+      });
     } catch (_e) {
       /* noop */
     }
@@ -1407,7 +1499,7 @@ Analyze the conversation and provide:
     this.lastLoopConfidence = 0;
     this.consecutiveHighConfidenceChecks = 0;
     this.pendingBreakActions = [];
-  // loopWarning removed; no-op
+    // loopWarning removed; no-op
     // Touch private helper methods in a benign way so TypeScript treats them as used.
     // These calls are behind a debug-only guard so they don't change runtime behavior.
     if (this.config.getDebugMode && this.config.getDebugMode()) {

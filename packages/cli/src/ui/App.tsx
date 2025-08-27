@@ -71,9 +71,7 @@ import {
 import { validateAuthMethod } from '../config/auth.js';
 import { useLogger } from './hooks/useLogger.js';
 import { StreamingContext } from './contexts/StreamingContext.js';
-import {
-  SessionStatsProvider,
-} from './contexts/SessionContext.js';
+import { SessionStatsProvider } from './contexts/SessionContext.js';
 import { useGitBranchName } from './hooks/useGitBranchName.js';
 import { useFocus } from './hooks/useFocus.js';
 import { useBracketedPaste } from './hooks/useBracketedPaste.js';
@@ -106,7 +104,11 @@ import { appEvents, AppEvent } from '../utils/events.js';
 import { isNarrowWidth } from './utils/isNarrowWidth.js';
 
 // Performance optimization hooks
-const useDebouncedEffect = (effect: React.EffectCallback, deps: React.DependencyList, delay: number) => {
+const useDebouncedEffect = (
+  effect: React.EffectCallback,
+  deps: React.DependencyList,
+  delay: number,
+) => {
   useEffect(() => {
     const handler = setTimeout(() => {
       effect();
@@ -128,7 +130,7 @@ const useOptimizedUserMessages = (history: HistoryItem[], logger: unknown) => {
 
   const fetchUserMessages = useCallback(() => {
     const currentFetch = ++fetchCounterRef.current;
-    
+
     // Cache optimization - avoid refetch if history hasn't changed significantly
     const currentHistoryLength = history.length;
     if (
@@ -137,10 +139,13 @@ const useOptimizedUserMessages = (history: HistoryItem[], logger: unknown) => {
     ) {
       return;
     }
-    
+
     const fetchAsync = async () => {
       try {
-        const pastMessagesRaw = await (logger as { getPreviousUserMessages?: () => Promise<string[]> })?.getPreviousUserMessages?.() || [];
+        const pastMessagesRaw =
+          (await (
+            logger as { getPreviousUserMessages?: () => Promise<string[]> }
+          )?.getPreviousUserMessages?.()) || [];
 
         if (currentFetch !== fetchCounterRef.current) return;
 
@@ -170,20 +175,20 @@ const useOptimizedUserMessages = (history: HistoryItem[], logger: unknown) => {
         }
 
         const finalMessages = deduplicatedMessages.reverse();
-        
+
         // Update cache
         cacheRef.current = {
           historyLength: currentHistoryLength,
           loggerTimestamp: Date.now(),
           messages: finalMessages,
         };
-        
+
         setUserMessages(finalMessages);
       } catch (error) {
         console.error('Error fetching user messages:', error);
       }
     };
-    
+
     fetchAsync();
   }, [history, logger]);
 
@@ -223,7 +228,13 @@ export const AppWrapper = (props: AppProps) => {
   );
 };
 
-const App = ({ agent, config, settings, startupWarnings = [], version }: AppProps) => {
+const App = ({
+  agent,
+  config,
+  settings,
+  startupWarnings = [],
+  version,
+}: AppProps) => {
   const isFocused = useFocus();
   useBracketedPaste();
   const [updateInfo, setUpdateInfo] = useState<UpdateObject | null>(null);
@@ -237,16 +248,25 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
     registerCleanup(() => config.getIdeClient().disconnect());
   }, [config]);
   // Memoized stable callback to prevent unnecessary re-renders
-  const stableAddItem = useCallback((item: Omit<HistoryItem, "id">, timestamp: number) => {
-    addItem(item, timestamp);
-  }, [addItem]);
+  const stableAddItem = useCallback(
+    (item: Omit<HistoryItem, 'id'>, timestamp: number) => {
+      addItem(item, timestamp);
+    },
+    [addItem],
+  );
 
-  const shouldShowIdePrompt = useMemo(() => 
-    currentIDE &&
-    !config.getIdeMode() &&
-    !settings.merged.hasSeenIdeIntegrationNudge &&
-    !idePromptAnswered,
-    [currentIDE, config, settings.merged.hasSeenIdeIntegrationNudge, idePromptAnswered]
+  const shouldShowIdePrompt = useMemo(
+    () =>
+      currentIDE &&
+      !config.getIdeMode() &&
+      !settings.merged.hasSeenIdeIntegrationNudge &&
+      !idePromptAnswered,
+    [
+      currentIDE,
+      config,
+      settings.merged.hasSeenIdeIntegrationNudge,
+      idePromptAnswered,
+    ],
   );
 
   // Optimized update handler effect with stable callback
@@ -275,7 +295,7 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
   // Session stats are accessed directly by components that need them
   const [staticNeedsRefresh, setStaticNeedsRefresh] = useState(false);
   const [staticKey, setStaticKey] = useState(0);
-  
+
   // Memoized refresh function to prevent unnecessary re-renders
   const refreshStatic = useCallback(() => {
     stdout.write(ansiEscapes.clearTerminal);
@@ -491,10 +511,10 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
     () => config.getContentGeneratorConfig()?.authType ?? undefined,
     [config],
   );
-  
-  const isPaidTier = useMemo(() => 
-    userTier === UserTierId.LEGACY || userTier === UserTierId.STANDARD,
-    [userTier]
+
+  const isPaidTier = useMemo(
+    () => userTier === UserTierId.LEGACY || userTier === UserTierId.STANDARD,
+    [userTier],
   );
 
   useEffect(() => {
@@ -565,10 +585,7 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
       // Switch model for future use but return false to stop current retry
       config.setModel(fallbackModel);
       config.setFallbackMode(true);
-      logFlashFallback(
-        config,
-        new FlashFallbackEvent(authType ?? 'unknown'),
-      );
+      logFlashFallback(config, new FlashFallbackEvent(authType ?? 'unknown'));
       return true; // Continue with current prompt
     };
 
@@ -589,7 +606,7 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
       Math.floor(terminalWidth * widthFraction) - 3,
     );
     const suggestionsWidth = Math.max(20, Math.floor(terminalWidth * 0.8));
-    
+
     return { inputWidth, suggestionsWidth };
   }, [terminalWidth]);
 
@@ -698,7 +715,7 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
     });
 
   const logger = useLogger(config.storage);
-  
+
   // Replace the original fetchUserMessages with the optimized version
   const userMessages = useOptimizedUserMessages(history, logger);
 
@@ -905,16 +922,17 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
     // Arbitrary threshold to ensure that items in the static area are large
     // enough but not too large to make the terminal hard to use.
     const staticAreaMaxItemHeight = Math.max(terminalHeight * 4, 100);
-    
+
     return { mainAreaWidth, debugConsoleMaxHeight, staticAreaMaxItemHeight };
   }, [terminalWidth, terminalHeight]);
 
   // Memoized placeholder text
-  const placeholder = useMemo(() => 
-    vimModeEnabled
-      ? "  Press 'i' for INSERT mode and 'Esc' for NORMAL mode."
-      : '  Type your message or @path/to/file',
-    [vimModeEnabled]
+  const placeholder = useMemo(
+    () =>
+      vimModeEnabled
+        ? "  Press 'i' for INSERT mode and 'Esc' for NORMAL mode."
+        : '  Type your message or @path/to/file',
+    [vimModeEnabled],
   );
 
   // Memoized filtered console messages
@@ -962,7 +980,7 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
 
   // Memoized initial prompt to prevent re-computation
   const initialPrompt = useMemo(() => config.getQuestion(), [config]);
-  
+
   // Memoized gemini client reference for stability
   const geminiClient = useMemo(() => config.getGeminiClient(), [config]);
 
@@ -1010,7 +1028,8 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
     );
   }
 
-  const { mainAreaWidth, debugConsoleMaxHeight, staticAreaMaxItemHeight } = layoutCalculations;
+  const { mainAreaWidth, debugConsoleMaxHeight, staticAreaMaxItemHeight } =
+    layoutCalculations;
 
   return (
     <StreamingContext.Provider value={streamingState}>
@@ -1308,14 +1327,12 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
               )}
 
               {/* Show RealtimeStatsPanel when debug mode is enabled */}
-              {config.getDebugMode() && (
-                <RealtimeStatsPanel />
-              )}
+              {config.getDebugMode() && <RealtimeStatsPanel />}
 
               {/* Show TokenPreview when buffer has content */}
               {isInputActive && buffer.text.length > 10 && (
-                <TokenPreview 
-                  messageLength={buffer.text.length} 
+                <TokenPreview
+                  messageLength={buffer.text.length}
                   model={currentModel}
                 />
               )}
@@ -1401,11 +1418,14 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
 };
 
 // Memoize the main App component to prevent unnecessary re-renders when props haven't changed
-const MemoizedApp = memo(App, (prevProps: AppProps, nextProps: AppProps) => 
-  prevProps.config === nextProps.config &&
-  prevProps.settings === nextProps.settings &&
-  prevProps.version === nextProps.version &&
-  JSON.stringify(prevProps.startupWarnings) === JSON.stringify(nextProps.startupWarnings)
+const MemoizedApp = memo(
+  App,
+  (prevProps: AppProps, nextProps: AppProps) =>
+    prevProps.config === nextProps.config &&
+    prevProps.settings === nextProps.settings &&
+    prevProps.version === nextProps.version &&
+    JSON.stringify(prevProps.startupWarnings) ===
+      JSON.stringify(nextProps.startupWarnings),
 );
 
 export { MemoizedApp };

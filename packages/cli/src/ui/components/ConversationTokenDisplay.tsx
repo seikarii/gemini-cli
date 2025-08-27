@@ -16,18 +16,22 @@ interface ConversationTokenDisplayProps {
   compact?: boolean;
 }
 
-export const ConversationTokenDisplay: React.FC<ConversationTokenDisplayProps> = ({
-  model,
-  compact = false,
-}) => {
-  const { stats, getCurrentTokenCount, getLastMessageTokenCount } = useSessionStats();
+export const ConversationTokenDisplay: React.FC<
+  ConversationTokenDisplayProps
+> = ({ model, compact = false }) => {
+  const { stats, getCurrentTokenCount, getLastMessageTokenCount } =
+    useSessionStats();
   const computedStats = computeSessionStats(stats.metrics);
   const { totalPromptTokens } = computedStats;
   const { lastPromptTokenCount, promptCount } = stats;
 
   // State for async token data
-  const [currentTokenCount, setCurrentTokenCount] = useState<number | null>(null);
-  const [lastMessageTokenCount, setLastMessageTokenCount] = useState<number | null>(null);
+  const [currentTokenCount, setCurrentTokenCount] = useState<number | null>(
+    null,
+  );
+  const [lastMessageTokenCount, setLastMessageTokenCount] = useState<
+    number | null
+  >(null);
   const [isLoadingTokens, setIsLoadingTokens] = useState(false);
 
   // Refs for debouncing and mounted state
@@ -82,21 +86,20 @@ export const ConversationTokenDisplay: React.FC<ConversationTokenDisplayProps> =
   }, [promptCount, loadTokens]);
 
   // Cleanup on unmount
-  useEffect(() => {
-    return () => {
+  useEffect(() => () => {
       isMountedRef.current = false;
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
-    };
-  }, []);
+    }, []);
 
   const maxTokens = tokenLimit(model);
   const usagePercentage = (totalPromptTokens / maxTokens) * 100;
 
   // Use async token data when available, fallback to sync data
   const displayTokenCount = currentTokenCount ?? totalPromptTokens;
-  const displayLastMessageTokens = lastMessageTokenCount ?? lastPromptTokenCount;
+  const displayLastMessageTokens =
+    lastMessageTokenCount ?? lastPromptTokenCount;
 
   // Determine color based on usage level
   const getStatusColor = (percentage: number) => {
@@ -121,7 +124,8 @@ export const ConversationTokenDisplay: React.FC<ConversationTokenDisplayProps> =
     return (
       <Box>
         <Text color={getStatusColor(usagePercentage)}>
-          {getStatusIcon(usagePercentage)} {formatNumber(displayTokenCount)}/{formatNumber(maxTokens)}
+          {getStatusIcon(usagePercentage)} {formatNumber(displayTokenCount)}/
+          {formatNumber(maxTokens)}
         </Text>
       </Box>
     );
@@ -133,21 +137,22 @@ export const ConversationTokenDisplay: React.FC<ConversationTokenDisplayProps> =
       <Box>
         <Text color={theme.text.secondary}>Context: </Text>
         <Text color={getStatusColor(usagePercentage)}>
-          {getStatusIcon(usagePercentage)} {formatNumber(displayTokenCount)}/{formatNumber(maxTokens)}
+          {getStatusIcon(usagePercentage)} {formatNumber(displayTokenCount)}/
+          {formatNumber(maxTokens)}
         </Text>
         <Text color={theme.text.secondary}>
-          {' '}({usagePercentage.toFixed(1)}%)
+          {' '}
+          ({usagePercentage.toFixed(1)}%)
         </Text>
       </Box>
 
       {/* Session details */}
       <Box>
-        <Text color={theme.text.secondary}>
-          Session: {promptCount} prompts
-        </Text>
+        <Text color={theme.text.secondary}>Session: {promptCount} prompts</Text>
         {displayLastMessageTokens > 0 && (
           <Text color={theme.text.secondary}>
-            {' '}• Last: {formatNumber(displayLastMessageTokens)} tokens
+            {' '}
+            • Last: {formatNumber(displayLastMessageTokens)} tokens
           </Text>
         )}
       </Box>

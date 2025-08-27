@@ -9,7 +9,11 @@ import * as path from 'path';
 import { homedir } from 'os';
 import { getErrorMessage, isWithinRoot } from '@google/gemini-cli-core';
 import { Settings } from './settings.js';
-import { SETTINGS_DIRECTORY_NAME, TRUSTED_FOLDERS_FILENAME, ERROR_SAVING_TRUSTED_FOLDERS } from './constants.js';
+import {
+  SETTINGS_DIRECTORY_NAME,
+  TRUSTED_FOLDERS_FILENAME,
+  ERROR_SAVING_TRUSTED_FOLDERS,
+} from './constants.js';
 import stripJsonComments from 'strip-json-comments';
 import { logger } from './logger.js';
 
@@ -112,7 +116,9 @@ export function saveTrustedFolders(
   }
 }
 
-export async function isWorkspaceTrusted(settings: Settings): Promise<boolean | undefined> {
+export async function isWorkspaceTrusted(
+  settings: Settings,
+): Promise<boolean | undefined> {
   const folderTrustFeature = settings.folderTrustFeature ?? false;
   const folderTrustSetting = settings.folderTrust ?? true;
   const folderTrustEnabled = folderTrustFeature && folderTrustSetting;

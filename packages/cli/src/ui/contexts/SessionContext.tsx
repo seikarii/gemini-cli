@@ -93,14 +93,17 @@ export const SessionStatsProvider: React.FC<{ children: React.ReactNode }> = ({
       lastPromptTokenCount: number;
     }) => {
       let tokenCount = lastPromptTokenCount;
-      
+
       // If ChatRecordingService is available, use it for token count
       const chatRecordingService = chatRecordingServiceRef.current;
       if (chatRecordingService) {
         try {
           tokenCount = await chatRecordingService.getLastMessageTokenCount();
         } catch (error) {
-          console.warn('Failed to get token count from ChatRecordingService, using telemetry fallback:', error);
+          console.warn(
+            'Failed to get token count from ChatRecordingService, using telemetry fallback:',
+            error,
+          );
           tokenCount = lastPromptTokenCount;
         }
       }
@@ -142,7 +145,10 @@ export const SessionStatsProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         return await chatRecordingService.getCurrentTokenCount();
       } catch (error) {
-        console.warn('Failed to get token count from ChatRecordingService:', error);
+        console.warn(
+          'Failed to get token count from ChatRecordingService:',
+          error,
+        );
       }
     }
     // Fallback to uiTelemetryService
@@ -155,20 +161,26 @@ export const SessionStatsProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         return await chatRecordingService.getLastMessageTokenCount();
       } catch (error) {
-        console.warn('Failed to get last message token count from ChatRecordingService:', error);
+        console.warn(
+          'Failed to get last message token count from ChatRecordingService:',
+          error,
+        );
       }
     }
     // Fallback to uiTelemetryService
     return uiTelemetryService.getLastPromptTokenCount();
   }, []);
 
-  const setChatRecordingService = useCallback((service: ChatRecordingService) => {
-    chatRecordingServiceRef.current = service;
-    setStats(prev => ({
-      ...prev,
-      chatRecordingService: service,
-    }));
-  }, []);
+  const setChatRecordingService = useCallback(
+    (service: ChatRecordingService) => {
+      chatRecordingServiceRef.current = service;
+      setStats((prev) => ({
+        ...prev,
+        chatRecordingService: service,
+      }));
+    },
+    [],
+  );
 
   const value = useMemo(
     () => ({
@@ -179,7 +191,14 @@ export const SessionStatsProvider: React.FC<{ children: React.ReactNode }> = ({
       getLastMessageTokenCount,
       setChatRecordingService,
     }),
-    [stats, startNewPrompt, getPromptCount, getCurrentTokenCount, getLastMessageTokenCount, setChatRecordingService],
+    [
+      stats,
+      startNewPrompt,
+      getPromptCount,
+      getCurrentTokenCount,
+      getLastMessageTokenCount,
+      setChatRecordingService,
+    ],
   );
 
   return (

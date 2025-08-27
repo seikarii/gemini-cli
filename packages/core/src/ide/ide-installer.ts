@@ -27,11 +27,15 @@ async function findVsCodeCommand(): Promise<string | null> {
   // 1. Check PATH first.
   try {
     if (process.platform === 'win32') {
-      const result = (await new Promise<string>((resolve, reject) =>
-        child_process.exec(`where.exe ${VSCODE_COMMAND}`, (err, stdout) =>
-          err ? reject(err) : resolve(stdout || ''),
-        ),
-      )).toString().trim();
+      const result = (
+        await new Promise<string>((resolve, reject) =>
+          child_process.exec(`where.exe ${VSCODE_COMMAND}`, (err, stdout) =>
+            err ? reject(err) : resolve(stdout || ''),
+          ),
+        )
+      )
+        .toString()
+        .trim();
       // `where.exe` can return multiple paths. Return the first one.
       const firstPath = result.split(/\r?\n/)[0];
       if (firstPath) {
@@ -123,7 +127,9 @@ class VsCodeInstaller implements IdeInstaller {
     const command = `"${commandPath}" --install-extension google.gemini-cli-vscode-ide-companion --force`;
     try {
       await new Promise<void>((resolve, reject) =>
-        child_process.exec(command, (err: unknown) => (err ? reject(err) : resolve())),
+        child_process.exec(command, (err: unknown) =>
+          err ? reject(err) : resolve(),
+        ),
       );
       return {
         success: true,

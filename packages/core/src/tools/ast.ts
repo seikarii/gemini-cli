@@ -4,7 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { BaseDeclarativeTool, BaseToolInvocation, Kind, ToolInvocation, ToolResult } from './tools.js';
+import {
+  BaseDeclarativeTool,
+  BaseToolInvocation,
+  Kind,
+  ToolInvocation,
+  ToolResult,
+} from './tools.js';
 import { generateUnifiedDiff } from './diffPreview.js';
 import { Config } from '../config/config.js';
 import { parseSourceToSourceFile } from '../ast/parser.js';
@@ -23,7 +29,10 @@ export interface ASTFindToolParams {
   query: ASTQuery | DictionaryQuery | string;
 }
 
-class ASTFindToolInvocation extends BaseToolInvocation<ASTFindToolParams, ToolResult> {
+class ASTFindToolInvocation extends BaseToolInvocation<
+  ASTFindToolParams,
+  ToolResult
+> {
   constructor(
     private readonly config: Config,
     private readonly toolParams: ASTFindToolParams,
@@ -53,7 +62,7 @@ class ASTFindToolInvocation extends BaseToolInvocation<ASTFindToolParams, ToolRe
         returnDisplay: `Error: Could not parse file: ${file_path}`,
       };
     }
-  const foundNodes = findNodes(sourceFile, query as DictionaryQuery | string);
+    const foundNodes = findNodes(sourceFile, query as DictionaryQuery | string);
     if (!foundNodes || foundNodes.length === 0) {
       return {
         llmContent: 'No nodes found matching the query.',
@@ -65,7 +74,10 @@ class ASTFindToolInvocation extends BaseToolInvocation<ASTFindToolParams, ToolRe
       const n = node as Node;
       return {
         kind: n.getKindName ? n.getKindName() : n.getKind(),
-        text: n.getText ? n.getText().substring(0, 100) + (n.getText().length > 100 ? '...' : '') : '',
+        text: n.getText
+          ? n.getText().substring(0, 100) +
+            (n.getText().length > 100 ? '...' : '')
+          : '',
         startLine: n.getStartLineNumber ? n.getStartLineNumber() : undefined,
         endLine: n.getEndLineNumber ? n.getEndLineNumber() : undefined,
       };
@@ -77,7 +89,10 @@ class ASTFindToolInvocation extends BaseToolInvocation<ASTFindToolParams, ToolRe
   }
 }
 
-export class ASTFindTool extends BaseDeclarativeTool<ASTFindToolParams, ToolResult> {
+export class ASTFindTool extends BaseDeclarativeTool<
+  ASTFindToolParams,
+  ToolResult
+> {
   static readonly Name = 'ast_find';
 
   constructor(private readonly config: Config) {
@@ -123,7 +138,10 @@ export interface ASTEditToolParams {
   create_backup?: boolean;
 }
 
-class ASTEditToolInvocation extends BaseToolInvocation<ASTEditToolParams, ToolResult> {
+class ASTEditToolInvocation extends BaseToolInvocation<
+  ASTEditToolParams,
+  ToolResult
+> {
   constructor(
     private readonly config: Config,
     private readonly toolParams: ASTEditToolParams,
@@ -136,7 +154,8 @@ class ASTEditToolInvocation extends BaseToolInvocation<ASTEditToolParams, ToolRe
   }
 
   async execute(): Promise<ToolResult> {
-    const { file_path, query, new_text, preview, create_backup } = this.toolParams;
+    const { file_path, query, new_text, preview, create_backup } =
+      this.toolParams;
     const fs = this.config.getFileSystemService();
     const readResult = await fs.readTextFile(file_path);
     if (!readResult.success) {
@@ -155,11 +174,13 @@ class ASTEditToolInvocation extends BaseToolInvocation<ASTEditToolParams, ToolRe
     }
     // Use ASTModifier for robust editing
     const modifier = new ASTModifier();
-    const mods = [{
-      operation: ModificationOperation.REPLACE,
-      targetQuery: query as DictionaryQuery | string,
-      newCode: new_text,
-    }];
+    const mods = [
+      {
+        operation: ModificationOperation.REPLACE,
+        targetQuery: query as DictionaryQuery | string,
+        newCode: new_text,
+      },
+    ];
     const modResult = await modifier.applyModifications(
       readResult.data!,
       mods,
@@ -193,7 +214,10 @@ class ASTEditToolInvocation extends BaseToolInvocation<ASTEditToolParams, ToolRe
   }
 }
 
-export class ASTEditTool extends BaseDeclarativeTool<ASTEditToolParams, ToolResult> {
+export class ASTEditTool extends BaseDeclarativeTool<
+  ASTEditToolParams,
+  ToolResult
+> {
   static readonly Name = 'ast_edit';
 
   constructor(private readonly config: Config) {
@@ -240,5 +264,3 @@ export class ASTEditTool extends BaseDeclarativeTool<ASTEditToolParams, ToolResu
     return new ASTEditToolInvocation(this.config, params);
   }
 }
-
-

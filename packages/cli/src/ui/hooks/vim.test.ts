@@ -1320,7 +1320,7 @@ describe('useVim hook', () => {
           selectionAnchor: null,
         };
 
-  const result = textBufferReducer(ensureState(initialState), {
+        const result = textBufferReducer(ensureState(initialState), {
           type: 'vim_delete_word_end',
           payload: { count: 1 },
         });
@@ -1343,7 +1343,7 @@ describe('useVim hook', () => {
           selectionAnchor: null,
         };
 
-  const result = textBufferReducer(ensureState(initialState), {
+        const result = textBufferReducer(ensureState(initialState), {
           type: 'vim_delete_word_end',
           payload: { count: 2 },
         });
@@ -1368,7 +1368,7 @@ describe('useVim hook', () => {
           selectionAnchor: null,
         };
 
-  const result = textBufferReducer(ensureState(initialState), {
+        const result = textBufferReducer(ensureState(initialState), {
           type: 'vim_delete_word_backward',
           payload: { count: 1 },
         });
@@ -1391,7 +1391,7 @@ describe('useVim hook', () => {
           selectionAnchor: null,
         };
 
-  const result = textBufferReducer(ensureState(initialState), {
+        const result = textBufferReducer(ensureState(initialState), {
           type: 'vim_delete_word_backward',
           payload: { count: 2 },
         });
@@ -1416,7 +1416,7 @@ describe('useVim hook', () => {
           selectionAnchor: null,
         };
 
-  const result = textBufferReducer(ensureState(initialState), {
+        const result = textBufferReducer(ensureState(initialState), {
           type: 'vim_change_word_forward',
           payload: { count: 1 },
         });
@@ -1439,7 +1439,7 @@ describe('useVim hook', () => {
           selectionAnchor: null,
         };
 
-  const result = textBufferReducer(ensureState(initialState), {
+        const result = textBufferReducer(ensureState(initialState), {
           type: 'vim_change_word_forward',
           payload: { count: 2 },
         });
@@ -1464,7 +1464,7 @@ describe('useVim hook', () => {
           selectionAnchor: null,
         };
 
-  const result = textBufferReducer(ensureState(initialState), {
+        const result = textBufferReducer(ensureState(initialState), {
           type: 'vim_change_word_end',
           payload: { count: 1 },
         });
@@ -1487,7 +1487,7 @@ describe('useVim hook', () => {
           selectionAnchor: null,
         };
 
-  const result = textBufferReducer(ensureState(initialState), {
+        const result = textBufferReducer(ensureState(initialState), {
           type: 'vim_change_word_end',
           payload: { count: 2 },
         });
@@ -1512,7 +1512,7 @@ describe('useVim hook', () => {
           selectionAnchor: null,
         };
 
-  const result = textBufferReducer(ensureState(initialState), {
+        const result = textBufferReducer(ensureState(initialState), {
           type: 'vim_change_word_backward',
           payload: { count: 1 },
         });
@@ -1537,7 +1537,7 @@ describe('useVim hook', () => {
           selectionAnchor: null,
         };
 
-  const result = textBufferReducer(ensureState(initialState), {
+        const result = textBufferReducer(ensureState(initialState), {
           type: 'vim_change_line',
           payload: { count: 1 },
         });
@@ -1561,7 +1561,7 @@ describe('useVim hook', () => {
           selectionAnchor: null,
         };
 
-  const result = textBufferReducer(ensureState(initialState), {
+        const result = textBufferReducer(ensureState(initialState), {
           type: 'vim_delete_line',
           payload: { count: 1 },
         });
@@ -1583,7 +1583,7 @@ describe('useVim hook', () => {
           selectionAnchor: null,
         };
 
-  const result = textBufferReducer(ensureState(initialState), {
+        const result = textBufferReducer(ensureState(initialState), {
           type: 'vim_delete_line',
           payload: { count: 2 },
         });

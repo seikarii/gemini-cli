@@ -14,7 +14,6 @@
 // import { gzip, ungzip } from 'pako';
 
 export class StateSerializer {
-
   /**
    * Serializes a state object into a compressed JSON string.
    * @param state The agent's state object (e.g., the MentalLaby).
@@ -23,17 +22,16 @@ export class StateSerializer {
   serialize(state: object): string {
     try {
       const jsonString = JSON.stringify(state, null, 2);
-      
+
       // Placeholder for compression. The engineer will integrate a library.
       // const compressed = gzip(jsonString);
       // const base64String = Buffer.from(compressed).toString('base64');
-      
+
       // For now, returning the plain JSON string.
       return jsonString;
-
     } catch (error) {
-      console.error("State Serialization Error:", error);
-      throw new Error("Failed to serialize state.");
+      console.error('State Serialization Error:', error);
+      throw new Error('Failed to serialize state.');
     }
   }
 
@@ -52,10 +50,9 @@ export class StateSerializer {
       const jsonString = data;
 
       return JSON.parse(jsonString);
-
     } catch (error) {
-      console.error("State Deserialization Error:", error);
-      throw new Error("Failed to deserialize state.");
+      console.error('State Deserialization Error:', error);
+      throw new Error('Failed to deserialize state.');
     }
   }
 }

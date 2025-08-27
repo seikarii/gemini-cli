@@ -52,18 +52,21 @@ interface PSTreeProcess {
  */
 async function getChildProcessIds(parentPid: number): Promise<number[]> {
   return new Promise((resolve, reject) => {
-    psTree(parentPid, (error: Error | null, children: readonly PSTreeProcess[]) => {
-      if (error) {
-        reject(error);
-        return;
-      }
+    psTree(
+      parentPid,
+      (error: Error | null, children: readonly PSTreeProcess[]) => {
+        if (error) {
+          reject(error);
+          return;
+        }
 
-      const childPids = children
-        .map((child: PSTreeProcess) => parseInt(child.PID, 10))
-        .filter((pid: number) => !isNaN(pid) && pid !== parentPid);
+        const childPids = children
+          .map((child: PSTreeProcess) => parseInt(child.PID, 10))
+          .filter((pid: number) => !isNaN(pid) && pid !== parentPid);
 
-      resolve(childPids);
-    });
+        resolve(childPids);
+      },
+    );
   });
 }
 
@@ -127,10 +130,14 @@ class ShellToolInvocation extends BaseToolInvocation<
     terminalRows?: number,
   ): Promise<ToolResult> {
     // Pre-execution validation
-    const validator = new ToolValidationUtils(this.config.getFileSystemService());
+    const validator = new ToolValidationUtils(
+      this.config.getFileSystemService(),
+    );
 
     // Validate shell command
-    const commandValidation = validator.validateShellCommand(this.params.command);
+    const commandValidation = validator.validateShellCommand(
+      this.params.command,
+    );
     if (!commandValidation.isValid) {
       return {
         llmContent: `Error: ${commandValidation.error!.message}`,
@@ -144,8 +151,12 @@ class ShellToolInvocation extends BaseToolInvocation<
 
     // Validate directory if specified
     if (this.params.directory) {
-      const resolvedDir = path.resolve(this.config.getTargetDir(), this.params.directory);
-      const dirValidation = await validator.validateDirectoryExists(resolvedDir);
+      const resolvedDir = path.resolve(
+        this.config.getTargetDir(),
+        this.params.directory,
+      );
+      const dirValidation =
+        await validator.validateDirectoryExists(resolvedDir);
       if (!dirValidation.isValid) {
         return {
           llmContent: `Error: ${dirValidation.error!.message}`,
@@ -318,7 +329,8 @@ class ShellToolInvocation extends BaseToolInvocation<
       };
     } catch (error) {
       // Handle any unexpected errors in command execution
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       return {
         llmContent: `Command execution failed: ${errorMessage}`,
         returnDisplay: `Command failed: ${errorMessage}`,

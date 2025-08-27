@@ -17,13 +17,30 @@ const patterns = [
   { label: 'while-infinite', regex: /while\s*\(\s*true\s*\)/ },
 ];
 
-const SKIP_DIRS = new Set(['.git', 'node_modules', 'coverage', 'dist', 'build', '.cache']);
+const SKIP_DIRS = new Set([
+  '.git',
+  'node_modules',
+  'coverage',
+  'dist',
+  'build',
+  '.cache',
+]);
 const EXT_WHITELIST = new Set(['.js', '.ts', '.tsx', '.jsx', '.mjs', '.cjs']);
 
 function severityForPath(p) {
-  if (/\/packages\/(core|cli|vscode-ide-companion)\//.test(p) || /\/packages\/.*\/src\//.test(p)) return 'high';
-  if (/\/scripts\//.test(p) || /\/integration-tests\//.test(p) || /(^|\/)test(s)?(\/|$)/.test(p)) return 'medium';
-  if (/\/bundle\//.test(p) || /\/coverage\//.test(p) || /\/dist\//.test(p)) return 'low';
+  if (
+    /\/packages\/(core|cli|vscode-ide-companion)\//.test(p) ||
+    /\/packages\/.*\/src\//.test(p)
+  )
+    return 'high';
+  if (
+    /\/scripts\//.test(p) ||
+    /\/integration-tests\//.test(p) ||
+    /(^|\/)test(s)?(\/|$)/.test(p)
+  )
+    return 'medium';
+  if (/\/bundle\//.test(p) || /\/coverage\//.test(p) || /\/dist\//.test(p))
+    return 'low';
   return 'medium';
 }
 
@@ -72,18 +89,21 @@ async function scan() {
     }
   });
 
-  const summary = matches.reduce((acc, m) => {
-    acc.total++;
-    acc.bySeverity[m.severity] = (acc.bySeverity[m.severity] || 0) + 1;
-    acc.byPattern[m.pattern] = (acc.byPattern[m.pattern] || 0) + 1;
-    return acc;
-  }, { total: 0, bySeverity: {}, byPattern: {} });
+  const summary = matches.reduce(
+    (acc, m) => {
+      acc.total++;
+      acc.bySeverity[m.severity] = (acc.bySeverity[m.severity] || 0) + 1;
+      acc.byPattern[m.pattern] = (acc.byPattern[m.pattern] || 0) + 1;
+      return acc;
+    },
+    { total: 0, bySeverity: {}, byPattern: {} },
+  );
 
   const report = {
     generatedAt: new Date().toISOString(),
     root: ROOT,
     scannedFiles: fileCount,
-    patterns: patterns.map(p => p.label),
+    patterns: patterns.map((p) => p.label),
     summary,
     matches,
   };
@@ -129,11 +149,14 @@ function buildMarkdownReport(report) {
     lines.push(`${m.line}`);
     lines.push('  ```');
   }
-  if (report.matches.length > max) lines.push(`\n...and ${report.matches.length - max} more matches. See JSON report for full list.`);
+  if (report.matches.length > max)
+    lines.push(
+      `\n...and ${report.matches.length - max} more matches. See JSON report for full list.`,
+    );
   return lines.join('\n');
 }
 
-scan().catch(err => {
+scan().catch((err) => {
   console.error('Scan failed:', err);
   process.exitCode = 2;
 });

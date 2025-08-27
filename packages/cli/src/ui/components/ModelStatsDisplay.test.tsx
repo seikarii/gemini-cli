@@ -30,13 +30,12 @@ const renderWithMockedStats = (metricsPartial: Partial<SessionMetrics>) => {
       totalSuccess: metricsPartial.tools?.totalSuccess ?? 0,
       totalFail: metricsPartial.tools?.totalFail ?? 0,
       totalDurationMs: metricsPartial.tools?.totalDurationMs ?? 0,
-      totalDecisions:
-        metricsPartial.tools?.totalDecisions || {
-          [ToolCallDecision.ACCEPT]: 0,
-          [ToolCallDecision.REJECT]: 0,
-          [ToolCallDecision.MODIFY]: 0,
-          [ToolCallDecision.AUTO_ACCEPT]: 0,
-        },
+      totalDecisions: metricsPartial.tools?.totalDecisions || {
+        [ToolCallDecision.ACCEPT]: 0,
+        [ToolCallDecision.REJECT]: 0,
+        [ToolCallDecision.MODIFY]: 0,
+        [ToolCallDecision.AUTO_ACCEPT]: 0,
+      },
       byName: metricsPartial.tools?.byName || {},
     },
     files: metricsPartial.files || { totalLinesAdded: 0, totalLinesRemoved: 0 },

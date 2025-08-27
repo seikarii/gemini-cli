@@ -14,7 +14,10 @@ import { MenteOmega } from '../mind/mente-omega.js';
 import type { MemoryNodeKind } from '../mind/mental-laby.js';
 import { UnifiedPersistence } from '../persistence/unified-persistence.js';
 import type { Persistable } from '../persistence/persistence-service.js';
-import { createContentGenerator, ContentGenerator } from '@google/gemini-cli-core';
+import {
+  createContentGenerator,
+  ContentGenerator,
+} from '@google/gemini-cli-core';
 import { startWebServer } from '../server/webServer.js';
 // We import runNonInteractive dynamically in the example block to avoid
 // static type resolution against the monorepo's CLI during package-local builds.
@@ -52,7 +55,11 @@ export class GeminiAgent {
   constructor(config: Config) {
     this.config = config;
     // The agent's state will be stored in a subdirectory of the project root.
-    const stateBasePath = path.join(this.config.getTargetDir(), '.gemini', 'agent_state');
+    const stateBasePath = path.join(
+      this.config.getTargetDir(),
+      '.gemini',
+      'agent_state',
+    );
 
     // contentGenerator will be initialized in start() because it's async
     this.contentGenerator = null;
@@ -69,7 +76,10 @@ export class GeminiAgent {
         this.brain.process(request);
       } else {
         // If the brain is not ready yet, you could buffer requests here.
-        console.warn('Received terminal request before brain was initialized:', request);
+        console.warn(
+          'Received terminal request before brain was initialized:',
+          request,
+        );
       }
     });
   }
@@ -84,7 +94,7 @@ export class GeminiAgent {
     this.contentGenerator = await createContentGenerator(
       this.config.getContentGeneratorConfig(),
       this.config,
-      this.config.getSessionId()
+      this.config.getSessionId(),
     );
 
     // Initialize MenteOmega with the contentGenerator
@@ -93,8 +103,8 @@ export class GeminiAgent {
     // Start the web server and pass the agent instance
     startWebServer(this);
 
-  // Restore previous state from disk
-  await this.persistence.restore(this.getPersistableAPI() as any);
+    // Restore previous state from disk
+    await this.persistence.restore(this.getPersistableAPI() as any);
 
     console.log('--- Agent is running and listening for requests. ---');
 
@@ -103,16 +113,21 @@ export class GeminiAgent {
       this.persistence.backup(this.getPersistableAPI() as any);
     }, 60000); // Backup every 60 seconds
 
-  // --- Example Usage Simulation (removed for build cleanliness) ---
+    // --- Example Usage Simulation (removed for build cleanliness) ---
   }
 
   /**
    * Provides the persistence system with the components that need to be saved.
    */
-  private getPersistableAPI(): { getPersistableComponents(): Record<string, Persistable> } {
+  private getPersistableAPI(): {
+    getPersistableComponents(): Record<string, Persistable>;
+  } {
     return {
       getPersistableComponents: () => {
-        const components: Record<string, Persistable> = {} as Record<string, Persistable>;
+        const components: Record<string, Persistable> = {} as Record<
+          string,
+          Persistable
+        >;
         if (this.brain) {
           components['brain'] = this.brain as unknown as Persistable;
         }
@@ -127,12 +142,13 @@ export class GeminiAgent {
    * @param data The data to ingest.
    * @param kind The kind of memory node (e.g., 'semantic', 'procedural', 'episodic').
    */
-  public async whisper(data: any, kind?: MemoryNodeKind): Promise<void> { // Make it async
+  public async whisper(data: any, kind?: MemoryNodeKind): Promise<void> {
+    // Make it async
     if (this.brain) {
       // Use MenteOmega's processIncomingData to properly ingest with significance calculation
       // We need to provide a currentMission and agentHistorySummary for significance calculation.
       // For now, we'll use placeholders, but these should ideally come from the agent's current state.
-      const currentMission = "Process user input"; // Placeholder
+      const currentMission = 'Process user input'; // Placeholder
       const agentHistorySummary = this.brain.getAgentHistorySummary(); // Use the actual summary
 
       // Construct a context for the incoming data
@@ -140,16 +156,18 @@ export class GeminiAgent {
         dataType: 'user_input', // Assuming whispers are user input
         timestamp: Date.now(),
         // Add other relevant context from kind if available
-        ...(kind && { kind: kind })
+        ...(kind && { kind: kind }),
       };
 
       await this.brain.processIncomingData(
         data, // The actual data from the whisper
         context,
         currentMission,
-        agentHistorySummary
+        agentHistorySummary,
       );
-      console.log('Agent whispered data into memory and processed its significance.');
+      console.log(
+        'Agent whispered data into memory and processed its significance.',
+      );
     } else {
       console.warn('Cannot whisper: Agent brain not initialized.');
     }
@@ -165,7 +183,6 @@ export class GeminiAgent {
     return `// Content of ${filePath}\n// This is dummy content for MVP.`;
   }
 }
-  
 
 // --- Main Execution (example / local test) ---
-// Example execution block removed to keep module ESM-compatible and focused on exports. 
+// Example execution block removed to keep module ESM-compatible and focused on exports.
