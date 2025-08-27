@@ -13,4 +13,5 @@ interface AppProps {
     agent: unknown;
 }
 export declare const AppWrapper: (props: AppProps) => import("react/jsx-runtime").JSX.Element;
-export {};
+export declare const MemoizedApp: import("react").MemoExoticComponent<({ agent, config, settings, startupWarnings, version }: AppProps) => import("react/jsx-runtime").JSX.Element>;
+export default MemoizedApp;

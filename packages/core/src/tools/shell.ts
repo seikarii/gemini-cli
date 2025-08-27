@@ -19,6 +19,7 @@ import {
   Kind,
 } from './tools.js';
 import { getErrorMessage } from '../utils/errors.js';
+import { ToolValidationUtils } from './tool-validation.js';
 import { summarizeToolOutput } from '../utils/summarizer.js';
 import {
   ShellExecutionService,
@@ -125,6 +126,38 @@ class ShellToolInvocation extends BaseToolInvocation<
     terminalColumns?: number,
     terminalRows?: number,
   ): Promise<ToolResult> {
+    // Pre-execution validation
+    const validator = new ToolValidationUtils(this.config.getFileSystemService());
+
+    // Validate shell command
+    const commandValidation = validator.validateShellCommand(this.params.command);
+    if (!commandValidation.isValid) {
+      return {
+        llmContent: `Error: ${commandValidation.error!.message}`,
+        returnDisplay: `Error: ${commandValidation.error!.message}`,
+        error: {
+          message: commandValidation.error!.message,
+          type: commandValidation.error!.type,
+        },
+      };
+    }
+
+    // Validate directory if specified
+    if (this.params.directory) {
+      const resolvedDir = path.resolve(this.config.getTargetDir(), this.params.directory);
+      const dirValidation = await validator.validateDirectoryExists(resolvedDir);
+      if (!dirValidation.isValid) {
+        return {
+          llmContent: `Error: ${dirValidation.error!.message}`,
+          returnDisplay: `Error: ${dirValidation.error!.message}`,
+          error: {
+            message: dirValidation.error!.message,
+            type: dirValidation.error!.type,
+          },
+        };
+      }
+    }
+
     const strippedCommand = stripShellWrapper(this.params.command);
 
     if (signal.aborted) {

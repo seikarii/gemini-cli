@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import type { MemoryNodeKind } from '../mind/mental-laby.js';
-import type { Config } from '../../cli/src/config/config';
+import type { Config } from '../../cli/src/config/config.js';
 export declare class GeminiAgent {
     private config;
     private brain;
@@ -26,6 +26,12 @@ export declare class GeminiAgent {
      * @param data The data to ingest.
      * @param kind The kind of memory node (e.g., 'semantic', 'procedural', 'episodic').
      */
-    whisper(data: any, kind?: MemoryNodeKind): void;
-    const mockConfig: any;
+    whisper(data: any, kind?: MemoryNodeKind): Promise<void>;
+    /**
+     * Retrieves file content for the mini-editor.
+     * This is a placeholder for MVP.
+     * @param filePath The path to the file.
+     * @returns A dummy content string for now.
+     */
+    getFileContent(filePath: string): Promise<string>;
 }

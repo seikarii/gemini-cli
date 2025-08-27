@@ -283,6 +283,89 @@ export class CoreToolScheduler {
       options.loopDetectionService ?? new LoopDetectionService(this.config);
   }
 
+  /**
+   * Executes a tool with retry logic for transient errors
+   */
+  private async executeToolWithRetry(
+    invocation: AnyToolInvocation,
+    signal: AbortSignal,
+    liveOutputCallback?: (output: string) => void,
+    maxRetries: number = 3,
+    baseDelayMs: number = 1000
+  ): Promise<ToolResult> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await invocation.execute(signal, liveOutputCallback);
+
+        // If successful or error is not retryable, return immediately
+        if (!result.error || !this.isRetryableError(result.error.type)) {
+          return result;
+        }
+
+        // If it's a retryable error but we've exhausted retries, return the error
+        if (attempt === maxRetries) {
+          return result;
+        }
+
+        lastError = new Error(result.error.message);
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+
+        // If it's not a retryable error or we've exhausted retries, rethrow
+        if (!this.isRetryableErrorFromException(lastError) || attempt === maxRetries) {
+          throw lastError;
+        }
+      }
+
+      // Wait before retrying with exponential backoff
+      if (attempt < maxRetries) {
+        const delay = baseDelayMs * Math.pow(2, attempt);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    // This should never be reached, but just in case
+    throw lastError || new Error('Tool execution failed after retries');
+  }
+
+  /**
+   * Determines if an error type is retryable
+   */
+  private isRetryableError(errorType?: ToolErrorType): boolean {
+    if (!errorType) return false;
+
+    const retryableErrors: ToolErrorType[] = [
+      ToolErrorType.RETRY_TRANSIENT_FAILURE,
+      ToolErrorType.SHELL_COMMAND_TIMEOUT,
+      ToolErrorType.SHELL_COMMAND_RESOURCE_EXHAUSTED,
+      // Add other transient errors as needed
+    ];
+
+    return retryableErrors.includes(errorType);
+  }
+
+  /**
+   * Determines if an exception is retryable based on error properties
+   */
+  private isRetryableErrorFromException(error: Error): boolean {
+    // Check for common transient error patterns
+    const errorMessage = error.message.toLowerCase();
+    const retryablePatterns = [
+      'temporarily unavailable',
+      'resource temporarily unavailable',
+      'too many files open',
+      'eagain',
+      'emfile',
+      'timeout',
+      'connection reset',
+      'network error',
+    ];
+
+    return retryablePatterns.some(pattern => errorMessage.includes(pattern));
+  }
+
   private setStatusInternal(
     targetCallId: string,
     status: 'success',
@@ -853,8 +936,11 @@ export class CoreToolScheduler {
               }
             : undefined;
 
-        invocation
-          .execute(signal, liveOutputCallback)
+        this.executeToolWithRetry(
+          invocation,
+          signal,
+          liveOutputCallback
+        )
           .then(async (toolResult: ToolResult) => {
             if (signal.aborted) {
               this.setStatusInternal(

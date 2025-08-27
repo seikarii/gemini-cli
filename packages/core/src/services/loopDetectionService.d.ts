@@ -132,6 +132,10 @@ export declare class LoopDetectionService {
     private trackSemanticContent;
     private _analyzeSemanticContentLoop;
     /**
+     * Detect if similar pairs form a repetitive pattern
+     */
+    private detectRepetitivePattern;
+    /**
      * Turn management with enhanced LLM checking
      */
     turnStarted(signal: AbortSignal): Promise<boolean>;

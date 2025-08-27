@@ -21,6 +21,7 @@ import {
   ToolResult,
 } from './tools.js';
 import { ToolErrorType } from './tool-error.js';
+import { ToolValidationUtils } from './tool-validation.js';
 import { makeRelative, shortenPath } from '../utils/paths.js';
 import { getErrorMessage, isNodeError } from '../utils/errors.js';
 import {
@@ -259,6 +260,50 @@ class WriteFileToolInvocation extends BaseToolInvocation<
   }
 
   async execute(abortSignal: AbortSignal): Promise<ToolResult> {
+    // Pre-execution validation
+    const validator = new ToolValidationUtils(this.config.getFileSystemService());
+
+    // Validate file path accessibility
+    const pathValidation = await validator.validatePathAccessibility(
+      this.params.file_path,
+      true // require write access
+    );
+    if (!pathValidation.isValid) {
+      return {
+        llmContent: `Error: ${pathValidation.error!.message}`,
+        returnDisplay: `Error: ${pathValidation.error!.message}`,
+        error: {
+          message: pathValidation.error!.message,
+          type: pathValidation.error!.type,
+        },
+      };
+    }
+
+    // Validate content
+    const contentValidation = validator.validateWriteContent(this.params.content);
+    if (!contentValidation.isValid) {
+      return {
+        llmContent: `Error: ${contentValidation.error!.message}`,
+        returnDisplay: `Error: ${contentValidation.error!.message}`,
+        error: {
+          message: contentValidation.error!.message,
+          type: contentValidation.error!.type,
+        },
+      };
+    }
+
+    // Validate mode parameter
+    if (this.params.mode && !['overwrite', 'append'].includes(this.params.mode)) {
+      return {
+        llmContent: `Error: Invalid mode '${this.params.mode}'. Must be 'overwrite' or 'append'.`,
+        returnDisplay: `Error: Invalid mode '${this.params.mode}'. Must be 'overwrite' or 'append'.`,
+        error: {
+          message: `Invalid mode '${this.params.mode}'. Must be 'overwrite' or 'append'.`,
+          type: ToolErrorType.WRITE_FILE_INVALID_MODE,
+        },
+      };
+    }
+
     let {
       file_path,
       content,

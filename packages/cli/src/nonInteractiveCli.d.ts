@@ -4,5 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import { Config } from '@google/gemini-cli-core';
-import { GeminiAgent } from '@google/gemini-cli-mew-upgrade/agent/gemini-agent.js';
-export declare function runNonInteractive(agent: GeminiAgent, config: Config, input: string, prompt_id: string): Promise<void>;
+/**
+ * Agent is an opaque runtime instance supplied by mew-upgrade. We keep the
+ * parameter intentionally loose to avoid cross-package type coupling.
+ */
+type AgentLike = unknown;
+/**
+ * Optimized non-interactive CLI runner with improved performance and resource management
+ */
+export declare function runNonInteractive(agent: AgentLike, config: Config, input: string, prompt_id: string): Promise<void>;
+export {};

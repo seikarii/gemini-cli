@@ -25,6 +25,7 @@ import {
   ToolResultDisplay,
 } from './tools.js';
 import { ToolErrorType } from './tool-error.js';
+import { ToolValidationUtils } from './tool-validation.js';
 import { makeRelative, shortenPath } from '../utils/paths.js';
 import { isNodeError } from '../utils/errors.js';
 import { Config, ApprovalMode } from '../config/config.js';
@@ -228,6 +229,11 @@ export interface EditToolParams {
    * New content to insert (for range-based editing)
    */
   new_content?: string;
+
+  /**
+   * Whether to perform a dry run validation before executing the edit
+   */
+  dry_run?: boolean;
 
   /**
    * Whether the edit was modified manually by the user.
@@ -1228,6 +1234,95 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
    * @returns Result of the edit operation
    */
   async execute(signal: AbortSignal): Promise<ToolResult> {
+    // Pre-execution validation
+    const validator = new ToolValidationUtils(this.config.getFileSystemService());
+
+    // Validate file path accessibility
+    const pathValidation = await validator.validatePathAccessibility(
+      this.params.file_path,
+      true // require write access
+    );
+    if (!pathValidation.isValid) {
+      return {
+        llmContent: `Error: ${pathValidation.error!.message}`,
+        returnDisplay: `Error: ${pathValidation.error!.message}`,
+        error: {
+          message: pathValidation.error!.message,
+          type: pathValidation.error!.type,
+        },
+      };
+    }
+
+    // For string-based edits, validate old_string exists in the file
+    if (this.params.old_string && !this.params.start_line) {
+      const oldStringValidation = await validator.validateOldStringExists(
+        this.params.file_path,
+        this.params.old_string,
+        this.params.expected_replacements
+      );
+      if (!oldStringValidation.isValid) {
+        return {
+          llmContent: `Error: ${oldStringValidation.error!.message}`,
+          returnDisplay: `Error: ${oldStringValidation.error!.message}`,
+          error: {
+            message: oldStringValidation.error!.message,
+            type: oldStringValidation.error!.type,
+          },
+        };
+      }
+    }
+
+    // For range-based edits, validate the range parameters
+    if (this.params.start_line !== undefined && this.params.start_column !== undefined &&
+        this.params.end_line !== undefined && this.params.end_column !== undefined) {
+      // First need to read the file to validate the range
+      try {
+        const readResult = await this.config.getFileSystemService().readTextFile(this.params.file_path);
+        if (readResult.success) {
+          const rangeValidation = validator.validateEditRange(
+            readResult.data!,
+            this.params.start_line,
+            this.params.start_column,
+            this.params.end_line,
+            this.params.end_column
+          );
+          if (!rangeValidation.isValid) {
+            return {
+              llmContent: `Error: ${rangeValidation.error!.message}`,
+              returnDisplay: `Error: ${rangeValidation.error!.message}`,
+              error: {
+                message: rangeValidation.error!.message,
+                type: rangeValidation.error!.type,
+              },
+            };
+          }
+        }
+      } catch (_error) {
+        // If we can't read the file for validation, continue with execution
+        // The original logic will handle the error appropriately
+      }
+    }
+
+    // Dry run validation if requested
+    if (this.params.dry_run && this.params.old_string && this.params.new_string) {
+      const dryRunValidation = await validator.validateEditDryRun(
+        this.params.file_path,
+        this.params.old_string,
+        this.params.new_string,
+        this.params.expected_replacements
+      );
+      if (!dryRunValidation.isValid) {
+        return {
+          llmContent: `Dry run validation failed: ${dryRunValidation.error!.message}`,
+          returnDisplay: `Dry run validation failed: ${dryRunValidation.error!.message}`,
+          error: {
+            message: dryRunValidation.error!.message,
+            type: dryRunValidation.error!.type,
+          },
+        };
+      }
+    }
+
     let editData: CalculatedEdit;
     try {
       editData = await this.calculateEdit(this.params, signal);

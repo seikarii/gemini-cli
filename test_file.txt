@@ -1,1 +1,3 @@
-This is updated content written by Gemini CLI.
+Este es el nuevo contenido del archivo de prueba.
+
+Esta es una línea añadida para probar el sistema de edición.

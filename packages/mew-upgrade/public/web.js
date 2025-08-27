@@ -19590,9 +19590,9 @@
   var import_react2 = __toESM(require_react(), 1);
   var import_client = __toESM(require_client(), 1);
 
-  // src/app/MewApp.tsx
-  var import_react = __toESM(require_react(), 1);
+  // src/app/MewApp.js
   var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
+  var import_react = __toESM(require_react(), 1);
   var Directory = ({ node, onFileSelect }) => {
     const [isOpen, setIsOpen] = (0, import_react.useState)(node.isOpen || false);
     const [children, setChildren] = (0, import_react.useState)(node.children || []);
@@ -19608,17 +19608,7 @@
         }
       }
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { onClick: handleToggle, style: { cursor: "pointer" }, children: [
-        isOpen ? "[-]" : "[+]",
-        " ",
-        node.name
-      ] }),
-      isOpen && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { paddingLeft: "20px" }, children: children.map((child) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: child.type === "directory" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Directory, { node: child, onFileSelect }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { onClick: () => onFileSelect(child.path), style: { cursor: "pointer" }, children: [
-        "[F] ",
-        child.name
-      ] }) }, child.name)) })
-    ] });
+    return (0, import_jsx_runtime.jsxs)("div", { children: [(0, import_jsx_runtime.jsxs)("div", { onClick: handleToggle, style: { cursor: "pointer" }, children: [isOpen ? "[-]" : "[+]", " ", node.name] }), isOpen && (0, import_jsx_runtime.jsx)("div", { style: { paddingLeft: "20px" }, children: children.map((child) => (0, import_jsx_runtime.jsx)("div", { children: child.type === "directory" ? (0, import_jsx_runtime.jsx)(Directory, { node: child, onFileSelect }) : (0, import_jsx_runtime.jsxs)("div", { onClick: () => onFileSelect(child.path), style: { cursor: "pointer" }, children: ["[F] ", child.name] }) }, child.name)) })] });
   };
   var FileTree = ({ onFileSelect, refreshTrigger }) => {
     const [root2, setRoot] = (0, import_react.useState)(null);
@@ -19635,9 +19625,9 @@
       fetchRoot();
     }, [refreshTrigger]);
     if (!root2) {
-      return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: "Loading file tree..." });
+      return (0, import_jsx_runtime.jsx)("div", { children: "Loading file tree..." });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Directory, { node: root2, onFileSelect });
+    return (0, import_jsx_runtime.jsx)(Directory, { node: root2, onFileSelect });
   };
   var MewApp = () => {
     const [agentOutput, setAgentOutput] = (0, import_react.useState)("Waiting for agent output...");
@@ -19665,7 +19655,8 @@
     }, []);
     const handleLoadFile = async (path) => {
       const a = path || currentFilePath;
-      if (a.trim() === "") return;
+      if (a.trim() === "")
+        return;
       try {
         const response = await fetch(`/api/file-content?path=${encodeURIComponent(a)}`);
         if (response.ok) {
@@ -19688,7 +19679,8 @@
       }
     }, [activeFileFromServer]);
     const handleWhisperSubmit = async () => {
-      if (whisperInput.trim() === "") return;
+      if (whisperInput.trim() === "")
+        return;
       try {
         const response = await fetch("/api/whisper", {
           method: "POST",
@@ -19708,72 +19700,13 @@
         console.error("Error sending whisper:", error);
       }
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { border: "1px solid grey", padding: "10px", borderRadius: "5px", display: "flex", flexDirection: "column", height: "100vh", fontFamily: "monospace" }, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { style: { fontSize: "1.5em", marginBottom: "10px" }, children: "Mew Window" }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", flexGrow: 1 }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { width: "30%", borderRight: "1px solid lightgrey", overflowY: "auto" }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", { onClick: () => setFileTreeRefreshTrigger((prev) => prev + 1), style: { marginBottom: "10px", padding: "5px 10px" }, children: "Refresh Tree" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileTree, { onFileSelect: handleLoadFile, refreshTrigger: fileTreeRefreshTrigger })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { width: "70%", display: "flex", flexDirection: "column" }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flexGrow: 1, border: "1px solid lightgrey", padding: "5px", overflowY: "auto", marginBottom: "10px", backgroundColor: "#f0f0f0" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("pre", { style: { whiteSpace: "pre-wrap", wordBreak: "break-word" }, children: agentOutput }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", marginBottom: "10px" }, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-              "input",
-              {
-                type: "text",
-                value: whisperInput,
-                onChange: (e) => setWhisperInput(e.target.value),
-                onKeyPress: (e) => {
-                  if (e.key === "Enter") handleWhisperSubmit();
-                },
-                placeholder: "Whisper to agent...",
-                style: { flexGrow: 1, padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }
-              }
-            ),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-              "button",
-              {
-                onClick: handleWhisperSubmit,
-                style: { marginLeft: "10px", padding: "8px 15px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" },
-                children: "Whisper"
-              }
-            )
-          ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", marginBottom: "10px" }, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-              "input",
-              {
-                type: "text",
-                value: currentFilePath,
-                onChange: (e) => setCurrentFilePath(e.target.value),
-                onKeyPress: (e) => {
-                  if (e.key === "Enter") handleLoadFile();
-                },
-                placeholder: "Enter file path to load...",
-                style: { flexGrow: 1, padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }
-              }
-            ),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-              "button",
-              {
-                onClick: () => handleLoadFile(),
-                style: { marginLeft: "10px", padding: "8px 15px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" },
-                children: "Load File"
-              }
-            )
-          ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-            "textarea",
-            {
-              value: fileContent,
-              readOnly: true,
-              style: { flexGrow: 2, border: "1px solid lightgrey", padding: "5px", overflowY: "auto", backgroundColor: "#e9ecef", minHeight: "150px" }
-            }
-          )
-        ] })
-      ] })
-    ] });
+    return (0, import_jsx_runtime.jsxs)("div", { style: { border: "1px solid grey", padding: "10px", borderRadius: "5px", display: "flex", flexDirection: "column", height: "100vh", fontFamily: "monospace" }, children: [(0, import_jsx_runtime.jsx)("h1", { style: { fontSize: "1.5em", marginBottom: "10px" }, children: "Mew Window" }), (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", flexGrow: 1 }, children: [(0, import_jsx_runtime.jsxs)("div", { style: { width: "30%", borderRight: "1px solid lightgrey", overflowY: "auto" }, children: [(0, import_jsx_runtime.jsx)("button", { onClick: () => setFileTreeRefreshTrigger((prev) => prev + 1), style: { marginBottom: "10px", padding: "5px 10px" }, children: "Refresh Tree" }), (0, import_jsx_runtime.jsx)(FileTree, { onFileSelect: handleLoadFile, refreshTrigger: fileTreeRefreshTrigger })] }), (0, import_jsx_runtime.jsxs)("div", { style: { width: "70%", display: "flex", flexDirection: "column" }, children: [(0, import_jsx_runtime.jsx)("div", { style: { flexGrow: 1, border: "1px solid lightgrey", padding: "5px", overflowY: "auto", marginBottom: "10px", backgroundColor: "#f0f0f0" }, children: (0, import_jsx_runtime.jsx)("pre", { style: { whiteSpace: "pre-wrap", wordBreak: "break-word" }, children: agentOutput }) }), (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", marginBottom: "10px" }, children: [(0, import_jsx_runtime.jsx)("input", { type: "text", value: whisperInput, onChange: (e) => setWhisperInput(e.target.value), onKeyPress: (e) => {
+      if (e.key === "Enter")
+        handleWhisperSubmit();
+    }, placeholder: "Whisper to agent...", style: { flexGrow: 1, padding: "8px", border: "1px solid #ccc", borderRadius: "4px" } }), (0, import_jsx_runtime.jsx)("button", { onClick: handleWhisperSubmit, style: { marginLeft: "10px", padding: "8px 15px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }, children: "Whisper" })] }), (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", marginBottom: "10px" }, children: [(0, import_jsx_runtime.jsx)("input", { type: "text", value: currentFilePath, onChange: (e) => setCurrentFilePath(e.target.value), onKeyPress: (e) => {
+      if (e.key === "Enter")
+        handleLoadFile();
+    }, placeholder: "Enter file path to load...", style: { flexGrow: 1, padding: "8px", border: "1px solid #ccc", borderRadius: "4px" } }), (0, import_jsx_runtime.jsx)("button", { onClick: () => handleLoadFile(), style: { marginLeft: "10px", padding: "8px 15px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }, children: "Load File" })] }), (0, import_jsx_runtime.jsx)("textarea", { value: fileContent, readOnly: true, style: { flexGrow: 2, border: "1px solid lightgrey", padding: "5px", overflowY: "auto", backgroundColor: "#e9ecef", minHeight: "150px" } })] })] })] });
   };
 
   // src/app/web.tsx

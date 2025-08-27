@@ -14,5 +14,5 @@ type DeepPartial<T> = T extends object ? {
  * @param overrides - A deep partial object to override any default mock values.
  * @returns A complete, mocked CommandContext object.
  */
-export declare const createMockCommandContext: (_overrides?: DeepPartial<CommandContext>) => CommandContext;
+export declare const createMockCommandContext: (overrides?: DeepPartial<CommandContext>) => CommandContext;
 export {};

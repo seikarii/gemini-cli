@@ -44,5 +44,5 @@ export declare class MentalLaby implements Persistable {
     private linkNodes;
     private createEmbedding;
     exportState(): object;
-    importState(state: any): void;
+    importState(state: unknown): void;
 }

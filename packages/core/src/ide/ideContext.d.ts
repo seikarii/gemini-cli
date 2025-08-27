@@ -23,23 +23,23 @@ export declare const FileSchema: z.ZodObject<{
         character: number;
     }>>;
 }, "strip", z.ZodTypeAny, {
-    timestamp: number;
     path: string;
+    timestamp: number;
+    isActive?: boolean | undefined;
+    selectedText?: string | undefined;
     cursor?: {
         line: number;
         character: number;
     } | undefined;
-    isActive?: boolean | undefined;
-    selectedText?: string | undefined;
 }, {
-    timestamp: number;
     path: string;
+    timestamp: number;
+    isActive?: boolean | undefined;
+    selectedText?: string | undefined;
     cursor?: {
         line: number;
         character: number;
     } | undefined;
-    isActive?: boolean | undefined;
-    selectedText?: string | undefined;
 }>;
 export type File = z.infer<typeof FileSchema>;
 export declare const IdeContextSchema: z.ZodObject<{
@@ -60,71 +60,71 @@ export declare const IdeContextSchema: z.ZodObject<{
                 character: number;
             }>>;
         }, "strip", z.ZodTypeAny, {
-            timestamp: number;
             path: string;
+            timestamp: number;
+            isActive?: boolean | undefined;
+            selectedText?: string | undefined;
             cursor?: {
                 line: number;
                 character: number;
             } | undefined;
-            isActive?: boolean | undefined;
-            selectedText?: string | undefined;
         }, {
-            timestamp: number;
             path: string;
+            timestamp: number;
+            isActive?: boolean | undefined;
+            selectedText?: string | undefined;
             cursor?: {
                 line: number;
                 character: number;
             } | undefined;
-            isActive?: boolean | undefined;
-            selectedText?: string | undefined;
         }>, "many">>;
     }, "strip", z.ZodTypeAny, {
         openFiles?: {
-            timestamp: number;
             path: string;
+            timestamp: number;
+            isActive?: boolean | undefined;
+            selectedText?: string | undefined;
             cursor?: {
                 line: number;
                 character: number;
             } | undefined;
-            isActive?: boolean | undefined;
-            selectedText?: string | undefined;
         }[] | undefined;
     }, {
         openFiles?: {
-            timestamp: number;
             path: string;
+            timestamp: number;
+            isActive?: boolean | undefined;
+            selectedText?: string | undefined;
             cursor?: {
                 line: number;
                 character: number;
             } | undefined;
-            isActive?: boolean | undefined;
-            selectedText?: string | undefined;
         }[] | undefined;
     }>>;
 }, "strip", z.ZodTypeAny, {
     workspaceState?: {
         openFiles?: {
-            timestamp: number;
             path: string;
+            timestamp: number;
+            isActive?: boolean | undefined;
+            selectedText?: string | undefined;
             cursor?: {
                 line: number;
                 character: number;
             } | undefined;
-            isActive?: boolean | undefined;
-            selectedText?: string | undefined;
         }[] | undefined;
     } | undefined;
 }, {
     workspaceState?: {
         openFiles?: {
-            timestamp: number;
             path: string;
+            timestamp: number;
+            isActive?: boolean | undefined;
+            selectedText?: string | undefined;
             cursor?: {
                 line: number;
                 character: number;
             } | undefined;
-            isActive?: boolean | undefined;
-            selectedText?: string | undefined;
         }[] | undefined;
     } | undefined;
 }>;
@@ -153,71 +153,71 @@ export declare const IdeContextNotificationSchema: z.ZodObject<{
                     character: number;
                 }>>;
             }, "strip", z.ZodTypeAny, {
-                timestamp: number;
                 path: string;
+                timestamp: number;
+                isActive?: boolean | undefined;
+                selectedText?: string | undefined;
                 cursor?: {
                     line: number;
                     character: number;
                 } | undefined;
-                isActive?: boolean | undefined;
-                selectedText?: string | undefined;
             }, {
-                timestamp: number;
                 path: string;
+                timestamp: number;
+                isActive?: boolean | undefined;
+                selectedText?: string | undefined;
                 cursor?: {
                     line: number;
                     character: number;
                 } | undefined;
-                isActive?: boolean | undefined;
-                selectedText?: string | undefined;
             }>, "many">>;
         }, "strip", z.ZodTypeAny, {
             openFiles?: {
-                timestamp: number;
                 path: string;
+                timestamp: number;
+                isActive?: boolean | undefined;
+                selectedText?: string | undefined;
                 cursor?: {
                     line: number;
                     character: number;
                 } | undefined;
-                isActive?: boolean | undefined;
-                selectedText?: string | undefined;
             }[] | undefined;
         }, {
             openFiles?: {
-                timestamp: number;
                 path: string;
+                timestamp: number;
+                isActive?: boolean | undefined;
+                selectedText?: string | undefined;
                 cursor?: {
                     line: number;
                     character: number;
                 } | undefined;
-                isActive?: boolean | undefined;
-                selectedText?: string | undefined;
             }[] | undefined;
         }>>;
     }, "strip", z.ZodTypeAny, {
         workspaceState?: {
             openFiles?: {
-                timestamp: number;
                 path: string;
+                timestamp: number;
+                isActive?: boolean | undefined;
+                selectedText?: string | undefined;
                 cursor?: {
                     line: number;
                     character: number;
                 } | undefined;
-                isActive?: boolean | undefined;
-                selectedText?: string | undefined;
             }[] | undefined;
         } | undefined;
     }, {
         workspaceState?: {
             openFiles?: {
-                timestamp: number;
                 path: string;
+                timestamp: number;
+                isActive?: boolean | undefined;
+                selectedText?: string | undefined;
                 cursor?: {
                     line: number;
                     character: number;
                 } | undefined;
-                isActive?: boolean | undefined;
-                selectedText?: string | undefined;
             }[] | undefined;
         } | undefined;
     }>;
@@ -225,36 +225,36 @@ export declare const IdeContextNotificationSchema: z.ZodObject<{
     params: {
         workspaceState?: {
             openFiles?: {
-                timestamp: number;
                 path: string;
+                timestamp: number;
+                isActive?: boolean | undefined;
+                selectedText?: string | undefined;
                 cursor?: {
                     line: number;
                     character: number;
                 } | undefined;
-                isActive?: boolean | undefined;
-                selectedText?: string | undefined;
             }[] | undefined;
         } | undefined;
     };
-    method: "ide/contextUpdate";
     jsonrpc: "2.0";
+    method: "ide/contextUpdate";
 }, {
     params: {
         workspaceState?: {
             openFiles?: {
-                timestamp: number;
                 path: string;
+                timestamp: number;
+                isActive?: boolean | undefined;
+                selectedText?: string | undefined;
                 cursor?: {
                     line: number;
                     character: number;
                 } | undefined;
-                isActive?: boolean | undefined;
-                selectedText?: string | undefined;
             }[] | undefined;
         } | undefined;
     };
-    method: "ide/contextUpdate";
     jsonrpc: "2.0";
+    method: "ide/contextUpdate";
 }>;
 export declare const IdeDiffAcceptedNotificationSchema: z.ZodObject<{
     jsonrpc: z.ZodLiteral<"2.0">;
@@ -263,26 +263,26 @@ export declare const IdeDiffAcceptedNotificationSchema: z.ZodObject<{
         filePath: z.ZodString;
         content: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        content: string;
         filePath: string;
+        content: string;
     }, {
-        content: string;
         filePath: string;
+        content: string;
     }>;
 }, "strip", z.ZodTypeAny, {
     params: {
-        content: string;
         filePath: string;
+        content: string;
     };
-    method: "ide/diffAccepted";
     jsonrpc: "2.0";
+    method: "ide/diffAccepted";
 }, {
     params: {
-        content: string;
         filePath: string;
+        content: string;
     };
-    method: "ide/diffAccepted";
     jsonrpc: "2.0";
+    method: "ide/diffAccepted";
 }>;
 export declare const IdeDiffClosedNotificationSchema: z.ZodObject<{
     jsonrpc: z.ZodLiteral<"2.0">;
@@ -302,43 +302,43 @@ export declare const IdeDiffClosedNotificationSchema: z.ZodObject<{
         filePath: string;
         content?: string | undefined;
     };
-    method: "ide/diffClosed";
     jsonrpc: "2.0";
+    method: "ide/diffClosed";
 }, {
     params: {
         filePath: string;
         content?: string | undefined;
     };
-    method: "ide/diffClosed";
     jsonrpc: "2.0";
+    method: "ide/diffClosed";
 }>;
 export declare const CloseDiffResponseSchema: z.ZodEffects<z.ZodObject<{
     content: z.ZodArray<z.ZodObject<{
         text: z.ZodString;
         type: z.ZodLiteral<"text">;
     }, "strip", z.ZodTypeAny, {
-        text: string;
         type: "text";
+        text: string;
     }, {
-        text: string;
         type: "text";
+        text: string;
     }>, "many">;
 }, "strip", z.ZodTypeAny, {
     content: {
-        text: string;
         type: "text";
+        text: string;
     }[];
 }, {
     content: {
-        text: string;
         type: "text";
+        text: string;
     }[];
 }>, {
     content?: string | undefined;
 }, {
     content: {
-        text: string;
         type: "text";
+        text: string;
     }[];
 }>;
 export type DiffUpdateResult = {

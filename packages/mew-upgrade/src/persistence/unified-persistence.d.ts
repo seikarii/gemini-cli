@@ -8,7 +8,7 @@
  * for the agent to save and load its entire state.
  */
 import { Persistable } from './persistence-service.js';
-interface Agent {
+export interface Agent {
     getPersistableComponents(): Record<string, Persistable>;
 }
 /**
@@ -30,4 +30,3 @@ export declare class UnifiedPersistence {
      */
     restore(agent: Agent): Promise<void>;
 }
-export {};

@@ -3,7 +3,10 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
+/**
+ * Performance mode for file system operations
+ */
+export type PerformanceMode = 'safe' | 'balanced' | 'fast';
 /**
  * Configuration options for file system operations
  */
@@ -24,6 +27,29 @@ export interface FileSystemOptions {
     bypassCache?: boolean;
     /** Maximum cache size in entries (default: 1000) */
     maxCacheEntries?: number;
+    /** Performance mode affecting operation behavior (default: 'balanced') */
+    performanceMode?: PerformanceMode;
+    /** Enable performance monitoring and metrics collection (default: false) */
+    enableMetrics?: boolean;
+    /** Batch size for bulk operations (default: 50) */
+    batchSize?: number;
+    /** Custom path safety configuration */
+    pathSafetyConfig?: PathSafetyConfig;
+}
+/**
+ * Configuration for path safety checks
+ */
+export interface PathSafetyConfig {
+    /** Whether to allow path traversal (..) - use with caution (default: false) */
+    allowPathTraversal?: boolean;
+    /** Whether to allow tilde expansion (default: false) */
+    allowTildeExpansion?: boolean;
+    /** Additional allowed characters in paths (default: none) */
+    allowedChars?: string;
+    /** Whether to enable strict path validation (default: true) */
+    strictValidation?: boolean;
+    /** Custom allowed roots for path validation */
+    allowedRoots?: string[];
 }
 /**
  * File system operation result with metadata
@@ -61,6 +87,36 @@ export interface FileInfo {
     mtimeMs: number;
 }
 /**
+ * Performance metrics for file system operations
+ */
+export interface FileSystemMetrics {
+    operationCounts: Map<string, number>;
+    operationTimes: Map<string, number[]>;
+    cacheHits: number;
+    cacheMisses: number;
+    pathSafetyCacheHits: number;
+    pathSafetyCacheMisses: number;
+    totalOperations: number;
+    averageOperationTime: number;
+}
+/**
+ * Batch operation result for bulk file operations
+ */
+export interface BatchOperationResult<T = void> {
+    successful: Array<{
+        path: string;
+        result: FileOperationResult<T>;
+    }>;
+    failed: Array<{
+        path: string;
+        error: string;
+        errorCode?: string;
+    }>;
+    totalProcessed: number;
+    totalTime: number;
+    averageTimePerOperation: number;
+}
+/**
  * Enhanced file system service interface following Crisalida patterns
  */
 export interface FileSystemService {
@@ -92,6 +148,14 @@ export interface FileSystemService {
         hitRate: number;
         totalRequests: number;
     };
+    batchReadTextFiles(filePaths: string[], options?: FileSystemOptions): Promise<BatchOperationResult<string>>;
+    batchWriteTextFiles(operations: Array<{
+        path: string;
+        content: string;
+    }>, options?: FileSystemOptions): Promise<BatchOperationResult>;
+    getPerformanceMetrics(): FileSystemMetrics;
+    resetPerformanceMetrics(): void;
+    optimizeCache(): void;
 }
 /**
  * Robust file system service implementation with self-validating cache,
@@ -113,16 +177,44 @@ export declare class StandardFileSystemService implements FileSystemService {
     private readonly fileCache;
     private readonly maxCacheEntries;
     private cacheStats;
+    private readonly pathSafetyCache;
+    private readonly pathSafetyCacheSize;
+    private readonly pathSafetyCacheTTL;
+    private performanceMetrics;
     /**
-     * Validate and sanitize file path for security
+     * Record performance metrics for operations
+     */
+    private recordMetric;
+    /**
+     * Create hash of allowed roots for cache key
+     */
+    private createAllowedRootsHash;
+    /**
+     * Optimized atomic write with conditional checkpointing based on performance mode
+     */
+    private performOptimizedWrite;
+    /**
+     * Optimized checkpoint creation with better error handling
+     */
+    private createOptimizedCheckpoint;
+    /**
+     * Optimized path safety validation with dynamic performance mode
      */
     isPathSafe(filePath: string, allowedRoots?: string[]): boolean;
     /**
-     * Execute operation with timeout protection
+     * Cache path safety result with LRU eviction
+     */
+    private cachePathSafetyResult;
+    /**
+     * Evict old path safety cache entries
+     */
+    private evictOldPathSafetyEntries;
+    /**
+     * Execute operation with timeout protection and configurable behavior
      */
     private withTimeout;
     /**
-     * Validate file size against limits
+     * Validate file size against limits with enhanced configurability
      */
     private validateFileSize;
     /**
@@ -178,6 +270,14 @@ export declare class StandardFileSystemService implements FileSystemService {
         maxDepth?: number;
         includeDirectories?: boolean;
     }): Promise<FileOperationResult<string[]>>;
+    batchReadTextFiles(filePaths: string[], options?: FileSystemOptions): Promise<BatchOperationResult<string>>;
+    batchWriteTextFiles(operations: Array<{
+        path: string;
+        content: string;
+    }>, options?: FileSystemOptions): Promise<BatchOperationResult>;
+    getPerformanceMetrics(): FileSystemMetrics;
+    resetPerformanceMetrics(): void;
+    optimizeCache(): void;
     /**
      * Clear cache entries for a specific file or all files
      */
@@ -190,6 +290,42 @@ export declare class StandardFileSystemService implements FileSystemService {
         hitRate: number;
         totalRequests: number;
     };
+    /**
+     * Get detailed cache performance metrics
+     */
+    getCacheMetrics(): {
+        fileCache: {
+            size: number;
+            maxSize: number;
+            hitRate: number;
+            hits: number;
+            misses: number;
+        };
+        pathSafetyCache: {
+            size: number;
+            hitRate: number;
+            hits: number;
+            misses: number;
+        };
+    };
+    /**
+     * Get diagnostic information about the service
+     */
+    getDiagnostics(): {
+        cacheMetrics: ReturnType<StandardFileSystemService['getCacheMetrics']>;
+        performanceMetrics: ReturnType<StandardFileSystemService['getPerformanceMetrics']>;
+        configuration: {
+            defaultTimeout: number;
+            defaultMaxFileSize: number;
+            performanceMode: PerformanceMode;
+            cacheEnabled: boolean;
+            maxCacheEntries: number;
+        };
+    };
+    /**
+     * Clear all caches - useful for testing or memory management
+     */
+    clearCaches(): void;
 }
 /**
  * Fallback file system service for environments where full fs access is not available.
@@ -217,6 +353,11 @@ export declare class FallbackFileSystemService implements FileSystemService {
         hitRate: number;
         totalRequests: number;
     };
+    batchReadTextFiles(): Promise<BatchOperationResult<string>>;
+    batchWriteTextFiles(): Promise<BatchOperationResult>;
+    getPerformanceMetrics(): FileSystemMetrics;
+    resetPerformanceMetrics(): void;
+    optimizeCache(): void;
 }
 /**
  * Factory function for creating file system service with graceful degradation
