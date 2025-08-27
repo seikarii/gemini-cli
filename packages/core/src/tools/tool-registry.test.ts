@@ -17,7 +17,7 @@ import {
 import { Config, ConfigParameters, ApprovalMode } from '../config/config.js';
 import { ToolRegistry, DiscoveredTool } from './tool-registry.js';
 import { DiscoveredMCPTool } from './mcp-tool.js';
-import { FunctionDeclaration, CallableTool, mcpToTool } from '@google/genai';
+import { FunctionDeclaration, CallableTool, mcpToTool, Type } from '@google/genai';
 import { spawn } from 'node:child_process';
 
 import fs from 'node:fs';
@@ -246,18 +246,18 @@ describe('ToolRegistry', () => {
   });
 
   describe('discoverTools', () => {
-    it('should will preserve tool parametersJsonSchema during discovery from command', async () => {
+    it('should will preserve tool parameters during discovery from command', async () => {
       const discoveryCommand = 'my-discovery-command';
       mockConfigGetToolDiscoveryCommand.mockReturnValue(discoveryCommand);
 
       const unsanitizedToolDeclaration: FunctionDeclaration = {
         name: 'tool-with-bad-format',
         description: 'A tool with an invalid format property',
-        parametersJsonSchema: {
-          type: 'object',
+        parameters: {
+          type: Type.OBJECT,
           properties: {
             some_string: {
-              type: 'string',
+              type: Type.STRING,
               format: 'uuid', // This is an unsupported format
             },
           },
@@ -300,7 +300,7 @@ describe('ToolRegistry', () => {
       expect(discoveredTool).toBeDefined();
 
       const registeredParams = (discoveredTool as DiscoveredTool).schema
-        .parametersJsonSchema;
+        .parameters;
       expect(registeredParams).toStrictEqual({
         type: 'object',
         properties: {
@@ -320,8 +320,8 @@ describe('ToolRegistry', () => {
       const toolDeclaration: FunctionDeclaration = {
         name: 'failing-tool',
         description: 'A tool that fails',
-        parametersJsonSchema: {
-          type: 'object',
+        parameters: {
+          type: Type.OBJECT,
           properties: {},
         },
       };

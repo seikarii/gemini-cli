@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { FunctionDeclaration, PartListUnion } from '@google/genai';
+import { FunctionDeclaration, PartListUnion, Type } from '@google/genai';
 import { ToolErrorType } from './tool-error.js';
 import { DiffUpdateResult } from '../ide/ideContext.js';
 import { SchemaValidator } from '../utils/schemaValidator.js';
@@ -161,7 +161,7 @@ export abstract class DeclarativeTool<
     return {
       name: this.name,
       description: this.description,
-      parametersJsonSchema: this.parameterSchema,
+      parameters: this.parameterSchema,
     };
   }
 
@@ -282,7 +282,7 @@ export abstract class BaseDeclarativeTool<
 
   override validateToolParams(params: TParams): string | null {
     const errors = SchemaValidator.validate(
-      this.schema.parametersJsonSchema,
+      this.schema.parameters,
       params,
     );
 

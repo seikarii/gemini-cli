@@ -216,7 +216,7 @@ describe('MemoryTool', () => {
       );
       expect(memoryTool.schema).toBeDefined();
       expect(memoryTool.schema.name).toBe('save_memory');
-      expect(memoryTool.schema.parametersJsonSchema).toStrictEqual({
+      expect(memoryTool.schema.parameters).toStrictEqual({
         type: 'object',
         properties: {
           fact: {

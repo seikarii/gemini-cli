@@ -25,7 +25,7 @@ import {
   ToolConfirmationOutcome,
   ToolResult,
 } from './tools.js';
-import { FunctionDeclaration } from '@google/genai';
+import { FunctionDeclaration, Type } from '@google/genai';
 // import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Storage } from '../config/storage.js';
@@ -39,11 +39,11 @@ const memoryToolSchemaData: FunctionDeclaration = {
   name: 'save_memory',
   description:
     'Saves a specific piece of information or fact to your long-term memory. Use this when the user explicitly asks you to remember something, or when they state a clear, concise fact that seems important to retain for future interactions.',
-  parametersJsonSchema: {
-    type: 'object',
+  parameters: {
+    type: Type.OBJECT,
     properties: {
       fact: {
-        type: 'string',
+        type: Type.STRING,
         description:
           'The specific fact or piece of information to remember. Should be a clear, self-contained statement.',
       },
@@ -318,7 +318,7 @@ export class MemoryTool
       'Save Memory',
       memoryToolDescription,
       Kind.Think,
-      memoryToolSchemaData.parametersJsonSchema as Record<string, unknown>,
+      memoryToolSchemaData.parameters as Record<string, unknown>,
     );
     this.config = config;
   }

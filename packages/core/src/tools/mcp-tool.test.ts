@@ -102,7 +102,7 @@ describe('DiscoveredMCPTool', () => {
       expect(tool.schema.name).toBe(serverToolName);
       expect(tool.schema.description).toBe(baseDescription);
       expect(tool.schema.parameters).toBeUndefined();
-      expect(tool.schema.parametersJsonSchema).toEqual(inputSchema);
+      expect(tool.schema.parameters).toEqual(inputSchema);
       expect(tool.serverToolName).toBe(serverToolName);
       expect(tool.timeout).toBeUndefined();
     });

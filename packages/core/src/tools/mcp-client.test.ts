@@ -103,17 +103,17 @@ describe('mcp-client', () => {
             functionDeclarations: [
               {
                 name: 'validTool',
-                parametersJsonSchema: {
-                  type: 'object',
+                parameters: {
+                  type: GenAiLib.Type.OBJECT,
                   properties: {
-                    param1: { type: 'string' },
+                    param1: { type: GenAiLib.Type.STRING },
                   },
                 },
               },
               {
                 name: 'invalidTool',
-                parametersJsonSchema: {
-                  type: 'object',
+                parameters: {
+                  type: GenAiLib.Type.OBJECT,
                   properties: {
                     param1: { description: 'a param with no type' },
                   },

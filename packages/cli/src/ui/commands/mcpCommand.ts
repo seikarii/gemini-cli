@@ -224,8 +224,7 @@ const getMcpStatus = async (
           // Use cyan color for the tool name even when not showing descriptions
           message += `  - ${COLOR_CYAN}${tool.name}${RESET_COLOR}\n`;
         }
-        const parameters =
-          tool.schema.parametersJsonSchema ?? tool.schema.parameters;
+        const parameters = tool.schema.parameters;
         if (showSchema && parameters) {
           // Prefix the parameters in cyan
           message += `    ${COLOR_CYAN}Parameters:${RESET_COLOR}\n`;

@@ -389,10 +389,10 @@ export class ToolRegistry {
           continue;
         }
         const parameters =
-          func.parametersJsonSchema &&
-          typeof func.parametersJsonSchema === 'object' &&
-          !Array.isArray(func.parametersJsonSchema)
-            ? func.parametersJsonSchema
+          func.parameters &&
+          typeof func.parameters === 'object' &&
+          !Array.isArray(func.parameters)
+            ? func.parameters
             : {};
         this.registerTool(
           new DiscoveredTool(

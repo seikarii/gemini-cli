@@ -632,7 +632,7 @@ export class RipGrepTool extends BaseDeclarativeTool<
    */
   override validateToolParams(params: RipGrepToolParams): string | null {
     const errors = SchemaValidator.validate(
-      this.schema.parametersJsonSchema,
+      this.schema.parameters,
       params,
     );
     if (errors) {

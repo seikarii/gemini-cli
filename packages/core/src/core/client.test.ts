@@ -398,7 +398,7 @@ describe('Gemini Client (client.ts)', () => {
             systemInstruction: getCoreSystemPrompt(''),
             temperature: 0,
             topP: 1,
-            responseJsonSchema: schema,
+            responseSchema: schema,
             responseMimeType: 'application/json',
           },
           contents,
@@ -437,7 +437,7 @@ describe('Gemini Client (client.ts)', () => {
             temperature: 0.9,
             topP: 1, // from default
             topK: 20,
-            responseJsonSchema: schema,
+            responseSchema: schema,
             responseMimeType: 'application/json',
           },
           contents,
@@ -1996,10 +1996,9 @@ ${JSON.stringify(
         {
           role: 'model',
           parts: [
-            { text: 'thinking...', thoughtSignature: 'thought-123' },
+            { text: 'thinking...' },
             {
               functionCall: { name: 'test', args: {} },
-              thoughtSignature: 'thought-456',
             },
           ],
         },
@@ -2038,8 +2037,8 @@ ${JSON.stringify(
         {
           role: 'model',
           parts: [
-            { text: 'thinking...', thoughtSignature: 'thought-123' },
-            { text: 'ok', thoughtSignature: 'thought-456' },
+            { text: 'thinking...' },
+            { text: 'ok' },
           ],
         },
       ];

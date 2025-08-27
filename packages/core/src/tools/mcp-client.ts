@@ -646,7 +646,7 @@ export async function discoverTools(
           continue;
         }
 
-        if (!hasValidTypes(funcDecl.parametersJsonSchema)) {
+        if (!hasValidTypes(funcDecl.parameters)) {
           console.warn(
             `Skipping tool '${funcDecl.name}' from MCP server '${mcpServerName}' ` +
               `because it has missing types in its parameter schema. Please file an ` +
@@ -661,7 +661,7 @@ export async function discoverTools(
             mcpServerName,
             funcDecl.name!,
             funcDecl.description ?? '',
-            funcDecl.parametersJsonSchema ?? { type: 'object', properties: {} },
+            funcDecl.parameters ?? { type: 'object', properties: {} },
             mcpServerConfig.timeout ?? MCP_DEFAULT_TIMEOUT_MSEC,
             mcpServerConfig.trust,
           ),
