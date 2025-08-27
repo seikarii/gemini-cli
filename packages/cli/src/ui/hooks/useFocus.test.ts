@@ -7,7 +7,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { EventEmitter } from 'events';
 import { useFocus } from './useFocus.js';
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach, type MockInstance } from 'vitest';
 import { useStdin, useStdout } from 'ink';
 
 // Mock the ink hooks
@@ -25,7 +25,7 @@ const mockedUseStdout = vi.mocked(useStdout);
 
 describe('useFocus', () => {
   let stdin: EventEmitter;
-  let stdout: { write: vi.Func };
+  let stdout: { write: MockInstance };
 
   beforeEach(() => {
     stdin = new EventEmitter();

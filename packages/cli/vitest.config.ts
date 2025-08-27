@@ -7,7 +7,6 @@
 /// <reference types="vitest" />
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
-import { resolve } from 'path';
 
 export default defineConfig({
   test: {

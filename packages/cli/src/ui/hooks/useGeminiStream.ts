@@ -14,7 +14,6 @@ import {
   ServerGeminiErrorEvent as ErrorEvent,
   ServerGeminiChatCompressedEvent,
   ServerGeminiFinishedEvent,
-  ServerGeminiActionScriptRequestEvent,
   getErrorMessage,
   isNodeError,
   MessageSenderType,

@@ -293,6 +293,7 @@ describe('useGeminiStream', () => {
           () => {},
           () => {},
           () => {},
+          () => {},
         );
       },
       {
@@ -454,6 +455,7 @@ describe('useGeminiStream', () => {
         () => {},
         () => {},
         () => {},
+        () => {},
       ),
     );
 
@@ -519,6 +521,7 @@ describe('useGeminiStream', () => {
 
     renderHook(() =>
       useGeminiStream(
+        client,
         client,
         [],
         mockAddItem,
@@ -627,6 +630,7 @@ describe('useGeminiStream', () => {
 
     renderHook(() =>
       useGeminiStream(
+        client,
         client,
         [],
         mockAddItem,

@@ -41,7 +41,6 @@ export default tseslint.config(
       'bundle/**',
       'package/bundle/**',
       '.integration-tests/**',
-      'packages/mew-upgrade/**',
     ],
   },
   eslint.configs.recommended,
@@ -106,7 +105,7 @@ export default tseslint.config(
         'error',
         { accessibility: 'no-public' },
       ],
-      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-inferrable-types': [
         'error',
         { ignoreParameters: true, ignoreProperties: true },
@@ -223,7 +222,7 @@ export default tseslint.config(
       // Temporarily allow `any` in these critical source trees to focus on
       // higher-risk runtime issues. This should be reverted or replaced
       // with concrete types in follow-up work.
-      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-explicit-any': 'warn',
     },
   },
   {

@@ -405,7 +405,7 @@ export async function loadCliConfig(
   const memoryImportFormat = settings.memoryImportFormat || 'tree';
   const ideMode = settings.ideMode ?? false;
   const folderTrust = resolveFolderTrust(settings);
-  const trustedFolder = await isWorkspaceTrusted(settings);
+  const trustedFolder = (await isWorkspaceTrusted(settings)) ?? false;
 
   // Process extensions
   const allExtensions = annotateActiveExtensions(

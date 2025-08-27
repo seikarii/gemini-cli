@@ -390,6 +390,7 @@ describe('App UI', () => {
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
+          agent={null}
         />,
       );
       currentUnmount = unmount;
@@ -417,6 +418,7 @@ describe('App UI', () => {
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
+          agent={null}
         />,
       );
       currentUnmount = unmount;
@@ -448,6 +450,7 @@ describe('App UI', () => {
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
+          agent={null}
         />,
       );
       currentUnmount = unmount;
@@ -479,6 +482,7 @@ describe('App UI', () => {
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
+          agent={null}
         />,
       );
       currentUnmount = unmount;
@@ -514,6 +518,7 @@ describe('App UI', () => {
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
+          agent={null}
         />,
       );
       currentUnmount = unmount;

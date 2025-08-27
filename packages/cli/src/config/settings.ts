@@ -79,9 +79,10 @@ function deepMergeSettings(target: Settings, ...sources: Settings[]): Settings {
   const result = { ...target } as Record<string, unknown>;
 
   for (const source of sources) {
-    for (const key in source) {
-      if (Object.prototype.hasOwnProperty.call(source, key)) {
-        const sourceValue = source[key];
+    const sourceRecord = source as Record<string, unknown>;
+    for (const key in sourceRecord) {
+      if (Object.prototype.hasOwnProperty.call(sourceRecord, key)) {
+        const sourceValue = sourceRecord[key];
         const targetValue = result[key];
 
         if (

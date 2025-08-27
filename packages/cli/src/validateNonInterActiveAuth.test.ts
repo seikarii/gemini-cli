@@ -4,12 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type MockInstance } from 'vitest';
 import {
   validateNonInteractiveAuth,
-  NonInteractiveConfig,
 } from './validateNonInterActiveAuth.js';
-import { AuthType } from '@google/gemini-cli-core';
+import { AuthType, Config } from '@google/gemini-cli-core';
 import * as auth from './config/auth.js';
 
 describe('validateNonInterActiveAuth', () => {
@@ -18,8 +17,8 @@ describe('validateNonInterActiveAuth', () => {
   let originalEnvGcp: string | undefined;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
   let processExitSpy: ReturnType<typeof vi.spyOn>;
-  let refreshAuthMock: jest.MockedFunction<
-    (authType: AuthType) => Promise<unknown>
+  let refreshAuthMock: MockInstance<
+    (authMethod: AuthType) => Promise<void>
   >;
 
   beforeEach(() => {
@@ -56,8 +55,8 @@ describe('validateNonInterActiveAuth', () => {
   });
 
   it('exits if no auth type is configured or env vars set', async () => {
-    const nonInteractiveConfig: NonInteractiveConfig = {
-      refreshAuth: refreshAuthMock,
+    const nonInteractiveConfig: Config = {
+      refreshAuth: refreshAuthMock as (authMethod: AuthType) => Promise<void>,
     };
     try {
       await validateNonInteractiveAuth(
@@ -77,8 +76,8 @@ describe('validateNonInterActiveAuth', () => {
 
   it('uses LOGIN_WITH_GOOGLE if GOOGLE_GENAI_USE_GCA is set', async () => {
     process.env['GOOGLE_GENAI_USE_GCA'] = 'true';
-    const nonInteractiveConfig: NonInteractiveConfig = {
-      refreshAuth: refreshAuthMock,
+    const nonInteractiveConfig: Config = {
+      refreshAuth: refreshAuthMock as unknown as (authMethod: AuthType) => Promise<void>,
     };
     await validateNonInteractiveAuth(
       undefined,

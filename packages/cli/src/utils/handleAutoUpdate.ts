@@ -61,9 +61,11 @@ export async function handleAutoUpdate(
     shell: true,
   });
   let errorOutput = '';
-  updateProcess.stderr.on('data', (data) => {
-    errorOutput += data.toString();
-  });
+  if (updateProcess.stderr) {
+    updateProcess.stderr.on('data', (data) => {
+      errorOutput += data.toString();
+    });
+  }
 
   updateProcess.on('close', (code) => {
     if (code === 0) {

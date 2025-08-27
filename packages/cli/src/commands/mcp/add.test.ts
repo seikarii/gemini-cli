@@ -4,9 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import yargs from 'yargs';
+import yargs, { type Argv } from 'yargs';
 import { addCommand } from './add.js';
 import { loadSettings, SettingScope } from '../../config/settings.js';
+import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 
 vi.mock('fs/promises', () => ({
   readFile: vi.fn(),
@@ -21,11 +22,11 @@ vi.mock('../../config/settings.js', async () => {
   };
 });
 
-const mockedLoadSettings = loadSettings as vi.Mock;
+const mockedLoadSettings = loadSettings as Mock;
 
 describe('mcp add command', () => {
-  let parser: yargs.Argv;
-  let mockSetValue: vi.Mock;
+  let parser: Argv;
+  let mockSetValue: Mock;
 
   beforeEach(() => {
     vi.resetAllMocks();

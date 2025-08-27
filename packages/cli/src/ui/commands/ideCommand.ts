@@ -56,12 +56,15 @@ function getIdeStatusMessage(ideClient: IdeClient): {
 function formatFileList(openFiles: File[]): string {
   const basenameCounts = new Map<string, number>();
   for (const file of openFiles) {
-    const basename = path.basename(file.path);
-    basenameCounts.set(basename, (basenameCounts.get(basename) || 0) + 1);
+    if (file.path) {
+      const basename = path.basename(file.path);
+      basenameCounts.set(basename, (basenameCounts.get(basename) || 0) + 1);
+    }
   }
 
   const fileList = openFiles
     .map((file: File) => {
+      if (!file.path) return '';
       const basename = path.basename(file.path);
       const isDuplicate = (basenameCounts.get(basename) || 0) > 1;
       const parentDir = path.basename(path.dirname(file.path));

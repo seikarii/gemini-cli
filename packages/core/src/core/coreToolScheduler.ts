@@ -1151,12 +1151,14 @@ export class CoreToolScheduler {
     const toolDeclarations = this.toolRegistry.getFunctionDeclarations();
 
     for (const toolDecl of toolDeclarations) {
+      if (!toolDecl.name) continue;
+
       // Create a wrapper function that uses the tool registry
       const toolWrapper = async (...args: unknown[]): Promise<unknown> => {
         try {
-          const tool = this.toolRegistry.getTool(toolDecl.name);
+          const tool = this.toolRegistry.getTool(toolDecl.name!);
           if (!tool) {
-            throw new Error(`Tool ${toolDecl.name} not found in registry`);
+            throw new Error(`Tool ${toolDecl.name!} not found in registry`);
           }
 
           // Create a tool invocation

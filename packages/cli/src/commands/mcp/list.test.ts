@@ -4,12 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach, type MockInstance } from 'vitest';
 import { listMcpServers } from './list.js';
 import { loadSettings } from '../../config/settings.js';
 import { loadExtensions } from '../../config/extension.js';
 import { createTransport } from '@google/gemini-cli-core';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 
 vi.mock('../../config/settings.js', () => ({
   loadSettings: vi.fn(),
@@ -32,25 +31,30 @@ vi.mock('@google/gemini-cli-core', () => ({
   GEMINI_CONFIG_DIR: '.gemini',
   getErrorMessage: (e: unknown) => (e instanceof Error ? e.message : String(e)),
 }));
-vi.mock('@modelcontextprotocol/sdk/client/index.js');
+vi.mock('@modelcontextprotocol/sdk/client/index.js', () => ({
+  Client: vi.fn().mockImplementation(() => ({
+    connect: vi.fn(),
+    ping: vi.fn(),
+    close: vi.fn(),
+  })),
+}));
 
-const mockedLoadSettings = loadSettings as vi.Mock;
-const mockedLoadExtensions = loadExtensions as vi.Mock;
-const mockedCreateTransport = createTransport as vi.Mock;
-const MockedClient = Client as vi.Mock;
+const mockedLoadSettings = loadSettings as unknown as MockInstance<() => Promise<unknown>>;
+const mockedLoadExtensions = loadExtensions as unknown as MockInstance<() => Promise<unknown>>;
+const mockedCreateTransport = createTransport as unknown as MockInstance<() => Promise<unknown>>;
 
 interface MockClient {
-  connect: vi.Mock;
-  ping: vi.Mock;
-  close: vi.Mock;
+  connect: MockInstance;
+  ping: MockInstance;
+  close: MockInstance;
 }
 
 interface MockTransport {
-  close: vi.Mock;
+  close: MockInstance;
 }
 
 describe('mcp list command', () => {
-  let consoleSpy: vi.SpyInstance;
+  let consoleSpy: MockInstance;
   let mockClient: MockClient;
   let mockTransport: MockTransport;
 
@@ -66,9 +70,9 @@ describe('mcp list command', () => {
       close: vi.fn(),
     };
 
-    MockedClient.mockImplementation(() => mockClient);
+    // Client is already mocked in vi.mock above
     mockedCreateTransport.mockResolvedValue(mockTransport);
-    mockedLoadExtensions.mockReturnValue([]);
+    mockedLoadExtensions.mockReturnValue(Promise.resolve([]));
   });
 
   afterEach(() => {
@@ -76,7 +80,7 @@ describe('mcp list command', () => {
   });
 
   it('should display message when no servers configured', async () => {
-    mockedLoadSettings.mockReturnValue({ merged: { mcpServers: {} } });
+    mockedLoadSettings.mockReturnValue(Promise.resolve({ merged: { mcpServers: {} } }));
 
     await listMcpServers();
 
@@ -84,7 +88,7 @@ describe('mcp list command', () => {
   });
 
   it('should display different server types with connected status', async () => {
-    mockedLoadSettings.mockReturnValue({
+    mockedLoadSettings.mockReturnValue(Promise.resolve({
       merged: {
         mcpServers: {
           'stdio-server': { command: '/path/to/server', args: ['arg1'] },
@@ -92,7 +96,7 @@ describe('mcp list command', () => {
           'http-server': { httpUrl: 'https://example.com/http' },
         },
       },
-    });
+    }));
 
     mockClient.connect.mockResolvedValue(undefined);
     mockClient.ping.mockResolvedValue(undefined);
@@ -118,13 +122,13 @@ describe('mcp list command', () => {
   });
 
   it('should display disconnected status when connection fails', async () => {
-    mockedLoadSettings.mockReturnValue({
+    mockedLoadSettings.mockReturnValue(Promise.resolve({
       merged: {
         mcpServers: {
           'test-server': { command: '/test/server' },
         },
       },
-    });
+    }));
 
     mockClient.connect.mockRejectedValue(new Error('Connection failed'));
 
@@ -138,20 +142,20 @@ describe('mcp list command', () => {
   });
 
   it('should merge extension servers with config servers', async () => {
-    mockedLoadSettings.mockReturnValue({
+    mockedLoadSettings.mockReturnValue(Promise.resolve({
       merged: {
         mcpServers: { 'config-server': { command: '/config/server' } },
       },
-    });
+    }));
 
-    mockedLoadExtensions.mockReturnValue([
+    mockedLoadExtensions.mockReturnValue(Promise.resolve([
       {
         config: {
           name: 'test-extension',
           mcpServers: { 'extension-server': { command: '/ext/server' } },
         },
       },
-    ]);
+    ]));
 
     mockClient.connect.mockResolvedValue(undefined);
     mockClient.ping.mockResolvedValue(undefined);

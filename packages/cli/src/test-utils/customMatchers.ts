@@ -13,7 +13,6 @@
  */
 
 import { expect } from 'vitest';
-import type { TextBuffer } from '../ui/components/shared/text-buffer.js';
 
 // RegExp to detect invalid characters: backspace, and ANSI escape codes
 // eslint-disable-next-line no-control-regex
@@ -21,7 +20,7 @@ const invalidCharsRegex = /[\b\x1b]/;
 
 function toHaveOnlyValidCharacters(
   this: { isNot?: boolean },
-  buffer: TextBuffer,
+  buffer: { lines: string[] },
 ) {
   const { isNot } = this;
   let pass = true;
@@ -55,9 +54,9 @@ expect.extend({ toHaveOnlyValidCharacters });
 
 // Extend Vitest's `expect` interface with the custom matcher's type definition.
 declare global {
-  // augment the global expect types minimally
-  // (detailed typing can be restored if needed later)
-  interface AsymmetricMatchersContaining {
-    toHaveOnlyValidCharacters(): void;
+  namespace Vi {
+    interface Assertion {
+      toHaveOnlyValidCharacters(): void;
+    }
   }
 }

@@ -96,7 +96,6 @@ import { ShowMoreLines } from './components/ShowMoreLines.js';
 import { PrivacyNotice } from './privacy/PrivacyNotice.js';
 import { useSettingsCommand } from './hooks/useSettingsCommand.js';
 import { SettingsDialog } from './components/SettingsDialog.js';
-import { ConversationTokenDisplay } from './components/ConversationTokenDisplay.js';
 import { RealtimeStatsPanel } from './components/RealtimeStatsPanel.js';
 import { TokenPreview } from './components/TokenPreview.js';
 import { setUpdateHandler } from '../utils/handleAutoUpdate.js';

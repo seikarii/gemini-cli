@@ -6,7 +6,7 @@
 
 /** @vitest-environment jsdom */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach, type Mock } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useCommandCompletion } from './useCommandCompletion.js';
 import { CommandContext } from '../commands/types.js';
@@ -46,7 +46,7 @@ const setupMocks = ({
   slashCompletionRange?: { completionStart: number; completionEnd: number };
 }) => {
   // Mock for @-completions
-  (useAtCompletion as vi.Mock).mockImplementation(
+  (useAtCompletion as Mock).mockImplementation(
     ({
       enabled,
       setSuggestions,
@@ -62,7 +62,7 @@ const setupMocks = ({
   );
 
   // Mock for /-completions
-  (useSlashCompletion as vi.Mock).mockImplementation(
+  (useSlashCompletion as Mock).mockImplementation(
     ({
       enabled,
       setSuggestions,
