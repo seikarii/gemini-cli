@@ -571,7 +571,7 @@ class ReadFileToolInvocation extends BaseToolInvocation<
 
     if (result.error) {
       return {
-        llmContent: result.llmContent,
+        llmContent: result.llmContent || `❌ **Error reading file:** ${result.error}`,
         returnDisplay: result.returnDisplay || 'Error reading file',
         error: {
           message: result.error,
@@ -610,7 +610,7 @@ ${result.llmContent}`;
       finalContent += `📄 **FILE CONTENT:**\n\n${result.llmContent || ''}`;
     }
 
-    const llmContent: PartUnion = finalContent;
+    const llmContent: PartUnion = finalContent || '📄 **FILE CONTENT:** (empty file)';
 
     // Allow llmContent to be either a string (text) or an object with expected parts
     const mimetype = getSpecificMimeType(this.params.absolute_path);
