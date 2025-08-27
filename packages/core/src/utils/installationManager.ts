@@ -9,19 +9,36 @@ import { promises as fsp } from 'fs';
 import { randomUUID } from 'crypto';
 import * as path from 'node:path';
 import { Storage } from '../config/storage.js';
+import { FileSystemService } from '../services/fileSystemService.js';
 
 export class InstallationManager {
+  private fileSystemService?: FileSystemService;
+
   private getInstallationIdPath(): string {
     return Storage.getInstallationIdPath();
   }
 
+  /**
+   * Sets the FileSystemService instance for standardized file operations
+   * @param service The FileSystemService instance to use
+   */
+  setFileSystemService(service: FileSystemService): void {
+    this.fileSystemService = service;
+  }
+
   private readInstallationIdFromFile(): string | null {
     const installationIdFile = this.getInstallationIdPath();
-    if (fs.existsSync(installationIdFile)) {
-      const installationid = fs
-        .readFileSync(installationIdFile, 'utf-8')
-        .trim();
-      return installationid || null;
+    try {
+      // For synchronous operations, keep using fs for compatibility
+      // TODO: Consider providing async versions that use FileSystemService
+      if (fs.existsSync(installationIdFile)) {
+        const installationid = fs
+          .readFileSync(installationIdFile, 'utf-8')
+          .trim();
+        return installationid || null;
+      }
+    } catch (error) {
+      console.error('Error reading installation ID file:', error);
     }
     return null;
   }
@@ -29,9 +46,16 @@ export class InstallationManager {
   private writeInstallationIdToFile(installationId: string) {
     const installationIdFile = this.getInstallationIdPath();
     const dir = path.dirname(installationIdFile);
-  // Use non-blocking writes so callers don't block the event loop when persisting the ID.
-  void fsp.mkdir(dir, { recursive: true }).catch(() => {});
-  void fsp.writeFile(installationIdFile, installationId, 'utf-8').catch(() => {});
+
+    if (this.fileSystemService) {
+      // Use FileSystemService for standardized file operations
+      void this.fileSystemService.createDirectory(dir, { recursive: true }).catch(() => {});
+      void this.fileSystemService.writeTextFile(installationIdFile, installationId).catch(() => {});
+    } else {
+      // Fallback to direct fs operations for backward compatibility
+      void fsp.mkdir(dir, { recursive: true }).catch(() => {});
+      void fsp.writeFile(installationIdFile, installationId, 'utf-8').catch(() => {});
+    }
   }
 
   /**

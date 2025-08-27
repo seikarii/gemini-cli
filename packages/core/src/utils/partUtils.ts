@@ -5,6 +5,9 @@
  */
 
 import { GenerateContentResponse, PartListUnion, Part } from '@google/genai';
+import {
+  getResponseText as getResponseTextFromUtilities,
+} from './generateContentResponseUtilities.js';
 
 /**
  * Converts a PartListUnion into a string.
@@ -67,19 +70,14 @@ export function partToString(
 export function getResponseText(
   response: GenerateContentResponse,
 ): string | null {
-  if (response.candidates && response.candidates.length > 0) {
-    const candidate = response.candidates[0];
-
-    if (
-      candidate.content &&
-      candidate.content.parts &&
-      candidate.content.parts.length > 0
-    ) {
-      return candidate.content.parts
-        .filter((part) => part.text)
-        .map((part) => part.text)
-        .join('');
-    }
-  }
-  return null;
+  // Use the consolidated implementation from generateContentResponseUtilities
+  const result = getResponseTextFromUtilities(response);
+  return result ?? null; // Convert undefined to null for backward compatibility
 }
+
+// Re-export additional utility functions from generateContentResponseUtilities
+export {
+  getFunctionCalls,
+  getFunctionCallsAsJson,
+  getStructuredResponse,
+} from './generateContentResponseUtilities.js';

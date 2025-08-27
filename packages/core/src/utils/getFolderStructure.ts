@@ -5,12 +5,14 @@
  */
 
 import * as fs from 'fs/promises';
+import * as fsSync from 'fs';
 import { Dirent } from 'fs';
 import * as path from 'path';
 import { getErrorMessage, isNodeError } from './errors.js';
 import { FileDiscoveryService } from '../services/fileDiscoveryService.js';
 import { FileFilteringOptions } from '../config/config.js';
 import { DEFAULT_FILE_FILTERING_OPTIONS } from '../config/config.js';
+import { FileSystemService } from '../services/fileSystemService.js';
 
 const MAX_ITEMS = 200;
 const TRUNCATION_INDICATOR = '...';
@@ -30,14 +32,17 @@ interface FolderStructureOptions {
   fileService?: FileDiscoveryService;
   /** File filtering ignore options. */
   fileFilteringOptions?: FileFilteringOptions;
+  /** File system service for standardized operations. */
+  fileSystemService?: FileSystemService;
 }
 // Define a type for the merged options where fileIncludePattern remains optional
 type MergedFolderStructureOptions = Required<
-  Omit<FolderStructureOptions, 'fileIncludePattern' | 'fileService'>
+  Omit<FolderStructureOptions, 'fileIncludePattern' | 'fileService' | 'fileSystemService'>
 > & {
   fileIncludePattern?: RegExp;
   fileService?: FileDiscoveryService;
   fileFilteringOptions?: FileFilteringOptions;
+  fileSystemService?: FileSystemService;
 };
 
 /** Represents the full, unfiltered information about a folder and its contents. */
@@ -96,9 +101,49 @@ async function readFullStructure(
 
     let entries: Dirent[];
     try {
-      const rawEntries = await fs.readdir(currentPath, { withFileTypes: true });
-      // Sort entries alphabetically by name for consistent processing order
-      entries = rawEntries.sort((a, b) => a.name.localeCompare(b.name));
+      if (options.fileSystemService) {
+        // Use FileSystemService for standardized file operations
+        const listResult = await options.fileSystemService.listDirectory(currentPath);
+        if (!listResult.success) {
+          throw new Error(`Failed to list directory ${currentPath}: ${listResult.error}`);
+        }
+        // Convert string array to Dirent-like objects for compatibility
+        entries = (listResult.data || []).map(name => {
+          const fullPath = path.join(currentPath, name);
+          // We need to stat each file to determine if it's a directory
+          // This is less efficient but maintains compatibility
+          try {
+            const stats = fsSync.statSync(fullPath);
+            return {
+              name,
+              isFile: () => stats.isFile(),
+              isDirectory: () => stats.isDirectory(),
+              isBlockDevice: () => stats.isBlockDevice(),
+              isCharacterDevice: () => stats.isCharacterDevice(),
+              isSymbolicLink: () => stats.isSymbolicLink(),
+              isFIFO: () => stats.isFIFO(),
+              isSocket: () => stats.isSocket(),
+            } as Dirent;
+          } catch {
+            // If we can't stat, assume it's a file
+            return {
+              name,
+              isFile: () => true,
+              isDirectory: () => false,
+              isBlockDevice: () => false,
+              isCharacterDevice: () => false,
+              isSymbolicLink: () => false,
+              isFIFO: () => false,
+              isSocket: () => false,
+            } as Dirent;
+          }
+        }).sort((a, b) => a.name.localeCompare(b.name));
+      } else {
+        // Fallback to direct fs operations for backward compatibility
+        const rawEntries = await fs.readdir(currentPath, { withFileTypes: true });
+        // Sort entries alphabetically by name for consistent processing order
+        entries = rawEntries.sort((a, b) => a.name.localeCompare(b.name));
+      }
     } catch (error: unknown) {
       if (
         isNodeError(error) &&

@@ -8,6 +8,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { Content } from '@google/genai';
+import { FileSystemService } from '../services/fileSystemService.js';
 
 interface ErrorReportData {
   error: { message: string; stack?: string } | { message: string };
@@ -28,6 +29,7 @@ export async function reportError(
   context?: Content[] | Record<string, unknown> | unknown[],
   type = 'general',
   reportingDir = os.tmpdir(), // for testing
+  fileSystemService?: FileSystemService,
 ): Promise<void> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const reportFileName = `gemini-client-error-${type}-${timestamp}.json`;
@@ -74,7 +76,16 @@ export async function reportError(
       const minimalReportContent = { error: errorToReport };
       stringifiedReportContent = JSON.stringify(minimalReportContent, null, 2);
       // Still try to write the minimal report
-      await fs.writeFile(reportPath, stringifiedReportContent);
+      if (fileSystemService) {
+        // Use FileSystemService for standardized file operations
+        const writeResult = await fileSystemService.writeTextFile(reportPath, stringifiedReportContent);
+        if (!writeResult.success) {
+          throw new Error(`Failed to write minimal error report: ${writeResult.error}`);
+        }
+      } else {
+        // Fallback to direct fs operations for backward compatibility
+        await fs.writeFile(reportPath, stringifiedReportContent);
+      }
       console.error(
         `${baseMessage} Partial report (excluding context) available at: ${reportPath}`,
       );
@@ -88,7 +99,16 @@ export async function reportError(
   }
 
   try {
-    await fs.writeFile(reportPath, stringifiedReportContent);
+    if (fileSystemService) {
+      // Use FileSystemService for standardized file operations
+      const writeResult = await fileSystemService.writeTextFile(reportPath, stringifiedReportContent);
+      if (!writeResult.success) {
+        throw new Error(`Failed to write error report: ${writeResult.error}`);
+      }
+    } else {
+      // Fallback to direct fs operations for backward compatibility
+      await fs.writeFile(reportPath, stringifiedReportContent);
+    }
     console.error(`${baseMessage} Full report available at: ${reportPath}`);
   } catch (writeError) {
     console.error(

@@ -20,7 +20,13 @@ import {
 import * as fs from 'fs';
 import { parseSourceToSourceFile } from '../ast/parser.js';
 import { findNodes } from '../ast/finder.js';
-import { normalizeWhitespace, countOccurrences } from './stringUtils.js';
+import { FileSystemService } from '../services/fileSystemService.js';
+import {
+  normalizeWhitespace,
+  countOccurrences,
+  calculateStringSimilarity,
+  escapeRegExp
+} from './stringUtils.js';
 
 // Re-export certain utils for backwards compatibility with existing imports/tests
 export { countOccurrences };
@@ -160,6 +166,7 @@ export async function ensureCorrectEdit(
   originalParams: EditToolParams,
   client: GeminiClient,
   abortSignal: AbortSignal,
+  fileSystemService?: FileSystemService,
 ): Promise<CorrectedEditResult> {
   const cacheKey = `${currentContent}---${originalParams.old_string}---${originalParams.new_string}`;
   const cachedResult = editCorrectionCache.get(cacheKey);
@@ -270,7 +277,8 @@ export async function ensureCorrectEdit(
     newStringPotentiallyEscaped,
     client,
     abortSignal,
-    cacheKey
+    cacheKey,
+    fileSystemService
   );
 }
 
@@ -565,7 +573,8 @@ async function tryLLMCorrection(
   newStringPotentiallyEscaped: boolean,
   client: GeminiClient,
   abortSignal: AbortSignal,
-  cacheKey: string
+  cacheKey: string,
+  fileSystemService?: FileSystemService,
 ): Promise<CorrectedEditResult> {
   let occurrences = countOccurrences(currentContent, finalOldString);
 
@@ -574,8 +583,24 @@ async function tryLLMCorrection(
     if (filePath) {
       const lastEditedByUsTime = await findLastEditTimestamp(filePath, client);
       if (lastEditedByUsTime > 0) {
-        const stats = fs.statSync(filePath);
-        const diff = stats.mtimeMs - lastEditedByUsTime;
+        let fileMtimeMs: number;
+
+        if (fileSystemService) {
+          // Use FileSystemService for standardized file operations
+          const fileInfo = await fileSystemService.getFileInfo(filePath);
+          if (!fileInfo.success) {
+            console.warn(`Failed to get file info for ${filePath}: ${fileInfo.error}`);
+            fileMtimeMs = 0;
+          } else {
+            fileMtimeMs = fileInfo.data?.mtimeMs || 0;
+          }
+        } else {
+          // Fallback to direct fs.statSync for backward compatibility
+          const stats = fs.statSync(filePath);
+          fileMtimeMs = stats.mtimeMs;
+        }
+
+        const diff = fileMtimeMs - lastEditedByUsTime;
         if (diff > 2000) {
           return createResult(originalParams, finalOldString, finalNewString, 0, cacheKey);
         }
@@ -739,57 +764,7 @@ function createResult(
 
 // normalizeWhitespace is provided by ./stringUtils.ts
 
-/**
- * Calculate string similarity using Levenshtein distance
- */
-function calculateStringSimilarity(str1: string, str2: string): number {
-  const longer = str1.length > str2.length ? str1 : str2;
-  const shorter = str1.length > str2.length ? str2 : str1;
-  
-  if (longer.length === 0) {
-    return 1.0;
-  }
-  
-  const distance = levenshteinDistance(longer, shorter);
-  return (longer.length - distance) / longer.length;
-}
-
-/**
- * Calculate Levenshtein distance between two strings
- */
-function levenshteinDistance(str1: string, str2: string): number {
-  const matrix = Array(str2.length + 1)
-    .fill(null)
-    .map(() => Array(str1.length + 1).fill(null));
-  
-  for (let i = 0; i <= str1.length; i++) {
-    matrix[0][i] = i;
-  }
-  
-  for (let j = 0; j <= str2.length; j++) {
-    matrix[j][0] = j;
-  }
-  
-  for (let j = 1; j <= str2.length; j++) {
-    for (let i = 1; i <= str1.length; i++) {
-      const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
-      matrix[j][i] = Math.min(
-        matrix[j][i - 1] + 1, // deletion
-        matrix[j - 1][i] + 1, // insertion
-        matrix[j - 1][i - 1] + indicator // substitution
-      );
-    }
-  }
-  
-  return matrix[str2.length][str1.length];
-}
-
-/**
- * Escape special regex characters
- */
-function escapeRegExp(string: string): string {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+// normalizeWhitespace is provided by ./stringUtils.ts
 
 /**
  * Unescapes a string that might have been overly escaped by an LLM.

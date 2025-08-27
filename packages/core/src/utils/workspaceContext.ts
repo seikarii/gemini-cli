@@ -8,6 +8,7 @@ import { isNodeError } from '../utils/errors.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as process from 'process';
+import { FileSystemService } from '../services/fileSystemService.js';
 
 export type Unsubscribe = () => void;
 
@@ -20,6 +21,7 @@ export class WorkspaceContext {
   private directories = new Set<string>();
   private initialDirectories: Set<string>;
   private onDirectoriesChangedListeners = new Set<() => void>();
+  private fileSystemService?: FileSystemService;
 
   /**
    * Creates a new WorkspaceContext with the given initial directory and optional additional directories.
@@ -44,6 +46,14 @@ export class WorkspaceContext {
     return () => {
       this.onDirectoriesChangedListeners.delete(listener);
     };
+  }
+
+  /**
+   * Sets the FileSystemService to use for file operations.
+   * @param fileSystemService The FileSystemService instance to use
+   */
+  setFileSystemService(fileSystemService: FileSystemService): void {
+    this.fileSystemService = fileSystemService;
   }
 
   private notifyDirectoriesChanged() {
@@ -78,6 +88,26 @@ export class WorkspaceContext {
     }
   }
 
+  /**
+   * Async version of addDirectory that uses FileSystemService when available
+   * @param directory The directory path to add (can be relative or absolute)
+   * @param basePath Optional base path for resolving relative paths (defaults to cwd)
+   */
+  async addDirectoryAsync(directory: string, basePath: string = process.cwd()): Promise<void> {
+    try {
+      const resolved = await this.resolveAndValidateDirAsync(directory, basePath);
+      if (this.directories.has(resolved)) {
+        return;
+      }
+      this.directories.add(resolved);
+      this.notifyDirectoriesChanged();
+    } catch (err) {
+      console.warn(
+        `[WARN] Skipping unreadable directory: ${directory} (${err instanceof Error ? err.message : String(err)})`,
+      );
+    }
+  }
+
   private resolveAndValidateDir(
     directory: string,
     basePath: string = process.cwd(),
@@ -86,6 +116,8 @@ export class WorkspaceContext {
       ? directory
       : path.resolve(basePath, directory);
 
+    // For now, keep using fs operations for synchronous compatibility
+    // TODO: Consider providing async versions of public methods that use FileSystemService
     if (!fs.existsSync(absolutePath)) {
       throw new Error(`Directory does not exist: ${absolutePath}`);
     }
@@ -95,6 +127,44 @@ export class WorkspaceContext {
     }
 
     return fs.realpathSync(absolutePath);
+  }
+
+  /**
+   * Async version of resolveAndValidateDir that uses FileSystemService when available
+   */
+  private async resolveAndValidateDirAsync(
+    directory: string,
+    basePath: string = process.cwd(),
+  ): Promise<string> {
+    const absolutePath = path.isAbsolute(directory)
+      ? directory
+      : path.resolve(basePath, directory);
+
+    if (this.fileSystemService) {
+      // Use FileSystemService for standardized file operations
+      const fileInfo = await this.fileSystemService.getFileInfo(absolutePath);
+      if (!fileInfo.success) {
+        throw new Error(`Failed to get file info for ${absolutePath}: ${fileInfo.error}`);
+      }
+      if (!fileInfo.data?.exists) {
+        throw new Error(`Directory does not exist: ${absolutePath}`);
+      }
+      if (!fileInfo.data?.isDirectory) {
+        throw new Error(`Path is not a directory: ${absolutePath}`);
+      }
+      // For realpath, we still need to use fs.realpathSync as FileSystemService doesn't expose this
+      return fs.realpathSync(absolutePath);
+    } else {
+      // Fallback to direct fs operations
+      if (!fs.existsSync(absolutePath)) {
+        throw new Error(`Directory does not exist: ${absolutePath}`);
+      }
+      const stats = fs.statSync(absolutePath);
+      if (!stats.isDirectory()) {
+        throw new Error(`Path is not a directory: ${absolutePath}`);
+      }
+      return fs.realpathSync(absolutePath);
+    }
   }
 
   /**
@@ -125,6 +195,25 @@ export class WorkspaceContext {
   }
 
   /**
+   * Async version of setDirectories that uses FileSystemService when available
+   * @param directories Array of directory paths to set
+   */
+  async setDirectoriesAsync(directories: readonly string[]): Promise<void> {
+    const newDirectories = new Set<string>();
+    for (const dir of directories) {
+      newDirectories.add(await this.resolveAndValidateDirAsync(dir));
+    }
+
+    if (
+      newDirectories.size !== this.directories.size ||
+      ![...newDirectories].every((d) => this.directories.has(d))
+    ) {
+      this.directories = newDirectories;
+      this.notifyDirectoriesChanged();
+    }
+  }
+
+  /**
    * Checks if a given path is within any of the workspace directories.
    * @param pathToCheck The path to validate
    * @returns True if the path is within the workspace, false otherwise
@@ -132,6 +221,26 @@ export class WorkspaceContext {
   isPathWithinWorkspace(pathToCheck: string): boolean {
     try {
       const fullyResolvedPath = this.fullyResolvedPath(pathToCheck);
+
+      for (const dir of this.directories) {
+        if (this.isPathWithinRoot(fullyResolvedPath, dir)) {
+          return true;
+        }
+      }
+      return false;
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  /**
+   * Async version of isPathWithinWorkspace that uses FileSystemService when available
+   * @param pathToCheck The path to validate
+   * @returns True if the path is within the workspace, false otherwise
+   */
+  async isPathWithinWorkspaceAsync(pathToCheck: string): Promise<boolean> {
+    try {
+      const fullyResolvedPath = await this.fullyResolvedPathAsync(pathToCheck);
 
       for (const dir of this.directories) {
         if (this.isPathWithinRoot(fullyResolvedPath, dir)) {
@@ -169,6 +278,30 @@ export class WorkspaceContext {
   }
 
   /**
+   * Async version of fullyResolvedPath that uses FileSystemService when available
+   */
+  private async fullyResolvedPathAsync(pathToCheck: string): Promise<string> {
+    // For realpath operations, FileSystemService doesn't expose this functionality
+    // so we fall back to fs.realpathSync for now
+    try {
+      return fs.realpathSync(pathToCheck);
+    } catch (e: unknown) {
+      if (
+        isNodeError(e) &&
+        e.code === 'ENOENT' &&
+        e.path &&
+        // realpathSync does not set e.path correctly for symlinks to
+        // non-existent files.
+        !await this.isFileSymlinkAsync(e.path)
+      ) {
+        // If it doesn't exist, e.path contains the fully resolved path.
+        return e.path;
+      }
+      throw e;
+    }
+  }
+
+  /**
    * Checks if a path is within a given root directory.
    * @param pathToCheck The absolute path to check
    * @param rootDirectory The absolute root directory
@@ -190,6 +323,19 @@ export class WorkspaceContext {
    * Checks if a file path is a symbolic link that points to a file.
    */
   private isFileSymlink(filePath: string): boolean {
+    try {
+      return !fs.readlinkSync(filePath).endsWith('/');
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  /**
+   * Async version of isFileSymlink that uses FileSystemService when available
+   */
+  private async isFileSymlinkAsync(filePath: string): Promise<boolean> {
+    // For symlink checking, FileSystemService doesn't expose readlink functionality
+    // so we fall back to fs.readlinkSync for now
     try {
       return !fs.readlinkSync(filePath).endsWith('/');
     } catch (_error) {

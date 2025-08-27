@@ -8,6 +8,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { FileDiscoveryService } from '../services/fileDiscoveryService.js';
 import { FileFilteringOptions } from '../config/config.js';
+import { FileSystemService } from '../services/fileSystemService.js';
 
 // Performance monitoring and logging infrastructure
 const logger = {
@@ -27,6 +28,8 @@ interface BfsFileSearchOptions {
   batchSize?: number;               // Batch size for ignore checking (default: 50)
   cacheSize?: number;               // Maximum cache entries (default: 1000)
   cacheTtlMs?: number;              // Cache TTL in milliseconds (default: 5 minutes)
+  // File system service for standardized operations
+  fileSystemService?: FileSystemService;
 }
 
 // Performance metrics tracking
@@ -120,6 +123,42 @@ interface FileEntry {
   path: string;
   name: string;
   isDirectory: boolean;
+}
+
+/**
+ * Helper function to read directory contents with file type information.
+ * Uses FileSystemService when available, falls back to fs.readdir for compatibility.
+ */
+async function readDirectoryWithTypes(
+  dirPath: string,
+  fileSystemService?: FileSystemService
+): Promise<Array<{ name: string; isDirectory(): boolean }>> {
+  if (fileSystemService) {
+    // Use FileSystemService for standardized file operations
+    const listResult = await fileSystemService.listDirectory(dirPath);
+    if (!listResult.success) {
+      throw new Error(`Failed to list directory ${dirPath}: ${listResult.error}`);
+    }
+
+    // Get file type information for each entry
+    const entriesWithTypes = await Promise.all(
+      (listResult.data || []).map(async (entryName) => {
+        const fullPath = path.join(dirPath, entryName);
+        const fileInfo = await fileSystemService.getFileInfo(fullPath);
+
+        return {
+          name: entryName,
+          isDirectory: () => fileInfo.success ? fileInfo.data?.isDirectory || false : false,
+        };
+      })
+    );
+
+    return entriesWithTypes;
+  } else {
+    // Fallback to direct fs.readdir for backward compatibility
+    const entries = await fs.readdir(dirPath, { withFileTypes: true });
+    return entries;
+  }
 }
 
 // Batch ignore processor for optimized bulk operations
@@ -280,6 +319,7 @@ export async function bfsFileSearch(
     batchSize = 50,
     cacheSize = 1000,
     cacheTtlMs = 300000, // 5 minutes
+    fileSystemService,
   } = options;
 
   const searchStart = performance.now();
@@ -354,7 +394,7 @@ export async function bfsFileSearch(
           return { currentDir, entries: [], skipped: true };
         }
 
-        const entries = await fs.readdir(currentDir, { withFileTypes: true });
+        const entries = await readDirectoryWithTypes(currentDir, fileSystemService);
         return { currentDir, entries, skipped: false };
       } catch (error) {
         const message = (error as Error)?.message ?? 'Unknown error';

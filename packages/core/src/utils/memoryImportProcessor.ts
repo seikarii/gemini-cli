@@ -8,6 +8,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { isSubpath } from './paths.js';
 import { marked } from 'marked';
+import { FileSystemService } from '../services/fileSystemService.js';
 
 // Simple console logger for import processing
 const logger = {
@@ -48,14 +49,23 @@ export interface ProcessImportsResult {
 }
 
 // Helper to find the project root (looks for .git directory)
-async function findProjectRoot(startDir: string): Promise<string> {
+async function findProjectRoot(startDir: string, fileSystemService?: FileSystemService): Promise<string> {
   let currentDir = path.resolve(startDir);
   while (true) {
     const gitPath = path.join(currentDir, '.git');
     try {
-      const stats = await fs.lstat(gitPath);
-      if (stats.isDirectory()) {
-        return currentDir;
+      if (fileSystemService) {
+        // Use FileSystemService for standardized file operations
+        const fileInfo = await fileSystemService.getFileInfo(gitPath);
+        if (fileInfo.success && fileInfo.data?.isDirectory) {
+          return currentDir;
+        }
+      } else {
+        // Fallback to direct fs.lstat for backward compatibility
+        const stats = await fs.lstat(gitPath);
+        if (stats.isDirectory()) {
+          return currentDir;
+        }
       }
     } catch {
       // .git not found, continue to parent
@@ -213,9 +223,10 @@ export async function processImports(
   },
   projectRoot?: string,
   importFormat: 'flat' | 'tree' = 'tree',
+  fileSystemService?: FileSystemService,
 ): Promise<ProcessImportsResult> {
   if (!projectRoot) {
-    projectRoot = await findProjectRoot(basePath);
+    projectRoot = await findProjectRoot(basePath, fileSystemService);
   }
 
   if (importState.currentDepth >= importState.maxDepth) {
@@ -288,8 +299,25 @@ export async function processImports(
         if (processedFiles.has(normalizedFullPath)) continue;
 
         try {
-          await fs.access(fullPath);
-          const importedContent = await fs.readFile(fullPath, 'utf-8');
+          let importedContent: string;
+
+          if (fileSystemService) {
+            // Use FileSystemService for standardized file operations
+            const fileExists = await fileSystemService.exists(fullPath);
+            if (!fileExists) {
+              continue;
+            }
+            const readResult = await fileSystemService.readTextFile(fullPath);
+            if (!readResult.success) {
+              logger.warn(`Failed to read file ${fullPath}: ${readResult.error}`);
+              continue;
+            }
+            importedContent = readResult.data || '';
+          } else {
+            // Fallback to direct fs operations for backward compatibility
+            await fs.access(fullPath);
+            importedContent = await fs.readFile(fullPath, 'utf-8');
+          }
 
           // Process the imported file
           await processFlat(
@@ -357,8 +385,27 @@ export async function processImports(
       continue;
     }
     try {
-      await fs.access(fullPath);
-      const fileContent = await fs.readFile(fullPath, 'utf-8');
+      let fileContent: string;
+
+      if (fileSystemService) {
+        // Use FileSystemService for standardized file operations
+        const fileExists = await fileSystemService.exists(fullPath);
+        if (!fileExists) {
+          result += `<!-- Import failed: ${importPath} - File not found -->`;
+          continue;
+        }
+        const readResult = await fileSystemService.readTextFile(fullPath);
+        if (!readResult.success) {
+          result += `<!-- Import failed: ${importPath} - ${readResult.error} -->`;
+          continue;
+        }
+        fileContent = readResult.data || '';
+      } else {
+        // Fallback to direct fs operations for backward compatibility
+        await fs.access(fullPath);
+        fileContent = await fs.readFile(fullPath, 'utf-8');
+      }
+
       // Mark this file as processed for this import chain
       const newImportState: ImportState = {
         ...importState,

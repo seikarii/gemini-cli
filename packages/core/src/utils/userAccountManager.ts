@@ -7,6 +7,7 @@
 import path from 'node:path';
 import { promises as fsp, readFileSync } from 'node:fs';
 import { Storage } from '../config/storage.js';
+import { FileSystemService } from '../services/fileSystemService.js';
 
 interface UserAccounts {
   active: string | null;
@@ -14,8 +15,18 @@ interface UserAccounts {
 }
 
 export class UserAccountManager {
+  private fileSystemService?: FileSystemService;
+
   private getGoogleAccountsCachePath(): string {
     return Storage.getGoogleAccountsPath();
+  }
+
+  /**
+   * Sets the FileSystemService instance for standardized file operations
+   * @param service The FileSystemService instance to use
+   */
+  setFileSystemService(service: FileSystemService): void {
+    this.fileSystemService = service;
   }
 
   /**
@@ -56,6 +67,8 @@ export class UserAccountManager {
   private readAccountsSync(filePath: string): UserAccounts {
     const defaultState = { active: null, old: [] };
     try {
+      // For synchronous operations, keep using fs for compatibility
+      // TODO: Consider providing async versions that use FileSystemService
       const content = readFileSync(filePath, 'utf-8');
       return this.parseAndValidateAccounts(content);
     } catch (error) {
@@ -74,7 +87,18 @@ export class UserAccountManager {
   private async readAccounts(filePath: string): Promise<UserAccounts> {
     const defaultState = { active: null, old: [] };
     try {
-      const content = await fsp.readFile(filePath, 'utf-8');
+      let content: string;
+      if (this.fileSystemService) {
+        // Use FileSystemService for standardized file operations
+        const readResult = await this.fileSystemService.readTextFile(filePath);
+        if (!readResult.success || !readResult.data) {
+          throw new Error(`Failed to read file ${filePath}: ${readResult.error || 'No data returned'}`);
+        }
+        content = readResult.data;
+      } else {
+        // Fallback to direct fs operations for backward compatibility
+        content = await fsp.readFile(filePath, 'utf-8');
+      }
       return this.parseAndValidateAccounts(content);
     } catch (error) {
       if (
@@ -91,7 +115,14 @@ export class UserAccountManager {
 
   async cacheGoogleAccount(email: string): Promise<void> {
     const filePath = this.getGoogleAccountsCachePath();
-    await fsp.mkdir(path.dirname(filePath), { recursive: true });
+
+    if (this.fileSystemService) {
+      // Use FileSystemService for standardized file operations
+      await this.fileSystemService.createDirectory(path.dirname(filePath), { recursive: true });
+    } else {
+      // Fallback to direct fs operations for backward compatibility
+      await fsp.mkdir(path.dirname(filePath), { recursive: true });
+    }
 
     const accounts = await this.readAccounts(filePath);
 
@@ -105,7 +136,17 @@ export class UserAccountManager {
     accounts.old = accounts.old.filter((oldEmail) => oldEmail !== email);
 
     accounts.active = email;
-    await fsp.writeFile(filePath, JSON.stringify(accounts, null, 2), 'utf-8');
+
+    if (this.fileSystemService) {
+      // Use FileSystemService for standardized file operations
+      const writeResult = await this.fileSystemService.writeTextFile(filePath, JSON.stringify(accounts, null, 2));
+      if (!writeResult.success) {
+        throw new Error(`Failed to write accounts file ${filePath}: ${writeResult.error}`);
+      }
+    } else {
+      // Fallback to direct fs operations for backward compatibility
+      await fsp.writeFile(filePath, JSON.stringify(accounts, null, 2), 'utf-8');
+    }
   }
 
   getCachedGoogleAccount(): string | null {
@@ -135,6 +176,15 @@ export class UserAccountManager {
       accounts.active = null;
     }
 
-    await fsp.writeFile(filePath, JSON.stringify(accounts, null, 2), 'utf-8');
+    if (this.fileSystemService) {
+      // Use FileSystemService for standardized file operations
+      const writeResult = await this.fileSystemService.writeTextFile(filePath, JSON.stringify(accounts, null, 2));
+      if (!writeResult.success) {
+        throw new Error(`Failed to write accounts file ${filePath}: ${writeResult.error}`);
+      }
+    } else {
+      // Fallback to direct fs operations for backward compatibility
+      await fsp.writeFile(filePath, JSON.stringify(accounts, null, 2), 'utf-8');
+    }
   }
 }

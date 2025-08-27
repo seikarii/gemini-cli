@@ -19,6 +19,7 @@ import {
   DEFAULT_MEMORY_FILE_FILTERING_OPTIONS,
   FileFilteringOptions,
 } from '../config/config.js';
+import { FileSystemService } from '../services/fileSystemService.js';
 
 // Simple console logger, similar to the one previously in CLI's config.ts
 // TODO: Integrate with a more robust server-side logger if available/appropriate.
@@ -37,7 +38,7 @@ interface GeminiFileContent {
 
 const projectRootCache = new Map<string, string | null>();
 
-async function findProjectRoot(startDir: string): Promise<string | null> {
+async function findProjectRoot(startDir: string, fileSystemService?: FileSystemService): Promise<string | null> {
   if (projectRootCache.has(startDir)) {
     return projectRootCache.get(startDir)!;
   }
@@ -46,10 +47,20 @@ async function findProjectRoot(startDir: string): Promise<string | null> {
   while (true) {
     const gitPath = path.join(currentDir, '.git');
     try {
-      const stats = await fs.lstat(gitPath);
-      if (stats.isDirectory()) {
-        projectRootCache.set(startDir, currentDir);
-        return currentDir;
+      if (fileSystemService) {
+        // Use FileSystemService for standardized file operations
+        const fileInfo = await fileSystemService.getFileInfo(gitPath);
+        if (fileInfo.success && fileInfo.data?.isDirectory) {
+          projectRootCache.set(startDir, currentDir);
+          return currentDir;
+        }
+      } else {
+        // Fallback to direct fs.lstat for backward compatibility
+        const stats = await fs.lstat(gitPath);
+        if (stats.isDirectory()) {
+          projectRootCache.set(startDir, currentDir);
+          return currentDir;
+        }
       }
     } catch (error: unknown) {
       // Don't log ENOENT errors as they're expected when .git doesn't exist
@@ -96,6 +107,7 @@ async function getGeminiMdFilePathsInternal(
   extensionContextFilePaths: string[] = [],
   fileFilteringOptions: FileFilteringOptions,
   maxDirs: number,
+  fileSystemService?: FileSystemService,
 ): Promise<string[]> {
   const dirs = new Set<string>([
     ...includeDirectoriesToReadGemini,
@@ -118,6 +130,7 @@ async function getGeminiMdFilePathsInternal(
         extensionContextFilePaths,
         fileFilteringOptions,
         maxDirs,
+        fileSystemService,
       ),
     );
 
@@ -147,6 +160,7 @@ async function getGeminiMdFilePathsInternalForEachDir(
   extensionContextFilePaths: string[] = [],
   fileFilteringOptions: FileFilteringOptions,
   maxDirs: number,
+  fileSystemService?: FileSystemService,
 ): Promise<string[]> {
   const allPaths = new Set<string>();
   const geminiMdFilenames = getAllGeminiMdFilenames();
@@ -161,7 +175,16 @@ async function getGeminiMdFilePathsInternalForEachDir(
 
     // This part that finds the global file always runs.
     try {
-      await fs.access(globalMemoryPath, fsSync.constants.R_OK);
+      if (fileSystemService) {
+        // Use FileSystemService for standardized file operations
+        const fileExists = await fileSystemService.exists(globalMemoryPath);
+        if (!fileExists) {
+          throw new Error('File does not exist');
+        }
+      } else {
+        // Fallback to direct fs.access for backward compatibility
+        await fs.access(globalMemoryPath, fsSync.constants.R_OK);
+      }
       allPaths.add(globalMemoryPath);
       if (debugMode)
         logger.debug(
@@ -180,7 +203,7 @@ async function getGeminiMdFilePathsInternalForEachDir(
           `Searching for ${geminiMdFilename} starting from CWD: ${resolvedCwd}`,
         );
 
-      const projectRoot = await findProjectRoot(resolvedCwd);
+      const projectRoot = await findProjectRoot(resolvedCwd, fileSystemService);
       if (debugMode)
         logger.debug(`Determined project root: ${projectRoot ?? 'None'}`);
 
@@ -197,7 +220,16 @@ async function getGeminiMdFilePathsInternalForEachDir(
 
         const potentialPath = path.join(currentDir, geminiMdFilename);
         try {
-          await fs.access(potentialPath, fsSync.constants.R_OK);
+          if (fileSystemService) {
+            // Use FileSystemService for standardized file operations
+            const fileExists = await fileSystemService.exists(potentialPath);
+            if (!fileExists) {
+              throw new Error('File does not exist');
+            }
+          } else {
+            // Fallback to direct fs.access for backward compatibility
+            await fs.access(potentialPath, fsSync.constants.R_OK);
+          }
           if (potentialPath !== globalMemoryPath) {
             upwardPaths.unshift(potentialPath);
           }
@@ -252,6 +284,7 @@ async function readGeminiMdFiles(
   filePaths: string[],
   debugMode: boolean,
   importFormat: 'flat' | 'tree' = 'tree',
+  fileSystemService?: FileSystemService,
 ): Promise<GeminiFileContent[]> {
   // Process files in parallel with concurrency limit to prevent EMFILE errors
   const CONCURRENT_LIMIT = 20; // Higher limit for file reads as they're typically faster
@@ -262,7 +295,20 @@ async function readGeminiMdFiles(
     const batchPromises = batch.map(
       async (filePath): Promise<GeminiFileContent> => {
         try {
-          const content = await fs.readFile(filePath, 'utf-8');
+          let content: string;
+
+          if (fileSystemService) {
+            // Use FileSystemService for standardized file operations
+            const readResult = await fileSystemService.readTextFile(filePath);
+            if (!readResult.success) {
+              logger.warn(`Failed to read file ${filePath}: ${readResult.error}`);
+              return { filePath, content: null };
+            }
+            content = readResult.data || '';
+          } else {
+            // Fallback to direct fs.readFile for backward compatibility
+            content = await fs.readFile(filePath, 'utf-8');
+          }
 
           // Process imports in the content
           const processedResult = await processImports(
@@ -272,6 +318,7 @@ async function readGeminiMdFiles(
             undefined,
             undefined,
             importFormat,
+            fileSystemService,
           );
           if (debugMode)
             logger.debug(
@@ -347,6 +394,7 @@ export async function loadServerHierarchicalMemory(
   importFormat: 'flat' | 'tree' = 'tree',
   fileFilteringOptions?: FileFilteringOptions,
   maxDirs: number = 200,
+  fileSystemService?: FileSystemService,
 ): Promise<{ memoryContent: string; fileCount: number }> {
   if (debugMode)
     logger.debug(
@@ -365,6 +413,7 @@ export async function loadServerHierarchicalMemory(
     extensionContextFilePaths,
     fileFilteringOptions || DEFAULT_MEMORY_FILE_FILTERING_OPTIONS,
     maxDirs,
+    fileSystemService,
   );
   if (filePaths.length === 0) {
     if (debugMode)
@@ -375,6 +424,7 @@ export async function loadServerHierarchicalMemory(
     filePaths,
     debugMode,
     importFormat,
+    fileSystemService,
   );
   // Pass CWD for relative path display in concatenated content
   const combinedInstructions = concatenateInstructions(
