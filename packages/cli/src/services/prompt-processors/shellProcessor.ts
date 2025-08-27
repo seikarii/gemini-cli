@@ -15,9 +15,11 @@ import {
 import { CommandContext } from '../../ui/commands/types.js';
 import {
   IPromptProcessor,
+} from './types.js';
+import {
   SHELL_INJECTION_TRIGGER,
   SHORTHAND_ARGS_PLACEHOLDER,
-} from './types.js';
+} from '../../config/constants.js';
 
 export class ConfirmationRequiredError extends Error {
   constructor(

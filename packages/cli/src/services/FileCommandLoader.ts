@@ -20,13 +20,16 @@ import {
 import { DefaultArgumentProcessor } from './prompt-processors/argumentProcessor.js';
 import {
   IPromptProcessor,
+} from './prompt-processors/types.js';
+import {
   SHORTHAND_ARGS_PLACEHOLDER,
   SHELL_INJECTION_TRIGGER,
-} from './prompt-processors/types.js';
+} from '../config/constants.js';
 import {
   ConfirmationRequiredError,
   ShellProcessor,
 } from './prompt-processors/shellProcessor.js';
+import { logger } from '../config/logger.js';
 
 interface CommandDirectory {
   path: string;
@@ -107,7 +110,7 @@ export class FileCommandLoader implements ICommandLoader {
         allCommands.push(...commands);
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-          console.error(
+          logger.error(
             `[FileCommandLoader] Error loading commands from ${dirInfo.path}:`,
             error,
           );
@@ -168,7 +171,7 @@ export class FileCommandLoader implements ICommandLoader {
     try {
       fileContent = await fs.readFile(filePath, 'utf-8');
     } catch (error: unknown) {
-      console.error(
+      logger.error(
         `[FileCommandLoader] Failed to read file ${filePath}:`,
         error instanceof Error ? error.message : String(error),
       );
@@ -179,7 +182,7 @@ export class FileCommandLoader implements ICommandLoader {
     try {
       parsed = toml.parse(fileContent);
     } catch (error: unknown) {
-      console.error(
+      logger.error(
         `[FileCommandLoader] Failed to parse TOML file ${filePath}:`,
         error instanceof Error ? error.message : String(error),
       );
@@ -189,7 +192,7 @@ export class FileCommandLoader implements ICommandLoader {
     const validationResult = TomlCommandDefSchema.safeParse(parsed);
 
     if (!validationResult.success) {
-      console.error(
+      logger.error(
         `[FileCommandLoader] Skipping invalid command file: ${filePath}. Validation errors:`,
         validationResult.error.flatten(),
       );

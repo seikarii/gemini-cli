@@ -13,7 +13,7 @@ import { createMockCommandContext } from '../test-utils/mockCommandContext.js';
 import {
   SHELL_INJECTION_TRIGGER,
   SHORTHAND_ARGS_PLACEHOLDER,
-} from './prompt-processors/types.js';
+} from '../config/constants.js';
 import {
   ConfirmationRequiredError,
   ShellProcessor,
