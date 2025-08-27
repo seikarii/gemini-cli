@@ -12,8 +12,8 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-
-export const EXTENSIONS_CONFIG_FILENAME = 'gemini-extension.json';
+import { EXTENSIONS_CONFIG_FILENAME, DEFAULT_CONTEXT_FILENAME } from './constants.js';
+import { logger } from './logger.js';
 
 export interface Extension {
   path: string;
@@ -72,8 +72,8 @@ async function loadExtension(extensionDir: string): Promise<Extension | null> {
   try {
     const stat = await fs.promises.stat(extensionDir);
     if (!stat.isDirectory()) {
-      console.error(
-        `Warning: unexpected file ${extensionDir} in extensions directory.`,
+      logger.warn(
+        `unexpected file ${extensionDir} in extensions directory.`,
       );
       return null;
     }
@@ -86,8 +86,8 @@ async function loadExtension(extensionDir: string): Promise<Extension | null> {
   try {
     await fs.promises.access(configFilePath);
   } catch (_) {
-    console.error(
-      `Warning: extension directory ${extensionDir} does not contain a config file ${configFilePath}.`,
+    logger.warn(
+      `extension directory ${extensionDir} does not contain a config file ${configFilePath}.`,
     );
     return null;
   }
@@ -96,7 +96,7 @@ async function loadExtension(extensionDir: string): Promise<Extension | null> {
     const configContent = await fs.promises.readFile(configFilePath, 'utf-8');
     const config = JSON.parse(configContent) as ExtensionConfig;
     if (!config.name || !config.version) {
-      console.error(
+      logger.error(
         `Invalid extension config in ${configFilePath}: missing name or version.`,
       );
       return null;
@@ -120,8 +120,8 @@ async function loadExtension(extensionDir: string): Promise<Extension | null> {
       contextFiles,
     };
   } catch (e) {
-    console.error(
-      `Warning: error parsing extension config in ${configFilePath}: ${e}`,
+    logger.error(
+      `error parsing extension config in ${configFilePath}: ${e}`,
     );
     return null;
   }
@@ -129,7 +129,7 @@ async function loadExtension(extensionDir: string): Promise<Extension | null> {
 
 function getContextFileNames(config: ExtensionConfig): string[] {
   if (!config.contextFileName) {
-    return ['GEMINI.md'];
+    return [DEFAULT_CONTEXT_FILENAME];
   } else if (!Array.isArray(config.contextFileName)) {
     return [config.contextFileName];
   }
@@ -186,7 +186,7 @@ export function annotateActiveExtensions(
   }
 
   for (const requestedName of notFoundNames) {
-    console.error(`Extension not found: ${requestedName}`);
+    logger.error(`Extension not found: ${requestedName}`);
   }
 
   return annotatedExtensions;

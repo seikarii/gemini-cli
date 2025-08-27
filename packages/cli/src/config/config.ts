@@ -37,20 +37,7 @@ import { resolvePath } from '../utils/resolvePath.js';
 
 import { isWorkspaceTrusted } from './trustedFolders.js';
 
-// Enhanced logger with configurable levels and structured logging
-interface Logger {
-  debug: (...args: unknown[]) => void;
-  info: (...args: unknown[]) => void;
-  warn: (...args: unknown[]) => void;
-  error: (...args: unknown[]) => void;
-}
-
-const logger: Logger = {
-  debug: (...args: unknown[]) => console.debug('[DEBUG]', ...args),
-  info: (...args: unknown[]) => console.info('[INFO]', ...args),
-  warn: (...args: unknown[]) => console.warn('[WARN]', ...args),
-  error: (...args: unknown[]) => console.error('[ERROR]', ...args),
-};
+import { logger } from './logger.js';
 
 // Centralized environment variable access
 interface EnvironmentVariables {

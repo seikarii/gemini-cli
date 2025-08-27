@@ -9,10 +9,10 @@ import * as path from 'path';
 import { homedir } from 'os';
 import { getErrorMessage, isWithinRoot } from '@google/gemini-cli-core';
 import { Settings } from './settings.js';
-import { SETTINGS_DIRECTORY_NAME } from './constants.js';
+import { SETTINGS_DIRECTORY_NAME, TRUSTED_FOLDERS_FILENAME } from './constants.js';
 import stripJsonComments from 'strip-json-comments';
+import { logger } from './logger.js';
 
-export const TRUSTED_FOLDERS_FILENAME = 'trustedFolders.json';
 export const USER_SETTINGS_DIR = path.join(homedir(), SETTINGS_DIRECTORY_NAME);
 export const USER_TRUSTED_FOLDERS_PATH = path.join(
   USER_SETTINGS_DIR,
@@ -106,9 +106,9 @@ export function saveTrustedFolders(
         JSON.stringify(trustedFoldersFile.config, null, 2),
         'utf-8',
       )
-      .catch((err) => console.error('Error saving trusted folders file:', err));
+      .catch((err) => logger.error('Error saving trusted folders file:', err));
   } catch (error) {
-    console.error('Error saving trusted folders file:', error);
+    logger.error('Error saving trusted folders file:', error);
   }
 }
 
@@ -125,7 +125,7 @@ export async function isWorkspaceTrusted(settings: Settings): Promise<boolean | 
 
   if (errors.length > 0) {
     for (const error of errors) {
-      console.error(
+      logger.error(
         `Error loading trusted folders config from ${error.path}: ${error.message}`,
       );
     }

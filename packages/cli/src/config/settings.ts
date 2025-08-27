@@ -19,10 +19,9 @@ import { DefaultLight } from '../ui/themes/default-light.js';
 import { DefaultDark } from '../ui/themes/default.js';
 import { isWorkspaceTrusted } from './trustedFolders.js';
 import { Settings, MemoryImportFormat } from './settingsSchema.js';
+import { logger } from './logger.js';
 
 export type { Settings, MemoryImportFormat };
-
-export const SETTINGS_DIRECTORY_NAME = '.gemini';
 
 export const USER_SETTINGS_PATH = Storage.getGlobalSettingsPath();
 export const USER_SETTINGS_DIR = path.dirname(USER_SETTINGS_PATH);
@@ -305,11 +304,13 @@ export async function loadEnvironment(settings?: Settings): Promise<void> {
         const workspaceContent = await fs.promises.readFile(workspaceSettingsPath, 'utf-8');
         const parsedWorkspaceSettings = JSON.parse(stripJsonComments(workspaceContent)) as Settings;
         resolvedSettings = resolveEnvVarsInObject(parsedWorkspaceSettings);
-      } catch (_e) {
-        // Ignore errors loading workspace settings
+      } catch (error) {
+        // Ignore errors loading workspace settings but log for debugging
+        logger.debug('Failed to load workspace settings:', error);
       }
-    } catch (_e) {
-      // ignore
+    } catch (error) {
+      // Ignore access errors but log for debugging
+      logger.debug('Failed to access workspace settings file:', error);
     }
   }
 
@@ -331,8 +332,9 @@ export async function loadEnvironment(settings?: Settings): Promise<void> {
           }
         }
       }
-    } catch (_e) {
-      // ignore parsing errors
+    } catch (error) {
+      // Log parsing errors for debugging but continue execution
+      logger.debug('Failed to parse environment file:', error);
     }
   }
 }
@@ -484,7 +486,7 @@ export async function loadSettings(workspaceDir: string): Promise<LoadedSettings
     threshold != null &&
     (typeof threshold !== 'number' || threshold < 0 || threshold > 1)
   ) {
-    console.warn(
+    logger.warn(
       `Invalid value for chatCompression.contextPercentageThreshold: "${threshold}". Please use a value between 0 and 1. Using default compression settings.`,
     );
     delete loadedSettings.merged.chatCompression;
@@ -507,6 +509,6 @@ export async function saveSettings(settingsFile: SettingsFile): Promise<void> {
       'utf-8',
     );
   } catch (error) {
-    console.error('Error saving user settings file:', error);
+    logger.error('Error saving user settings file:', error);
   }
 }
