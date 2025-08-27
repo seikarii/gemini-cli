@@ -7,7 +7,9 @@
 import fs from 'node:fs';
 import { promises as fsp } from 'node:fs';
 import path from 'node:path';
-import ignore from 'ignore';
+import ignoreDefault from 'ignore';
+
+type IgnoreFactory = () => any;
 import picomatch from 'picomatch';
 
 const hasFileExtension = picomatch('**/*[*.]*');
@@ -95,8 +97,8 @@ export async function loadIgnoreRulesAsync(
 
 export class Ignore {
   private readonly allPatterns: string[] = [];
-  private dirIgnorer = ignore();
-  private fileIgnorer = ignore();
+  private dirIgnorer = (ignoreDefault as unknown as IgnoreFactory)();
+  private fileIgnorer = (ignoreDefault as unknown as IgnoreFactory)();
 
   /**
    * Adds one or more ignore patterns.

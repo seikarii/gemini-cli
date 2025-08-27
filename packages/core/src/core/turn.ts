@@ -26,6 +26,7 @@ import {
   toFriendlyError,
 } from '../utils/errors.js';
 import { GeminiChat } from './geminiChat.js';
+import { ActionScriptParser, ActionScript } from './action-script.js';
 
 // Define a structure for tools passed to the server
 export interface ServerTool {
@@ -47,6 +48,7 @@ export enum GeminiEventType {
   ToolCallRequest = 'tool_call_request',
   ToolCallResponse = 'tool_call_response',
   ToolCallConfirmation = 'tool_call_confirmation',
+  ActionScriptRequest = 'action_script_request',
   UserCancelled = 'user_cancelled',
   Error = 'error',
   ChatCompressed = 'chat_compressed',
@@ -70,6 +72,12 @@ export interface ToolCallRequestInfo {
   name: string;
   args: Record<string, unknown>;
   isClientInitiated: boolean;
+  prompt_id: string;
+}
+
+export interface ActionScriptRequestInfo {
+  callId: string;
+  script: ActionScript;
   prompt_id: string;
 }
 
@@ -109,6 +117,11 @@ export type ServerGeminiToolCallRequestEvent = {
 export type ServerGeminiToolCallResponseEvent = {
   type: GeminiEventType.ToolCallResponse;
   value: ToolCallResponseInfo;
+};
+
+export type ServerGeminiActionScriptRequestEvent = {
+  type: GeminiEventType.ActionScriptRequest;
+  value: ActionScriptRequestInfo;
 };
 
 export type ServerGeminiToolCallConfirmationEvent = {
@@ -154,6 +167,7 @@ export type ServerGeminiStreamEvent =
   | ServerGeminiToolCallRequestEvent
   | ServerGeminiToolCallResponseEvent
   | ServerGeminiToolCallConfirmationEvent
+  | ServerGeminiActionScriptRequestEvent
   | ServerGeminiUserCancelledEvent
   | ServerGeminiErrorEvent
   | ServerGeminiChatCompressedEvent
@@ -165,16 +179,20 @@ export type ServerGeminiStreamEvent =
 // A turn manages the agentic loop turn within the server context.
 export class Turn {
   readonly pendingToolCalls: ToolCallRequestInfo[];
+  readonly pendingActionScripts: ActionScriptRequestInfo[];
   private debugResponses: GenerateContentResponse[];
   finishReason: FinishReason | undefined;
+  private actionScriptParser: ActionScriptParser;
 
   constructor(
     private readonly chat: GeminiChat,
     private readonly prompt_id: string,
   ) {
     this.pendingToolCalls = [];
+    this.pendingActionScripts = [];
     this.debugResponses = [];
     this.finishReason = undefined;
+    this.actionScriptParser = new ActionScriptParser();
   }
   // The run method yields simpler events suitable for server logic
   async *run(
@@ -292,6 +310,27 @@ export class Turn {
     const name = fnCall.name || 'undefined_tool_name';
     const args = (fnCall.args || {}) as Record<string, unknown>;
 
+    // Check if this is an Action Script request
+    if (this.isActionScriptRequest(name, args)) {
+      try {
+        const actionScript = this.parseActionScript(name, args);
+        const actionScriptRequest: ActionScriptRequestInfo = {
+          callId,
+          script: actionScript,
+          prompt_id: this.prompt_id,
+        };
+
+        this.pendingActionScripts.push(actionScriptRequest);
+
+        // Yield a request for the action script execution
+        return { type: GeminiEventType.ActionScriptRequest, value: actionScriptRequest };
+      } catch (error) {
+        // If parsing fails, treat as regular tool call
+        console.warn(`Failed to parse action script: ${error}`);
+      }
+    }
+
+    // Handle as regular tool call
     const toolCallRequest: ToolCallRequestInfo = {
       callId,
       name,
@@ -308,5 +347,48 @@ export class Turn {
 
   getDebugResponses(): GenerateContentResponse[] {
     return this.debugResponses;
+  }
+
+  /**
+   * Checks if a function call represents an Action Script request
+   */
+  private isActionScriptRequest(name: string, args: Record<string, unknown>): boolean {
+    // Check for special function name
+    if (name === 'executeActionScript' || name === 'execute_action_script') {
+      return true;
+    }
+
+    // Check if args contain Action Script structure
+    if (args.script && typeof args.script === 'object') {
+      const script = args.script as Record<string, unknown>;
+      return script.type !== undefined && ['sequence', 'parallel', 'condition', 'loop', 'action'].includes(script.type as string);
+    }
+
+    // Check if the entire args object looks like an Action Script
+    return args.type !== undefined && ['sequence', 'parallel', 'condition', 'loop', 'action'].includes(args.type as string);
+  }
+
+  /**
+   * Parses an Action Script from function call arguments
+   */
+  private parseActionScript(name: string, args: Record<string, unknown>): ActionScript {
+    let scriptText: string;
+
+    if (name === 'executeActionScript' || name === 'execute_action_script') {
+      // Script is passed as a parameter
+      const scriptParam = args.script || args.actionScript || args.scriptText;
+      if (typeof scriptParam === 'string') {
+        scriptText = scriptParam;
+      } else if (typeof scriptParam === 'object') {
+        scriptText = JSON.stringify(scriptParam);
+      } else {
+        throw new Error('Action script not found in function arguments');
+      }
+    } else {
+      // The entire args object is the script
+      scriptText = JSON.stringify(args);
+    }
+
+    return this.actionScriptParser.parse(scriptText);
   }
 }

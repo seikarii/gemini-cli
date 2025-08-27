@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@google/gemini-cli-core": "file:../core",
+    "@google/gemini-cli-mew-upgrade": "file:../mew-upgrade",
     "@google/genai": "^1.15.0",
     "@iarna/toml": "^2.2.5",
     "@modelcontextprotocol/sdk": "^1.15.1",

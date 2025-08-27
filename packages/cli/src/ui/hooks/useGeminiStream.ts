@@ -14,10 +14,12 @@ import {
   ServerGeminiErrorEvent as ErrorEvent,
   ServerGeminiChatCompressedEvent,
   ServerGeminiFinishedEvent,
+  ServerGeminiActionScriptRequestEvent,
   getErrorMessage,
   isNodeError,
   MessageSenderType,
   ToolCallRequestInfo,
+  ActionScriptRequestInfo,
   logUserPrompt,
   GitService,
   EditorType,
@@ -556,6 +558,7 @@ export const useGeminiStream = (
     ): Promise<StreamProcessingStatus> => {
       let geminiMessageBuffer = '';
       const toolCallRequests: ToolCallRequestInfo[] = [];
+      const actionScriptRequests: ActionScriptRequestInfo[] = [];
       for await (const event of stream) {
         switch (event.type) {
           case ServerGeminiEventType.Thought:
@@ -570,6 +573,9 @@ export const useGeminiStream = (
             break;
           case ServerGeminiEventType.ToolCallRequest:
             toolCallRequests.push(event.value);
+            break;
+          case ServerGeminiEventType.ActionScriptRequest:
+            actionScriptRequests.push(event.value);
             break;
           case ServerGeminiEventType.UserCancelled:
             handleUserCancelledEvent(userMessageTimestamp);
@@ -607,6 +613,14 @@ export const useGeminiStream = (
       }
       if (toolCallRequests.length > 0) {
         scheduleToolCalls(toolCallRequests, signal);
+      }
+      if (actionScriptRequests.length > 0) {
+        // TODO: Implement Action Script scheduling
+        for (const actionScriptRequest of actionScriptRequests) {
+          console.log('Executing Action Script:', actionScriptRequest.script.id);
+          // Here we would call the CoreToolScheduler to execute the action script
+          // For now, we'll create a placeholder response
+        }
       }
       return StreamProcessingStatus.Completed;
     },

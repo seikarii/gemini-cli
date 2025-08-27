@@ -22,7 +22,11 @@ import {
   ToolErrorType,
   AnyDeclarativeTool,
   AnyToolInvocation,
+  ActionScriptRequestInfo,
 } from '../index.js';
+import { ActionSystem } from './action-system.js';
+import { ActionScript, ScriptNode } from './action-script.js';
+import { ActionPriority } from './action-system.js';
 import { Part, PartListUnion } from '@google/genai';
 import { getResponseTextFromParts } from '../utils/generateContentResponseUtilities.js';
 import {
@@ -627,6 +631,57 @@ export class CoreToolScheduler {
     return this._schedule(request, signal);
   }
 
+  /**
+   * Executes an Action Script using the ActionSystem
+   */
+  async executeActionScript(
+    actionScriptRequest: ActionScriptRequestInfo,
+    _signal: AbortSignal,
+  ): Promise<ToolCallResponseInfo[]> {
+    const actionSystem = new ActionSystem({
+      maxConcurrentActions: 5,
+      maxQueueSize: 100,
+      enableActionHistory: true,
+      maxHistorySize: 1000,
+      autoCleanupCompleted: true,
+      cleanupInterval: 300,
+      enablePriorityScheduling: true,
+      defaultTimeout: 300,
+      adaptivePriority: true,
+    });
+
+    try {
+      // Register available tools with the ActionSystem
+      this.registerToolsWithActionSystem(actionSystem);
+
+      // Convert Action Script to Action System actions
+      const actions = this.convertActionScriptToActions(actionScriptRequest.script);
+
+      // Execute all actions
+      const results: ToolCallResponseInfo[] = [];
+      for (const action of actions) {
+        const actionId = actionSystem.createAction(
+          action.toolName,
+          action.parameters,
+          action.priority
+        );
+
+        // Wait for the action to complete
+        // Note: This is a simplified implementation. In a real scenario,
+        // you'd want to use the ActionSystem's event system or polling
+        await new Promise(resolve => setTimeout(resolve, 100)); // Temporary delay
+
+        // For now, we'll create a mock result
+        const toolResult = await this.convertActionResultToToolResult(actionId, actionScriptRequest.callId);
+        results.push(toolResult);
+      }
+
+      return results;
+    } catch (error) {
+      throw new Error(`Action Script execution failed: ${error}`);
+    }
+  }
+
   private async _schedule(
     request: ToolCallRequestInfo | ToolCallRequestInfo[],
     signal: AbortSignal,
@@ -1082,5 +1137,136 @@ export class CoreToolScheduler {
         );
       }
     }
+  }
+
+  /**
+   * Registers available tools with the ActionSystem
+   */
+  private registerToolsWithActionSystem(actionSystem: ActionSystem): void {
+    // Get all available tools from the registry
+    const toolDeclarations = this.toolRegistry.getFunctionDeclarations();
+
+    for (const toolDecl of toolDeclarations) {
+      // Create a wrapper function that uses the tool registry
+      const toolWrapper = async (...args: unknown[]): Promise<unknown> => {
+        try {
+          const tool = this.toolRegistry.getTool(toolDecl.name);
+          if (!tool) {
+            throw new Error(`Tool ${toolDecl.name} not found in registry`);
+          }
+
+          // Create a tool invocation
+          const invocation = this.buildInvocation(tool, { args });
+          if (invocation instanceof Error) {
+            throw invocation;
+          }
+
+          // Execute the tool
+          const result = await invocation.execute(new AbortController().signal);
+          return result;
+        } catch (error) {
+          throw new Error(`Tool execution failed: ${error}`);
+        }
+      };
+
+      actionSystem.registerTool(toolDecl.name, toolWrapper);
+    }
+  }
+
+  /**
+   * Converts an Action Script to Action System actions
+   */
+  private convertActionScriptToActions(script: ActionScript): Array<{
+    toolName: string;
+    parameters: Record<string, unknown>;
+    priority: ActionPriority;
+  }> {
+    const actions: Array<{
+      toolName: string;
+      parameters: Record<string, unknown>;
+      priority: ActionPriority;
+    }> = [];
+
+    // Convert the root node of the script
+    this.convertScriptNodeToActions(script.rootNode, actions);
+
+    return actions;
+  }
+
+  /**
+   * Recursively converts script nodes to actions
+   */
+  private convertScriptNodeToActions(
+    node: ScriptNode,
+    actions: Array<{
+      toolName: string;
+      parameters: Record<string, unknown>;
+      priority: ActionPriority;
+    }>,
+  ): void {
+    switch (node.type) {
+      case 'action':
+        actions.push({
+          toolName: node.toolName,
+          parameters: node.parameters,
+          priority: node.priority || ActionPriority.NORMAL,
+        });
+        break;
+
+      case 'sequence':
+      case 'parallel':
+        for (const childNode of node.nodes) {
+          this.convertScriptNodeToActions(childNode, actions);
+        }
+        break;
+
+      case 'condition':
+        // For conditions, we execute the thenNode by default
+        // In a more sophisticated implementation, we'd evaluate the condition
+        this.convertScriptNodeToActions(node.thenNode, actions);
+        break;
+
+      case 'loop':
+        // For loops, we execute the body once for simplicity
+        // In a more sophisticated implementation, we'd handle iteration
+        this.convertScriptNodeToActions(node.body, actions);
+        break;
+
+      case 'variable':
+        // Variables don't create actions
+        break;
+
+      default:
+        console.warn(`Unknown script node type: ${(node as ScriptNode & { type: string }).type}`);
+        break;
+    }
+  }
+
+  /**
+   * Converts an Action result to ToolCallResponseInfo format
+   */
+  private async convertActionResultToToolResult(
+    actionResult: unknown,
+    callId: string,
+  ): Promise<ToolCallResponseInfo> {
+    // This is a simplified conversion
+    // In a real implementation, you'd need to map Action results to the expected format
+    return {
+      callId,
+      responseParts: [
+        {
+          functionResponse: {
+            id: callId,
+            name: 'actionScript',
+            response: {
+              result: actionResult,
+            },
+          },
+        },
+      ],
+      resultDisplay: undefined,
+      error: undefined,
+      errorType: undefined,
+    };
   }
 }
