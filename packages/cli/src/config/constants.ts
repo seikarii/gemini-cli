@@ -17,3 +17,10 @@ export const TRUSTED_FOLDERS_FILENAME = 'trustedFolders.json';
 
 // Default context file name
 export const DEFAULT_CONTEXT_FILENAME = 'GEMINI.md';
+
+// Scope labels for dialog components
+export const SCOPE_LABELS = {
+  User: 'User Settings',
+  Workspace: 'Workspace Settings',
+  System: 'System Settings',
+} as const;

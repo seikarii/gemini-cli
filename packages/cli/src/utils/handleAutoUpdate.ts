@@ -10,13 +10,20 @@ import { getInstallationInfo } from './installationInfo.js';
 import { updateEventEmitter } from './updateEventEmitter.js';
 import { HistoryItem, MessageType } from '../ui/types.js';
 import { spawnWrapper } from './spawnWrapper.js';
-import { spawn } from 'child_process';
+import { type ChildProcess, type SpawnOptions } from 'child_process';
+
+// Define the type for our enhanced spawn function
+type SpawnFunction = (
+  command: string,
+  args?: readonly string[],
+  options?: SpawnOptions
+) => ChildProcess;
 
 export async function handleAutoUpdate(
   info: UpdateObject | null,
   settings: LoadedSettings,
   projectRoot: string,
-  spawnFn: typeof spawn = spawnWrapper,
+  spawnFn: SpawnFunction = spawnWrapper,
 ) {
   if (!info) {
     return;
@@ -49,7 +56,7 @@ export async function handleAutoUpdate(
     '@latest',
     isNightly ? '@nightly' : `@${info.update.latest}`,
   );
-  const updateProcess = spawnFn(updateCommand, { stdio: 'pipe', shell: true });
+  const updateProcess = spawnFn(updateCommand, [], { stdio: 'pipe', shell: true });
   let errorOutput = '';
   updateProcess.stderr.on('data', (data) => {
     errorOutput += data.toString();

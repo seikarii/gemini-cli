@@ -6,6 +6,7 @@
 
 import { exec } from 'child_process';
 import { ProxyAgent } from 'undici';
+import { logger } from '../config/logger.js';
 
 /**
  * Checks if a directory is within a git repository hosted on GitHub.
@@ -24,9 +25,9 @@ export const isGitHubRepository = async (): Promise<boolean> => {
     const pattern = /github\.com/;
 
     return pattern.test(remotes);
-  } catch (_error) {
+  } catch (error) {
     // If any filesystem error occurs, assume not a git repo
-    console.debug(`Failed to get git remote:`, _error);
+    logger.debug(`Failed to get git remote:`, error);
     return false;
   }
 };
@@ -86,8 +87,8 @@ export const getLatestGitHubRelease = async (
       throw new Error(`Response did not include tag_name field`);
     }
     return releaseTag;
-  } catch (_error) {
-    console.debug(`Failed to determine latest run-gemini-cli release:`, _error);
+  } catch (error) {
+    logger.debug(`Failed to determine latest run-gemini-cli release:`, error);
     throw new Error(
       `Unable to determine the latest run-gemini-cli release on GitHub.`,
     );

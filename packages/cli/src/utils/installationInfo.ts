@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as childProcess from 'child_process';
 import { promisify } from 'util';
+import { logger } from '../config/logger.js';
 
 const fsp = fs.promises;
 const exec = promisify(childProcess.exec);
@@ -83,19 +84,17 @@ export async function getInstallationInfo(
     if (process.platform === 'darwin') {
       try {
         // The package name in homebrew is gemini-cli
-        // Use async exec; ignore output
-        await exec('brew list -1 | grep -q "^gemini-cli$"', {
-          stdio: 'ignore',
-        } as any);
+        await exec('brew list -1 | grep -q "^gemini-cli$"');
         return {
           packageManager: PackageManager.HOMEBREW,
           isGlobal: true,
           updateMessage:
             'Installed via Homebrew. Please update with "brew upgrade".',
         };
-      } catch (_error) {
+      } catch (error) {
         // Brew is not installed or gemini-cli is not installed via brew.
         // Continue to the next check.
+        logger.debug('Homebrew check failed:', error);
       }
     }
 
@@ -157,16 +156,19 @@ export async function getInstallationInfo(
       try {
         await fsp.access(yarnLock);
         pm = PackageManager.YARN;
-      } catch (_) {
+      } catch (error) {
+        logger.debug('yarn.lock not found:', error);
         try {
           await fsp.access(pnpmLock);
           pm = PackageManager.PNPM;
-        } catch (_) {
+        } catch (error) {
+          logger.debug('pnpm-lock.yaml not found:', error);
           try {
             await fsp.access(bunLock);
             pm = PackageManager.BUN;
-          } catch (_) {
+          } catch (error) {
             // no lockfile found, keep default
+            logger.debug('bun.lockb not found:', error);
           }
         }
       }
@@ -189,7 +191,7 @@ export async function getInstallationInfo(
         : 'Installed with npm. Attempting to automatically update now...',
     };
   } catch (error) {
-    console.log(error);
+    logger.error('Error determining installation info:', error);
     return { packageManager: PackageManager.UNKNOWN, isGlobal: false };
   }
 }

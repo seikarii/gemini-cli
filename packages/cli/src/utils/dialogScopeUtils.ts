@@ -6,15 +6,7 @@
 
 import { SettingScope, LoadedSettings } from '../config/settings.js';
 import { settingExistsInScope } from './settingsUtils.js';
-
-/**
- * Shared scope labels for dialog components that need to display setting scopes
- */
-export const SCOPE_LABELS = {
-  [SettingScope.User]: 'User Settings',
-  [SettingScope.Workspace]: 'Workspace Settings',
-  [SettingScope.System]: 'System Settings',
-} as const;
+import { SCOPE_LABELS } from '../config/constants.js';
 
 /**
  * Helper function to get scope items for radio button selects
