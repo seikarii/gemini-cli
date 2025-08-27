@@ -7,4 +7,4 @@ import { Logger, Storage } from '@google/gemini-cli-core';
 /**
  * Hook to manage the logger instance.
  */
-export declare const useLogger: (storage: Storage) => Logger | null;
+export declare const useLogger: (storage: Storage) => Logger;

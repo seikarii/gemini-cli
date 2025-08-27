@@ -106,8 +106,8 @@ export declare class ToolError extends Error {
         name: string;
         type: ToolErrorType;
         message: string;
-        context: ErrorContext | undefined;
+        context: ErrorContext;
         isRetryable: boolean;
-        stack: string | undefined;
+        stack: string;
     };
 }

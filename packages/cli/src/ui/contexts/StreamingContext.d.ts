@@ -5,5 +5,5 @@
  */
 import React from 'react';
 import { StreamingState } from '../types.js';
-export declare const StreamingContext: React.Context<StreamingState | undefined>;
+export declare const StreamingContext: React.Context<StreamingState>;
 export declare const useStreamingContext: () => StreamingState;

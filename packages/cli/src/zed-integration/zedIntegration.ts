@@ -799,11 +799,11 @@ class Session {
         processedQueryParts.push({
           text: `\nContent from @${contextPart.uri}:\n`,
         });
-        if ('text' in contextPart) {
+        if ('text' in contextPart && contextPart.text !== undefined) {
           processedQueryParts.push({
             text: contextPart.text,
           });
-        } else {
+        } else if ('blob' in contextPart && contextPart.blob !== undefined) {
           processedQueryParts.push({
             inlineData: {
               mimeType: contextPart.mimeType ?? 'application/octet-stream',

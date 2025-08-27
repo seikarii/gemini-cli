@@ -35,7 +35,7 @@ export interface CliArgs {
     screenReader: boolean | undefined;
 }
 export declare function parseArguments(): Promise<CliArgs>;
-export declare function loadHierarchicalGeminiMemory(currentWorkingDirectory: string, includeDirectoriesToReadGemini: readonly string[] | undefined, debugMode: boolean, fileService: FileDiscoveryService, settings: Settings, extensionContextFilePaths?: string[], memoryImportFormat?: 'flat' | 'tree', fileFilteringOptions?: FileFilteringOptions): Promise<{
+export declare function loadHierarchicalGeminiMemory(currentWorkingDirectory: string, includeDirectoriesToReadGemini: readonly string[], debugMode: boolean, fileService: FileDiscoveryService, settings: Settings, extensionContextFilePaths?: string[], memoryImportFormat?: 'flat' | 'tree', fileFilteringOptions?: FileFilteringOptions): Promise<{
     memoryContent: string;
     fileCount: number;
 }>;

@@ -63,7 +63,7 @@ export interface ExcludeOptions {
  */
 export declare class FileExclusions {
     private config?;
-    constructor(config?: Config | undefined);
+    constructor(config?: Config);
     /**
      * Gets core ignore patterns for basic file operations like glob.
      * These are the minimal essential patterns that should almost always be excluded.

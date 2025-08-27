@@ -623,7 +623,9 @@ export class GeminiChat {
       
       // Optimize tool checking for large tool sets
       const toolCheckPromises = tools.map(async (tool) => {
-        const hasParametersJsonSchemaCycle = tool.schema.parametersJsonSchema && 
+        const hasParametersJsonSchemaCycle = tool.schema.parametersJsonSchema &&
+          typeof tool.schema.parametersJsonSchema === 'object' &&
+          tool.schema.parametersJsonSchema !== null &&
           hasCycleInSchema(tool.schema.parametersJsonSchema);
         const hasParametersCycle = tool.schema.parameters && 
           hasCycleInSchema(tool.schema.parameters);

@@ -20,9 +20,9 @@ export declare const useSlashCommandProcessor: (config: Config | null, settings:
     shellConfirmationRequest: {
         commands: string[];
         onConfirm: (outcome: ToolConfirmationOutcome, approvedCommands?: string[]) => void;
-    } | null;
+    };
     confirmationRequest: {
         prompt: React.ReactNode;
         onConfirm: (confirmed: boolean) => void;
-    } | null;
+    };
 };

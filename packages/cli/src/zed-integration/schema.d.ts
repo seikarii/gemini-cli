@@ -72,13 +72,13 @@ export declare const writeTextFileRequestSchema: z.ZodObject<{
     path: z.ZodString;
     sessionId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    path: string;
-    content: string;
-    sessionId: string;
+    path?: string;
+    content?: string;
+    sessionId?: string;
 }, {
-    path: string;
-    content: string;
-    sessionId: string;
+    path?: string;
+    content?: string;
+    sessionId?: string;
 }>;
 export declare const readTextFileRequestSchema: z.ZodObject<{
     limit: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
@@ -86,15 +86,15 @@ export declare const readTextFileRequestSchema: z.ZodObject<{
     path: z.ZodString;
     sessionId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    path: string;
-    sessionId: string;
-    line?: number | null | undefined;
-    limit?: number | null | undefined;
+    path?: string;
+    line?: number;
+    sessionId?: string;
+    limit?: number;
 }, {
-    path: string;
-    sessionId: string;
-    line?: number | null | undefined;
-    limit?: number | null | undefined;
+    path?: string;
+    line?: number;
+    sessionId?: string;
+    limit?: number;
 }>;
 export declare const permissionOptionKindSchema: z.ZodUnion<[z.ZodLiteral<"allow_once">, z.ZodLiteral<"allow_always">, z.ZodLiteral<"reject_once">, z.ZodLiteral<"reject_always">]>;
 export declare const roleSchema: z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>;
@@ -103,26 +103,26 @@ export declare const textResourceContentsSchema: z.ZodObject<{
     text: z.ZodString;
     uri: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    text: string;
-    uri: string;
-    mimeType?: string | null | undefined;
+    text?: string;
+    mimeType?: string;
+    uri?: string;
 }, {
-    text: string;
-    uri: string;
-    mimeType?: string | null | undefined;
+    text?: string;
+    mimeType?: string;
+    uri?: string;
 }>;
 export declare const blobResourceContentsSchema: z.ZodObject<{
     blob: z.ZodString;
     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     uri: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    blob: string;
-    uri: string;
-    mimeType?: string | null | undefined;
+    blob?: string;
+    mimeType?: string;
+    uri?: string;
 }, {
-    blob: string;
-    uri: string;
-    mimeType?: string | null | undefined;
+    blob?: string;
+    mimeType?: string;
+    uri?: string;
 }>;
 export declare const toolKindSchema: z.ZodUnion<[z.ZodLiteral<"read">, z.ZodLiteral<"edit">, z.ZodLiteral<"delete">, z.ZodLiteral<"move">, z.ZodLiteral<"search">, z.ZodLiteral<"execute">, z.ZodLiteral<"think">, z.ZodLiteral<"fetch">, z.ZodLiteral<"other">]>;
 export declare const toolCallStatusSchema: z.ZodUnion<[z.ZodLiteral<"pending">, z.ZodLiteral<"in_progress">, z.ZodLiteral<"completed">, z.ZodLiteral<"failed">]>;
@@ -130,157 +130,157 @@ export declare const writeTextFileResponseSchema: z.ZodNull;
 export declare const readTextFileResponseSchema: z.ZodObject<{
     content: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    content: string;
+    content?: string;
 }, {
-    content: string;
+    content?: string;
 }>;
 export declare const requestPermissionOutcomeSchema: z.ZodUnion<[z.ZodObject<{
     outcome: z.ZodLiteral<"cancelled">;
 }, "strip", z.ZodTypeAny, {
-    outcome: "cancelled";
+    outcome?: "cancelled";
 }, {
-    outcome: "cancelled";
+    outcome?: "cancelled";
 }>, z.ZodObject<{
     optionId: z.ZodString;
     outcome: z.ZodLiteral<"selected">;
 }, "strip", z.ZodTypeAny, {
-    outcome: "selected";
-    optionId: string;
+    outcome?: "selected";
+    optionId?: string;
 }, {
-    outcome: "selected";
-    optionId: string;
+    outcome?: "selected";
+    optionId?: string;
 }>]>;
 export declare const cancelNotificationSchema: z.ZodObject<{
     sessionId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    sessionId: string;
+    sessionId?: string;
 }, {
-    sessionId: string;
+    sessionId?: string;
 }>;
 export declare const authenticateRequestSchema: z.ZodObject<{
     methodId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    methodId: string;
+    methodId?: string;
 }, {
-    methodId: string;
+    methodId?: string;
 }>;
 export declare const authenticateResponseSchema: z.ZodNull;
 export declare const newSessionResponseSchema: z.ZodObject<{
     sessionId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    sessionId: string;
+    sessionId?: string;
 }, {
-    sessionId: string;
+    sessionId?: string;
 }>;
 export declare const loadSessionResponseSchema: z.ZodNull;
 export declare const stopReasonSchema: z.ZodUnion<[z.ZodLiteral<"end_turn">, z.ZodLiteral<"max_tokens">, z.ZodLiteral<"refusal">, z.ZodLiteral<"cancelled">]>;
 export declare const promptResponseSchema: z.ZodObject<{
     stopReason: z.ZodUnion<[z.ZodLiteral<"end_turn">, z.ZodLiteral<"max_tokens">, z.ZodLiteral<"refusal">, z.ZodLiteral<"cancelled">]>;
 }, "strip", z.ZodTypeAny, {
-    stopReason: "cancelled" | "end_turn" | "max_tokens" | "refusal";
+    stopReason?: "cancelled" | "end_turn" | "max_tokens" | "refusal";
 }, {
-    stopReason: "cancelled" | "end_turn" | "max_tokens" | "refusal";
+    stopReason?: "cancelled" | "end_turn" | "max_tokens" | "refusal";
 }>;
 export declare const toolCallLocationSchema: z.ZodObject<{
     line: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
     path: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    path: string;
-    line?: number | null | undefined;
+    path?: string;
+    line?: number;
 }, {
-    path: string;
-    line?: number | null | undefined;
+    path?: string;
+    line?: number;
 }>;
 export declare const planEntrySchema: z.ZodObject<{
     content: z.ZodString;
     priority: z.ZodUnion<[z.ZodLiteral<"high">, z.ZodLiteral<"medium">, z.ZodLiteral<"low">]>;
     status: z.ZodUnion<[z.ZodLiteral<"pending">, z.ZodLiteral<"in_progress">, z.ZodLiteral<"completed">]>;
 }, "strip", z.ZodTypeAny, {
-    status: "in_progress" | "completed" | "pending";
-    content: string;
-    priority: "high" | "low" | "medium";
+    status?: "in_progress" | "completed" | "pending";
+    content?: string;
+    priority?: "medium" | "high" | "low";
 }, {
-    status: "in_progress" | "completed" | "pending";
-    content: string;
-    priority: "high" | "low" | "medium";
+    status?: "in_progress" | "completed" | "pending";
+    content?: string;
+    priority?: "medium" | "high" | "low";
 }>;
 export declare const permissionOptionSchema: z.ZodObject<{
     kind: z.ZodUnion<[z.ZodLiteral<"allow_once">, z.ZodLiteral<"allow_always">, z.ZodLiteral<"reject_once">, z.ZodLiteral<"reject_always">]>;
     name: z.ZodString;
     optionId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    name: string;
-    kind: "allow_once" | "allow_always" | "reject_once" | "reject_always";
-    optionId: string;
+    name?: string;
+    kind?: "allow_once" | "allow_always" | "reject_once" | "reject_always";
+    optionId?: string;
 }, {
-    name: string;
-    kind: "allow_once" | "allow_always" | "reject_once" | "reject_always";
-    optionId: string;
+    name?: string;
+    kind?: "allow_once" | "allow_always" | "reject_once" | "reject_always";
+    optionId?: string;
 }>;
 export declare const annotationsSchema: z.ZodObject<{
     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
 }, "strip", z.ZodTypeAny, {
-    audience?: ("user" | "assistant")[] | null | undefined;
-    priority?: number | null | undefined;
-    lastModified?: string | null | undefined;
+    audience?: ("user" | "assistant")[];
+    priority?: number;
+    lastModified?: string;
 }, {
-    audience?: ("user" | "assistant")[] | null | undefined;
-    priority?: number | null | undefined;
-    lastModified?: string | null | undefined;
+    audience?: ("user" | "assistant")[];
+    priority?: number;
+    lastModified?: string;
 }>;
 export declare const requestPermissionResponseSchema: z.ZodObject<{
     outcome: z.ZodUnion<[z.ZodObject<{
         outcome: z.ZodLiteral<"cancelled">;
     }, "strip", z.ZodTypeAny, {
-        outcome: "cancelled";
+        outcome?: "cancelled";
     }, {
-        outcome: "cancelled";
+        outcome?: "cancelled";
     }>, z.ZodObject<{
         optionId: z.ZodString;
         outcome: z.ZodLiteral<"selected">;
     }, "strip", z.ZodTypeAny, {
-        outcome: "selected";
-        optionId: string;
+        outcome?: "selected";
+        optionId?: string;
     }, {
-        outcome: "selected";
-        optionId: string;
+        outcome?: "selected";
+        optionId?: string;
     }>]>;
 }, "strip", z.ZodTypeAny, {
-    outcome: {
-        outcome: "cancelled";
+    outcome?: {
+        outcome?: "cancelled";
     } | {
-        outcome: "selected";
-        optionId: string;
+        outcome?: "selected";
+        optionId?: string;
     };
 }, {
-    outcome: {
-        outcome: "cancelled";
+    outcome?: {
+        outcome?: "cancelled";
     } | {
-        outcome: "selected";
-        optionId: string;
+        outcome?: "selected";
+        optionId?: string;
     };
 }>;
 export declare const fileSystemCapabilitySchema: z.ZodObject<{
     readTextFile: z.ZodBoolean;
     writeTextFile: z.ZodBoolean;
 }, "strip", z.ZodTypeAny, {
-    readTextFile: boolean;
-    writeTextFile: boolean;
+    readTextFile?: boolean;
+    writeTextFile?: boolean;
 }, {
-    readTextFile: boolean;
-    writeTextFile: boolean;
+    readTextFile?: boolean;
+    writeTextFile?: boolean;
 }>;
 export declare const envVariableSchema: z.ZodObject<{
     name: z.ZodString;
     value: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    value: string;
-    name: string;
+    value?: string;
+    name?: string;
 }, {
-    value: string;
-    name: string;
+    value?: string;
+    name?: string;
 }>;
 export declare const mcpServerSchema: z.ZodObject<{
     args: z.ZodArray<z.ZodString, "many">;
@@ -289,42 +289,42 @@ export declare const mcpServerSchema: z.ZodObject<{
         name: z.ZodString;
         value: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        value: string;
-        name: string;
+        value?: string;
+        name?: string;
     }, {
-        value: string;
-        name: string;
+        value?: string;
+        name?: string;
     }>, "many">;
     name: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    command: string;
-    name: string;
-    env: {
-        value: string;
-        name: string;
+    name?: string;
+    env?: {
+        value?: string;
+        name?: string;
     }[];
-    args: string[];
+    command?: string;
+    args?: string[];
 }, {
-    command: string;
-    name: string;
-    env: {
-        value: string;
-        name: string;
+    name?: string;
+    env?: {
+        value?: string;
+        name?: string;
     }[];
-    args: string[];
+    command?: string;
+    args?: string[];
 }>;
 export declare const promptCapabilitiesSchema: z.ZodObject<{
     audio: z.ZodOptional<z.ZodBoolean>;
     embeddedContext: z.ZodOptional<z.ZodBoolean>;
     image: z.ZodOptional<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
-    image?: boolean | undefined;
-    audio?: boolean | undefined;
-    embeddedContext?: boolean | undefined;
+    image?: boolean;
+    audio?: boolean;
+    embeddedContext?: boolean;
 }, {
-    image?: boolean | undefined;
-    audio?: boolean | undefined;
-    embeddedContext?: boolean | undefined;
+    image?: boolean;
+    audio?: boolean;
+    embeddedContext?: boolean;
 }>;
 export declare const agentCapabilitiesSchema: z.ZodObject<{
     loadSession: z.ZodOptional<z.ZodBoolean>;
@@ -333,111 +333,111 @@ export declare const agentCapabilitiesSchema: z.ZodObject<{
         embeddedContext: z.ZodOptional<z.ZodBoolean>;
         image: z.ZodOptional<z.ZodBoolean>;
     }, "strip", z.ZodTypeAny, {
-        image?: boolean | undefined;
-        audio?: boolean | undefined;
-        embeddedContext?: boolean | undefined;
+        image?: boolean;
+        audio?: boolean;
+        embeddedContext?: boolean;
     }, {
-        image?: boolean | undefined;
-        audio?: boolean | undefined;
-        embeddedContext?: boolean | undefined;
+        image?: boolean;
+        audio?: boolean;
+        embeddedContext?: boolean;
     }>>;
 }, "strip", z.ZodTypeAny, {
-    loadSession?: boolean | undefined;
+    loadSession?: boolean;
     promptCapabilities?: {
-        image?: boolean | undefined;
-        audio?: boolean | undefined;
-        embeddedContext?: boolean | undefined;
-    } | undefined;
+        image?: boolean;
+        audio?: boolean;
+        embeddedContext?: boolean;
+    };
 }, {
-    loadSession?: boolean | undefined;
+    loadSession?: boolean;
     promptCapabilities?: {
-        image?: boolean | undefined;
-        audio?: boolean | undefined;
-        embeddedContext?: boolean | undefined;
-    } | undefined;
+        image?: boolean;
+        audio?: boolean;
+        embeddedContext?: boolean;
+    };
 }>;
 export declare const authMethodSchema: z.ZodObject<{
     description: z.ZodNullable<z.ZodString>;
     id: z.ZodString;
     name: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    description: string | null;
-    id: string;
-    name: string;
+    id?: string;
+    name?: string;
+    description?: string;
 }, {
-    description: string | null;
-    id: string;
-    name: string;
+    id?: string;
+    name?: string;
+    description?: string;
 }>;
 export declare const clientResponseSchema: z.ZodUnion<[z.ZodNull, z.ZodObject<{
     content: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    content: string;
+    content?: string;
 }, {
-    content: string;
+    content?: string;
 }>, z.ZodObject<{
     outcome: z.ZodUnion<[z.ZodObject<{
         outcome: z.ZodLiteral<"cancelled">;
     }, "strip", z.ZodTypeAny, {
-        outcome: "cancelled";
+        outcome?: "cancelled";
     }, {
-        outcome: "cancelled";
+        outcome?: "cancelled";
     }>, z.ZodObject<{
         optionId: z.ZodString;
         outcome: z.ZodLiteral<"selected">;
     }, "strip", z.ZodTypeAny, {
-        outcome: "selected";
-        optionId: string;
+        outcome?: "selected";
+        optionId?: string;
     }, {
-        outcome: "selected";
-        optionId: string;
+        outcome?: "selected";
+        optionId?: string;
     }>]>;
 }, "strip", z.ZodTypeAny, {
-    outcome: {
-        outcome: "cancelled";
+    outcome?: {
+        outcome?: "cancelled";
     } | {
-        outcome: "selected";
-        optionId: string;
+        outcome?: "selected";
+        optionId?: string;
     };
 }, {
-    outcome: {
-        outcome: "cancelled";
+    outcome?: {
+        outcome?: "cancelled";
     } | {
-        outcome: "selected";
-        optionId: string;
+        outcome?: "selected";
+        optionId?: string;
     };
 }>]>;
 export declare const clientNotificationSchema: z.ZodObject<{
     sessionId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    sessionId: string;
+    sessionId?: string;
 }, {
-    sessionId: string;
+    sessionId?: string;
 }>;
 export declare const embeddedResourceResourceSchema: z.ZodUnion<[z.ZodObject<{
     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     text: z.ZodString;
     uri: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    text: string;
-    uri: string;
-    mimeType?: string | null | undefined;
+    text?: string;
+    mimeType?: string;
+    uri?: string;
 }, {
-    text: string;
-    uri: string;
-    mimeType?: string | null | undefined;
+    text?: string;
+    mimeType?: string;
+    uri?: string;
 }>, z.ZodObject<{
     blob: z.ZodString;
     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     uri: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    blob: string;
-    uri: string;
-    mimeType?: string | null | undefined;
+    blob?: string;
+    mimeType?: string;
+    uri?: string;
 }, {
-    blob: string;
-    uri: string;
-    mimeType?: string | null | undefined;
+    blob?: string;
+    mimeType?: string;
+    uri?: string;
 }>]>;
 export declare const newSessionRequestSchema: z.ZodObject<{
     cwd: z.ZodString;
@@ -448,51 +448,51 @@ export declare const newSessionRequestSchema: z.ZodObject<{
             name: z.ZodString;
             value: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            value: string;
-            name: string;
+            value?: string;
+            name?: string;
         }, {
-            value: string;
-            name: string;
+            value?: string;
+            name?: string;
         }>, "many">;
         name: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }, {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }>, "many">;
 }, "strip", z.ZodTypeAny, {
-    cwd: string;
-    mcpServers: {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+    cwd?: string;
+    mcpServers?: {
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }[];
 }, {
-    cwd: string;
-    mcpServers: {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+    cwd?: string;
+    mcpServers?: {
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }[];
 }>;
 export declare const loadSessionRequestSchema: z.ZodObject<{
@@ -504,54 +504,54 @@ export declare const loadSessionRequestSchema: z.ZodObject<{
             name: z.ZodString;
             value: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            value: string;
-            name: string;
+            value?: string;
+            name?: string;
         }, {
-            value: string;
-            name: string;
+            value?: string;
+            name?: string;
         }>, "many">;
         name: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }, {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }>, "many">;
     sessionId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    sessionId: string;
-    cwd: string;
-    mcpServers: {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+    sessionId?: string;
+    cwd?: string;
+    mcpServers?: {
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }[];
 }, {
-    sessionId: string;
-    cwd: string;
-    mcpServers: {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+    sessionId?: string;
+    cwd?: string;
+    mcpServers?: {
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }[];
 }>;
 export declare const initializeResponseSchema: z.ZodObject<{
@@ -562,72 +562,72 @@ export declare const initializeResponseSchema: z.ZodObject<{
             embeddedContext: z.ZodOptional<z.ZodBoolean>;
             image: z.ZodOptional<z.ZodBoolean>;
         }, "strip", z.ZodTypeAny, {
-            image?: boolean | undefined;
-            audio?: boolean | undefined;
-            embeddedContext?: boolean | undefined;
+            image?: boolean;
+            audio?: boolean;
+            embeddedContext?: boolean;
         }, {
-            image?: boolean | undefined;
-            audio?: boolean | undefined;
-            embeddedContext?: boolean | undefined;
+            image?: boolean;
+            audio?: boolean;
+            embeddedContext?: boolean;
         }>>;
     }, "strip", z.ZodTypeAny, {
-        loadSession?: boolean | undefined;
+        loadSession?: boolean;
         promptCapabilities?: {
-            image?: boolean | undefined;
-            audio?: boolean | undefined;
-            embeddedContext?: boolean | undefined;
-        } | undefined;
+            image?: boolean;
+            audio?: boolean;
+            embeddedContext?: boolean;
+        };
     }, {
-        loadSession?: boolean | undefined;
+        loadSession?: boolean;
         promptCapabilities?: {
-            image?: boolean | undefined;
-            audio?: boolean | undefined;
-            embeddedContext?: boolean | undefined;
-        } | undefined;
+            image?: boolean;
+            audio?: boolean;
+            embeddedContext?: boolean;
+        };
     }>;
     authMethods: z.ZodArray<z.ZodObject<{
         description: z.ZodNullable<z.ZodString>;
         id: z.ZodString;
         name: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        description: string | null;
-        id: string;
-        name: string;
+        id?: string;
+        name?: string;
+        description?: string;
     }, {
-        description: string | null;
-        id: string;
-        name: string;
+        id?: string;
+        name?: string;
+        description?: string;
     }>, "many">;
     protocolVersion: z.ZodNumber;
 }, "strip", z.ZodTypeAny, {
-    protocolVersion: number;
-    agentCapabilities: {
-        loadSession?: boolean | undefined;
+    protocolVersion?: number;
+    agentCapabilities?: {
+        loadSession?: boolean;
         promptCapabilities?: {
-            image?: boolean | undefined;
-            audio?: boolean | undefined;
-            embeddedContext?: boolean | undefined;
-        } | undefined;
+            image?: boolean;
+            audio?: boolean;
+            embeddedContext?: boolean;
+        };
     };
-    authMethods: {
-        description: string | null;
-        id: string;
-        name: string;
+    authMethods?: {
+        id?: string;
+        name?: string;
+        description?: string;
     }[];
 }, {
-    protocolVersion: number;
-    agentCapabilities: {
-        loadSession?: boolean | undefined;
+    protocolVersion?: number;
+    agentCapabilities?: {
+        loadSession?: boolean;
         promptCapabilities?: {
-            image?: boolean | undefined;
-            audio?: boolean | undefined;
-            embeddedContext?: boolean | undefined;
-        } | undefined;
+            image?: boolean;
+            audio?: boolean;
+            embeddedContext?: boolean;
+        };
     };
-    authMethods: {
-        description: string | null;
-        id: string;
-        name: string;
+    authMethods?: {
+        id?: string;
+        name?: string;
+        description?: string;
     }[];
 }>;
 export declare const contentBlockSchema: z.ZodUnion<[z.ZodObject<{
@@ -636,115 +636,115 @@ export declare const contentBlockSchema: z.ZodUnion<[z.ZodObject<{
         lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
     }, "strip", z.ZodTypeAny, {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
     }, {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
     }>>>;
     text: z.ZodString;
     type: z.ZodLiteral<"text">;
 }, "strip", z.ZodTypeAny, {
-    type: "text";
-    text: string;
+    type?: "text";
+    text?: string;
     annotations?: {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
-    } | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
+    };
 }, {
-    type: "text";
-    text: string;
+    type?: "text";
+    text?: string;
     annotations?: {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
-    } | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
+    };
 }>, z.ZodObject<{
     annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
         audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
         lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
     }, "strip", z.ZodTypeAny, {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
     }, {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
     }>>>;
     data: z.ZodString;
     mimeType: z.ZodString;
     type: z.ZodLiteral<"image">;
 }, "strip", z.ZodTypeAny, {
-    type: "image";
-    data: string;
-    mimeType: string;
+    type?: "image";
+    data?: string;
+    mimeType?: string;
     annotations?: {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
-    } | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
+    };
 }, {
-    type: "image";
-    data: string;
-    mimeType: string;
+    type?: "image";
+    data?: string;
+    mimeType?: string;
     annotations?: {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
-    } | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
+    };
 }>, z.ZodObject<{
     annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
         audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
         lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
     }, "strip", z.ZodTypeAny, {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
     }, {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
     }>>>;
     data: z.ZodString;
     mimeType: z.ZodString;
     type: z.ZodLiteral<"audio">;
 }, "strip", z.ZodTypeAny, {
-    type: "audio";
-    data: string;
-    mimeType: string;
+    type?: "audio";
+    data?: string;
+    mimeType?: string;
     annotations?: {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
-    } | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
+    };
 }, {
-    type: "audio";
-    data: string;
-    mimeType: string;
+    type?: "audio";
+    data?: string;
+    mimeType?: string;
     annotations?: {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
-    } | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
+    };
 }>, z.ZodObject<{
     annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
         audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
         lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
     }, "strip", z.ZodTypeAny, {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
     }, {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
     }>>>;
     description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -754,103 +754,103 @@ export declare const contentBlockSchema: z.ZodUnion<[z.ZodObject<{
     type: z.ZodLiteral<"resource_link">;
     uri: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    type: "resource_link";
-    name: string;
-    uri: string;
-    description?: string | null | undefined;
-    title?: string | null | undefined;
-    mimeType?: string | null | undefined;
+    type?: "resource_link";
+    name?: string;
+    title?: string;
+    size?: number;
+    description?: string;
+    mimeType?: string;
+    uri?: string;
     annotations?: {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
-    } | null | undefined;
-    size?: number | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
+    };
 }, {
-    type: "resource_link";
-    name: string;
-    uri: string;
-    description?: string | null | undefined;
-    title?: string | null | undefined;
-    mimeType?: string | null | undefined;
+    type?: "resource_link";
+    name?: string;
+    title?: string;
+    size?: number;
+    description?: string;
+    mimeType?: string;
+    uri?: string;
     annotations?: {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
-    } | null | undefined;
-    size?: number | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
+    };
 }>, z.ZodObject<{
     annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
         audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
         lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
     }, "strip", z.ZodTypeAny, {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
     }, {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
     }>>>;
     resource: z.ZodUnion<[z.ZodObject<{
         mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         text: z.ZodString;
         uri: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        text: string;
-        uri: string;
-        mimeType?: string | null | undefined;
+        text?: string;
+        mimeType?: string;
+        uri?: string;
     }, {
-        text: string;
-        uri: string;
-        mimeType?: string | null | undefined;
+        text?: string;
+        mimeType?: string;
+        uri?: string;
     }>, z.ZodObject<{
         blob: z.ZodString;
         mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         uri: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        blob: string;
-        uri: string;
-        mimeType?: string | null | undefined;
+        blob?: string;
+        mimeType?: string;
+        uri?: string;
     }, {
-        blob: string;
-        uri: string;
-        mimeType?: string | null | undefined;
+        blob?: string;
+        mimeType?: string;
+        uri?: string;
     }>]>;
     type: z.ZodLiteral<"resource">;
 }, "strip", z.ZodTypeAny, {
-    type: "resource";
-    resource: {
-        text: string;
-        uri: string;
-        mimeType?: string | null | undefined;
+    type?: "resource";
+    resource?: {
+        text?: string;
+        mimeType?: string;
+        uri?: string;
     } | {
-        blob: string;
-        uri: string;
-        mimeType?: string | null | undefined;
+        blob?: string;
+        mimeType?: string;
+        uri?: string;
     };
     annotations?: {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
-    } | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
+    };
 }, {
-    type: "resource";
-    resource: {
-        text: string;
-        uri: string;
-        mimeType?: string | null | undefined;
+    type?: "resource";
+    resource?: {
+        text?: string;
+        mimeType?: string;
+        uri?: string;
     } | {
-        blob: string;
-        uri: string;
-        mimeType?: string | null | undefined;
+        blob?: string;
+        mimeType?: string;
+        uri?: string;
     };
     annotations?: {
-        audience?: ("user" | "assistant")[] | null | undefined;
-        priority?: number | null | undefined;
-        lastModified?: string | null | undefined;
-    } | null | undefined;
+        audience?: ("user" | "assistant")[];
+        priority?: number;
+        lastModified?: string;
+    };
 }>]>;
 export declare const toolCallContentSchema: z.ZodUnion<[z.ZodObject<{
     content: z.ZodUnion<[z.ZodObject<{
@@ -859,115 +859,115 @@ export declare const toolCallContentSchema: z.ZodUnion<[z.ZodObject<{
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         text: z.ZodString;
         type: z.ZodLiteral<"text">;
     }, "strip", z.ZodTypeAny, {
-        type: "text";
-        text: string;
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "text";
-        text: string;
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         data: z.ZodString;
         mimeType: z.ZodString;
         type: z.ZodLiteral<"image">;
     }, "strip", z.ZodTypeAny, {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         data: z.ZodString;
         mimeType: z.ZodString;
         type: z.ZodLiteral<"audio">;
     }, "strip", z.ZodTypeAny, {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -977,220 +977,220 @@ export declare const toolCallContentSchema: z.ZodUnion<[z.ZodObject<{
         type: z.ZodLiteral<"resource_link">;
         uri: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         resource: z.ZodUnion<[z.ZodObject<{
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             text: z.ZodString;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         }, {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         }>, z.ZodObject<{
             blob: z.ZodString;
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         }, {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         }>]>;
         type: z.ZodLiteral<"resource">;
     }, "strip", z.ZodTypeAny, {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>]>;
     type: z.ZodLiteral<"content">;
 }, "strip", z.ZodTypeAny, {
-    type: "content";
-    content: {
-        type: "text";
-        text: string;
+    type?: "content";
+    content?: {
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     };
 }, {
-    type: "content";
-    content: {
-        type: "text";
-        text: string;
+    type?: "content";
+    content?: {
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     };
 }>, z.ZodObject<{
     newText: z.ZodString;
@@ -1198,15 +1198,15 @@ export declare const toolCallContentSchema: z.ZodUnion<[z.ZodObject<{
     path: z.ZodString;
     type: z.ZodLiteral<"diff">;
 }, "strip", z.ZodTypeAny, {
-    path: string;
-    type: "diff";
-    newText: string;
-    oldText: string | null;
+    path?: string;
+    type?: "diff";
+    newText?: string;
+    oldText?: string;
 }, {
-    path: string;
-    type: "diff";
-    newText: string;
-    oldText: string | null;
+    path?: string;
+    type?: "diff";
+    newText?: string;
+    oldText?: string;
 }>]>;
 export declare const toolCallSchema: z.ZodObject<{
     content: z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodObject<{
@@ -1216,115 +1216,115 @@ export declare const toolCallSchema: z.ZodObject<{
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             text: z.ZodString;
             type: z.ZodLiteral<"text">;
         }, "strip", z.ZodTypeAny, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"image">;
         }, "strip", z.ZodTypeAny, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"audio">;
         }, "strip", z.ZodTypeAny, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -1334,220 +1334,220 @@ export declare const toolCallSchema: z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             resource: z.ZodUnion<[z.ZodObject<{
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 text: z.ZodString;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }>, z.ZodObject<{
                 blob: z.ZodString;
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }>]>;
             type: z.ZodLiteral<"resource">;
         }, "strip", z.ZodTypeAny, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>]>;
         type: z.ZodLiteral<"content">;
     }, "strip", z.ZodTypeAny, {
-        type: "content";
-        content: {
-            type: "text";
-            text: string;
+        type?: "content";
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
     }, {
-        type: "content";
-        content: {
-            type: "text";
-            text: string;
+        type?: "content";
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
     }>, z.ZodObject<{
         newText: z.ZodString;
@@ -1555,200 +1555,200 @@ export declare const toolCallSchema: z.ZodObject<{
         path: z.ZodString;
         type: z.ZodLiteral<"diff">;
     }, "strip", z.ZodTypeAny, {
-        path: string;
-        type: "diff";
-        newText: string;
-        oldText: string | null;
+        path?: string;
+        type?: "diff";
+        newText?: string;
+        oldText?: string;
     }, {
-        path: string;
-        type: "diff";
-        newText: string;
-        oldText: string | null;
+        path?: string;
+        type?: "diff";
+        newText?: string;
+        oldText?: string;
     }>]>, "many">>;
     kind: z.ZodUnion<[z.ZodLiteral<"read">, z.ZodLiteral<"edit">, z.ZodLiteral<"delete">, z.ZodLiteral<"move">, z.ZodLiteral<"search">, z.ZodLiteral<"execute">, z.ZodLiteral<"think">, z.ZodLiteral<"fetch">, z.ZodLiteral<"other">]>;
     locations: z.ZodOptional<z.ZodArray<z.ZodObject<{
         line: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         path: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        path: string;
-        line?: number | null | undefined;
+        path?: string;
+        line?: number;
     }, {
-        path: string;
-        line?: number | null | undefined;
+        path?: string;
+        line?: number;
     }>, "many">>;
     rawInput: z.ZodOptional<z.ZodUnknown>;
     status: z.ZodUnion<[z.ZodLiteral<"pending">, z.ZodLiteral<"in_progress">, z.ZodLiteral<"completed">, z.ZodLiteral<"failed">]>;
     title: z.ZodString;
     toolCallId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    status: "failed" | "in_progress" | "completed" | "pending";
-    title: string;
-    kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-    toolCallId: string;
+    status?: "failed" | "in_progress" | "completed" | "pending";
     content?: ({
-        type: "content";
-        content: {
-            type: "text";
-            text: string;
+        type?: "content";
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
     } | {
-        path: string;
-        type: "diff";
-        newText: string;
-        oldText: string | null;
-    })[] | undefined;
+        path?: string;
+        type?: "diff";
+        newText?: string;
+        oldText?: string;
+    })[];
+    title?: string;
+    kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
     locations?: {
-        path: string;
-        line?: number | null | undefined;
-    }[] | undefined;
+        path?: string;
+        line?: number;
+    }[];
     rawInput?: unknown;
+    toolCallId?: string;
 }, {
-    status: "failed" | "in_progress" | "completed" | "pending";
-    title: string;
-    kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-    toolCallId: string;
+    status?: "failed" | "in_progress" | "completed" | "pending";
     content?: ({
-        type: "content";
-        content: {
-            type: "text";
-            text: string;
+        type?: "content";
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
     } | {
-        path: string;
-        type: "diff";
-        newText: string;
-        oldText: string | null;
-    })[] | undefined;
+        path?: string;
+        type?: "diff";
+        newText?: string;
+        oldText?: string;
+    })[];
+    title?: string;
+    kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
     locations?: {
-        path: string;
-        line?: number | null | undefined;
-    }[] | undefined;
+        path?: string;
+        line?: number;
+    }[];
     rawInput?: unknown;
+    toolCallId?: string;
 }>;
 export declare const clientCapabilitiesSchema: z.ZodObject<{
     fs: z.ZodObject<{
         readTextFile: z.ZodBoolean;
         writeTextFile: z.ZodBoolean;
     }, "strip", z.ZodTypeAny, {
-        readTextFile: boolean;
-        writeTextFile: boolean;
+        readTextFile?: boolean;
+        writeTextFile?: boolean;
     }, {
-        readTextFile: boolean;
-        writeTextFile: boolean;
+        readTextFile?: boolean;
+        writeTextFile?: boolean;
     }>;
 }, "strip", z.ZodTypeAny, {
-    fs: {
-        readTextFile: boolean;
-        writeTextFile: boolean;
+    fs?: {
+        readTextFile?: boolean;
+        writeTextFile?: boolean;
     };
 }, {
-    fs: {
-        readTextFile: boolean;
-        writeTextFile: boolean;
+    fs?: {
+        readTextFile?: boolean;
+        writeTextFile?: boolean;
     };
 }>;
 export declare const promptRequestSchema: z.ZodObject<{
@@ -1758,115 +1758,115 @@ export declare const promptRequestSchema: z.ZodObject<{
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         text: z.ZodString;
         type: z.ZodLiteral<"text">;
     }, "strip", z.ZodTypeAny, {
-        type: "text";
-        text: string;
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "text";
-        text: string;
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         data: z.ZodString;
         mimeType: z.ZodString;
         type: z.ZodLiteral<"image">;
     }, "strip", z.ZodTypeAny, {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         data: z.ZodString;
         mimeType: z.ZodString;
         type: z.ZodLiteral<"audio">;
     }, "strip", z.ZodTypeAny, {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -1876,221 +1876,221 @@ export declare const promptRequestSchema: z.ZodObject<{
         type: z.ZodLiteral<"resource_link">;
         uri: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         resource: z.ZodUnion<[z.ZodObject<{
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             text: z.ZodString;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         }, {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         }>, z.ZodObject<{
             blob: z.ZodString;
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         }, {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         }>]>;
         type: z.ZodLiteral<"resource">;
     }, "strip", z.ZodTypeAny, {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>]>, "many">;
     sessionId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    prompt: ({
-        type: "text";
-        text: string;
+    prompt?: ({
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     })[];
-    sessionId: string;
+    sessionId?: string;
 }, {
-    prompt: ({
-        type: "text";
-        text: string;
+    prompt?: ({
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     })[];
-    sessionId: string;
+    sessionId?: string;
 }>;
 export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
     content: z.ZodUnion<[z.ZodObject<{
@@ -2099,115 +2099,115 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         text: z.ZodString;
         type: z.ZodLiteral<"text">;
     }, "strip", z.ZodTypeAny, {
-        type: "text";
-        text: string;
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "text";
-        text: string;
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         data: z.ZodString;
         mimeType: z.ZodString;
         type: z.ZodLiteral<"image">;
     }, "strip", z.ZodTypeAny, {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         data: z.ZodString;
         mimeType: z.ZodString;
         type: z.ZodLiteral<"audio">;
     }, "strip", z.ZodTypeAny, {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -2217,221 +2217,221 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
         type: z.ZodLiteral<"resource_link">;
         uri: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         resource: z.ZodUnion<[z.ZodObject<{
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             text: z.ZodString;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         }, {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         }>, z.ZodObject<{
             blob: z.ZodString;
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         }, {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         }>]>;
         type: z.ZodLiteral<"resource">;
     }, "strip", z.ZodTypeAny, {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>]>;
     sessionUpdate: z.ZodLiteral<"user_message_chunk">;
 }, "strip", z.ZodTypeAny, {
-    content: {
-        type: "text";
-        text: string;
+    content?: {
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     };
-    sessionUpdate: "user_message_chunk";
+    sessionUpdate?: "user_message_chunk";
 }, {
-    content: {
-        type: "text";
-        text: string;
+    content?: {
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     };
-    sessionUpdate: "user_message_chunk";
+    sessionUpdate?: "user_message_chunk";
 }>, z.ZodObject<{
     content: z.ZodUnion<[z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
@@ -2439,115 +2439,115 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         text: z.ZodString;
         type: z.ZodLiteral<"text">;
     }, "strip", z.ZodTypeAny, {
-        type: "text";
-        text: string;
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "text";
-        text: string;
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         data: z.ZodString;
         mimeType: z.ZodString;
         type: z.ZodLiteral<"image">;
     }, "strip", z.ZodTypeAny, {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         data: z.ZodString;
         mimeType: z.ZodString;
         type: z.ZodLiteral<"audio">;
     }, "strip", z.ZodTypeAny, {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -2557,221 +2557,221 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
         type: z.ZodLiteral<"resource_link">;
         uri: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         resource: z.ZodUnion<[z.ZodObject<{
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             text: z.ZodString;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         }, {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         }>, z.ZodObject<{
             blob: z.ZodString;
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         }, {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         }>]>;
         type: z.ZodLiteral<"resource">;
     }, "strip", z.ZodTypeAny, {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>]>;
     sessionUpdate: z.ZodLiteral<"agent_message_chunk">;
 }, "strip", z.ZodTypeAny, {
-    content: {
-        type: "text";
-        text: string;
+    content?: {
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     };
-    sessionUpdate: "agent_message_chunk";
+    sessionUpdate?: "agent_message_chunk";
 }, {
-    content: {
-        type: "text";
-        text: string;
+    content?: {
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     };
-    sessionUpdate: "agent_message_chunk";
+    sessionUpdate?: "agent_message_chunk";
 }>, z.ZodObject<{
     content: z.ZodUnion<[z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
@@ -2779,115 +2779,115 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         text: z.ZodString;
         type: z.ZodLiteral<"text">;
     }, "strip", z.ZodTypeAny, {
-        type: "text";
-        text: string;
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "text";
-        text: string;
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         data: z.ZodString;
         mimeType: z.ZodString;
         type: z.ZodLiteral<"image">;
     }, "strip", z.ZodTypeAny, {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         data: z.ZodString;
         mimeType: z.ZodString;
         type: z.ZodLiteral<"audio">;
     }, "strip", z.ZodTypeAny, {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -2897,221 +2897,221 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
         type: z.ZodLiteral<"resource_link">;
         uri: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         resource: z.ZodUnion<[z.ZodObject<{
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             text: z.ZodString;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         }, {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         }>, z.ZodObject<{
             blob: z.ZodString;
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         }, {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         }>]>;
         type: z.ZodLiteral<"resource">;
     }, "strip", z.ZodTypeAny, {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>]>;
     sessionUpdate: z.ZodLiteral<"agent_thought_chunk">;
 }, "strip", z.ZodTypeAny, {
-    content: {
-        type: "text";
-        text: string;
+    content?: {
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     };
-    sessionUpdate: "agent_thought_chunk";
+    sessionUpdate?: "agent_thought_chunk";
 }, {
-    content: {
-        type: "text";
-        text: string;
+    content?: {
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     };
-    sessionUpdate: "agent_thought_chunk";
+    sessionUpdate?: "agent_thought_chunk";
 }>, z.ZodObject<{
     content: z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodObject<{
         content: z.ZodUnion<[z.ZodObject<{
@@ -3120,115 +3120,115 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             text: z.ZodString;
             type: z.ZodLiteral<"text">;
         }, "strip", z.ZodTypeAny, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"image">;
         }, "strip", z.ZodTypeAny, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"audio">;
         }, "strip", z.ZodTypeAny, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -3238,220 +3238,220 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             resource: z.ZodUnion<[z.ZodObject<{
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 text: z.ZodString;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }>, z.ZodObject<{
                 blob: z.ZodString;
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }>]>;
             type: z.ZodLiteral<"resource">;
         }, "strip", z.ZodTypeAny, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>]>;
         type: z.ZodLiteral<"content">;
     }, "strip", z.ZodTypeAny, {
-        type: "content";
-        content: {
-            type: "text";
-            text: string;
+        type?: "content";
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
     }, {
-        type: "content";
-        content: {
-            type: "text";
-            text: string;
+        type?: "content";
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
     }>, z.ZodObject<{
         newText: z.ZodString;
@@ -3459,26 +3459,26 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
         path: z.ZodString;
         type: z.ZodLiteral<"diff">;
     }, "strip", z.ZodTypeAny, {
-        path: string;
-        type: "diff";
-        newText: string;
-        oldText: string | null;
+        path?: string;
+        type?: "diff";
+        newText?: string;
+        oldText?: string;
     }, {
-        path: string;
-        type: "diff";
-        newText: string;
-        oldText: string | null;
+        path?: string;
+        type?: "diff";
+        newText?: string;
+        oldText?: string;
     }>]>, "many">>;
     kind: z.ZodUnion<[z.ZodLiteral<"read">, z.ZodLiteral<"edit">, z.ZodLiteral<"delete">, z.ZodLiteral<"move">, z.ZodLiteral<"search">, z.ZodLiteral<"execute">, z.ZodLiteral<"think">, z.ZodLiteral<"fetch">, z.ZodLiteral<"other">]>;
     locations: z.ZodOptional<z.ZodArray<z.ZodObject<{
         line: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         path: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        path: string;
-        line?: number | null | undefined;
+        path?: string;
+        line?: number;
     }, {
-        path: string;
-        line?: number | null | undefined;
+        path?: string;
+        line?: number;
     }>, "many">>;
     rawInput: z.ZodOptional<z.ZodUnknown>;
     sessionUpdate: z.ZodLiteral<"tool_call">;
@@ -3486,155 +3486,155 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
     title: z.ZodString;
     toolCallId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    status: "failed" | "in_progress" | "completed" | "pending";
-    title: string;
-    kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-    toolCallId: string;
-    sessionUpdate: "tool_call";
+    status?: "failed" | "in_progress" | "completed" | "pending";
     content?: ({
-        type: "content";
-        content: {
-            type: "text";
-            text: string;
+        type?: "content";
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
     } | {
-        path: string;
-        type: "diff";
-        newText: string;
-        oldText: string | null;
-    })[] | undefined;
+        path?: string;
+        type?: "diff";
+        newText?: string;
+        oldText?: string;
+    })[];
+    title?: string;
+    kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
     locations?: {
-        path: string;
-        line?: number | null | undefined;
-    }[] | undefined;
+        path?: string;
+        line?: number;
+    }[];
     rawInput?: unknown;
+    toolCallId?: string;
+    sessionUpdate?: "tool_call";
 }, {
-    status: "failed" | "in_progress" | "completed" | "pending";
-    title: string;
-    kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-    toolCallId: string;
-    sessionUpdate: "tool_call";
+    status?: "failed" | "in_progress" | "completed" | "pending";
     content?: ({
-        type: "content";
-        content: {
-            type: "text";
-            text: string;
+        type?: "content";
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
     } | {
-        path: string;
-        type: "diff";
-        newText: string;
-        oldText: string | null;
-    })[] | undefined;
+        path?: string;
+        type?: "diff";
+        newText?: string;
+        oldText?: string;
+    })[];
+    title?: string;
+    kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
     locations?: {
-        path: string;
-        line?: number | null | undefined;
-    }[] | undefined;
+        path?: string;
+        line?: number;
+    }[];
     rawInput?: unknown;
+    toolCallId?: string;
+    sessionUpdate?: "tool_call";
 }>, z.ZodObject<{
     content: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodObject<{
         content: z.ZodUnion<[z.ZodObject<{
@@ -3643,115 +3643,115 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             text: z.ZodString;
             type: z.ZodLiteral<"text">;
         }, "strip", z.ZodTypeAny, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"image">;
         }, "strip", z.ZodTypeAny, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"audio">;
         }, "strip", z.ZodTypeAny, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -3761,220 +3761,220 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             resource: z.ZodUnion<[z.ZodObject<{
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 text: z.ZodString;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }>, z.ZodObject<{
                 blob: z.ZodString;
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }>]>;
             type: z.ZodLiteral<"resource">;
         }, "strip", z.ZodTypeAny, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>]>;
         type: z.ZodLiteral<"content">;
     }, "strip", z.ZodTypeAny, {
-        type: "content";
-        content: {
-            type: "text";
-            text: string;
+        type?: "content";
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
     }, {
-        type: "content";
-        content: {
-            type: "text";
-            text: string;
+        type?: "content";
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
     }>, z.ZodObject<{
         newText: z.ZodString;
@@ -3982,26 +3982,26 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
         path: z.ZodString;
         type: z.ZodLiteral<"diff">;
     }, "strip", z.ZodTypeAny, {
-        path: string;
-        type: "diff";
-        newText: string;
-        oldText: string | null;
+        path?: string;
+        type?: "diff";
+        newText?: string;
+        oldText?: string;
     }, {
-        path: string;
-        type: "diff";
-        newText: string;
-        oldText: string | null;
+        path?: string;
+        type?: "diff";
+        newText?: string;
+        oldText?: string;
     }>]>, "many">>>;
     kind: z.ZodNullable<z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"read">, z.ZodLiteral<"edit">, z.ZodLiteral<"delete">, z.ZodLiteral<"move">, z.ZodLiteral<"search">, z.ZodLiteral<"execute">, z.ZodLiteral<"think">, z.ZodLiteral<"fetch">, z.ZodLiteral<"other">]>>>;
     locations: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodObject<{
         line: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         path: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        path: string;
-        line?: number | null | undefined;
+        path?: string;
+        line?: number;
     }, {
-        path: string;
-        line?: number | null | undefined;
+        path?: string;
+        line?: number;
     }>, "many">>>;
     rawInput: z.ZodOptional<z.ZodUnknown>;
     sessionUpdate: z.ZodLiteral<"tool_call_update">;
@@ -4009,184 +4009,184 @@ export declare const sessionUpdateSchema: z.ZodUnion<[z.ZodObject<{
     title: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     toolCallId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    toolCallId: string;
-    sessionUpdate: "tool_call_update";
-    status?: "failed" | "in_progress" | "completed" | "pending" | null | undefined;
+    status?: "failed" | "in_progress" | "completed" | "pending";
     content?: ({
-        type: "content";
-        content: {
-            type: "text";
-            text: string;
+        type?: "content";
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
     } | {
-        path: string;
-        type: "diff";
-        newText: string;
-        oldText: string | null;
-    })[] | null | undefined;
-    title?: string | null | undefined;
-    kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other" | null | undefined;
+        path?: string;
+        type?: "diff";
+        newText?: string;
+        oldText?: string;
+    })[];
+    title?: string;
+    kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
     locations?: {
-        path: string;
-        line?: number | null | undefined;
-    }[] | null | undefined;
+        path?: string;
+        line?: number;
+    }[];
     rawInput?: unknown;
+    toolCallId?: string;
+    sessionUpdate?: "tool_call_update";
 }, {
-    toolCallId: string;
-    sessionUpdate: "tool_call_update";
-    status?: "failed" | "in_progress" | "completed" | "pending" | null | undefined;
+    status?: "failed" | "in_progress" | "completed" | "pending";
     content?: ({
-        type: "content";
-        content: {
-            type: "text";
-            text: string;
+        type?: "content";
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
     } | {
-        path: string;
-        type: "diff";
-        newText: string;
-        oldText: string | null;
-    })[] | null | undefined;
-    title?: string | null | undefined;
-    kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other" | null | undefined;
+        path?: string;
+        type?: "diff";
+        newText?: string;
+        oldText?: string;
+    })[];
+    title?: string;
+    kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
     locations?: {
-        path: string;
-        line?: number | null | undefined;
-    }[] | null | undefined;
+        path?: string;
+        line?: number;
+    }[];
     rawInput?: unknown;
+    toolCallId?: string;
+    sessionUpdate?: "tool_call_update";
 }>, z.ZodObject<{
     entries: z.ZodArray<z.ZodObject<{
         content: z.ZodString;
         priority: z.ZodUnion<[z.ZodLiteral<"high">, z.ZodLiteral<"medium">, z.ZodLiteral<"low">]>;
         status: z.ZodUnion<[z.ZodLiteral<"pending">, z.ZodLiteral<"in_progress">, z.ZodLiteral<"completed">]>;
     }, "strip", z.ZodTypeAny, {
-        status: "in_progress" | "completed" | "pending";
-        content: string;
-        priority: "high" | "low" | "medium";
+        status?: "in_progress" | "completed" | "pending";
+        content?: string;
+        priority?: "medium" | "high" | "low";
     }, {
-        status: "in_progress" | "completed" | "pending";
-        content: string;
-        priority: "high" | "low" | "medium";
+        status?: "in_progress" | "completed" | "pending";
+        content?: string;
+        priority?: "medium" | "high" | "low";
     }>, "many">;
     sessionUpdate: z.ZodLiteral<"plan">;
 }, "strip", z.ZodTypeAny, {
-    entries: {
-        status: "in_progress" | "completed" | "pending";
-        content: string;
-        priority: "high" | "low" | "medium";
+    entries?: {
+        status?: "in_progress" | "completed" | "pending";
+        content?: string;
+        priority?: "medium" | "high" | "low";
     }[];
-    sessionUpdate: "plan";
+    sessionUpdate?: "plan";
 }, {
-    entries: {
-        status: "in_progress" | "completed" | "pending";
-        content: string;
-        priority: "high" | "low" | "medium";
+    entries?: {
+        status?: "in_progress" | "completed" | "pending";
+        content?: string;
+        priority?: "medium" | "high" | "low";
     }[];
-    sessionUpdate: "plan";
+    sessionUpdate?: "plan";
 }>]>;
 export declare const agentResponseSchema: z.ZodUnion<[z.ZodObject<{
     agentCapabilities: z.ZodObject<{
@@ -4196,85 +4196,85 @@ export declare const agentResponseSchema: z.ZodUnion<[z.ZodObject<{
             embeddedContext: z.ZodOptional<z.ZodBoolean>;
             image: z.ZodOptional<z.ZodBoolean>;
         }, "strip", z.ZodTypeAny, {
-            image?: boolean | undefined;
-            audio?: boolean | undefined;
-            embeddedContext?: boolean | undefined;
+            image?: boolean;
+            audio?: boolean;
+            embeddedContext?: boolean;
         }, {
-            image?: boolean | undefined;
-            audio?: boolean | undefined;
-            embeddedContext?: boolean | undefined;
+            image?: boolean;
+            audio?: boolean;
+            embeddedContext?: boolean;
         }>>;
     }, "strip", z.ZodTypeAny, {
-        loadSession?: boolean | undefined;
+        loadSession?: boolean;
         promptCapabilities?: {
-            image?: boolean | undefined;
-            audio?: boolean | undefined;
-            embeddedContext?: boolean | undefined;
-        } | undefined;
+            image?: boolean;
+            audio?: boolean;
+            embeddedContext?: boolean;
+        };
     }, {
-        loadSession?: boolean | undefined;
+        loadSession?: boolean;
         promptCapabilities?: {
-            image?: boolean | undefined;
-            audio?: boolean | undefined;
-            embeddedContext?: boolean | undefined;
-        } | undefined;
+            image?: boolean;
+            audio?: boolean;
+            embeddedContext?: boolean;
+        };
     }>;
     authMethods: z.ZodArray<z.ZodObject<{
         description: z.ZodNullable<z.ZodString>;
         id: z.ZodString;
         name: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        description: string | null;
-        id: string;
-        name: string;
+        id?: string;
+        name?: string;
+        description?: string;
     }, {
-        description: string | null;
-        id: string;
-        name: string;
+        id?: string;
+        name?: string;
+        description?: string;
     }>, "many">;
     protocolVersion: z.ZodNumber;
 }, "strip", z.ZodTypeAny, {
-    protocolVersion: number;
-    agentCapabilities: {
-        loadSession?: boolean | undefined;
+    protocolVersion?: number;
+    agentCapabilities?: {
+        loadSession?: boolean;
         promptCapabilities?: {
-            image?: boolean | undefined;
-            audio?: boolean | undefined;
-            embeddedContext?: boolean | undefined;
-        } | undefined;
+            image?: boolean;
+            audio?: boolean;
+            embeddedContext?: boolean;
+        };
     };
-    authMethods: {
-        description: string | null;
-        id: string;
-        name: string;
+    authMethods?: {
+        id?: string;
+        name?: string;
+        description?: string;
     }[];
 }, {
-    protocolVersion: number;
-    agentCapabilities: {
-        loadSession?: boolean | undefined;
+    protocolVersion?: number;
+    agentCapabilities?: {
+        loadSession?: boolean;
         promptCapabilities?: {
-            image?: boolean | undefined;
-            audio?: boolean | undefined;
-            embeddedContext?: boolean | undefined;
-        } | undefined;
+            image?: boolean;
+            audio?: boolean;
+            embeddedContext?: boolean;
+        };
     };
-    authMethods: {
-        description: string | null;
-        id: string;
-        name: string;
+    authMethods?: {
+        id?: string;
+        name?: string;
+        description?: string;
     }[];
 }>, z.ZodNull, z.ZodObject<{
     sessionId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    sessionId: string;
+    sessionId?: string;
 }, {
-    sessionId: string;
+    sessionId?: string;
 }>, z.ZodNull, z.ZodObject<{
     stopReason: z.ZodUnion<[z.ZodLiteral<"end_turn">, z.ZodLiteral<"max_tokens">, z.ZodLiteral<"refusal">, z.ZodLiteral<"cancelled">]>;
 }, "strip", z.ZodTypeAny, {
-    stopReason: "cancelled" | "end_turn" | "max_tokens" | "refusal";
+    stopReason?: "cancelled" | "end_turn" | "max_tokens" | "refusal";
 }, {
-    stopReason: "cancelled" | "end_turn" | "max_tokens" | "refusal";
+    stopReason?: "cancelled" | "end_turn" | "max_tokens" | "refusal";
 }>]>;
 export declare const requestPermissionRequestSchema: z.ZodObject<{
     options: z.ZodArray<z.ZodObject<{
@@ -4282,13 +4282,13 @@ export declare const requestPermissionRequestSchema: z.ZodObject<{
         name: z.ZodString;
         optionId: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        name: string;
-        kind: "allow_once" | "allow_always" | "reject_once" | "reject_always";
-        optionId: string;
+        name?: string;
+        kind?: "allow_once" | "allow_always" | "reject_once" | "reject_always";
+        optionId?: string;
     }, {
-        name: string;
-        kind: "allow_once" | "allow_always" | "reject_once" | "reject_always";
-        optionId: string;
+        name?: string;
+        kind?: "allow_once" | "allow_always" | "reject_once" | "reject_always";
+        optionId?: string;
     }>, "many">;
     sessionId: z.ZodString;
     toolCall: z.ZodObject<{
@@ -4299,115 +4299,115 @@ export declare const requestPermissionRequestSchema: z.ZodObject<{
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 text: z.ZodString;
                 type: z.ZodLiteral<"text">;
             }, "strip", z.ZodTypeAny, {
-                type: "text";
-                text: string;
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "text";
-                text: string;
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 data: z.ZodString;
                 mimeType: z.ZodString;
                 type: z.ZodLiteral<"image">;
             }, "strip", z.ZodTypeAny, {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 data: z.ZodString;
                 mimeType: z.ZodString;
                 type: z.ZodLiteral<"audio">;
             }, "strip", z.ZodTypeAny, {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -4417,220 +4417,220 @@ export declare const requestPermissionRequestSchema: z.ZodObject<{
                 type: z.ZodLiteral<"resource_link">;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 resource: z.ZodUnion<[z.ZodObject<{
                     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     text: z.ZodString;
                     uri: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }, {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }>, z.ZodObject<{
                     blob: z.ZodString;
                     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     uri: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }, {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }>]>;
                 type: z.ZodLiteral<"resource">;
             }, "strip", z.ZodTypeAny, {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>]>;
             type: z.ZodLiteral<"content">;
         }, "strip", z.ZodTypeAny, {
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         }, {
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         }>, z.ZodObject<{
             newText: z.ZodString;
@@ -4638,343 +4638,343 @@ export declare const requestPermissionRequestSchema: z.ZodObject<{
             path: z.ZodString;
             type: z.ZodLiteral<"diff">;
         }, "strip", z.ZodTypeAny, {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
         }, {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
         }>]>, "many">>;
         kind: z.ZodUnion<[z.ZodLiteral<"read">, z.ZodLiteral<"edit">, z.ZodLiteral<"delete">, z.ZodLiteral<"move">, z.ZodLiteral<"search">, z.ZodLiteral<"execute">, z.ZodLiteral<"think">, z.ZodLiteral<"fetch">, z.ZodLiteral<"other">]>;
         locations: z.ZodOptional<z.ZodArray<z.ZodObject<{
             line: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             path: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            path: string;
-            line?: number | null | undefined;
+            path?: string;
+            line?: number;
         }, {
-            path: string;
-            line?: number | null | undefined;
+            path?: string;
+            line?: number;
         }>, "many">>;
         rawInput: z.ZodOptional<z.ZodUnknown>;
         status: z.ZodUnion<[z.ZodLiteral<"pending">, z.ZodLiteral<"in_progress">, z.ZodLiteral<"completed">, z.ZodLiteral<"failed">]>;
         title: z.ZodString;
         toolCallId: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
     }, {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
     }>;
 }, "strip", z.ZodTypeAny, {
-    options: {
-        name: string;
-        kind: "allow_once" | "allow_always" | "reject_once" | "reject_always";
-        optionId: string;
+    options?: {
+        name?: string;
+        kind?: "allow_once" | "allow_always" | "reject_once" | "reject_always";
+        optionId?: string;
     }[];
-    sessionId: string;
-    toolCall: {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
+    sessionId?: string;
+    toolCall?: {
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
     };
 }, {
-    options: {
-        name: string;
-        kind: "allow_once" | "allow_always" | "reject_once" | "reject_always";
-        optionId: string;
+    options?: {
+        name?: string;
+        kind?: "allow_once" | "allow_always" | "reject_once" | "reject_always";
+        optionId?: string;
     }[];
-    sessionId: string;
-    toolCall: {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
+    sessionId?: string;
+    toolCall?: {
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
     };
 }>;
 export declare const initializeRequestSchema: z.ZodObject<{
@@ -4983,38 +4983,38 @@ export declare const initializeRequestSchema: z.ZodObject<{
             readTextFile: z.ZodBoolean;
             writeTextFile: z.ZodBoolean;
         }, "strip", z.ZodTypeAny, {
-            readTextFile: boolean;
-            writeTextFile: boolean;
+            readTextFile?: boolean;
+            writeTextFile?: boolean;
         }, {
-            readTextFile: boolean;
-            writeTextFile: boolean;
+            readTextFile?: boolean;
+            writeTextFile?: boolean;
         }>;
     }, "strip", z.ZodTypeAny, {
-        fs: {
-            readTextFile: boolean;
-            writeTextFile: boolean;
+        fs?: {
+            readTextFile?: boolean;
+            writeTextFile?: boolean;
         };
     }, {
-        fs: {
-            readTextFile: boolean;
-            writeTextFile: boolean;
+        fs?: {
+            readTextFile?: boolean;
+            writeTextFile?: boolean;
         };
     }>;
     protocolVersion: z.ZodNumber;
 }, "strip", z.ZodTypeAny, {
-    protocolVersion: number;
-    clientCapabilities: {
-        fs: {
-            readTextFile: boolean;
-            writeTextFile: boolean;
+    protocolVersion?: number;
+    clientCapabilities?: {
+        fs?: {
+            readTextFile?: boolean;
+            writeTextFile?: boolean;
         };
     };
 }, {
-    protocolVersion: number;
-    clientCapabilities: {
-        fs: {
-            readTextFile: boolean;
-            writeTextFile: boolean;
+    protocolVersion?: number;
+    clientCapabilities?: {
+        fs?: {
+            readTextFile?: boolean;
+            writeTextFile?: boolean;
         };
     };
 }>;
@@ -5027,115 +5027,115 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             text: z.ZodString;
             type: z.ZodLiteral<"text">;
         }, "strip", z.ZodTypeAny, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"image">;
         }, "strip", z.ZodTypeAny, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"audio">;
         }, "strip", z.ZodTypeAny, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -5145,221 +5145,221 @@ export declare const sessionNotificationSchema: z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             resource: z.ZodUnion<[z.ZodObject<{
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 text: z.ZodString;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }>, z.ZodObject<{
                 blob: z.ZodString;
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }>]>;
             type: z.ZodLiteral<"resource">;
         }, "strip", z.ZodTypeAny, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>]>;
         sessionUpdate: z.ZodLiteral<"user_message_chunk">;
     }, "strip", z.ZodTypeAny, {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "user_message_chunk";
+        sessionUpdate?: "user_message_chunk";
     }, {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "user_message_chunk";
+        sessionUpdate?: "user_message_chunk";
     }>, z.ZodObject<{
         content: z.ZodUnion<[z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
@@ -5367,115 +5367,115 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             text: z.ZodString;
             type: z.ZodLiteral<"text">;
         }, "strip", z.ZodTypeAny, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"image">;
         }, "strip", z.ZodTypeAny, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"audio">;
         }, "strip", z.ZodTypeAny, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -5485,221 +5485,221 @@ export declare const sessionNotificationSchema: z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             resource: z.ZodUnion<[z.ZodObject<{
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 text: z.ZodString;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }>, z.ZodObject<{
                 blob: z.ZodString;
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }>]>;
             type: z.ZodLiteral<"resource">;
         }, "strip", z.ZodTypeAny, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>]>;
         sessionUpdate: z.ZodLiteral<"agent_message_chunk">;
     }, "strip", z.ZodTypeAny, {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_message_chunk";
+        sessionUpdate?: "agent_message_chunk";
     }, {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_message_chunk";
+        sessionUpdate?: "agent_message_chunk";
     }>, z.ZodObject<{
         content: z.ZodUnion<[z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
@@ -5707,115 +5707,115 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             text: z.ZodString;
             type: z.ZodLiteral<"text">;
         }, "strip", z.ZodTypeAny, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"image">;
         }, "strip", z.ZodTypeAny, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"audio">;
         }, "strip", z.ZodTypeAny, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -5825,221 +5825,221 @@ export declare const sessionNotificationSchema: z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             resource: z.ZodUnion<[z.ZodObject<{
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 text: z.ZodString;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }>, z.ZodObject<{
                 blob: z.ZodString;
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }>]>;
             type: z.ZodLiteral<"resource">;
         }, "strip", z.ZodTypeAny, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>]>;
         sessionUpdate: z.ZodLiteral<"agent_thought_chunk">;
     }, "strip", z.ZodTypeAny, {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_thought_chunk";
+        sessionUpdate?: "agent_thought_chunk";
     }, {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_thought_chunk";
+        sessionUpdate?: "agent_thought_chunk";
     }>, z.ZodObject<{
         content: z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodObject<{
             content: z.ZodUnion<[z.ZodObject<{
@@ -6048,115 +6048,115 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 text: z.ZodString;
                 type: z.ZodLiteral<"text">;
             }, "strip", z.ZodTypeAny, {
-                type: "text";
-                text: string;
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "text";
-                text: string;
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 data: z.ZodString;
                 mimeType: z.ZodString;
                 type: z.ZodLiteral<"image">;
             }, "strip", z.ZodTypeAny, {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 data: z.ZodString;
                 mimeType: z.ZodString;
                 type: z.ZodLiteral<"audio">;
             }, "strip", z.ZodTypeAny, {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -6166,220 +6166,220 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 type: z.ZodLiteral<"resource_link">;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 resource: z.ZodUnion<[z.ZodObject<{
                     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     text: z.ZodString;
                     uri: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }, {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }>, z.ZodObject<{
                     blob: z.ZodString;
                     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     uri: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }, {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }>]>;
                 type: z.ZodLiteral<"resource">;
             }, "strip", z.ZodTypeAny, {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>]>;
             type: z.ZodLiteral<"content">;
         }, "strip", z.ZodTypeAny, {
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         }, {
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         }>, z.ZodObject<{
             newText: z.ZodString;
@@ -6387,26 +6387,26 @@ export declare const sessionNotificationSchema: z.ZodObject<{
             path: z.ZodString;
             type: z.ZodLiteral<"diff">;
         }, "strip", z.ZodTypeAny, {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
         }, {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
         }>]>, "many">>;
         kind: z.ZodUnion<[z.ZodLiteral<"read">, z.ZodLiteral<"edit">, z.ZodLiteral<"delete">, z.ZodLiteral<"move">, z.ZodLiteral<"search">, z.ZodLiteral<"execute">, z.ZodLiteral<"think">, z.ZodLiteral<"fetch">, z.ZodLiteral<"other">]>;
         locations: z.ZodOptional<z.ZodArray<z.ZodObject<{
             line: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             path: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            path: string;
-            line?: number | null | undefined;
+            path?: string;
+            line?: number;
         }, {
-            path: string;
-            line?: number | null | undefined;
+            path?: string;
+            line?: number;
         }>, "many">>;
         rawInput: z.ZodOptional<z.ZodUnknown>;
         sessionUpdate: z.ZodLiteral<"tool_call">;
@@ -6414,155 +6414,155 @@ export declare const sessionNotificationSchema: z.ZodObject<{
         title: z.ZodString;
         toolCallId: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
-        sessionUpdate: "tool_call";
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call";
     }, {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
-        sessionUpdate: "tool_call";
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call";
     }>, z.ZodObject<{
         content: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodObject<{
             content: z.ZodUnion<[z.ZodObject<{
@@ -6571,115 +6571,115 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 text: z.ZodString;
                 type: z.ZodLiteral<"text">;
             }, "strip", z.ZodTypeAny, {
-                type: "text";
-                text: string;
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "text";
-                text: string;
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 data: z.ZodString;
                 mimeType: z.ZodString;
                 type: z.ZodLiteral<"image">;
             }, "strip", z.ZodTypeAny, {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 data: z.ZodString;
                 mimeType: z.ZodString;
                 type: z.ZodLiteral<"audio">;
             }, "strip", z.ZodTypeAny, {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -6689,220 +6689,220 @@ export declare const sessionNotificationSchema: z.ZodObject<{
                 type: z.ZodLiteral<"resource_link">;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 resource: z.ZodUnion<[z.ZodObject<{
                     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     text: z.ZodString;
                     uri: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }, {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }>, z.ZodObject<{
                     blob: z.ZodString;
                     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     uri: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }, {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }>]>;
                 type: z.ZodLiteral<"resource">;
             }, "strip", z.ZodTypeAny, {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>]>;
             type: z.ZodLiteral<"content">;
         }, "strip", z.ZodTypeAny, {
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         }, {
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         }>, z.ZodObject<{
             newText: z.ZodString;
@@ -6910,26 +6910,26 @@ export declare const sessionNotificationSchema: z.ZodObject<{
             path: z.ZodString;
             type: z.ZodLiteral<"diff">;
         }, "strip", z.ZodTypeAny, {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
         }, {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
         }>]>, "many">>>;
         kind: z.ZodNullable<z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"read">, z.ZodLiteral<"edit">, z.ZodLiteral<"delete">, z.ZodLiteral<"move">, z.ZodLiteral<"search">, z.ZodLiteral<"execute">, z.ZodLiteral<"think">, z.ZodLiteral<"fetch">, z.ZodLiteral<"other">]>>>;
         locations: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodObject<{
             line: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             path: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            path: string;
-            line?: number | null | undefined;
+            path?: string;
+            line?: number;
         }, {
-            path: string;
-            line?: number | null | undefined;
+            path?: string;
+            line?: number;
         }>, "many">>>;
         rawInput: z.ZodOptional<z.ZodUnknown>;
         sessionUpdate: z.ZodLiteral<"tool_call_update">;
@@ -6937,894 +6937,894 @@ export declare const sessionNotificationSchema: z.ZodObject<{
         title: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         toolCallId: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        toolCallId: string;
-        sessionUpdate: "tool_call_update";
-        status?: "failed" | "in_progress" | "completed" | "pending" | null | undefined;
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | null | undefined;
-        title?: string | null | undefined;
-        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other" | null | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | null | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call_update";
     }, {
-        toolCallId: string;
-        sessionUpdate: "tool_call_update";
-        status?: "failed" | "in_progress" | "completed" | "pending" | null | undefined;
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | null | undefined;
-        title?: string | null | undefined;
-        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other" | null | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | null | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call_update";
     }>, z.ZodObject<{
         entries: z.ZodArray<z.ZodObject<{
             content: z.ZodString;
             priority: z.ZodUnion<[z.ZodLiteral<"high">, z.ZodLiteral<"medium">, z.ZodLiteral<"low">]>;
             status: z.ZodUnion<[z.ZodLiteral<"pending">, z.ZodLiteral<"in_progress">, z.ZodLiteral<"completed">]>;
         }, "strip", z.ZodTypeAny, {
-            status: "in_progress" | "completed" | "pending";
-            content: string;
-            priority: "high" | "low" | "medium";
+            status?: "in_progress" | "completed" | "pending";
+            content?: string;
+            priority?: "medium" | "high" | "low";
         }, {
-            status: "in_progress" | "completed" | "pending";
-            content: string;
-            priority: "high" | "low" | "medium";
+            status?: "in_progress" | "completed" | "pending";
+            content?: string;
+            priority?: "medium" | "high" | "low";
         }>, "many">;
         sessionUpdate: z.ZodLiteral<"plan">;
     }, "strip", z.ZodTypeAny, {
-        entries: {
-            status: "in_progress" | "completed" | "pending";
-            content: string;
-            priority: "high" | "low" | "medium";
+        entries?: {
+            status?: "in_progress" | "completed" | "pending";
+            content?: string;
+            priority?: "medium" | "high" | "low";
         }[];
-        sessionUpdate: "plan";
+        sessionUpdate?: "plan";
     }, {
-        entries: {
-            status: "in_progress" | "completed" | "pending";
-            content: string;
-            priority: "high" | "low" | "medium";
+        entries?: {
+            status?: "in_progress" | "completed" | "pending";
+            content?: string;
+            priority?: "medium" | "high" | "low";
         }[];
-        sessionUpdate: "plan";
+        sessionUpdate?: "plan";
     }>]>;
 }, "strip", z.ZodTypeAny, {
-    update: {
-        content: {
-            type: "text";
-            text: string;
+    update?: {
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "user_message_chunk";
+        sessionUpdate?: "user_message_chunk";
     } | {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_message_chunk";
+        sessionUpdate?: "agent_message_chunk";
     } | {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_thought_chunk";
+        sessionUpdate?: "agent_thought_chunk";
     } | {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
-        sessionUpdate: "tool_call";
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            };
-        } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
-        locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
-        rawInput?: unknown;
-    } | {
-        toolCallId: string;
-        sessionUpdate: "tool_call_update";
-        status?: "failed" | "in_progress" | "completed" | "pending" | null | undefined;
-        content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            } | {
-                type: "image";
-                data: string;
-                mimeType: string;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
-            } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
-                } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 };
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | null | undefined;
-        title?: string | null | undefined;
-        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other" | null | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | null | undefined;
-        rawInput?: unknown;
-    } | {
-        entries: {
-            status: "in_progress" | "completed" | "pending";
-            content: string;
-            priority: "high" | "low" | "medium";
+            path?: string;
+            line?: number;
         }[];
-        sessionUpdate: "plan";
+        rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call";
+    } | {
+        status?: "failed" | "in_progress" | "completed" | "pending";
+        content?: ({
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "image";
+                data?: string;
+                mimeType?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
+                } | {
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
+                };
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            };
+        } | {
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
+        locations?: {
+            path?: string;
+            line?: number;
+        }[];
+        rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call_update";
+    } | {
+        entries?: {
+            status?: "in_progress" | "completed" | "pending";
+            content?: string;
+            priority?: "medium" | "high" | "low";
+        }[];
+        sessionUpdate?: "plan";
     };
-    sessionId: string;
+    sessionId?: string;
 }, {
-    update: {
-        content: {
-            type: "text";
-            text: string;
+    update?: {
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "user_message_chunk";
+        sessionUpdate?: "user_message_chunk";
     } | {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_message_chunk";
+        sessionUpdate?: "agent_message_chunk";
     } | {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_thought_chunk";
+        sessionUpdate?: "agent_thought_chunk";
     } | {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
-        sessionUpdate: "tool_call";
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            };
-        } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
-        locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
-        rawInput?: unknown;
-    } | {
-        toolCallId: string;
-        sessionUpdate: "tool_call_update";
-        status?: "failed" | "in_progress" | "completed" | "pending" | null | undefined;
-        content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            } | {
-                type: "image";
-                data: string;
-                mimeType: string;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
-            } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
-                } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 };
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | null | undefined;
-        title?: string | null | undefined;
-        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other" | null | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | null | undefined;
-        rawInput?: unknown;
-    } | {
-        entries: {
-            status: "in_progress" | "completed" | "pending";
-            content: string;
-            priority: "high" | "low" | "medium";
+            path?: string;
+            line?: number;
         }[];
-        sessionUpdate: "plan";
+        rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call";
+    } | {
+        status?: "failed" | "in_progress" | "completed" | "pending";
+        content?: ({
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "image";
+                data?: string;
+                mimeType?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
+                } | {
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
+                };
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            };
+        } | {
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
+        locations?: {
+            path?: string;
+            line?: number;
+        }[];
+        rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call_update";
+    } | {
+        entries?: {
+            status?: "in_progress" | "completed" | "pending";
+            content?: string;
+            priority?: "medium" | "high" | "low";
+        }[];
+        sessionUpdate?: "plan";
     };
-    sessionId: string;
+    sessionId?: string;
 }>;
 export declare const clientRequestSchema: z.ZodUnion<[z.ZodObject<{
     content: z.ZodString;
     path: z.ZodString;
     sessionId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    path: string;
-    content: string;
-    sessionId: string;
+    path?: string;
+    content?: string;
+    sessionId?: string;
 }, {
-    path: string;
-    content: string;
-    sessionId: string;
+    path?: string;
+    content?: string;
+    sessionId?: string;
 }>, z.ZodObject<{
     limit: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
     line: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
     path: z.ZodString;
     sessionId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    path: string;
-    sessionId: string;
-    line?: number | null | undefined;
-    limit?: number | null | undefined;
+    path?: string;
+    line?: number;
+    sessionId?: string;
+    limit?: number;
 }, {
-    path: string;
-    sessionId: string;
-    line?: number | null | undefined;
-    limit?: number | null | undefined;
+    path?: string;
+    line?: number;
+    sessionId?: string;
+    limit?: number;
 }>, z.ZodObject<{
     options: z.ZodArray<z.ZodObject<{
         kind: z.ZodUnion<[z.ZodLiteral<"allow_once">, z.ZodLiteral<"allow_always">, z.ZodLiteral<"reject_once">, z.ZodLiteral<"reject_always">]>;
         name: z.ZodString;
         optionId: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        name: string;
-        kind: "allow_once" | "allow_always" | "reject_once" | "reject_always";
-        optionId: string;
+        name?: string;
+        kind?: "allow_once" | "allow_always" | "reject_once" | "reject_always";
+        optionId?: string;
     }, {
-        name: string;
-        kind: "allow_once" | "allow_always" | "reject_once" | "reject_always";
-        optionId: string;
+        name?: string;
+        kind?: "allow_once" | "allow_always" | "reject_once" | "reject_always";
+        optionId?: string;
     }>, "many">;
     sessionId: z.ZodString;
     toolCall: z.ZodObject<{
@@ -7835,115 +7835,115 @@ export declare const clientRequestSchema: z.ZodUnion<[z.ZodObject<{
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 text: z.ZodString;
                 type: z.ZodLiteral<"text">;
             }, "strip", z.ZodTypeAny, {
-                type: "text";
-                text: string;
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "text";
-                text: string;
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 data: z.ZodString;
                 mimeType: z.ZodString;
                 type: z.ZodLiteral<"image">;
             }, "strip", z.ZodTypeAny, {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 data: z.ZodString;
                 mimeType: z.ZodString;
                 type: z.ZodLiteral<"audio">;
             }, "strip", z.ZodTypeAny, {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -7953,220 +7953,220 @@ export declare const clientRequestSchema: z.ZodUnion<[z.ZodObject<{
                 type: z.ZodLiteral<"resource_link">;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 resource: z.ZodUnion<[z.ZodObject<{
                     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     text: z.ZodString;
                     uri: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }, {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }>, z.ZodObject<{
                     blob: z.ZodString;
                     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     uri: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }, {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }>]>;
                 type: z.ZodLiteral<"resource">;
             }, "strip", z.ZodTypeAny, {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>]>;
             type: z.ZodLiteral<"content">;
         }, "strip", z.ZodTypeAny, {
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         }, {
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         }>, z.ZodObject<{
             newText: z.ZodString;
@@ -8174,343 +8174,343 @@ export declare const clientRequestSchema: z.ZodUnion<[z.ZodObject<{
             path: z.ZodString;
             type: z.ZodLiteral<"diff">;
         }, "strip", z.ZodTypeAny, {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
         }, {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
         }>]>, "many">>;
         kind: z.ZodUnion<[z.ZodLiteral<"read">, z.ZodLiteral<"edit">, z.ZodLiteral<"delete">, z.ZodLiteral<"move">, z.ZodLiteral<"search">, z.ZodLiteral<"execute">, z.ZodLiteral<"think">, z.ZodLiteral<"fetch">, z.ZodLiteral<"other">]>;
         locations: z.ZodOptional<z.ZodArray<z.ZodObject<{
             line: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             path: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            path: string;
-            line?: number | null | undefined;
+            path?: string;
+            line?: number;
         }, {
-            path: string;
-            line?: number | null | undefined;
+            path?: string;
+            line?: number;
         }>, "many">>;
         rawInput: z.ZodOptional<z.ZodUnknown>;
         status: z.ZodUnion<[z.ZodLiteral<"pending">, z.ZodLiteral<"in_progress">, z.ZodLiteral<"completed">, z.ZodLiteral<"failed">]>;
         title: z.ZodString;
         toolCallId: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
     }, {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
     }>;
 }, "strip", z.ZodTypeAny, {
-    options: {
-        name: string;
-        kind: "allow_once" | "allow_always" | "reject_once" | "reject_always";
-        optionId: string;
+    options?: {
+        name?: string;
+        kind?: "allow_once" | "allow_always" | "reject_once" | "reject_always";
+        optionId?: string;
     }[];
-    sessionId: string;
-    toolCall: {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
+    sessionId?: string;
+    toolCall?: {
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
     };
 }, {
-    options: {
-        name: string;
-        kind: "allow_once" | "allow_always" | "reject_once" | "reject_always";
-        optionId: string;
+    options?: {
+        name?: string;
+        kind?: "allow_once" | "allow_always" | "reject_once" | "reject_always";
+        optionId?: string;
     }[];
-    sessionId: string;
-    toolCall: {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
+    sessionId?: string;
+    toolCall?: {
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
     };
 }>]>;
 export declare const agentRequestSchema: z.ZodUnion<[z.ZodObject<{
@@ -8519,46 +8519,46 @@ export declare const agentRequestSchema: z.ZodUnion<[z.ZodObject<{
             readTextFile: z.ZodBoolean;
             writeTextFile: z.ZodBoolean;
         }, "strip", z.ZodTypeAny, {
-            readTextFile: boolean;
-            writeTextFile: boolean;
+            readTextFile?: boolean;
+            writeTextFile?: boolean;
         }, {
-            readTextFile: boolean;
-            writeTextFile: boolean;
+            readTextFile?: boolean;
+            writeTextFile?: boolean;
         }>;
     }, "strip", z.ZodTypeAny, {
-        fs: {
-            readTextFile: boolean;
-            writeTextFile: boolean;
+        fs?: {
+            readTextFile?: boolean;
+            writeTextFile?: boolean;
         };
     }, {
-        fs: {
-            readTextFile: boolean;
-            writeTextFile: boolean;
+        fs?: {
+            readTextFile?: boolean;
+            writeTextFile?: boolean;
         };
     }>;
     protocolVersion: z.ZodNumber;
 }, "strip", z.ZodTypeAny, {
-    protocolVersion: number;
-    clientCapabilities: {
-        fs: {
-            readTextFile: boolean;
-            writeTextFile: boolean;
+    protocolVersion?: number;
+    clientCapabilities?: {
+        fs?: {
+            readTextFile?: boolean;
+            writeTextFile?: boolean;
         };
     };
 }, {
-    protocolVersion: number;
-    clientCapabilities: {
-        fs: {
-            readTextFile: boolean;
-            writeTextFile: boolean;
+    protocolVersion?: number;
+    clientCapabilities?: {
+        fs?: {
+            readTextFile?: boolean;
+            writeTextFile?: boolean;
         };
     };
 }>, z.ZodObject<{
     methodId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    methodId: string;
+    methodId?: string;
 }, {
-    methodId: string;
+    methodId?: string;
 }>, z.ZodObject<{
     cwd: z.ZodString;
     mcpServers: z.ZodArray<z.ZodObject<{
@@ -8568,51 +8568,51 @@ export declare const agentRequestSchema: z.ZodUnion<[z.ZodObject<{
             name: z.ZodString;
             value: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            value: string;
-            name: string;
+            value?: string;
+            name?: string;
         }, {
-            value: string;
-            name: string;
+            value?: string;
+            name?: string;
         }>, "many">;
         name: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }, {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }>, "many">;
 }, "strip", z.ZodTypeAny, {
-    cwd: string;
-    mcpServers: {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+    cwd?: string;
+    mcpServers?: {
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }[];
 }, {
-    cwd: string;
-    mcpServers: {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+    cwd?: string;
+    mcpServers?: {
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }[];
 }>, z.ZodObject<{
     cwd: z.ZodString;
@@ -8623,54 +8623,54 @@ export declare const agentRequestSchema: z.ZodUnion<[z.ZodObject<{
             name: z.ZodString;
             value: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            value: string;
-            name: string;
+            value?: string;
+            name?: string;
         }, {
-            value: string;
-            name: string;
+            value?: string;
+            name?: string;
         }>, "many">;
         name: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }, {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }>, "many">;
     sessionId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    sessionId: string;
-    cwd: string;
-    mcpServers: {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+    sessionId?: string;
+    cwd?: string;
+    mcpServers?: {
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }[];
 }, {
-    sessionId: string;
-    cwd: string;
-    mcpServers: {
-        command: string;
-        name: string;
-        env: {
-            value: string;
-            name: string;
+    sessionId?: string;
+    cwd?: string;
+    mcpServers?: {
+        name?: string;
+        env?: {
+            value?: string;
+            name?: string;
         }[];
-        args: string[];
+        command?: string;
+        args?: string[];
     }[];
 }>, z.ZodObject<{
     prompt: z.ZodArray<z.ZodUnion<[z.ZodObject<{
@@ -8679,115 +8679,115 @@ export declare const agentRequestSchema: z.ZodUnion<[z.ZodObject<{
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         text: z.ZodString;
         type: z.ZodLiteral<"text">;
     }, "strip", z.ZodTypeAny, {
-        type: "text";
-        text: string;
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "text";
-        text: string;
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         data: z.ZodString;
         mimeType: z.ZodString;
         type: z.ZodLiteral<"image">;
     }, "strip", z.ZodTypeAny, {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         data: z.ZodString;
         mimeType: z.ZodString;
         type: z.ZodLiteral<"audio">;
     }, "strip", z.ZodTypeAny, {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -8797,221 +8797,221 @@ export declare const agentRequestSchema: z.ZodUnion<[z.ZodObject<{
         type: z.ZodLiteral<"resource_link">;
         uri: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>, z.ZodObject<{
         annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
             audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
             lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         }, "strip", z.ZodTypeAny, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }, {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
         }>>>;
         resource: z.ZodUnion<[z.ZodObject<{
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             text: z.ZodString;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         }, {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         }>, z.ZodObject<{
             blob: z.ZodString;
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         }, {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         }>]>;
         type: z.ZodLiteral<"resource">;
     }, "strip", z.ZodTypeAny, {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }, {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     }>]>, "many">;
     sessionId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    prompt: ({
-        type: "text";
-        text: string;
+    prompt?: ({
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     })[];
-    sessionId: string;
+    sessionId?: string;
 }, {
-    prompt: ({
-        type: "text";
-        text: string;
+    prompt?: ({
+        type?: "text";
+        text?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "image";
-        data: string;
-        mimeType: string;
+        type?: "image";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "audio";
-        data: string;
-        mimeType: string;
+        type?: "audio";
+        data?: string;
+        mimeType?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource_link";
-        name: string;
-        uri: string;
-        description?: string | null | undefined;
-        title?: string | null | undefined;
-        mimeType?: string | null | undefined;
+        type?: "resource_link";
+        name?: string;
+        title?: string;
+        size?: number;
+        description?: string;
+        mimeType?: string;
+        uri?: string;
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
-        size?: number | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     } | {
-        type: "resource";
-        resource: {
-            text: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+        type?: "resource";
+        resource?: {
+            text?: string;
+            mimeType?: string;
+            uri?: string;
         } | {
-            blob: string;
-            uri: string;
-            mimeType?: string | null | undefined;
+            blob?: string;
+            mimeType?: string;
+            uri?: string;
         };
         annotations?: {
-            audience?: ("user" | "assistant")[] | null | undefined;
-            priority?: number | null | undefined;
-            lastModified?: string | null | undefined;
-        } | null | undefined;
+            audience?: ("user" | "assistant")[];
+            priority?: number;
+            lastModified?: string;
+        };
     })[];
-    sessionId: string;
+    sessionId?: string;
 }>]>;
 export declare const agentNotificationSchema: z.ZodObject<{
     sessionId: z.ZodString;
@@ -9022,115 +9022,115 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             text: z.ZodString;
             type: z.ZodLiteral<"text">;
         }, "strip", z.ZodTypeAny, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"image">;
         }, "strip", z.ZodTypeAny, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"audio">;
         }, "strip", z.ZodTypeAny, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -9140,221 +9140,221 @@ export declare const agentNotificationSchema: z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             resource: z.ZodUnion<[z.ZodObject<{
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 text: z.ZodString;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }>, z.ZodObject<{
                 blob: z.ZodString;
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }>]>;
             type: z.ZodLiteral<"resource">;
         }, "strip", z.ZodTypeAny, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>]>;
         sessionUpdate: z.ZodLiteral<"user_message_chunk">;
     }, "strip", z.ZodTypeAny, {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "user_message_chunk";
+        sessionUpdate?: "user_message_chunk";
     }, {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "user_message_chunk";
+        sessionUpdate?: "user_message_chunk";
     }>, z.ZodObject<{
         content: z.ZodUnion<[z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
@@ -9362,115 +9362,115 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             text: z.ZodString;
             type: z.ZodLiteral<"text">;
         }, "strip", z.ZodTypeAny, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"image">;
         }, "strip", z.ZodTypeAny, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"audio">;
         }, "strip", z.ZodTypeAny, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -9480,221 +9480,221 @@ export declare const agentNotificationSchema: z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             resource: z.ZodUnion<[z.ZodObject<{
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 text: z.ZodString;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }>, z.ZodObject<{
                 blob: z.ZodString;
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }>]>;
             type: z.ZodLiteral<"resource">;
         }, "strip", z.ZodTypeAny, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>]>;
         sessionUpdate: z.ZodLiteral<"agent_message_chunk">;
     }, "strip", z.ZodTypeAny, {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_message_chunk";
+        sessionUpdate?: "agent_message_chunk";
     }, {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_message_chunk";
+        sessionUpdate?: "agent_message_chunk";
     }>, z.ZodObject<{
         content: z.ZodUnion<[z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
@@ -9702,115 +9702,115 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             text: z.ZodString;
             type: z.ZodLiteral<"text">;
         }, "strip", z.ZodTypeAny, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "text";
-            text: string;
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"image">;
         }, "strip", z.ZodTypeAny, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             data: z.ZodString;
             mimeType: z.ZodString;
             type: z.ZodLiteral<"audio">;
         }, "strip", z.ZodTypeAny, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -9820,221 +9820,221 @@ export declare const agentNotificationSchema: z.ZodObject<{
             type: z.ZodLiteral<"resource_link">;
             uri: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>, z.ZodObject<{
             annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                 audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                 lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             }, "strip", z.ZodTypeAny, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }, {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
             }>>>;
             resource: z.ZodUnion<[z.ZodObject<{
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 text: z.ZodString;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             }>, z.ZodObject<{
                 blob: z.ZodString;
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }, {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             }>]>;
             type: z.ZodLiteral<"resource">;
         }, "strip", z.ZodTypeAny, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }, {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         }>]>;
         sessionUpdate: z.ZodLiteral<"agent_thought_chunk">;
     }, "strip", z.ZodTypeAny, {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_thought_chunk";
+        sessionUpdate?: "agent_thought_chunk";
     }, {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_thought_chunk";
+        sessionUpdate?: "agent_thought_chunk";
     }>, z.ZodObject<{
         content: z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodObject<{
             content: z.ZodUnion<[z.ZodObject<{
@@ -10043,115 +10043,115 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 text: z.ZodString;
                 type: z.ZodLiteral<"text">;
             }, "strip", z.ZodTypeAny, {
-                type: "text";
-                text: string;
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "text";
-                text: string;
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 data: z.ZodString;
                 mimeType: z.ZodString;
                 type: z.ZodLiteral<"image">;
             }, "strip", z.ZodTypeAny, {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 data: z.ZodString;
                 mimeType: z.ZodString;
                 type: z.ZodLiteral<"audio">;
             }, "strip", z.ZodTypeAny, {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -10161,220 +10161,220 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 type: z.ZodLiteral<"resource_link">;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 resource: z.ZodUnion<[z.ZodObject<{
                     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     text: z.ZodString;
                     uri: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }, {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }>, z.ZodObject<{
                     blob: z.ZodString;
                     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     uri: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }, {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }>]>;
                 type: z.ZodLiteral<"resource">;
             }, "strip", z.ZodTypeAny, {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>]>;
             type: z.ZodLiteral<"content">;
         }, "strip", z.ZodTypeAny, {
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         }, {
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         }>, z.ZodObject<{
             newText: z.ZodString;
@@ -10382,26 +10382,26 @@ export declare const agentNotificationSchema: z.ZodObject<{
             path: z.ZodString;
             type: z.ZodLiteral<"diff">;
         }, "strip", z.ZodTypeAny, {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
         }, {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
         }>]>, "many">>;
         kind: z.ZodUnion<[z.ZodLiteral<"read">, z.ZodLiteral<"edit">, z.ZodLiteral<"delete">, z.ZodLiteral<"move">, z.ZodLiteral<"search">, z.ZodLiteral<"execute">, z.ZodLiteral<"think">, z.ZodLiteral<"fetch">, z.ZodLiteral<"other">]>;
         locations: z.ZodOptional<z.ZodArray<z.ZodObject<{
             line: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             path: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            path: string;
-            line?: number | null | undefined;
+            path?: string;
+            line?: number;
         }, {
-            path: string;
-            line?: number | null | undefined;
+            path?: string;
+            line?: number;
         }>, "many">>;
         rawInput: z.ZodOptional<z.ZodUnknown>;
         sessionUpdate: z.ZodLiteral<"tool_call">;
@@ -10409,155 +10409,155 @@ export declare const agentNotificationSchema: z.ZodObject<{
         title: z.ZodString;
         toolCallId: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
-        sessionUpdate: "tool_call";
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call";
     }, {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
-        sessionUpdate: "tool_call";
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call";
     }>, z.ZodObject<{
         content: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodObject<{
             content: z.ZodUnion<[z.ZodObject<{
@@ -10566,115 +10566,115 @@ export declare const agentNotificationSchema: z.ZodObject<{
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 text: z.ZodString;
                 type: z.ZodLiteral<"text">;
             }, "strip", z.ZodTypeAny, {
-                type: "text";
-                text: string;
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "text";
-                text: string;
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 data: z.ZodString;
                 mimeType: z.ZodString;
                 type: z.ZodLiteral<"image">;
             }, "strip", z.ZodTypeAny, {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 data: z.ZodString;
                 mimeType: z.ZodString;
                 type: z.ZodLiteral<"audio">;
             }, "strip", z.ZodTypeAny, {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                 mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -10684,220 +10684,220 @@ export declare const agentNotificationSchema: z.ZodObject<{
                 type: z.ZodLiteral<"resource_link">;
                 uri: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>, z.ZodObject<{
                 annotations: z.ZodNullable<z.ZodOptional<z.ZodObject<{
                     audience: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodUnion<[z.ZodLiteral<"assistant">, z.ZodLiteral<"user">]>, "many">>>;
                     lastModified: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     priority: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
                 }, "strip", z.ZodTypeAny, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }, {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 }>>>;
                 resource: z.ZodUnion<[z.ZodObject<{
                     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     text: z.ZodString;
                     uri: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }, {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }>, z.ZodObject<{
                     blob: z.ZodString;
                     mimeType: z.ZodNullable<z.ZodOptional<z.ZodString>>;
                     uri: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }, {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 }>]>;
                 type: z.ZodLiteral<"resource">;
             }, "strip", z.ZodTypeAny, {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }, {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             }>]>;
             type: z.ZodLiteral<"content">;
         }, "strip", z.ZodTypeAny, {
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         }, {
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         }>, z.ZodObject<{
             newText: z.ZodString;
@@ -10905,26 +10905,26 @@ export declare const agentNotificationSchema: z.ZodObject<{
             path: z.ZodString;
             type: z.ZodLiteral<"diff">;
         }, "strip", z.ZodTypeAny, {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
         }, {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
         }>]>, "many">>>;
         kind: z.ZodNullable<z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"read">, z.ZodLiteral<"edit">, z.ZodLiteral<"delete">, z.ZodLiteral<"move">, z.ZodLiteral<"search">, z.ZodLiteral<"execute">, z.ZodLiteral<"think">, z.ZodLiteral<"fetch">, z.ZodLiteral<"other">]>>>;
         locations: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodObject<{
             line: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
             path: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            path: string;
-            line?: number | null | undefined;
+            path?: string;
+            line?: number;
         }, {
-            path: string;
-            line?: number | null | undefined;
+            path?: string;
+            line?: number;
         }>, "many">>>;
         rawInput: z.ZodOptional<z.ZodUnknown>;
         sessionUpdate: z.ZodLiteral<"tool_call_update">;
@@ -10932,851 +10932,851 @@ export declare const agentNotificationSchema: z.ZodObject<{
         title: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         toolCallId: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        toolCallId: string;
-        sessionUpdate: "tool_call_update";
-        status?: "failed" | "in_progress" | "completed" | "pending" | null | undefined;
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | null | undefined;
-        title?: string | null | undefined;
-        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other" | null | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | null | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call_update";
     }, {
-        toolCallId: string;
-        sessionUpdate: "tool_call_update";
-        status?: "failed" | "in_progress" | "completed" | "pending" | null | undefined;
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | null | undefined;
-        title?: string | null | undefined;
-        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other" | null | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | null | undefined;
+            path?: string;
+            line?: number;
+        }[];
         rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call_update";
     }>, z.ZodObject<{
         entries: z.ZodArray<z.ZodObject<{
             content: z.ZodString;
             priority: z.ZodUnion<[z.ZodLiteral<"high">, z.ZodLiteral<"medium">, z.ZodLiteral<"low">]>;
             status: z.ZodUnion<[z.ZodLiteral<"pending">, z.ZodLiteral<"in_progress">, z.ZodLiteral<"completed">]>;
         }, "strip", z.ZodTypeAny, {
-            status: "in_progress" | "completed" | "pending";
-            content: string;
-            priority: "high" | "low" | "medium";
+            status?: "in_progress" | "completed" | "pending";
+            content?: string;
+            priority?: "medium" | "high" | "low";
         }, {
-            status: "in_progress" | "completed" | "pending";
-            content: string;
-            priority: "high" | "low" | "medium";
+            status?: "in_progress" | "completed" | "pending";
+            content?: string;
+            priority?: "medium" | "high" | "low";
         }>, "many">;
         sessionUpdate: z.ZodLiteral<"plan">;
     }, "strip", z.ZodTypeAny, {
-        entries: {
-            status: "in_progress" | "completed" | "pending";
-            content: string;
-            priority: "high" | "low" | "medium";
+        entries?: {
+            status?: "in_progress" | "completed" | "pending";
+            content?: string;
+            priority?: "medium" | "high" | "low";
         }[];
-        sessionUpdate: "plan";
+        sessionUpdate?: "plan";
     }, {
-        entries: {
-            status: "in_progress" | "completed" | "pending";
-            content: string;
-            priority: "high" | "low" | "medium";
+        entries?: {
+            status?: "in_progress" | "completed" | "pending";
+            content?: string;
+            priority?: "medium" | "high" | "low";
         }[];
-        sessionUpdate: "plan";
+        sessionUpdate?: "plan";
     }>]>;
 }, "strip", z.ZodTypeAny, {
-    update: {
-        content: {
-            type: "text";
-            text: string;
+    update?: {
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "user_message_chunk";
+        sessionUpdate?: "user_message_chunk";
     } | {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_message_chunk";
+        sessionUpdate?: "agent_message_chunk";
     } | {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_thought_chunk";
+        sessionUpdate?: "agent_thought_chunk";
     } | {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
-        sessionUpdate: "tool_call";
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            };
-        } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
-        locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
-        rawInput?: unknown;
-    } | {
-        toolCallId: string;
-        sessionUpdate: "tool_call_update";
-        status?: "failed" | "in_progress" | "completed" | "pending" | null | undefined;
-        content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            } | {
-                type: "image";
-                data: string;
-                mimeType: string;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
-            } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
-                } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 };
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | null | undefined;
-        title?: string | null | undefined;
-        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other" | null | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | null | undefined;
-        rawInput?: unknown;
-    } | {
-        entries: {
-            status: "in_progress" | "completed" | "pending";
-            content: string;
-            priority: "high" | "low" | "medium";
+            path?: string;
+            line?: number;
         }[];
-        sessionUpdate: "plan";
+        rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call";
+    } | {
+        status?: "failed" | "in_progress" | "completed" | "pending";
+        content?: ({
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "image";
+                data?: string;
+                mimeType?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
+                } | {
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
+                };
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            };
+        } | {
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
+        locations?: {
+            path?: string;
+            line?: number;
+        }[];
+        rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call_update";
+    } | {
+        entries?: {
+            status?: "in_progress" | "completed" | "pending";
+            content?: string;
+            priority?: "medium" | "high" | "low";
+        }[];
+        sessionUpdate?: "plan";
     };
-    sessionId: string;
+    sessionId?: string;
 }, {
-    update: {
-        content: {
-            type: "text";
-            text: string;
+    update?: {
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "user_message_chunk";
+        sessionUpdate?: "user_message_chunk";
     } | {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_message_chunk";
+        sessionUpdate?: "agent_message_chunk";
     } | {
-        content: {
-            type: "text";
-            text: string;
+        content?: {
+            type?: "text";
+            text?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "image";
-            data: string;
-            mimeType: string;
+            type?: "image";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "audio";
-            data: string;
-            mimeType: string;
+            type?: "audio";
+            data?: string;
+            mimeType?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource_link";
-            name: string;
-            uri: string;
-            description?: string | null | undefined;
-            title?: string | null | undefined;
-            mimeType?: string | null | undefined;
+            type?: "resource_link";
+            name?: string;
+            title?: string;
+            size?: number;
+            description?: string;
+            mimeType?: string;
+            uri?: string;
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
-            size?: number | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         } | {
-            type: "resource";
-            resource: {
-                text: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+            type?: "resource";
+            resource?: {
+                text?: string;
+                mimeType?: string;
+                uri?: string;
             } | {
-                blob: string;
-                uri: string;
-                mimeType?: string | null | undefined;
+                blob?: string;
+                mimeType?: string;
+                uri?: string;
             };
             annotations?: {
-                audience?: ("user" | "assistant")[] | null | undefined;
-                priority?: number | null | undefined;
-                lastModified?: string | null | undefined;
-            } | null | undefined;
+                audience?: ("user" | "assistant")[];
+                priority?: number;
+                lastModified?: string;
+            };
         };
-        sessionUpdate: "agent_thought_chunk";
+        sessionUpdate?: "agent_thought_chunk";
     } | {
-        status: "failed" | "in_progress" | "completed" | "pending";
-        title: string;
-        kind: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
-        toolCallId: string;
-        sessionUpdate: "tool_call";
+        status?: "failed" | "in_progress" | "completed" | "pending";
         content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "image";
-                data: string;
-                mimeType: string;
+                type?: "image";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
             } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
                 } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
                 };
                 annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            };
-        } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | undefined;
-        locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | undefined;
-        rawInput?: unknown;
-    } | {
-        toolCallId: string;
-        sessionUpdate: "tool_call_update";
-        status?: "failed" | "in_progress" | "completed" | "pending" | null | undefined;
-        content?: ({
-            type: "content";
-            content: {
-                type: "text";
-                text: string;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            } | {
-                type: "image";
-                data: string;
-                mimeType: string;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            } | {
-                type: "audio";
-                data: string;
-                mimeType: string;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-            } | {
-                type: "resource_link";
-                name: string;
-                uri: string;
-                description?: string | null | undefined;
-                title?: string | null | undefined;
-                mimeType?: string | null | undefined;
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
-                size?: number | null | undefined;
-            } | {
-                type: "resource";
-                resource: {
-                    text: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
-                } | {
-                    blob: string;
-                    uri: string;
-                    mimeType?: string | null | undefined;
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
                 };
-                annotations?: {
-                    audience?: ("user" | "assistant")[] | null | undefined;
-                    priority?: number | null | undefined;
-                    lastModified?: string | null | undefined;
-                } | null | undefined;
             };
         } | {
-            path: string;
-            type: "diff";
-            newText: string;
-            oldText: string | null;
-        })[] | null | undefined;
-        title?: string | null | undefined;
-        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other" | null | undefined;
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
         locations?: {
-            path: string;
-            line?: number | null | undefined;
-        }[] | null | undefined;
-        rawInput?: unknown;
-    } | {
-        entries: {
-            status: "in_progress" | "completed" | "pending";
-            content: string;
-            priority: "high" | "low" | "medium";
+            path?: string;
+            line?: number;
         }[];
-        sessionUpdate: "plan";
+        rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call";
+    } | {
+        status?: "failed" | "in_progress" | "completed" | "pending";
+        content?: ({
+            type?: "content";
+            content?: {
+                type?: "text";
+                text?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "image";
+                data?: string;
+                mimeType?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "audio";
+                data?: string;
+                mimeType?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "resource_link";
+                name?: string;
+                title?: string;
+                size?: number;
+                description?: string;
+                mimeType?: string;
+                uri?: string;
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            } | {
+                type?: "resource";
+                resource?: {
+                    text?: string;
+                    mimeType?: string;
+                    uri?: string;
+                } | {
+                    blob?: string;
+                    mimeType?: string;
+                    uri?: string;
+                };
+                annotations?: {
+                    audience?: ("user" | "assistant")[];
+                    priority?: number;
+                    lastModified?: string;
+                };
+            };
+        } | {
+            path?: string;
+            type?: "diff";
+            newText?: string;
+            oldText?: string;
+        })[];
+        title?: string;
+        kind?: "edit" | "read" | "delete" | "move" | "search" | "execute" | "think" | "fetch" | "other";
+        locations?: {
+            path?: string;
+            line?: number;
+        }[];
+        rawInput?: unknown;
+        toolCallId?: string;
+        sessionUpdate?: "tool_call_update";
+    } | {
+        entries?: {
+            status?: "in_progress" | "completed" | "pending";
+            content?: string;
+            priority?: "medium" | "high" | "low";
+        }[];
+        sessionUpdate?: "plan";
     };
-    sessionId: string;
+    sessionId?: string;
 }>;

@@ -5,5 +5,5 @@
  */
 import React from 'react';
 import { LoadedSettings } from '../../config/settings.js';
-export declare const SettingsContext: React.Context<LoadedSettings | undefined>;
+export declare const SettingsContext: React.Context<LoadedSettings>;
 export declare const useSettings: () => LoadedSettings;

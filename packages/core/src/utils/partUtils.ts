@@ -14,7 +14,7 @@ import {
  * If verbose is true, includes summary representations of non-text parts.
  */
 export function partToString(
-  value: PartListUnion,
+  value: PartListUnion | undefined | null,
   options?: { verbose?: boolean },
 ): string {
   if (!value) {

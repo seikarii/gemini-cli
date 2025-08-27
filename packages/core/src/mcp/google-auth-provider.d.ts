@@ -12,7 +12,7 @@ export declare class GoogleCredentialProvider implements OAuthClientProvider {
     readonly redirectUrl = "";
     readonly clientMetadata: OAuthClientMetadata;
     private _clientInformation?;
-    constructor(config?: MCPServerConfig | undefined);
+    constructor(config?: MCPServerConfig);
     clientInformation(): OAuthClientInformation | undefined;
     saveClientInformation(clientInformation: OAuthClientInformationFull): void;
     tokens(): Promise<OAuthTokens | undefined>;

@@ -6,7 +6,7 @@
 import { LoadedSettings } from '../../config/settings.js';
 import { FolderTrustChoice } from '../components/FolderTrustDialog.js';
 export declare const useFolderTrust: (settings: LoadedSettings, onTrustChange: (isTrusted: boolean | undefined) => void) => {
-    isTrusted: boolean | undefined;
+    isTrusted: boolean;
     isFolderTrustDialogOpen: boolean;
     handleFolderTrustSelect: (choice: FolderTrustChoice) => void;
     isRestarting: boolean;

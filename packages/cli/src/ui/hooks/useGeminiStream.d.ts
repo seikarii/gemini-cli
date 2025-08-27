@@ -16,8 +16,8 @@ export declare const useGeminiStream: (agent: unknown, geminiClient: GeminiClien
     submitQuery: (query: PartListUnion, options?: {
         isContinuation: boolean;
     }, prompt_id?: string) => Promise<void>;
-    initError: string | null;
+    initError: string;
     pendingHistoryItems: HistoryItemWithoutId[];
-    thought: ThoughtSummary | null;
+    thought: ThoughtSummary;
     cancelOngoingRequest: () => void;
 };

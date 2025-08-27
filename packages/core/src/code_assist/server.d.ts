@@ -17,11 +17,11 @@ export declare const CODE_ASSIST_ENDPOINT = "https://cloudcode-pa.googleapis.com
 export declare const CODE_ASSIST_API_VERSION = "v1internal";
 export declare class CodeAssistServer implements ContentGenerator {
     readonly client: OAuth2Client;
-    readonly projectId?: string | undefined;
+    readonly projectId?: string;
     readonly httpOptions: HttpOptions;
-    readonly sessionId?: string | undefined;
-    readonly userTier?: UserTierId | undefined;
-    constructor(client: OAuth2Client, projectId?: string | undefined, httpOptions?: HttpOptions, sessionId?: string | undefined, userTier?: UserTierId | undefined);
+    readonly sessionId?: string;
+    readonly userTier?: UserTierId;
+    constructor(client: OAuth2Client, projectId?: string, httpOptions?: HttpOptions, sessionId?: string, userTier?: UserTierId);
     generateContentStream(req: GenerateContentParameters, userPromptId: string): Promise<AsyncGenerator<GenerateContentResponse>>;
     generateContent(req: GenerateContentParameters, userPromptId: string): Promise<GenerateContentResponse>;
     onboardUser(req: OnboardUserRequest): Promise<LongRunningOperationResponse>;

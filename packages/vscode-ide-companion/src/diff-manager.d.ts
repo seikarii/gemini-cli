@@ -27,8 +27,8 @@ export declare class DiffManager {
             [x: string]: unknown;
             _meta?: {
                 [x: string]: unknown;
-            } | undefined;
-        } | undefined;
+            };
+        };
     }>;
     private diffDocuments;
     private readonly subscriptions;
@@ -41,7 +41,7 @@ export declare class DiffManager {
     /**
      * Closes an open diff view for a specific file.
      */
-    closeDiff(filePath: string): Promise<string | undefined>;
+    closeDiff(filePath: string): Promise<string>;
     /**
      * User accepts the changes in a diff view. Does not apply changes.
      */

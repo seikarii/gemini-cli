@@ -11,9 +11,9 @@ export declare class DiscoveredMCPTool extends BaseDeclarativeTool<ToolParams, T
     readonly serverName: string;
     readonly serverToolName: string;
     readonly parameterSchema: unknown;
-    readonly timeout?: number | undefined;
-    readonly trust?: boolean | undefined;
-    constructor(mcpTool: CallableTool, serverName: string, serverToolName: string, description: string, parameterSchema: unknown, timeout?: number | undefined, trust?: boolean | undefined, nameOverride?: string);
+    readonly timeout?: number;
+    readonly trust?: boolean;
+    constructor(mcpTool: CallableTool, serverName: string, serverToolName: string, description: string, parameterSchema: unknown, timeout?: number, trust?: boolean, nameOverride?: string);
     asFullyQualifiedTool(): DiscoveredMCPTool;
     protected createInvocation(params: ToolParams): ToolInvocation<ToolParams, ToolResult>;
 }

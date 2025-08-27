@@ -75,23 +75,23 @@ export interface LoopDetectionConfig {
 }
 export declare const DEFAULT_LOOP_DETECTION_CONFIG: LoopDetectionConfig;
 export declare class MCPServerConfig {
-    readonly command?: string | undefined;
-    readonly args?: string[] | undefined;
-    readonly env?: Record<string, string> | undefined;
-    readonly cwd?: string | undefined;
-    readonly url?: string | undefined;
-    readonly httpUrl?: string | undefined;
-    readonly headers?: Record<string, string> | undefined;
-    readonly tcp?: string | undefined;
-    readonly timeout?: number | undefined;
-    readonly trust?: boolean | undefined;
-    readonly description?: string | undefined;
-    readonly includeTools?: string[] | undefined;
-    readonly excludeTools?: string[] | undefined;
-    readonly extensionName?: string | undefined;
-    readonly oauth?: MCPOAuthConfig | undefined;
-    readonly authProviderType?: AuthProviderType | undefined;
-    constructor(command?: string | undefined, args?: string[] | undefined, env?: Record<string, string> | undefined, cwd?: string | undefined, url?: string | undefined, httpUrl?: string | undefined, headers?: Record<string, string> | undefined, tcp?: string | undefined, timeout?: number | undefined, trust?: boolean | undefined, description?: string | undefined, includeTools?: string[] | undefined, excludeTools?: string[] | undefined, extensionName?: string | undefined, oauth?: MCPOAuthConfig | undefined, authProviderType?: AuthProviderType | undefined);
+    readonly command?: string;
+    readonly args?: string[];
+    readonly env?: Record<string, string>;
+    readonly cwd?: string;
+    readonly url?: string;
+    readonly httpUrl?: string;
+    readonly headers?: Record<string, string>;
+    readonly tcp?: string;
+    readonly timeout?: number;
+    readonly trust?: boolean;
+    readonly description?: string;
+    readonly includeTools?: string[];
+    readonly excludeTools?: string[];
+    readonly extensionName?: string;
+    readonly oauth?: MCPOAuthConfig;
+    readonly authProviderType?: AuthProviderType;
+    constructor(command?: string, args?: string[], env?: Record<string, string>, cwd?: string, url?: string, httpUrl?: string, headers?: Record<string, string>, tcp?: string, timeout?: number, trust?: boolean, description?: string, includeTools?: string[], excludeTools?: string[], extensionName?: string, oauth?: MCPOAuthConfig, authProviderType?: AuthProviderType);
 }
 export declare enum AuthProviderType {
     DYNAMIC_DISCOVERY = "dynamic_discovery",

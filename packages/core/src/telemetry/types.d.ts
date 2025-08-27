@@ -129,11 +129,11 @@ export declare enum LoopType {
 export declare class LoopDetectedEvent {
     readonly loopType: LoopType;
     readonly promptId: string;
-    readonly confidence?: number | undefined;
-    readonly affectedFiles?: string[] | undefined;
-    readonly toolsInvolved?: string[] | undefined;
-    readonly reasoning?: string | undefined;
-    constructor(loopType: LoopType, promptId: string, confidence?: number | undefined, affectedFiles?: string[] | undefined, toolsInvolved?: string[] | undefined, reasoning?: string | undefined);
+    readonly confidence?: number;
+    readonly affectedFiles?: string[];
+    readonly toolsInvolved?: string[];
+    readonly reasoning?: string;
+    constructor(loopType: LoopType, promptId: string, confidence?: number, affectedFiles?: string[], toolsInvolved?: string[], reasoning?: string);
 }
 /**
  * File system state for tracking modification patterns

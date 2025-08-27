@@ -103,7 +103,7 @@ export declare class ClearcutLogger {
      * should exist on all log events.
      */
     addDefaultFields(data: EventValue[], totalAccounts: number): EventValue[];
-    getProxyAgent(): HttpsProxyAgent<string> | undefined;
+    getProxyAgent(): HttpsProxyAgent<string>;
     shutdown(): void;
     private requeueFailedEvents;
 }
