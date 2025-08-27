@@ -9,7 +9,7 @@ import * as path from 'path';
 import { homedir } from 'os';
 import { getErrorMessage, isWithinRoot } from '@google/gemini-cli-core';
 import { Settings } from './settings.js';
-import { SETTINGS_DIRECTORY_NAME, TRUSTED_FOLDERS_FILENAME } from './constants.js';
+import { SETTINGS_DIRECTORY_NAME, TRUSTED_FOLDERS_FILENAME, ERROR_SAVING_TRUSTED_FOLDERS } from './constants.js';
 import stripJsonComments from 'strip-json-comments';
 import { logger } from './logger.js';
 
@@ -106,9 +106,9 @@ export function saveTrustedFolders(
         JSON.stringify(trustedFoldersFile.config, null, 2),
         'utf-8',
       )
-      .catch((err) => logger.error('Error saving trusted folders file:', err));
+      .catch((err) => logger.error(ERROR_SAVING_TRUSTED_FOLDERS, err));
   } catch (error) {
-    logger.error('Error saving trusted folders file:', error);
+    logger.error(ERROR_SAVING_TRUSTED_FOLDERS, error);
   }
 }
 

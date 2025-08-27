@@ -38,6 +38,7 @@ import { resolvePath } from '../utils/resolvePath.js';
 import { isWorkspaceTrusted } from './trustedFolders.js';
 
 import { logger } from './logger.js';
+import { handleConfigError, createValidationErrorMessage } from './errorHandling.js';
 
 // Centralized environment variable access
 interface EnvironmentVariables {
@@ -310,14 +311,18 @@ function configureAccessibilityOptions(yargsInstance: ReturnType<typeof yargs>) 
 function configureValidation(yargsInstance: ReturnType<typeof yargs>) {
   return yargsInstance.check((argv: { [argName: string]: unknown; _: Array<string | number>; $0: string; }) => {
     if (argv.prompt && argv['promptInteractive']) {
-      throw new Error(
+      handleConfigError(
         'Cannot use both --prompt (-p) and --prompt-interactive (-i) together',
+        'fatal'
       );
+      return false;
     }
     if (argv.yolo && argv['approvalMode']) {
-      throw new Error(
+      handleConfigError(
         'Cannot use both --yolo (-y) and --approval-mode together. Use --approval-mode=yolo instead.',
+        'fatal'
       );
+      return false;
     }
     return true;
   });
@@ -564,9 +569,11 @@ function resolveApprovalMode(argv: CliArgs): ApprovalMode {
       case 'default':
         return ApprovalMode.DEFAULT;
       default:
-        throw new Error(
-          `Invalid approval mode: ${argv.approvalMode}. Valid values are: yolo, auto_edit, default`,
+        handleConfigError(
+          createValidationErrorMessage('approvalMode', `Invalid value '${argv.approvalMode}'. Valid values are: yolo, auto_edit, default`),
+          'fatal'
         );
+        return ApprovalMode.DEFAULT; // This won't be reached, but needed for TypeScript
     }
   } else {
     return argv.yolo || false ? ApprovalMode.YOLO : ApprovalMode.DEFAULT;

@@ -340,16 +340,14 @@ export async function loadEnvironment(settings?: Settings): Promise<void> {
 }
 
 /**
- * Loads settings from user and workspace directories.
- * Project settings override user settings.
+ * Resolves workspace and home directory paths to their canonical representation.
+ * This handles symlinks and ensures consistent path resolution.
  */
-export async function loadSettings(workspaceDir: string): Promise<LoadedSettings> {
-  let systemSettings: Settings = {};
-  let userSettings: Settings = {};
-  let workspaceSettings: Settings = {};
-  const settingsErrors: SettingsError[] = [];
-  const systemSettingsPath = getSystemSettingsPath();
-
+async function resolveDirectories(workspaceDir: string): Promise<{
+  realWorkspaceDir: string;
+  realHomeDir: string;
+  workspaceSettingsPath: string;
+}> {
   // Resolve paths to their canonical representation to handle symlinks
   const resolvedWorkspaceDir = path.resolve(workspaceDir);
   const resolvedHomeDir = path.resolve(homedir());
@@ -369,75 +367,76 @@ export async function loadSettings(workspaceDir: string): Promise<LoadedSettings
     // ignore
   }
 
-  const workspaceSettingsPath = new Storage(
-    workspaceDir,
-  ).getWorkspaceSettingsPath();
+  const workspaceSettingsPath = new Storage(workspaceDir).getWorkspaceSettingsPath();
+
+  return {
+    realWorkspaceDir,
+    realHomeDir,
+    workspaceSettingsPath,
+  };
+}
+
+/**
+ * Loads settings from a specific file path with error handling.
+ */
+async function loadSettingsFromFile(
+  filePath: string,
+  settingsErrors: SettingsError[],
+): Promise<Settings> {
+  try {
+    const content = await fs.promises.readFile(filePath, 'utf-8');
+    return JSON.parse(stripJsonComments(content)) as Settings;
+  } catch (error: unknown) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      // ignore missing settings file
+      return {};
+    }
+    settingsErrors.push({
+      message: getErrorMessage(error),
+      path: filePath,
+    });
+    return {};
+  }
+}
+
+/**
+ * Applies legacy theme name mappings to settings.
+ */
+function applyLegacyThemeMappings(settings: Settings): void {
+  if (settings.theme && settings.theme === 'VS') {
+    settings.theme = DefaultLight.name;
+  } else if (settings.theme && settings.theme === 'VS2015') {
+    settings.theme = DefaultDark.name;
+  } else if (settings.theme && settings.theme === 'VSDark') {
+    settings.theme = DefaultDark.name;
+  }
+}
+
+/**
+ * Loads settings from user and workspace directories.
+ * Project settings override user settings.
+ */
+export async function loadSettings(workspaceDir: string): Promise<LoadedSettings> {
+  let systemSettings: Settings = {};
+  let userSettings: Settings = {};
+  let workspaceSettings: Settings = {};
+  const settingsErrors: SettingsError[] = [];
+  const systemSettingsPath = getSystemSettingsPath();
+
+  // Resolve paths to their canonical representation to handle symlinks
+  const { realWorkspaceDir, realHomeDir, workspaceSettingsPath } = await resolveDirectories(workspaceDir);
 
   // Load system settings
-  try {
-    try {
-      const systemContent = await fs.promises.readFile(systemSettingsPath, 'utf-8');
-      systemSettings = JSON.parse(stripJsonComments(systemContent)) as Settings;
-    } catch (_e) {
-      // ignore missing system settings
-    }
-  } catch (error: unknown) {
-    settingsErrors.push({
-      message: getErrorMessage(error),
-      path: systemSettingsPath,
-    });
-  }
+  systemSettings = await loadSettingsFromFile(systemSettingsPath, settingsErrors);
 
   // Load user settings
-  try {
-    try {
-      const userContent = await fs.promises.readFile(USER_SETTINGS_PATH, 'utf-8');
-      userSettings = JSON.parse(stripJsonComments(userContent)) as Settings;
-      if (userSettings.theme && userSettings.theme === 'VS') {
-        userSettings.theme = DefaultLight.name;
-      } else if (userSettings.theme && userSettings.theme === 'VS2015') {
-        userSettings.theme = DefaultDark.name;
-      } else if (userSettings.theme && userSettings.theme === 'VSDark') {
-        userSettings.theme = DefaultDark.name;
-      }
-    } catch (_e) {
-      // ignore missing user settings
-    }
-  } catch (error: unknown) {
-    settingsErrors.push({
-      message: getErrorMessage(error),
-      path: USER_SETTINGS_PATH,
-    });
-  }
+  userSettings = await loadSettingsFromFile(USER_SETTINGS_PATH, settingsErrors);
+  applyLegacyThemeMappings(userSettings);
 
   if (realWorkspaceDir !== realHomeDir) {
     // Load workspace settings
-    try {
-      try {
-        const projectContent = await fs.promises.readFile(workspaceSettingsPath, 'utf-8');
-        workspaceSettings = JSON.parse(stripJsonComments(projectContent)) as Settings;
-        if (workspaceSettings.theme && workspaceSettings.theme === 'VS') {
-          workspaceSettings.theme = DefaultLight.name;
-        } else if (
-          workspaceSettings.theme &&
-          workspaceSettings.theme === 'VS2015'
-        ) {
-          workspaceSettings.theme = DefaultDark.name;
-        } else if (
-          workspaceSettings.theme &&
-          workspaceSettings.theme === 'VSDark'
-        ) {
-          workspaceSettings.theme = DefaultDark.name;
-        }
-      } catch (_e) {
-        // ignore missing workspace settings
-      }
-    } catch (error: unknown) {
-      settingsErrors.push({
-        message: getErrorMessage(error),
-        path: workspaceSettingsPath,
-      });
-    }
+    workspaceSettings = await loadSettingsFromFile(workspaceSettingsPath, settingsErrors);
+    applyLegacyThemeMappings(workspaceSettings);
   }
 
   // For the initial trust check, we can only use user and system settings.

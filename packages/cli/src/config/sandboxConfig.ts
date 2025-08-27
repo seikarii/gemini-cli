@@ -9,6 +9,12 @@ import commandExists from 'command-exists';
 import * as os from 'node:os';
 import { getPackageJson } from '../utils/package.js';
 import { Settings } from './settings.js';
+import { logger } from './logger.js';
+import {
+  ERROR_INVALID_SANDBOX_COMMAND,
+  ERROR_MISSING_SANDBOX_COMMAND,
+  ERROR_SANDBOX_COMMAND_NOT_FOUND,
+} from './constants.js';
 
 // This is a stripped-down version of the CliArgs interface from config.ts
 // to avoid circular dependencies.
@@ -51,20 +57,14 @@ function getSandboxCommand(
 
   if (typeof sandbox === 'string' && sandbox) {
     if (!isSandboxCommand(sandbox)) {
-      console.error(
-        `ERROR: invalid sandbox command '${sandbox}'. Must be one of ${VALID_SANDBOX_COMMANDS.join(
-          ', ',
-        )}`,
-      );
+      logger.error(ERROR_INVALID_SANDBOX_COMMAND(sandbox, VALID_SANDBOX_COMMANDS));
       process.exit(1);
     }
     // confirm that specified command exists
     if (commandExists.sync(sandbox)) {
       return sandbox;
     }
-    console.error(
-      `ERROR: missing sandbox command '${sandbox}' (from GEMINI_SANDBOX)`,
-    );
+    logger.error(ERROR_MISSING_SANDBOX_COMMAND(sandbox));
     process.exit(1);
   }
 
@@ -80,10 +80,7 @@ function getSandboxCommand(
 
   // throw an error if user requested sandbox but no command was found
   if (sandbox === true) {
-    console.error(
-      'ERROR: GEMINI_SANDBOX is true but failed to determine command for sandbox; ' +
-        'install docker or podman or specify command in GEMINI_SANDBOX',
-    );
+    logger.error(ERROR_SANDBOX_COMMAND_NOT_FOUND);
     process.exit(1);
   }
 
