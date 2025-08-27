@@ -53,9 +53,9 @@ import {
   loadSettings,
   USER_SETTINGS_PATH, // This IS the mocked path.
   getSystemSettingsPath,
-  SETTINGS_DIRECTORY_NAME, // This is from the original module, but used by the mock.
   SettingScope,
 } from './settings.js';
+import { SETTINGS_DIRECTORY_NAME } from './constants.js';
 
 const MOCK_WORKSPACE_DIR = '/mock/workspace';
 // Use the (mocked) SETTINGS_DIRECTORY_NAME for consistency
@@ -103,7 +103,7 @@ describe('Settings Loading and Merging', () => {
     (mockFsExistsSync as Mock).mockReturnValue(false);
     (fs.readFileSync as Mock).mockReturnValue('{}'); // Return valid empty JSON
     (mockFsMkdirSync as Mock).mockImplementation(() => undefined);
-    vi.mocked(isWorkspaceTrusted).mockReturnValue(true);
+    vi.mocked(isWorkspaceTrusted).mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -111,8 +111,8 @@ describe('Settings Loading and Merging', () => {
   });
 
   describe('loadSettings', () => {
-    it('should load empty settings if no files exist', () => {
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+    it('should load empty settings if no files exist', async () => {
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
       expect(settings.system.settings).toEqual({});
       expect(settings.user.settings).toEqual({});
       expect(settings.workspace.settings).toEqual({});
@@ -125,7 +125,7 @@ describe('Settings Loading and Merging', () => {
       expect(settings.errors.length).toBe(0);
     });
 
-    it('should load system settings if only system file exists', () => {
+    it('should load system settings if only system file exists', async () => {
       (mockFsExistsSync as Mock).mockImplementation(
         (p: fs.PathLike) => p === getSystemSettingsPath(),
       );
@@ -141,7 +141,7 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
       expect(fs.readFileSync).toHaveBeenCalledWith(
         getSystemSettingsPath(),
@@ -159,7 +159,7 @@ describe('Settings Loading and Merging', () => {
       });
     });
 
-    it('should load user settings if only user file exists', () => {
+    it('should load user settings if only user file exists', async () => {
       const expectedUserSettingsPath = USER_SETTINGS_PATH; // Use the path actually resolved by the (mocked) module
 
       (mockFsExistsSync as Mock).mockImplementation(
@@ -177,7 +177,7 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
       expect(fs.readFileSync).toHaveBeenCalledWith(
         expectedUserSettingsPath,
@@ -194,7 +194,7 @@ describe('Settings Loading and Merging', () => {
       });
     });
 
-    it('should load workspace settings if only workspace file exists', () => {
+    it('should load workspace settings if only workspace file exists', async () => {
       (mockFsExistsSync as Mock).mockImplementation(
         (p: fs.PathLike) => p === MOCK_WORKSPACE_SETTINGS_PATH,
       );
@@ -210,7 +210,7 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
       expect(fs.readFileSync).toHaveBeenCalledWith(
         MOCK_WORKSPACE_SETTINGS_PATH,
@@ -227,7 +227,7 @@ describe('Settings Loading and Merging', () => {
       });
     });
 
-    it('should merge user and workspace settings, with workspace taking precedence', () => {
+    it('should merge user and workspace settings, with workspace taking precedence', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(true);
       const userSettingsContent = {
         theme: 'dark',
@@ -250,7 +250,7 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
       expect(settings.user.settings).toEqual(userSettingsContent);
       expect(settings.workspace.settings).toEqual(workspaceSettingsContent);
@@ -266,7 +266,7 @@ describe('Settings Loading and Merging', () => {
       });
     });
 
-    it('should merge system, user and workspace settings, with system taking precedence over workspace, and workspace over user', () => {
+    it('should merge system, user and workspace settings, with system taking precedence over workspace, and workspace over user', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(true);
       const systemSettingsContent = {
         theme: 'system-theme',
@@ -298,7 +298,7 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
       expect(settings.system.settings).toEqual(systemSettingsContent);
       expect(settings.user.settings).toEqual(userSettingsContent);
@@ -317,7 +317,7 @@ describe('Settings Loading and Merging', () => {
       });
     });
 
-    it('should ignore folderTrust from workspace settings', () => {
+    it('should ignore folderTrust from workspace settings', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(true);
       const userSettingsContent = {
         folderTrust: true,
@@ -341,11 +341,11 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.folderTrust).toBe(true); // User setting should be used
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).folderTrust).toBe(true); // User setting should be used
     });
 
-    it('should use system folderTrust over user setting', () => {
+    it('should use system folderTrust over user setting', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(true);
       const userSettingsContent = {
         folderTrust: false,
@@ -369,11 +369,11 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.folderTrust).toBe(true); // System setting should be used
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).folderTrust).toBe(true); // System setting should be used
     });
 
-    it('should handle contextFileName correctly when only in user settings', () => {
+    it('should handle contextFileName correctly when only in user settings', async () => {
       (mockFsExistsSync as Mock).mockImplementation(
         (p: fs.PathLike) => p === USER_SETTINGS_PATH,
       );
@@ -386,11 +386,11 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.contextFileName).toBe('CUSTOM.md');
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).contextFileName).toBe('CUSTOM.md');
     });
 
-    it('should handle contextFileName correctly when only in workspace settings', () => {
+    it('should handle contextFileName correctly when only in workspace settings', async () => {
       (mockFsExistsSync as Mock).mockImplementation(
         (p: fs.PathLike) => p === MOCK_WORKSPACE_SETTINGS_PATH,
       );
@@ -405,11 +405,11 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.contextFileName).toBe('PROJECT_SPECIFIC.md');
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).contextFileName).toBe('PROJECT_SPECIFIC.md');
     });
 
-    it('should handle excludedProjectEnvVars correctly when only in user settings', () => {
+    it('should handle excludedProjectEnvVars correctly when only in user settings', async () => {
       (mockFsExistsSync as Mock).mockImplementation(
         (p: fs.PathLike) => p === USER_SETTINGS_PATH,
       );
@@ -424,15 +424,15 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.excludedProjectEnvVars).toEqual([
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).excludedProjectEnvVars).toEqual([
         'DEBUG',
         'NODE_ENV',
         'CUSTOM_VAR',
       ]);
     });
 
-    it('should handle excludedProjectEnvVars correctly when only in workspace settings', () => {
+    it('should handle excludedProjectEnvVars correctly when only in workspace settings', async () => {
       (mockFsExistsSync as Mock).mockImplementation(
         (p: fs.PathLike) => p === MOCK_WORKSPACE_SETTINGS_PATH,
       );
@@ -447,14 +447,14 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.excludedProjectEnvVars).toEqual([
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).excludedProjectEnvVars).toEqual([
         'WORKSPACE_DEBUG',
         'WORKSPACE_VAR',
       ]);
     });
 
-    it('should merge excludedProjectEnvVars with workspace taking precedence over user', () => {
+    it('should merge excludedProjectEnvVars with workspace taking precedence over user', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(true);
       const userSettingsContent = {
         excludedProjectEnvVars: ['DEBUG', 'NODE_ENV', 'USER_VAR'],
@@ -473,23 +473,23 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.user.settings.excludedProjectEnvVars).toEqual([
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.user.settings as unknown as Record<string, unknown>).excludedProjectEnvVars).toEqual([
         'DEBUG',
         'NODE_ENV',
         'USER_VAR',
       ]);
-      expect(settings.workspace.settings.excludedProjectEnvVars).toEqual([
+      expect((settings.workspace.settings as unknown as Record<string, unknown>).excludedProjectEnvVars).toEqual([
         'WORKSPACE_DEBUG',
         'WORKSPACE_VAR',
       ]);
-      expect(settings.merged.excludedProjectEnvVars).toEqual([
+      expect((settings.merged as unknown as Record<string, unknown>).excludedProjectEnvVars).toEqual([
         'WORKSPACE_DEBUG',
         'WORKSPACE_VAR',
       ]);
     });
 
-    it('should default contextFileName to undefined if not in any settings file', () => {
+    it('should default contextFileName to undefined if not in any settings file', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(true);
       const userSettingsContent = { theme: 'dark' };
       const workspaceSettingsContent = { sandbox: true };
@@ -503,11 +503,11 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.contextFileName).toBeUndefined();
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).contextFileName).toBeUndefined();
     });
 
-    it('should load telemetry setting from user settings', () => {
+    it('should load telemetry setting from user settings', async () => {
       (mockFsExistsSync as Mock).mockImplementation(
         (p: fs.PathLike) => p === USER_SETTINGS_PATH,
       );
@@ -519,11 +519,11 @@ describe('Settings Loading and Merging', () => {
           return '{}';
         },
       );
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.telemetry).toBe(true);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).telemetry).toBe(true);
     });
 
-    it('should load telemetry setting from workspace settings', () => {
+    it('should load telemetry setting from workspace settings', async () => {
       (mockFsExistsSync as Mock).mockImplementation(
         (p: fs.PathLike) => p === MOCK_WORKSPACE_SETTINGS_PATH,
       );
@@ -535,11 +535,11 @@ describe('Settings Loading and Merging', () => {
           return '{}';
         },
       );
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.telemetry).toBe(false);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).telemetry).toBe(false);
     });
 
-    it('should prioritize workspace telemetry setting over user setting', () => {
+    it('should prioritize workspace telemetry setting over user setting', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(true);
       const userSettingsContent = { telemetry: true };
       const workspaceSettingsContent = { telemetry: false };
@@ -552,20 +552,20 @@ describe('Settings Loading and Merging', () => {
           return '{}';
         },
       );
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.telemetry).toBe(false);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).telemetry).toBe(false);
     });
 
-    it('should have telemetry as undefined if not in any settings file', () => {
+    it('should have telemetry as undefined if not in any settings file', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(false); // No settings files exist
       (fs.readFileSync as Mock).mockReturnValue('{}');
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.telemetry).toBeUndefined();
-      expect(settings.merged.customThemes).toEqual({});
-      expect(settings.merged.mcpServers).toEqual({});
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).telemetry).toBeUndefined();
+      expect((settings.merged as unknown as Record<string, unknown>).customThemes).toEqual({});
+      expect((settings.merged as unknown as Record<string, unknown>).mcpServers).toEqual({});
     });
 
-    it('should merge MCP servers correctly, with workspace taking precedence', () => {
+    it('should merge MCP servers correctly, with workspace taking precedence', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(true);
       const userSettingsContent = {
         mcpServers: {
@@ -604,11 +604,11 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
       expect(settings.user.settings).toEqual(userSettingsContent);
       expect(settings.workspace.settings).toEqual(workspaceSettingsContent);
-      expect(settings.merged.mcpServers).toEqual({
+      expect((settings.merged as unknown as Record<string, unknown>).mcpServers).toEqual({
         'user-server': {
           command: 'user-command',
           args: ['--user-arg'],
@@ -626,7 +626,7 @@ describe('Settings Loading and Merging', () => {
       });
     });
 
-    it('should handle MCP servers when only in user settings', () => {
+    it('should handle MCP servers when only in user settings', async () => {
       (mockFsExistsSync as Mock).mockImplementation(
         (p: fs.PathLike) => p === USER_SETTINGS_PATH,
       );
@@ -646,8 +646,8 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.mcpServers).toEqual({
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).mcpServers).toEqual({
         'user-only-server': {
           command: 'user-only-command',
           description: 'User only server',
@@ -655,7 +655,7 @@ describe('Settings Loading and Merging', () => {
       });
     });
 
-    it('should handle MCP servers when only in workspace settings', () => {
+    it('should handle MCP servers when only in workspace settings', async () => {
       (mockFsExistsSync as Mock).mockImplementation(
         (p: fs.PathLike) => p === MOCK_WORKSPACE_SETTINGS_PATH,
       );
@@ -675,8 +675,8 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.mcpServers).toEqual({
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).mcpServers).toEqual({
         'workspace-only-server': {
           command: 'workspace-only-command',
           description: 'Workspace only server',
@@ -684,14 +684,14 @@ describe('Settings Loading and Merging', () => {
       });
     });
 
-    it('should have mcpServers as empty object if not in any settings file', () => {
+    it('should have mcpServers as empty object if not in any settings file', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(false); // No settings files exist
       (fs.readFileSync as Mock).mockReturnValue('{}');
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.mcpServers).toEqual({});
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).mcpServers).toEqual({});
     });
 
-    it('should merge chatCompression settings, with workspace taking precedence', () => {
+    it('should merge chatCompression settings, with workspace taking precedence', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(true);
       const userSettingsContent = {
         chatCompression: { contextPercentageThreshold: 0.5 },
@@ -710,20 +710,20 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
-      expect(settings.user.settings.chatCompression).toEqual({
+      expect((settings.user.settings as unknown as Record<string, unknown>).chatCompression).toEqual({
         contextPercentageThreshold: 0.5,
       });
-      expect(settings.workspace.settings.chatCompression).toEqual({
+      expect((settings.workspace.settings as unknown as Record<string, unknown>).chatCompression).toEqual({
         contextPercentageThreshold: 0.8,
       });
-      expect(settings.merged.chatCompression).toEqual({
+      expect((settings.merged as unknown as Record<string, unknown>).chatCompression).toEqual({
         contextPercentageThreshold: 0.8,
       });
     });
 
-    it('should handle chatCompression when only in user settings', () => {
+    it('should handle chatCompression when only in user settings', async () => {
       (mockFsExistsSync as Mock).mockImplementation(
         (p: fs.PathLike) => p === USER_SETTINGS_PATH,
       );
@@ -738,20 +738,20 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.chatCompression).toEqual({
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).chatCompression).toEqual({
         contextPercentageThreshold: 0.5,
       });
     });
 
-    it('should have chatCompression as an empty object if not in any settings file', () => {
+    it('should have chatCompression as an empty object if not in any settings file', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(false); // No settings files exist
       (fs.readFileSync as Mock).mockReturnValue('{}');
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.chatCompression).toEqual({});
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).chatCompression).toEqual({});
     });
 
-    it('should ignore chatCompression if contextPercentageThreshold is invalid', () => {
+    it('should ignore chatCompression if contextPercentageThreshold is invalid', async () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       (mockFsExistsSync as Mock).mockImplementation(
         (p: fs.PathLike) => p === USER_SETTINGS_PATH,
@@ -767,15 +767,15 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.chatCompression).toBeUndefined();
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).chatCompression).toBeUndefined();
       expect(warnSpy).toHaveBeenCalledWith(
         'Invalid value for chatCompression.contextPercentageThreshold: "1.5". Please use a value between 0 and 1. Using default compression settings.',
       );
       warnSpy.mockRestore();
     });
 
-    it('should deep merge chatCompression settings', () => {
+    it('should deep merge chatCompression settings', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(true);
       const userSettingsContent = {
         chatCompression: { contextPercentageThreshold: 0.5 },
@@ -794,14 +794,14 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
-      expect(settings.merged.chatCompression).toEqual({
+      expect((settings.merged as unknown as Record<string, unknown>).chatCompression).toEqual({
         contextPercentageThreshold: 0.5,
       });
     });
 
-    it('should merge includeDirectories from all scopes', () => {
+    it('should merge includeDirectories from all scopes', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(true);
       const systemSettingsContent = {
         includeDirectories: ['/system/dir'],
@@ -825,9 +825,9 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
-      expect(settings.merged.includeDirectories).toEqual([
+      expect((settings.merged as unknown as Record<string, unknown>).includeDirectories).toEqual([
         '/system/dir',
         '/user/dir1',
         '/user/dir2',
@@ -835,7 +835,7 @@ describe('Settings Loading and Merging', () => {
       ]);
     });
 
-    it('should handle JSON parsing errors gracefully', () => {
+    it('should handle JSON parsing errors gracefully', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(true); // Both files "exist"
       const invalidJsonContent = 'invalid json';
       const userReadError = new SyntaxError(
@@ -865,7 +865,7 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
       // Check that settings are empty due to parsing errors
       expect(settings.user.settings).toEqual({});
@@ -898,7 +898,7 @@ describe('Settings Loading and Merging', () => {
       vi.restoreAllMocks(); // Or more targeted restore if needed
     });
 
-    it('should resolve environment variables in user settings', () => {
+    it('should resolve environment variables in user settings', async () => {
       process.env['TEST_API_KEY'] = 'user_api_key_from_env';
       const userSettingsContent = {
         apiKey: '$TEST_API_KEY',
@@ -915,19 +915,16 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      // @ts-expect-error: dynamic property for test
-      expect(settings.user.settings.apiKey).toBe('user_api_key_from_env');
-      // @ts-expect-error: dynamic property for test
-      expect(settings.user.settings.someUrl).toBe(
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.user.settings as unknown as Record<string, unknown>).apiKey).toBe('user_api_key_from_env');
+      expect((settings.user.settings as unknown as Record<string, unknown>).someUrl).toBe(
         'https://test.com/user_api_key_from_env',
       );
-      // @ts-expect-error: dynamic property for test
-      expect(settings.merged.apiKey).toBe('user_api_key_from_env');
+      expect((settings.merged as unknown as Record<string, unknown>).apiKey).toBe('user_api_key_from_env');
       delete process.env['TEST_API_KEY'];
     });
 
-    it('should resolve environment variables in workspace settings', () => {
+    it('should resolve environment variables in workspace settings', async () => {
       process.env['WORKSPACE_ENDPOINT'] = 'workspace_endpoint_from_env';
       const workspaceSettingsContent = {
         endpoint: '${WORKSPACE_ENDPOINT}/api',
@@ -944,19 +941,18 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.workspace.settings.endpoint).toBe(
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.workspace.settings as unknown as { endpoint: string }).endpoint).toBe(
         'workspace_endpoint_from_env/api',
       );
-      expect(settings.workspace.settings.nested.value).toBe(
+      expect((settings.workspace.settings as unknown as { nested: { value: string } }).nested.value).toBe(
         'workspace_endpoint_from_env',
       );
-      // @ts-expect-error: dynamic property for test
-      expect(settings.merged.endpoint).toBe('workspace_endpoint_from_env/api');
+      expect((settings.merged as unknown as Record<string, unknown>).endpoint).toBe('workspace_endpoint_from_env/api');
       delete process.env['WORKSPACE_ENDPOINT'];
     });
 
-    it('should correctly resolve and merge env variables from different scopes', () => {
+    it('should correctly resolve and merge env variables from different scopes', async () => {
       process.env['SYSTEM_VAR'] = 'system_value';
       process.env['USER_VAR'] = 'user_value';
       process.env['WORKSPACE_VAR'] = 'workspace_value';
@@ -993,32 +989,22 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
       // Check resolved values in individual scopes
-      // @ts-expect-error: dynamic property for test
-      expect(settings.system.settings.configValue).toBe('final_value');
-      // @ts-expect-error: dynamic property for test
-      expect(settings.system.settings.systemOnly).toBe('system_value');
-      // @ts-expect-error: dynamic property for test
-      expect(settings.user.settings.configValue).toBe('final_value');
-      // @ts-expect-error: dynamic property for test
-      expect(settings.user.settings.userOnly).toBe('user_value');
-      // @ts-expect-error: dynamic property for test
-      expect(settings.workspace.settings.configValue).toBe('final_value');
-      // @ts-expect-error: dynamic property for test
-      expect(settings.workspace.settings.workspaceOnly).toBe('workspace_value');
+      expect((settings.system.settings as unknown as Record<string, unknown>).configValue).toBe('final_value');
+      expect((settings.system.settings as unknown as Record<string, unknown>).systemOnly).toBe('system_value');
+      expect((settings.user.settings as unknown as Record<string, unknown>).configValue).toBe('final_value');
+      expect((settings.user.settings as unknown as Record<string, unknown>).userOnly).toBe('user_value');
+      expect((settings.workspace.settings as unknown as Record<string, unknown>).configValue).toBe('final_value');
+      expect((settings.workspace.settings as unknown as Record<string, unknown>).workspaceOnly).toBe('workspace_value');
 
       // Check merged values (system > workspace > user)
-      // @ts-expect-error: dynamic property for test
-      expect(settings.merged.configValue).toBe('final_value');
-      // @ts-expect-error: dynamic property for test
-      expect(settings.merged.systemOnly).toBe('system_value');
-      // @ts-expect-error: dynamic property for test
-      expect(settings.merged.userOnly).toBe('user_value');
-      // @ts-expect-error: dynamic property for test
-      expect(settings.merged.workspaceOnly).toBe('workspace_value');
-      expect(settings.merged.theme).toBe('light'); // workspace overrides user
+      expect((settings.merged as unknown as Record<string, unknown>).configValue).toBe('final_value');
+      expect((settings.merged as unknown as Record<string, unknown>).systemOnly).toBe('system_value');
+      expect((settings.merged as unknown as Record<string, unknown>).userOnly).toBe('user_value');
+      expect((settings.merged as unknown as Record<string, unknown>).workspaceOnly).toBe('workspace_value');
+      expect((settings.merged as unknown as Record<string, unknown>).theme).toBe('light'); // workspace overrides user
 
       delete process.env['SYSTEM_VAR'];
       delete process.env['USER_VAR'];
@@ -1026,7 +1012,7 @@ describe('Settings Loading and Merging', () => {
       delete process.env['SHARED_VAR'];
     });
 
-    it('should correctly merge dnsResolutionOrder with workspace taking precedence', () => {
+    it('should correctly merge dnsResolutionOrder with workspace taking precedence', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(true);
       const userSettingsContent = {
         dnsResolutionOrder: 'ipv4first',
@@ -1045,11 +1031,11 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.dnsResolutionOrder).toBe('verbatim');
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).dnsResolutionOrder).toBe('verbatim');
     });
 
-    it('should use user dnsResolutionOrder if workspace is not defined', () => {
+    it('should use user dnsResolutionOrder if workspace is not defined', async () => {
       (mockFsExistsSync as Mock).mockImplementation(
         (p: fs.PathLike) => p === USER_SETTINGS_PATH,
       );
@@ -1064,11 +1050,11 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.merged.dnsResolutionOrder).toBe('verbatim');
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.merged as unknown as Record<string, unknown>).dnsResolutionOrder).toBe('verbatim');
     });
 
-    it('should leave unresolved environment variables as is', () => {
+    it('should leave unresolved environment variables as is', async () => {
       const userSettingsContent = { apiKey: '$UNDEFINED_VAR' };
       (mockFsExistsSync as Mock).mockImplementation(
         (p: fs.PathLike) => p === USER_SETTINGS_PATH,
@@ -1081,12 +1067,12 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.user.settings.apiKey).toBe('$UNDEFINED_VAR');
-      expect(settings.merged.apiKey).toBe('$UNDEFINED_VAR');
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.user.settings as unknown as { apiKey: string }).apiKey).toBe('$UNDEFINED_VAR');
+      expect((settings.merged as unknown as { apiKey: string }).apiKey).toBe('$UNDEFINED_VAR');
     });
 
-    it('should resolve multiple environment variables in a single string', () => {
+    it('should resolve multiple environment variables in a single string', async () => {
       process.env['VAR_A'] = 'valueA';
       process.env['VAR_B'] = 'valueB';
       const userSettingsContent = { path: '/path/$VAR_A/${VAR_B}/end' };
@@ -1100,13 +1086,13 @@ describe('Settings Loading and Merging', () => {
           return '{}';
         },
       );
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.user.settings.path).toBe('/path/valueA/valueB/end');
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.user.settings as unknown as Record<string, unknown>).path).toBe('/path/valueA/valueB/end');
       delete process.env['VAR_A'];
       delete process.env['VAR_B'];
     });
 
-    it('should resolve environment variables in arrays', () => {
+    it('should resolve environment variables in arrays', async () => {
       process.env['ITEM_1'] = 'item1_env';
       process.env['ITEM_2'] = 'item2_env';
       const userSettingsContent = { list: ['$ITEM_1', '${ITEM_2}', 'literal'] };
@@ -1120,8 +1106,8 @@ describe('Settings Loading and Merging', () => {
           return '{}';
         },
       );
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.user.settings.list).toEqual([
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.user.settings as unknown as Record<string, unknown>).list).toEqual([
         'item1_env',
         'item2_env',
         'literal',
@@ -1130,7 +1116,7 @@ describe('Settings Loading and Merging', () => {
       delete process.env['ITEM_2'];
     });
 
-    it('should correctly pass through null, boolean, and number types, and handle undefined properties', () => {
+    it('should correctly pass through null, boolean, and number types, and handle undefined properties', async () => {
       process.env['MY_ENV_STRING'] = 'env_string_value';
       process.env['MY_ENV_STRING_NESTED'] = 'env_string_nested_value';
 
@@ -1160,20 +1146,20 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
-      expect(settings.user.settings.nullVal).toBeNull();
-      expect(settings.user.settings.trueVal).toBe(true);
-      expect(settings.user.settings.falseVal).toBe(false);
-      expect(settings.user.settings.numberVal).toBe(123.45);
-      expect(settings.user.settings.stringVal).toBe('env_string_value');
-      expect(settings.user.settings.undefinedVal).toBeUndefined();
+      expect((settings.user.settings as unknown as Record<string, unknown>).nullVal).toBeNull();
+      expect((settings.user.settings as unknown as Record<string, unknown>).trueVal).toBe(true);
+      expect((settings.user.settings as unknown as Record<string, unknown>).falseVal).toBe(false);
+      expect((settings.user.settings as unknown as Record<string, unknown>).numberVal).toBe(123.45);
+      expect((settings.user.settings as unknown as Record<string, unknown>).stringVal).toBe('env_string_value');
+      expect((settings.user.settings as unknown as Record<string, unknown>).undefinedVal).toBeUndefined();
 
-      expect(settings.user.settings.nestedObj.nestedNull).toBeNull();
-      expect(settings.user.settings.nestedObj.nestedBool).toBe(true);
-      expect(settings.user.settings.nestedObj.nestedNum).toBe(0);
-      expect(settings.user.settings.nestedObj.nestedString).toBe('literal');
-      expect(settings.user.settings.nestedObj.anotherEnv).toBe(
+      expect(((settings.user.settings as unknown as Record<string, unknown>).nestedObj as unknown as Record<string, unknown>).nestedNull).toBeNull();
+      expect(((settings.user.settings as unknown as Record<string, unknown>).nestedObj as unknown as Record<string, unknown>).nestedBool).toBe(true);
+      expect(((settings.user.settings as unknown as Record<string, unknown>).nestedObj as unknown as Record<string, unknown>).nestedNum).toBe(0);
+      expect(((settings.user.settings as unknown as Record<string, unknown>).nestedObj as unknown as Record<string, unknown>).nestedString).toBe('literal');
+      expect(((settings.user.settings as unknown as Record<string, unknown>).nestedObj as unknown as Record<string, unknown>).anotherEnv).toBe(
         'env_string_nested_value',
       );
 
@@ -1181,7 +1167,7 @@ describe('Settings Loading and Merging', () => {
       delete process.env['MY_ENV_STRING_NESTED'];
     });
 
-    it('should resolve multiple concatenated environment variables in a single string value', () => {
+    it('should resolve multiple concatenated environment variables in a single string value', async () => {
       process.env['TEST_HOST'] = 'myhost';
       process.env['TEST_PORT'] = '9090';
       const userSettingsContent = {
@@ -1198,8 +1184,8 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.user.settings.serverAddress).toBe('myhost:9090/api');
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.user.settings as unknown as Record<string, unknown>).serverAddress).toBe('myhost:9090/api');
 
       delete process.env['TEST_HOST'];
       delete process.env['TEST_PORT'];
@@ -1217,7 +1203,7 @@ describe('Settings Loading and Merging', () => {
         delete process.env['GEMINI_CLI_SYSTEM_SETTINGS_PATH'];
       });
 
-      it('should load system settings from the path specified in the environment variable', () => {
+      it('should load system settings from the path specified in the environment variable', async () => {
         (mockFsExistsSync as Mock).mockImplementation(
           (p: fs.PathLike) => p === MOCK_ENV_SYSTEM_SETTINGS_PATH,
         );
@@ -1233,7 +1219,7 @@ describe('Settings Loading and Merging', () => {
           },
         );
 
-        const settings = loadSettings(MOCK_WORKSPACE_DIR);
+        const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
         expect(fs.readFileSync).toHaveBeenCalledWith(
           MOCK_ENV_SYSTEM_SETTINGS_PATH,
@@ -1253,9 +1239,9 @@ describe('Settings Loading and Merging', () => {
   });
 
   describe('LoadedSettings class', () => {
-    it('setValue should update the correct scope and recompute merged settings', () => {
+    it('setValue should update the correct scope and recompute merged settings', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(false);
-      const loadedSettings = loadSettings(MOCK_WORKSPACE_DIR);
+      const loadedSettings = await loadSettings(MOCK_WORKSPACE_DIR);
 
       vi.mocked(fs.writeFileSync).mockImplementation(() => {});
       // mkdirSync is mocked in beforeEach to return undefined, which is fine for void usage
@@ -1304,7 +1290,7 @@ describe('Settings Loading and Merging', () => {
       process.env = originalEnv;
     });
 
-    it('should exclude DEBUG and DEBUG_MODE from project .env files by default', () => {
+    it('should exclude DEBUG and DEBUG_MODE from project .env files by default', async () => {
       // Create a workspace settings file with excludedProjectEnvVars
       const workspaceSettingsContent = {
         excludedProjectEnvVars: ['DEBUG', 'DEBUG_MODE'],
@@ -1345,10 +1331,10 @@ describe('Settings Loading and Merging', () => {
 
       try {
         // This will call loadEnvironment internally with the merged settings
-        const settings = loadSettings(MOCK_WORKSPACE_DIR);
+        const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
         // Verify the settings were loaded correctly
-        expect(settings.merged.excludedProjectEnvVars).toEqual([
+        expect((settings.merged as unknown as Record<string, unknown>).excludedProjectEnvVars).toEqual([
           'DEBUG',
           'DEBUG_MODE',
         ]);
@@ -1363,7 +1349,7 @@ describe('Settings Loading and Merging', () => {
       }
     });
 
-    it('should respect custom excludedProjectEnvVars from user settings', () => {
+    it('should respect custom excludedProjectEnvVars from user settings', async () => {
       const userSettingsContent = {
         excludedProjectEnvVars: ['NODE_ENV', 'DEBUG'],
       };
@@ -1380,18 +1366,18 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
-      expect(settings.user.settings.excludedProjectEnvVars).toEqual([
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
+      expect((settings.user.settings as unknown as Record<string, unknown>).excludedProjectEnvVars).toEqual([
         'NODE_ENV',
         'DEBUG',
       ]);
-      expect(settings.merged.excludedProjectEnvVars).toEqual([
+      expect((settings.merged as unknown as Record<string, unknown>).excludedProjectEnvVars).toEqual([
         'NODE_ENV',
         'DEBUG',
       ]);
     });
 
-    it('should merge excludedProjectEnvVars with workspace taking precedence', () => {
+    it('should merge excludedProjectEnvVars with workspace taking precedence', async () => {
       const userSettingsContent = {
         excludedProjectEnvVars: ['DEBUG', 'NODE_ENV', 'USER_VAR'],
       };
@@ -1411,18 +1397,18 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
-      expect(settings.user.settings.excludedProjectEnvVars).toEqual([
+      expect((settings.user.settings as unknown as Record<string, unknown>).excludedProjectEnvVars).toEqual([
         'DEBUG',
         'NODE_ENV',
         'USER_VAR',
       ]);
-      expect(settings.workspace.settings.excludedProjectEnvVars).toEqual([
+      expect((settings.workspace.settings as unknown as Record<string, unknown>).excludedProjectEnvVars).toEqual([
         'WORKSPACE_DEBUG',
         'WORKSPACE_VAR',
       ]);
-      expect(settings.merged.excludedProjectEnvVars).toEqual([
+      expect((settings.merged as unknown as Record<string, unknown>).excludedProjectEnvVars).toEqual([
         'WORKSPACE_DEBUG',
         'WORKSPACE_VAR',
       ]);
@@ -1430,7 +1416,7 @@ describe('Settings Loading and Merging', () => {
   });
 
   describe('with workspace trust', () => {
-    it('should merge workspace settings when workspace is trusted', () => {
+    it('should merge workspace settings when workspace is trusted', async () => {
       (mockFsExistsSync as Mock).mockReturnValue(true);
       const userSettingsContent = { theme: 'dark', sandbox: false };
       const workspaceSettingsContent = {
@@ -1448,15 +1434,15 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
-      expect(settings.merged.sandbox).toBe(true);
-      expect(settings.merged.contextFileName).toBe('WORKSPACE.md');
-      expect(settings.merged.theme).toBe('dark');
+      expect((settings.merged as unknown as Record<string, unknown>).sandbox).toBe(true);
+      expect((settings.merged as unknown as Record<string, unknown>).contextFileName).toBe('WORKSPACE.md');
+      expect((settings.merged as unknown as Record<string, unknown>).theme).toBe('dark');
     });
 
-    it('should NOT merge workspace settings when workspace is not trusted', () => {
-      vi.mocked(isWorkspaceTrusted).mockReturnValue(false);
+    it('should NOT merge workspace settings when workspace is not trusted', async () => {
+      vi.mocked(isWorkspaceTrusted).mockResolvedValue(false);
       (mockFsExistsSync as Mock).mockReturnValue(true);
       const userSettingsContent = {
         theme: 'dark',
@@ -1478,11 +1464,11 @@ describe('Settings Loading and Merging', () => {
         },
       );
 
-      const settings = loadSettings(MOCK_WORKSPACE_DIR);
+      const settings = await loadSettings(MOCK_WORKSPACE_DIR);
 
-      expect(settings.merged.sandbox).toBe(false); // User setting
-      expect(settings.merged.contextFileName).toBe('USER.md'); // User setting
-      expect(settings.merged.theme).toBe('dark'); // User setting
+      expect((settings.merged as unknown as Record<string, unknown>).sandbox).toBe(false); // User setting
+      expect((settings.merged as unknown as Record<string, unknown>).contextFileName).toBe('USER.md'); // User setting
+      expect((settings.merged as unknown as Record<string, unknown>).theme).toBe('dark'); // User setting
     });
   });
 });

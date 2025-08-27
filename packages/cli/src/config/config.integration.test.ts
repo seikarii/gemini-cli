@@ -273,11 +273,11 @@ describe('Configuration Integration Tests', () => {
   });
 
   describe('Approval Mode Integration Tests', () => {
-    let parseArguments: typeof import('./config').parseArguments;
+    let parseArguments: typeof import('./config.js').parseArguments;
 
     beforeEach(async () => {
       // Import the argument parsing function for integration testing
-      const { parseArguments: parseArgs } = await import('./config');
+      const { parseArguments: parseArgs } = await import('./config.js');
       parseArguments = parseArgs;
     });
 

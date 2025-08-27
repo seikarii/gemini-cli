@@ -840,7 +840,7 @@ describe('vim-buffer-actions', () => {
         const state = createTestState(['line1', 'line2', 'line3'], 0, 2);
         const action = {
           type: 'vim_change_movement' as const,
-          payload: { movement: 'j', count: 2 },
+          payload: { movement: 'j' as const, count: 2 },
         };
 
         const result = handleVimAction(state, action);

@@ -173,12 +173,17 @@ describe('memoryCommand', () => {
 
       mockContext = createMockCommandContext({
         services: {
-          config: Promise.resolve(mockConfig),
+          config: mockConfig,
           settings: {
+            system: {},
+            user: {},
+            workspace: {},
+            errors: [],
+            isTrusted: true,
             merged: {
               memoryDiscoveryMaxDirs: 1000,
             },
-          } as LoadedSettings,
+          } as unknown as LoadedSettings,
         },
       });
       mockLoadServerHierarchicalMemory.mockClear();

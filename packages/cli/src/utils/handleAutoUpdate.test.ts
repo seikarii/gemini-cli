@@ -1,6 +1,17 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copvi.mock('./updateEventEmitter.js', async () => {
+  const actual = await vi.importActual('./updateEventEmitter.js') as {
+    updateEventEmitter: unknown;
+  };
+  return {
+    ...actual,
+    updateEventEmitter: {
+      ...(actual.updateEventEmitter as object),
+      emit: vi.fn(),
+    },
+  };
+});5 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -21,7 +32,7 @@ vi.mock('./installationInfo.js', async () => {
 });
 
 vi.mock('./updateEventEmitter.js', async () => {
-  const actual = await vi.importActual('./updateEventEmitter.js');
+  const actual = await vi.importActual('./updateEventEmitter.js') as any;
   return {
     ...actual,
     updateEventEmitter: {
@@ -101,12 +112,14 @@ describe('handleAutoUpdate', () => {
 
   it('should emit "update-received" but not update if auto-updates are disabled', () => {
     mockSettings.merged.disableAutoUpdate = true;
-    mockGetInstallationInfo.mockReturnValue({
+    mockGetInstallationInfo.mockReturnValue(Promise.resolve({
       updateCommand: 'npm i -g @google/gemini-cli@latest',
       updateMessage: 'Please update manually.',
       isGlobal: true,
       packageManager: PackageManager.NPM,
-    });
+    }));
+
+    })));
 
     handleAutoUpdate(mockUpdateInfo, mockSettings, '/root', mockSpawn);
 
@@ -121,11 +134,13 @@ describe('handleAutoUpdate', () => {
   });
 
   it('should emit "update-received" but not update if no update command is found', () => {
-    mockGetInstallationInfo.mockReturnValue({
+    mockGetInstallationInfo.mockReturnValue(Promise.resolve({
       updateCommand: undefined,
       updateMessage: 'Cannot determine update command.',
       isGlobal: false,
       packageManager: PackageManager.NPM,
+    }));
+
     });
 
     handleAutoUpdate(mockUpdateInfo, mockSettings, '/root', mockSpawn);
@@ -141,11 +156,13 @@ describe('handleAutoUpdate', () => {
   });
 
   it('should combine update messages correctly', () => {
-    mockGetInstallationInfo.mockReturnValue({
+    mockGetInstallationInfo.mockReturnValue(Promise.resolve({
       updateCommand: undefined, // No command to prevent spawn
       updateMessage: 'This is an additional message.',
       isGlobal: false,
       packageManager: PackageManager.NPM,
+    }));
+
     });
 
     handleAutoUpdate(mockUpdateInfo, mockSettings, '/root', mockSpawn);
@@ -160,11 +177,13 @@ describe('handleAutoUpdate', () => {
   });
 
   it('should attempt to perform an update when conditions are met', async () => {
-    mockGetInstallationInfo.mockReturnValue({
+    mockGetInstallationInfo.mockReturnValue(Promise.resolve({
       updateCommand: 'npm i -g @google/gemini-cli@latest',
       updateMessage: 'This is an additional message.',
       isGlobal: false,
       packageManager: PackageManager.NPM,
+    }));
+
     });
 
     // Simulate successful execution
@@ -179,11 +198,13 @@ describe('handleAutoUpdate', () => {
 
   it('should emit "update-failed" when the update process fails', async () => {
     await new Promise<void>((resolve) => {
-      mockGetInstallationInfo.mockReturnValue({
+      mockGetInstallationInfo.mockReturnValue(Promise.resolve({
         updateCommand: 'npm i -g @google/gemini-cli@latest',
         updateMessage: 'This is an additional message.',
         isGlobal: false,
         packageManager: PackageManager.NPM,
+    }));
+
       });
 
       // Simulate failed execution
@@ -204,11 +225,13 @@ describe('handleAutoUpdate', () => {
 
   it('should emit "update-failed" when the spawn function throws an error', async () => {
     await new Promise<void>((resolve) => {
-      mockGetInstallationInfo.mockReturnValue({
+      mockGetInstallationInfo.mockReturnValue(Promise.resolve({
         updateCommand: 'npm i -g @google/gemini-cli@latest',
         updateMessage: 'This is an additional message.',
         isGlobal: false,
         packageManager: PackageManager.NPM,
+    }));
+
       });
 
       // Simulate an error event
@@ -227,12 +250,14 @@ describe('handleAutoUpdate', () => {
   });
 
   it('should use the "@nightly" tag for nightly updates', async () => {
-    mockUpdateInfo.update.latest = '2.0.0-nightly';
-    mockGetInstallationInfo.mockReturnValue({
+    (mockUpdateInfo.update as unknown as { latest: string }).latest = '2.0.0-nightly';
+    mockGetInstallationInfo.mockReturnValue(Promise.resolve({
       updateCommand: 'npm i -g @google/gemini-cli@latest',
       updateMessage: 'This is an additional message.',
       isGlobal: false,
       packageManager: PackageManager.NPM,
+    }));
+
     });
 
     handleAutoUpdate(mockUpdateInfo, mockSettings, '/root', mockSpawn);
@@ -248,11 +273,13 @@ describe('handleAutoUpdate', () => {
 
   it('should emit "update-success" when the update process succeeds', async () => {
     await new Promise<void>((resolve) => {
-      mockGetInstallationInfo.mockReturnValue({
+      mockGetInstallationInfo.mockReturnValue(Promise.resolve({
         updateCommand: 'npm i -g @google/gemini-cli@latest',
         updateMessage: 'This is an additional message.',
         isGlobal: false,
         packageManager: PackageManager.NPM,
+    }));
+
       });
 
       // Simulate successful execution

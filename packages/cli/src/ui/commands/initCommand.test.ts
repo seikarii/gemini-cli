@@ -10,6 +10,7 @@ import * as path from 'path';
 import { initCommand } from './initCommand.js';
 import { createMockCommandContext } from '../../test-utils/mockCommandContext.js';
 import { type CommandContext } from './types.js';
+import { SubmitPromptActionReturn } from './types.js';
 
 // Mock the 'fs' module
 vi.mock('fs', () => ({
@@ -76,8 +77,8 @@ describe('initCommand', () => {
     );
 
     // Assert: Check that the correct prompt is submitted
-    expect(result.type).toBe('submit_prompt');
-    expect(result.content).toContain(
+    expect((result as SubmitPromptActionReturn).type).toBe('submit_prompt');
+    expect((result as SubmitPromptActionReturn).content).toContain(
       'You are an AI agent that brings the power of Gemini',
     );
   });

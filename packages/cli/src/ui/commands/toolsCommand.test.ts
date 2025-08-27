@@ -4,11 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { describe, it, expect, vi } from 'vitest';
+/// <reference types="vitest/globals" />
+
+import { describe, it, expect, type Mock } from 'vitest';
 import { toolsCommand } from './toolsCommand.js';
 import { createMockCommandContext } from '../../test-utils/mockCommandContext.js';
 import { MessageType } from '../types.js';
-import { Tool } from '@google/gemini-cli-core';
+// import { Tool } from '@google/gemini-cli-core';
 
 // Mock tools for testing
 const mockTools = [
@@ -24,7 +26,7 @@ const mockTools = [
     description: 'Edits code files.',
     schema: {},
   },
-] as Tool[];
+] as any[];
 
 describe('toolsCommand', () => {
   it('should display an error if the tool registry is unavailable', async () => {
@@ -52,7 +54,7 @@ describe('toolsCommand', () => {
     const mockContext = createMockCommandContext({
       services: {
         config: {
-          getToolRegistry: () => ({ getAllTools: () => [] as Tool[] }),
+          getToolRegistry: () => ({ getAllTools: () => [] as any[] }),
         },
       },
     });
@@ -80,7 +82,7 @@ describe('toolsCommand', () => {
     if (!toolsCommand.action) throw new Error('Action not defined');
     await toolsCommand.action(mockContext, '');
 
-    const message = (mockContext.ui.addItem as vi.Mock).mock.calls[0][0].text;
+    const message = (mockContext.ui.addItem as Mock).mock.calls[0][0].text;
     expect(message).not.toContain('Reads files from the local system.');
     expect(message).toContain('File Reader');
     expect(message).toContain('Code Editor');
@@ -98,7 +100,7 @@ describe('toolsCommand', () => {
     if (!toolsCommand.action) throw new Error('Action not defined');
     await toolsCommand.action(mockContext, 'desc');
 
-    const message = (mockContext.ui.addItem as vi.Mock).mock.calls[0][0].text;
+    const message = (mockContext.ui.addItem as Mock).mock.calls[0][0].text;
     expect(message).toContain('Reads files from the local system.');
     expect(message).toContain('Edits code files.');
   });

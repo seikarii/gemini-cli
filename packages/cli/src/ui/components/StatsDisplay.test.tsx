@@ -30,9 +30,11 @@ const renderWithMockedStats = (metrics: SessionMetrics) => {
       lastPromptTokenCount: 0,
       promptCount: 5,
     },
-
     getPromptCount: () => 5,
+    getCurrentTokenCount: vi.fn().mockResolvedValue(100),
+    getLastMessageTokenCount: vi.fn().mockResolvedValue(50),
     startNewPrompt: vi.fn(),
+    setChatRecordingService: vi.fn(),
   });
 
   return render(<StatsDisplay duration="1s" />);
@@ -384,9 +386,11 @@ describe('<StatsDisplay />', () => {
           lastPromptTokenCount: 0,
           promptCount: 5,
         },
-
         getPromptCount: () => 5,
+        getCurrentTokenCount: vi.fn().mockResolvedValue(100),
+        getLastMessageTokenCount: vi.fn().mockResolvedValue(50),
         startNewPrompt: vi.fn(),
+        setChatRecordingService: vi.fn(),
       });
 
       const { lastFrame } = render(

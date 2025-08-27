@@ -8,8 +8,8 @@ import React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { useKeypress, Key } from './useKeypress.js';
 import { KeypressProvider } from '../contexts/KeypressContext.js';
-import { useStdin } from 'ink';
 import { EventEmitter } from 'events';
+import { useStdin } from 'ink';
 import { PassThrough } from 'stream';
 import { vi, describe, it, expect, beforeEach, Mock } from 'vitest';
 
@@ -56,7 +56,9 @@ class MockStdin extends EventEmitter {
   isTTY = true;
   setRawMode = vi.fn();
   on = this.addListener;
-  removeListener: ((event: string, listener: (...args: any[]) => void) => void) | undefined = this.removeListener;
+  removeListener(event: string, listener: (...args: unknown[]) => void): this {
+    return super.removeListener(event, listener);
+  }
   write = vi.fn();
   resume = vi.fn();
 

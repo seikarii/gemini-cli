@@ -85,8 +85,8 @@ import { FileCommandLoader } from '../../services/FileCommandLoader.js';
 import { McpPromptLoader } from '../../services/McpPromptLoader.js';
 import {
   SlashCommandStatus,
-  makeFakeConfig,
-} from '@google/gemini-cli-core/index.js';
+  Config,
+} from '@google/gemini-cli-core';
 
 function createTestCommand(
   overrides: Partial<SlashCommand>,
@@ -108,7 +108,7 @@ describe('useSlashCommandProcessor', () => {
   const mockOpenAuthDialog = vi.fn();
   const mockSetQuittingMessages = vi.fn();
 
-  const mockConfig = makeFakeConfig({});
+  const mockConfig = {} as Config;
 
   const mockSettings = {} as LoadedSettings;
 

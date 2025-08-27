@@ -10,6 +10,8 @@ import * as os from 'os';
 import * as path from 'path';
 import {
   EXTENSIONS_CONFIG_FILENAME,
+} from './constants.js';
+import {
   annotateActiveExtensions,
   loadExtensions,
 } from './extension.js';
@@ -114,9 +116,9 @@ describe('loadExtensions', () => {
 
 describe('annotateActiveExtensions', () => {
   const extensions = [
-    { config: { name: 'ext1', version: '1.0.0' }, contextFiles: [] },
-    { config: { name: 'ext2', version: '1.0.0' }, contextFiles: [] },
-    { config: { name: 'ext3', version: '1.0.0' }, contextFiles: [] },
+    { path: '/path/to/ext1', config: { name: 'ext1', version: '1.0.0' }, contextFiles: [] },
+    { path: '/path/to/ext2', config: { name: 'ext2', version: '1.0.0' }, contextFiles: [] },
+    { path: '/path/to/ext3', config: { name: 'ext3', version: '1.0.0' }, contextFiles: [] },
   ];
 
   it('should mark all extensions as active if no enabled extensions are provided', () => {

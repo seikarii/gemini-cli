@@ -202,7 +202,7 @@ describe('FileCommandLoader', () => {
     const mockConfig = {
       getProjectRoot: vi.fn(() => '/path/to/project'),
       getExtensions: vi.fn(() => []),
-    } as Config;
+    } as unknown as Config;
     const loader = new FileCommandLoader(mockConfig);
     const commands = await loader.loadCommands(signal);
     expect(commands).toHaveLength(1);
@@ -245,7 +245,7 @@ describe('FileCommandLoader', () => {
     const mockConfig = {
       getProjectRoot: vi.fn(() => process.cwd()),
       getExtensions: vi.fn(() => []),
-    } as Config;
+    } as unknown as Config;
     const loader = new FileCommandLoader(mockConfig);
     const commands = await loader.loadCommands(signal);
 
@@ -486,7 +486,7 @@ describe('FileCommandLoader', () => {
             path: extensionDir,
           },
         ]),
-      } as Config;
+      } as unknown as Config;
       const loader = new FileCommandLoader(mockConfig);
       const commands = await loader.loadCommands(signal);
 
@@ -537,7 +537,7 @@ describe('FileCommandLoader', () => {
             path: extensionDir,
           },
         ]),
-      } as Config;
+      } as unknown as Config;
       const loader = new FileCommandLoader(mockConfig);
       const commands = await loader.loadCommands(signal);
 
@@ -644,7 +644,7 @@ describe('FileCommandLoader', () => {
             path: extensionDir2,
           },
         ]),
-      } as Config;
+      } as unknown as Config;
       const loader = new FileCommandLoader(mockConfig);
       const commands = await loader.loadCommands(signal);
 
@@ -680,7 +680,7 @@ describe('FileCommandLoader', () => {
             path: extensionDir,
           },
         ]),
-      } as Config;
+      } as unknown as Config;
       const loader = new FileCommandLoader(mockConfig);
       const commands = await loader.loadCommands(signal);
       expect(commands).toHaveLength(0);
@@ -712,7 +712,7 @@ describe('FileCommandLoader', () => {
         getExtensions: vi.fn(() => [
           { name: 'a', version: '1.0.0', isActive: true, path: extensionDir },
         ]),
-      } as Config;
+      } as unknown as Config;
       const loader = new FileCommandLoader(mockConfig);
       const commands = await loader.loadCommands(signal);
 

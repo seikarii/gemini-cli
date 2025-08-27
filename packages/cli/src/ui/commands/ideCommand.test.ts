@@ -195,7 +195,7 @@ describe('ideCommand', () => {
       vi.mocked(core.getIdeInstaller).mockReturnValue({
         install: mockInstall,
         isInstalled: vi.fn(),
-      });
+      } as core.IdeInstaller & { isInstalled: () => boolean });
       platformSpy.mockReturnValue('linux');
     });
 

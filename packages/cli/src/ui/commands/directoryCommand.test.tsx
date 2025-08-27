@@ -6,7 +6,8 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { directoryCommand, expandHomeDir } from './directoryCommand.js';
-import { Config, WorkspaceContext } from '@google/gemini-cli-core';
+import { Config } from '@google/gemini-cli-core';
+import { WorkspaceContext } from '@google/gemini-cli-core/src/utils/workspaceContext.js';
 import { CommandContext } from './types.js';
 import { MessageType } from '../types.js';
 import * as os from 'os';

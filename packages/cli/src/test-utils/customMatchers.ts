@@ -20,14 +20,26 @@ const invalidCharsRegex = /[\b\x1b]/;
 
 function toHaveOnlyValidCharacters(
   this: { isNot?: boolean },
-  buffer: { lines: string[] },
+  buffer: unknown,
 ) {
   const { isNot } = this;
   let pass = true;
   const invalidLines: Array<{ line: number; content: string }> = [];
 
-  for (let i = 0; i < buffer.lines.length; i++) {
-    const line = buffer.lines[i];
+  // Check if buffer has lines property
+  if (!buffer || typeof buffer !== 'object' || !('lines' in buffer)) {
+    return {
+      pass: false,
+      message: () => `Expected buffer to have a 'lines' property`,
+      actual: buffer,
+      expected: 'An object with a lines property',
+    };
+  }
+
+  const lines = (buffer as { lines: string[] }).lines;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     if (line.includes('\n')) {
       pass = false;
       invalidLines.push({ line: i, content: line });
@@ -45,7 +57,7 @@ function toHaveOnlyValidCharacters(
       `Expected buffer ${isNot ? 'not ' : ''}to have only valid characters, but found invalid characters in lines:\n${invalidLines
         .map((l) => `  [${l.line}]: "${l.content}"`) /* This line was changed */
         .join('\n')}`,
-    actual: buffer.lines,
+    actual: lines,
     expected: 'Lines with no line breaks, backspaces, or escape codes.',
   };
 }
@@ -54,9 +66,9 @@ expect.extend({ toHaveOnlyValidCharacters });
 
 // Extend Vitest's `expect` interface with the custom matcher's type definition.
 declare global {
-  namespace Vi {
-    interface Assertion {
-      toHaveOnlyValidCharacters(): void;
+  namespace jest {
+    interface Matchers<R> {
+      toHaveOnlyValidCharacters(): R;
     }
   }
 }

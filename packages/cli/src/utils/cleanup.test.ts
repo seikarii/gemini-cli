@@ -7,6 +7,10 @@
 import { vi } from 'vitest';
 import { registerCleanup, runExitCleanup } from './cleanup.js';
 
+declare global {
+  var cleanupFunctions: Array<(() => void) | (() => Promise<void>)>;
+}
+
 describe('cleanup', () => {
   const originalCleanupFunctions = global['cleanupFunctions'];
 
