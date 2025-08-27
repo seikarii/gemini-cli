@@ -5,10 +5,8 @@
  */
 
 import { AuthType } from '@google/gemini-cli-core';
-import { loadEnvironment } from './settings.js';
 
-export const validateAuthMethod = (authMethod: string): string | null => {
-  loadEnvironment();
+export const validateAuthMethod = (authMethod: string, env: NodeJS.ProcessEnv = process.env): string | null => {
   if (
     authMethod === AuthType.LOGIN_WITH_GOOGLE ||
     authMethod === AuthType.CLOUD_SHELL
@@ -17,19 +15,17 @@ export const validateAuthMethod = (authMethod: string): string | null => {
   }
 
   if (authMethod === AuthType.LOGIN_WITH_GOOGLE_GCA) {
-    if (!process.env['GOOGLE_CLOUD_PROJECT']) {
-      return (
-        '[Error] GOOGLE_CLOUD_PROJECT is not set.\n' +
-        'Please set it using:\n' +
-        '  export GOOGLE_CLOUD_PROJECT=<your-project-id>\n' +
-        'and try again.'
-      );
+    if (!env['GOOGLE_CLOUD_PROJECT']) {
+      return `[Error] GOOGLE_CLOUD_PROJECT is not set.
+Please set it using:
+  export GOOGLE_CLOUD_PROJECT=<your-project-id>
+and try again.`;
     }
     return null;
   }
 
   if (authMethod === AuthType.USE_GEMINI) {
-    if (!process.env['GEMINI_API_KEY']) {
+    if (!env['GEMINI_API_KEY']) {
       return 'GEMINI_API_KEY environment variable not found. Add that to your environment and try again (no reload needed if using .env)!';
     }
     return null;
@@ -37,16 +33,14 @@ export const validateAuthMethod = (authMethod: string): string | null => {
 
   if (authMethod === AuthType.USE_VERTEX_AI) {
     const hasVertexProjectLocationConfig =
-      !!process.env['GOOGLE_CLOUD_PROJECT'] &&
-      !!process.env['GOOGLE_CLOUD_LOCATION'];
-    const hasGoogleApiKey = !!process.env['GOOGLE_API_KEY'];
+      !!env['GOOGLE_CLOUD_PROJECT'] &&
+      !!env['GOOGLE_CLOUD_LOCATION'];
+    const hasGoogleApiKey = !!env['GOOGLE_API_KEY'];
     if (!hasVertexProjectLocationConfig && !hasGoogleApiKey) {
-      return (
-        'When using Vertex AI, you must specify either:\n' +
-        '• GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION environment variables.\n' +
-        '• GOOGLE_API_KEY environment variable (if using express mode).\n' +
-        'Update your environment and try again (no reload needed if using .env)!'
-      );
+      return `When using Vertex AI, you must specify either:
+• GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION environment variables.
+• GOOGLE_API_KEY environment variable (if using express mode).
+Update your environment and try again (no reload needed if using .env)!`;
     }
     return null;
   }

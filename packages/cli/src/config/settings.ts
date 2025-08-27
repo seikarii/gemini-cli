@@ -395,6 +395,8 @@ export async function loadSettings(workspaceDir: string): Promise<LoadedSettings
         userSettings.theme = DefaultLight.name;
       } else if (userSettings.theme && userSettings.theme === 'VS2015') {
         userSettings.theme = DefaultDark.name;
+      } else if (userSettings.theme && userSettings.theme === 'VSDark') {
+        userSettings.theme = DefaultDark.name;
       }
     } catch (_e) {
       // ignore missing user settings
@@ -417,6 +419,11 @@ export async function loadSettings(workspaceDir: string): Promise<LoadedSettings
         } else if (
           workspaceSettings.theme &&
           workspaceSettings.theme === 'VS2015'
+        ) {
+          workspaceSettings.theme = DefaultDark.name;
+        } else if (
+          workspaceSettings.theme &&
+          workspaceSettings.theme === 'VSDark'
         ) {
           workspaceSettings.theme = DefaultDark.name;
         }
