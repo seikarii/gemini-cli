@@ -814,7 +814,7 @@ describe('vim-buffer-actions', () => {
         const state = createTestState(['hello world'], 0, 5);
         const action = {
           type: 'vim_change_movement' as const,
-          payload: { movement: 'h', count: 2 },
+          payload: { movement: 'h' as const, count: 2 },
         };
 
         const result = handleVimAction(state, action);
@@ -827,7 +827,7 @@ describe('vim-buffer-actions', () => {
         const state = createTestState(['hello world'], 0, 5);
         const action = {
           type: 'vim_change_movement' as const,
-          payload: { movement: 'l', count: 3 },
+          payload: { movement: 'l' as const, count: 3 },
         };
 
         const result = handleVimAction(state, action);
