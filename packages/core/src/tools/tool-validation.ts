@@ -9,6 +9,7 @@
  */
 
 import { execSync } from 'child_process';
+import * as path from 'path';
 import { ToolError, ToolErrorType } from './tool-error.js';
 import { FileSystemService } from '../services/fileSystemService.js';
 
@@ -112,14 +113,56 @@ export class ToolValidationUtils {
     try {
       const exists = await this.fileSystemService.exists(filePath);
       if (!exists) {
-        return {
-          isValid: false,
-          error: ToolError.fileSystemError(
-            ToolErrorType.VALIDATION_PATH_NOT_ACCESSIBLE,
-            `Path is not accessible: ${filePath}`,
-            filePath
-          ),
-        };
+        if (requireWrite) {
+          // For write operations, if file doesn't exist, check parent directory
+          const parentDir = path.dirname(filePath);
+          const parentExists = await this.fileSystemService.exists(parentDir);
+          if (!parentExists) {
+            return {
+              isValid: false,
+              error: ToolError.fileSystemError(
+                ToolErrorType.VALIDATION_PATH_NOT_ACCESSIBLE,
+                `Parent directory does not exist: ${parentDir}`,
+                filePath
+              ),
+            };
+          }
+
+          const parentInfo = await this.fileSystemService.getFileInfo(parentDir);
+          if (!parentInfo.success) {
+            return {
+              isValid: false,
+              error: ToolError.fileSystemError(
+                ToolErrorType.VALIDATION_PATH_NOT_ACCESSIBLE,
+                `Cannot get parent directory information: ${parentDir}`,
+                filePath
+              ),
+            };
+          }
+
+          if (!parentInfo.data!.permissions.writable) {
+            return {
+              isValid: false,
+              error: ToolError.fileSystemError(
+                ToolErrorType.PERMISSION_DENIED,
+                `No write permission for parent directory: ${parentDir}`,
+                filePath
+              ),
+            };
+          }
+
+          return { isValid: true };
+        } else {
+          // For read operations, file must exist
+          return {
+            isValid: false,
+            error: ToolError.fileSystemError(
+              ToolErrorType.VALIDATION_PATH_NOT_ACCESSIBLE,
+              `Path is not accessible: ${filePath}`,
+              filePath
+            ),
+          };
+        }
       }
 
       const fileInfo = await this.fileSystemService.getFileInfo(filePath);
