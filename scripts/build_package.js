@@ -27,6 +27,7 @@ if (!process.cwd().includes('packages')) {
 }
 
 // build typescript files
+execSync('find . -name "*.tsbuildinfo" -delete', { stdio: 'inherit' });
 execSync('npx tsc --build', { stdio: 'inherit' });
 
 // copy .{md,json} files

@@ -39,10 +39,10 @@ import { EditorSettingsDialog } from './components/EditorSettingsDialog.js';
 import { FolderTrustDialog } from './components/FolderTrustDialog.js';
 import { ShellConfirmationDialog } from './components/ShellConfirmationDialog.js';
 import { RadioButtonSelect } from './components/shared/RadioButtonSelect.js';
+import { Tips } from './components/Tips.js';
 import { Colors } from './colors.js';
 import { loadHierarchicalGeminiMemory } from '../config/config.js';
 import { LoadedSettings, SettingScope } from '../config/settings.js';
-import { Tips } from './components/Tips.js';
 import { ConsolePatcher } from './utils/ConsolePatcher.js';
 import { registerCleanup } from '../utils/cleanup.js';
 import { DetailedMessagesDisplay } from './components/DetailedMessagesDisplay.js';
@@ -73,7 +73,6 @@ import { useLogger } from './hooks/useLogger.js';
 import { StreamingContext } from './contexts/StreamingContext.js';
 import {
   SessionStatsProvider,
-  useSessionStats,
 } from './contexts/SessionContext.js';
 import { useGitBranchName } from './hooks/useGitBranchName.js';
 import { useFocus } from './hooks/useFocus.js';
@@ -99,6 +98,9 @@ import { ShowMoreLines } from './components/ShowMoreLines.js';
 import { PrivacyNotice } from './privacy/PrivacyNotice.js';
 import { useSettingsCommand } from './hooks/useSettingsCommand.js';
 import { SettingsDialog } from './components/SettingsDialog.js';
+import { ConversationTokenDisplay } from './components/ConversationTokenDisplay.js';
+import { RealtimeStatsPanel } from './components/RealtimeStatsPanel.js';
+import { TokenPreview } from './components/TokenPreview.js';
 import { setUpdateHandler } from '../utils/handleAutoUpdate.js';
 import { appEvents, AppEvent } from '../utils/events.js';
 import { isNarrowWidth } from './utils/isNarrowWidth.js';
@@ -270,7 +272,7 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
     registerCleanup(consolePatcher.cleanup);
   }, [handleNewMessage, debugMode]);
 
-  const { stats: sessionStats } = useSessionStats();
+  // Session stats are accessed directly by components that need them
   const [staticNeedsRefresh, setStaticNeedsRefresh] = useState(false);
   const [staticKey, setStaticKey] = useState(0);
   
@@ -1305,6 +1307,19 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
                 </OverflowProvider>
               )}
 
+              {/* Show RealtimeStatsPanel when debug mode is enabled */}
+              {config.getDebugMode() && (
+                <RealtimeStatsPanel />
+              )}
+
+              {/* Show TokenPreview when buffer has content */}
+              {isInputActive && buffer.text.length > 10 && (
+                <TokenPreview 
+                  messageLength={buffer.text.length} 
+                  model={currentModel}
+                />
+              )}
+
               {isInputActive && (
                 <InputPrompt
                   buffer={buffer}
@@ -1374,7 +1389,6 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
                 settings.merged.showMemoryUsage ||
                 false
               }
-              promptTokenCount={sessionStats.lastPromptTokenCount}
               nightly={nightly}
               vimMode={vimModeEnabled ? vimMode : undefined}
               isTrustedFolder={isTrustedFolderState}
@@ -1387,11 +1401,11 @@ const App = ({ agent, config, settings, startupWarnings = [], version }: AppProp
 };
 
 // Memoize the main App component to prevent unnecessary re-renders when props haven't changed
-export const MemoizedApp = memo(App, (prevProps: AppProps, nextProps: AppProps) => 
+const MemoizedApp = memo(App, (prevProps: AppProps, nextProps: AppProps) => 
   prevProps.config === nextProps.config &&
   prevProps.settings === nextProps.settings &&
   prevProps.version === nextProps.version &&
   JSON.stringify(prevProps.startupWarnings) === JSON.stringify(nextProps.startupWarnings)
 );
 
-export default MemoizedApp;
+export { MemoizedApp };

@@ -32,6 +32,9 @@ const renderWithMockedStats = (metrics: SessionMetrics) => {
 
     getPromptCount: () => 5,
     startNewPrompt: vi.fn(),
+    getCurrentTokenCount: vi.fn().mockResolvedValue(1000),
+    getLastMessageTokenCount: vi.fn().mockResolvedValue(50),
+    setChatRecordingService: vi.fn(),
   });
 
   return render(<SessionSummaryDisplay duration="1h 23m 45s" />);

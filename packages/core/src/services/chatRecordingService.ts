@@ -2003,6 +2003,104 @@ export class ChatRecordingService {
   }
 
   /**
+   * Gets the current total token count for the conversation.
+   * This includes all messages and any compressed context.
+   */
+  async getCurrentTokenCount(): Promise<number> {
+    if (!this.conversationFile) {
+      return 0;
+    }
+
+    const optimized = await this.getOptimizedContext();
+    return optimized.totalEstimatedTokens;
+  }
+
+  /**
+   * Gets the token count for the last message in the conversation.
+   * Returns 0 if there are no messages.
+   */
+  async getLastMessageTokenCount(): Promise<number> {
+    if (!this.conversationFile) {
+      return 0;
+    }
+
+    const conversation = await this.readConversation();
+    const lastMessage = conversation.messages.at(-1);
+    
+    if (!lastMessage) {
+      return 0;
+    }
+
+    let tokenCount = await this.estimateTokenCount(lastMessage.content);
+    
+    // Add tokens from tool calls if present
+    if (lastMessage.type === 'gemini' && lastMessage.toolCalls) {
+      for (const tc of lastMessage.toolCalls) {
+        tokenCount += await this.estimateTokenCount(JSON.stringify(tc.args));
+        if (tc.result) {
+          tokenCount += await this.estimateTokenCount(JSON.stringify(tc.result));
+        }
+      }
+    }
+
+    return tokenCount;
+  }
+
+  /**
+   * Gets a comprehensive token summary for the current conversation.
+   */
+  async getTokenSummary(): Promise<{
+    total: number;
+    messages: number;
+    toolCalls: number;
+    compressed: number;
+    lastMessage: number;
+    messageCount: number;
+  }> {
+    if (!this.conversationFile) {
+      return {
+        total: 0,
+        messages: 0,
+        toolCalls: 0,
+        compressed: 0,
+        lastMessage: 0,
+        messageCount: 0,
+      };
+    }
+
+    const conversation = await this.readConversation();
+    const optimized = await this.getOptimizedContext();
+    
+    let messageTokens = 0;
+    let toolCallTokens = 0;
+    
+    // Calculate tokens for all messages
+    for (const msg of conversation.messages) {
+      messageTokens += await this.estimateTokenCount(msg.content);
+      if (msg.type === 'gemini' && msg.toolCalls) {
+        for (const tc of msg.toolCalls) {
+          toolCallTokens += await this.estimateTokenCount(JSON.stringify(tc.args));
+          if (tc.result) {
+            toolCallTokens += await this.estimateTokenCount(JSON.stringify(tc.result));
+          }
+        }
+      }
+    }
+
+    const lastMessageTokens = await this.getLastMessageTokenCount();
+    const compressedTokens = optimized.compressedContext?.compressedTokens || 0;
+
+    return {
+      total: optimized.totalEstimatedTokens,
+      messages: messageTokens,
+      toolCalls: toolCallTokens,
+      compressed: compressedTokens,
+      lastMessage: lastMessageTokens,
+      messageCount: conversation.messages.length,
+    };
+  }
+
+  /**
    * Deletes a session file by session ID.
    */
   async deleteSession(sessionId: string): Promise<void> {

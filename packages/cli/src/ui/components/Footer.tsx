@@ -13,7 +13,7 @@ import process from 'node:process';
 import path from 'node:path';
 import Gradient from 'ink-gradient';
 import { MemoryUsageDisplay } from './MemoryUsageDisplay.js';
-import { ContextUsageDisplay } from './ContextUsageDisplay.js';
+import { ConversationTokenDisplay } from './ConversationTokenDisplay.js';
 import { DebugProfiler } from './DebugProfiler.js';
 
 import { useTerminalSize } from '../hooks/useTerminalSize.js';
@@ -29,7 +29,6 @@ interface FooterProps {
   errorCount: number;
   showErrorDetails: boolean;
   showMemoryUsage?: boolean;
-  promptTokenCount: number;
   nightly: boolean;
   vimMode?: string;
   isTrustedFolder?: boolean;
@@ -45,7 +44,6 @@ export const Footer: React.FC<FooterProps> = ({
   errorCount,
   showErrorDetails,
   showMemoryUsage,
-  promptTokenCount,
   nightly,
   vimMode,
   isTrustedFolder,
@@ -124,14 +122,13 @@ export const Footer: React.FC<FooterProps> = ({
 
       {/* Right Section: Gemini Label and Console Summary */}
       <Box alignItems="center" paddingTop={isNarrow ? 1 : 0}>
-        <Text color={theme.text.accent}>
-          {isNarrow ? '' : ' '}
-          {model}{' '}
-          <ContextUsageDisplay
-            promptTokenCount={promptTokenCount}
-            model={model}
-          />
-        </Text>
+        <Box alignItems="center">
+          <Text color={theme.text.accent}>
+            {isNarrow ? '' : ' '}
+            {model}
+          </Text>
+          <ConversationTokenDisplay model={model} compact />
+        </Box>
         {corgiMode && (
           <Text>
             <Text color={theme.ui.symbol}>| </Text>

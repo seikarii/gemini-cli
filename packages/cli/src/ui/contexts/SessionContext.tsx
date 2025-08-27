@@ -11,6 +11,7 @@ import React, {
   useState,
   useMemo,
   useEffect,
+  useRef,
 } from 'react';
 
 import {
@@ -18,6 +19,7 @@ import {
   SessionMetrics,
   ModelMetrics,
   sessionId,
+  ChatRecordingService,
 } from '@google/gemini-cli-core';
 
 // --- Interface Definitions ---
@@ -30,6 +32,7 @@ export interface SessionStatsState {
   metrics: SessionMetrics;
   lastPromptTokenCount: number;
   promptCount: number;
+  chatRecordingService?: ChatRecordingService;
 }
 
 export interface ComputedSessionStats {
@@ -54,6 +57,9 @@ interface SessionStatsContextValue {
   stats: SessionStatsState;
   startNewPrompt: () => void;
   getPromptCount: () => number;
+  getCurrentTokenCount: () => Promise<number>;
+  getLastMessageTokenCount: () => Promise<number>;
+  setChatRecordingService: (service: ChatRecordingService) => void;
 }
 
 // --- Context Definition ---
@@ -75,18 +81,34 @@ export const SessionStatsProvider: React.FC<{ children: React.ReactNode }> = ({
     promptCount: 0,
   });
 
+  // Use ref to avoid dependency issues in useEffect
+  const chatRecordingServiceRef = useRef<ChatRecordingService | null>(null);
+
   useEffect(() => {
-    const handleUpdate = ({
+    const handleUpdate = async ({
       metrics,
       lastPromptTokenCount,
     }: {
       metrics: SessionMetrics;
       lastPromptTokenCount: number;
     }) => {
+      let tokenCount = lastPromptTokenCount;
+      
+      // If ChatRecordingService is available, use it for token count
+      const chatRecordingService = chatRecordingServiceRef.current;
+      if (chatRecordingService) {
+        try {
+          tokenCount = await chatRecordingService.getLastMessageTokenCount();
+        } catch (error) {
+          console.warn('Failed to get token count from ChatRecordingService, using telemetry fallback:', error);
+          tokenCount = lastPromptTokenCount;
+        }
+      }
+
       setStats((prevState) => ({
         ...prevState,
         metrics,
-        lastPromptTokenCount,
+        lastPromptTokenCount: tokenCount,
       }));
     };
 
@@ -100,7 +122,7 @@ export const SessionStatsProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => {
       uiTelemetryService.off('update', handleUpdate);
     };
-  }, []);
+  }, []); // Remove stats.chatRecordingService from dependencies
 
   const startNewPrompt = useCallback(() => {
     setStats((prevState) => ({
@@ -114,13 +136,50 @@ export const SessionStatsProvider: React.FC<{ children: React.ReactNode }> = ({
     [stats.promptCount],
   );
 
+  const getCurrentTokenCount = useCallback(async (): Promise<number> => {
+    const chatRecordingService = chatRecordingServiceRef.current;
+    if (chatRecordingService) {
+      try {
+        return await chatRecordingService.getCurrentTokenCount();
+      } catch (error) {
+        console.warn('Failed to get token count from ChatRecordingService:', error);
+      }
+    }
+    // Fallback to uiTelemetryService
+    return uiTelemetryService.getLastPromptTokenCount();
+  }, []);
+
+  const getLastMessageTokenCount = useCallback(async (): Promise<number> => {
+    const chatRecordingService = chatRecordingServiceRef.current;
+    if (chatRecordingService) {
+      try {
+        return await chatRecordingService.getLastMessageTokenCount();
+      } catch (error) {
+        console.warn('Failed to get last message token count from ChatRecordingService:', error);
+      }
+    }
+    // Fallback to uiTelemetryService
+    return uiTelemetryService.getLastPromptTokenCount();
+  }, []);
+
+  const setChatRecordingService = useCallback((service: ChatRecordingService) => {
+    chatRecordingServiceRef.current = service;
+    setStats(prev => ({
+      ...prev,
+      chatRecordingService: service,
+    }));
+  }, []);
+
   const value = useMemo(
     () => ({
       stats,
       startNewPrompt,
       getPromptCount,
+      getCurrentTokenCount,
+      getLastMessageTokenCount,
+      setChatRecordingService,
     }),
-    [stats, startNewPrompt, getPromptCount],
+    [stats, startNewPrompt, getPromptCount, getCurrentTokenCount, getLastMessageTokenCount, setChatRecordingService],
   );
 
   return (
