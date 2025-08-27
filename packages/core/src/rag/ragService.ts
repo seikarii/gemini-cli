@@ -17,8 +17,6 @@ import {
   QueryEnhancementOptions,
   EnhancedQueryResult,
   RAGMetrics,
-  ChunkType,
-  ScoredChunk,
   VectorStoreConfig
 } from './types.js';
 import { RAGMemoryVectorStore } from './vectorStores/memoryVectorStore.js';
@@ -84,7 +82,8 @@ export class RAGService {
       
       this.vectorStore = new RAGMemoryVectorStore(
         memoryConfig,
-        this.logger
+        this.logger,
+        this.config.retrieval.hybridWeights
       );
 
       await this.vectorStore.initialize();
@@ -205,8 +204,13 @@ export class RAGService {
         score: scored.score
       }));
       
+      // Apply re-ranking if enabled
+      const rerankedChunks = this.config.retrieval.reRankingEnabled 
+        ? this.reRankChunks(chunks, ragQuery.text)
+        : chunks;
+      
       // Assemble context from retrieved chunks
-      const context = this.assembleContext(chunks, options);
+      const context = this.assembleContext(rerankedChunks, options);
       
       const result: EnhancedQueryResult = {
         content: context.content,
@@ -230,6 +234,66 @@ export class RAGService {
       this.logger.error('Failed to enhance query', error);
       throw error;
     }
+  }
+
+  /**
+   * Re-rank chunks based on query relevance and diversity.
+   */
+  private reRankChunks(
+    chunks: Array<RAGChunk & { score?: number }>,
+    query: string
+  ): Array<RAGChunk & { score?: number }> {
+    const queryWords = query.toLowerCase().split(/\s+/);
+    
+    // Enhanced scoring with query-specific factors
+    const enhancedChunks = chunks.map(chunk => {
+      let enhancedScore = chunk.score || 0;
+      
+      // Boost exact phrase matches
+      if (chunk.content.toLowerCase().includes(query.toLowerCase())) {
+        enhancedScore += 0.2;
+      }
+      
+      // Boost chunks with multiple query word matches
+      const contentLower = chunk.content.toLowerCase();
+      const matchCount = queryWords.filter(word => 
+        contentLower.includes(word) && word.length > 2
+      ).length;
+      enhancedScore += (matchCount / queryWords.length) * 0.15;
+      
+      // Boost chunks with title/header matches
+      const filePath = chunk.metadata?.file?.path;
+      if (filePath && queryWords.some(word => filePath.toLowerCase().includes(word))) {
+        enhancedScore += 0.1;
+      }
+      
+      return { ...chunk, score: enhancedScore };
+    });
+    
+    // Sort by enhanced score and apply diversity filtering
+    const sorted = enhancedChunks.sort((a, b) => (b.score || 0) - (a.score || 0));
+    
+    // Simple diversity: avoid too many chunks from the same source
+    const diversified: Array<RAGChunk & { score?: number }> = [];
+    const sourceCount = new Map<string, number>();
+    
+    for (const chunk of sorted) {
+      const sourcePath = chunk.metadata?.file?.path || 'unknown';
+      const currentCount = sourceCount.get(sourcePath) || 0;
+      
+      // Allow max 2 chunks per source file in top results
+      if (currentCount < 2 || diversified.length < 3) {
+        diversified.push(chunk);
+        sourceCount.set(sourcePath, currentCount + 1);
+      }
+      
+      // Stop when we have enough diverse results
+      if (diversified.length >= this.config.retrieval.maxResults) {
+        break;
+      }
+    }
+    
+    return diversified;
   }
 
   /**
@@ -266,7 +330,7 @@ export class RAGService {
    */
   private formatChunkForContext(
     chunk: RAGChunk, 
-    options: QueryEnhancementOptions
+    _options: QueryEnhancementOptions
   ): string {
     let formatted = `## ${chunk.type} - ${chunk.id}\n`;
     

@@ -12,13 +12,15 @@ import {
 } from '../types.js';
 import { Config } from '../../config/config.js';
 import { RAGLogger } from '../logger.js';
+import { EmbeddingCacheService } from '../services/embeddingCacheService.js';
 
 /**
- * Embedding service that uses Gemini's embedding model.
+ * High-performance embedding service that uses Gemini's embedding model
+ * with intelligent caching optimizations.
  */
 export class RAGGeminiEmbeddingService extends RAGEmbeddingService {
   private readonly modelInfo: EmbeddingModelInfo;
-  private embeddingCache: Map<string, number[]> = new Map();
+  private readonly cacheService: EmbeddingCacheService;
 
   constructor(
     private readonly config: Config,
@@ -35,150 +37,167 @@ export class RAGGeminiEmbeddingService extends RAGEmbeddingService {
       provider: 'google',
     };
 
-    // Set up cache with size limit
-    if (this.ragConfig.performance.enableCaching) {
-      this.setupCacheEviction();
-    }
+    // Initialize cache service
+    this.cacheService = new EmbeddingCacheService(this.logger, {
+      enabled: this.ragConfig.performance.enableCaching,
+      maxSize: 10000, // Fixed cache size
+      ttlMs: 24 * 60 * 60 * 1000, // 24 hours
+      lruEviction: true
+    });
+
+    this.logger.info('Enhanced GeminiEmbeddingService initialized', {
+      model: this.modelInfo.name,
+      caching: this.ragConfig.performance.enableCaching
+    });
   }
 
   async generateEmbedding(text: string): Promise<number[]> {
-    // Check cache first
-    if (this.ragConfig.performance.enableCaching) {
-      const cached = this.embeddingCache.get(text);
-      if (cached) {
-        this.logger.debug('Embedding cache hit');
-        return cached;
+    // Try cache first
+    const cached = await this.cacheService.get(text);
+    if (cached) {
+      return cached;
+    }
+
+    // Generate new embedding using actual API call
+    const embedding = await this.generateEmbeddingDirect(text);
+
+    // Cache the result
+    await this.cacheService.set(text, embedding);
+
+    return embedding;
+  }
+
+  /**
+   * Generate embeddings for multiple texts efficiently
+   */
+  async generateEmbeddings(texts: string[]): Promise<number[][]> {
+    // Check cache for all texts
+    const cachedResults = await this.cacheService.getMany(texts);
+    const uncachedTexts: string[] = [];
+
+    // Identify which texts need embedding
+    for (let i = 0; i < texts.length; i++) {
+      if (cachedResults[i] === null) {
+        uncachedTexts.push(texts[i]);
       }
     }
 
+    // Generate embeddings for uncached texts
+    let newEmbeddings: number[][] = [];
+    if (uncachedTexts.length > 0) {
+      newEmbeddings = await Promise.all(
+        uncachedTexts.map(text => this.generateEmbeddingDirect(text))
+      );
+      
+      // Cache new embeddings
+      const cacheEntries = uncachedTexts.map((text, idx) => ({
+        content: text,
+        embedding: newEmbeddings[idx]
+      }));
+      await this.cacheService.setMany(cacheEntries);
+    }
+
+    // Combine cached and new results
+    const results: number[][] = new Array(texts.length);
+    let newEmbeddingIndex = 0;
+    
+    for (let i = 0; i < texts.length; i++) {
+      if (cachedResults[i] !== null) {
+        results[i] = cachedResults[i]!; // Non-null assertion since we checked
+      } else {
+        results[i] = newEmbeddings[newEmbeddingIndex++];
+      }
+    }
+
+    this.logger.debug('Batch embedding generation completed', {
+      total: texts.length,
+      cached: texts.length - uncachedTexts.length,
+      generated: uncachedTexts.length
+    });
+
+    return results;
+  }
+
+  /**
+   * Direct embedding generation using Gemini API
+   */
+  private async generateEmbeddingDirect(text: string): Promise<number[]> {
     try {
       const embedding = await this.generateEmbeddingWithRetry(text);
-      
-      // Cache the result
-      if (this.ragConfig.performance.enableCaching) {
-        this.embeddingCache.set(text, embedding);
-      }
-      
       return embedding;
     } catch (error) {
       this.logger.error('Failed to generate embedding:', error);
       throw new RAGEmbeddingError(
-        `Failed to generate embedding: ${(error as Error).message}`,
-        error as Error
+        `Embedding generation failed: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
 
-  async generateEmbeddings(texts: string[]): Promise<number[][]> {
-    const batchSize = this.ragConfig.embedding.batchSize;
-    const results: number[][] = [];
+  private async generateEmbeddingWithRetry(
+    text: string,
+    maxRetries: number = 3
+  ): Promise<number[]> {
+    let lastError: Error | undefined;
 
-    // Process in batches for efficiency
-    for (let i = 0; i < texts.length; i += batchSize) {
-      const batch = texts.slice(i, i + batchSize);
-      const batchResults = await Promise.all(
-        batch.map(text => this.generateEmbedding(text))
-      );
-      results.push(...batchResults);
-      
-      this.logger.debug(`Generated embeddings for batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(texts.length / batchSize)}`);
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        this.logger.debug(`Generating embedding (attempt ${attempt}/${maxRetries})`, {
+          textLength: text.length,
+          model: this.modelInfo.name,
+        });
+
+        // Use real Gemini client for embedding generation
+        const geminiClient = this.config.getGeminiClient();
+        const embedding = await geminiClient.generateEmbedding([text]);
+
+        this.logger.debug('Embedding generated successfully', {
+          dimension: embedding.length,
+          attempt,
+        });
+
+        return embedding[0]; // Return first embedding from batch result
+      } catch (error) {
+        lastError = error as Error;
+        this.logger.warn(`Embedding generation attempt ${attempt} failed:`, {
+          error: lastError.message,
+          attempt,
+          willRetry: attempt < maxRetries,
+        });
+
+        if (attempt < maxRetries) {
+          // Exponential backoff
+          const delay = Math.pow(2, attempt - 1) * 1000;
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
     }
 
-    return results;
+    // If we reach here, all retries failed
+    throw lastError || new Error('Unknown error during embedding generation');
+  }
+
+  getModelInfo(): EmbeddingModelInfo {
+    return this.modelInfo;
   }
 
   getEmbeddingDimension(): number {
     return this.modelInfo.dimension;
   }
 
-  getModelInfo(): EmbeddingModelInfo {
-    return { ...this.modelInfo };
+  /**
+   * Get performance statistics
+   */
+  getStats() {
+    return {
+      modelInfo: this.modelInfo,
+      cache: this.cacheService.getStats()
+    };
   }
 
-  // Private methods
-
-  private async generateEmbeddingWithRetry(text: string): Promise<number[]> {
-    let lastError: Error | null = null;
-    
-    for (let attempt = 1; attempt <= this.ragConfig.embedding.maxRetries; attempt++) {
-      try {
-        return await this.callEmbeddingAPI(text);
-      } catch (error) {
-        lastError = error as Error;
-        this.logger.warn(`Embedding attempt ${attempt}/${this.ragConfig.embedding.maxRetries} failed:`, error);
-        
-        if (attempt < this.ragConfig.embedding.maxRetries) {
-          // Exponential backoff
-          const delay = Math.pow(2, attempt - 1) * 1000;
-          await this.sleep(delay);
-        }
-      }
-    }
-
-    throw lastError || new Error('All embedding attempts failed');
-  }
-
-  private async callEmbeddingAPI(text: string): Promise<number[]> {
-    // TODO: Replace with actual Gemini embedding API call
-    // For now, return a mock embedding
-    this.logger.debug(`Generating embedding for text (${text.length} chars)`);
-    
-    // Mock embedding generation - replace with actual API call
-    const embedding = this.generateMockEmbedding(text);
-    
-    return embedding;
-  }
-
-  private generateMockEmbedding(text: string): number[] {
-    // Generate a deterministic mock embedding based on text content
-    // This is for development/testing purposes only
-    const dimension = this.getEmbeddingDimension();
-    const embedding = new Array(dimension);
-    
-    // Use a simple hash-based approach for consistency
-    let hash = 0;
-    for (let i = 0; i < text.length; i++) {
-      const char = text.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    
-    // Generate normalized embedding vector
-    for (let i = 0; i < dimension; i++) {
-      const seed = hash + i;
-      embedding[i] = Math.sin(seed) * Math.cos(seed * 0.7);
-    }
-    
-    // Normalize the vector
-    const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
-    if (magnitude > 0) {
-      for (let i = 0; i < dimension; i++) {
-        embedding[i] = embedding[i] / magnitude;
-      }
-    }
-    
-    return embedding;
-  }
-
-  private setupCacheEviction(): void {
-    // Simple LRU-style cache eviction
-    const maxCacheSize = this.ragConfig.embedding.cacheSize;
-    
-    setInterval(() => {
-      if (this.embeddingCache.size > maxCacheSize) {
-        const entries = Array.from(this.embeddingCache.entries());
-        const toDelete = entries.slice(0, Math.floor(maxCacheSize * 0.2)); // Remove 20%
-        
-        for (const [key] of toDelete) {
-          this.embeddingCache.delete(key);
-        }
-        
-        this.logger.debug(`Cache eviction: removed ${toDelete.length} entries`);
-      }
-    }, 60000); // Check every minute
-  }
-
-  private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  /**
+   * Clean up resources
+   */
+  async cleanup(): Promise<void> {
+    await this.cacheService.cleanup();
   }
 }

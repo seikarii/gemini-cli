@@ -23,13 +23,33 @@ import { RAGLogger } from '../logger.js';
 export class RAGMemoryVectorStore extends RAGVectorStore {
   private chunks: Map<string, RAGChunk>;
   private initialized = false;
+  private hybridWeights: {
+    semantic: number;
+    keyword: number;
+    graph: number;
+    recency: number;
+  };
 
   constructor(
     config: VectorStoreConfig,
-    private logger: RAGLogger
+    private logger: RAGLogger,
+    hybridWeights?: {
+      semantic: number;
+      keyword: number;
+      graph: number;
+      recency: number;
+    }
   ) {
     super(config);
     this.chunks = new Map();
+    
+    // Use provided weights or sensible defaults
+    this.hybridWeights = hybridWeights || {
+      semantic: 0.7,
+      keyword: 0.2,
+      graph: 0.05,
+      recency: 0.05
+    };
   }
 
   async initialize(): Promise<void> {
@@ -126,13 +146,14 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
       const semanticScore = this.cosineSimilarity(embedding, chunk.embedding);
       const keywordScore = this.keywordSimilarity(query, chunk.content);
       const recencyScore = this.calculateRecencyScore(chunk.timestamp);
+      const graphScore = this.calculateGraphScore(chunk); // Basic implementation
       
       // Combine scores using configured weights
-      const weights = { semantic: 0.7, keyword: 0.2, recency: 0.1 };
       const combinedScore = 
-        semanticScore * weights.semantic +
-        keywordScore * weights.keyword +
-        recencyScore * weights.recency;
+        semanticScore * this.hybridWeights.semantic +
+        keywordScore * this.hybridWeights.keyword +
+        graphScore * this.hybridWeights.graph +
+        recencyScore * this.hybridWeights.recency;
 
       if (combinedScore >= 0.7) {
         results.push({
@@ -318,5 +339,34 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
       .split(/\W+/)
       .filter(word => word.length > 2) // Filter out short words
       .map(word => word.toLowerCase());
+  }
+
+  /**
+   * Calculate graph score based on chunk relationships.
+   * Basic implementation - can be enhanced with actual graph algorithms.
+   */
+  private calculateGraphScore(chunk: RAGChunk): number {
+    // Basic graph scoring based on metadata relationships
+    let score = 0.5; // Base score
+    
+    // Boost score for chunks with more connections (e.g., imports, dependencies)
+    const metadata = chunk.metadata as Record<string, unknown>; // Allow access to extended metadata
+    if (metadata?.dependencies && Array.isArray(metadata.dependencies)) {
+      const connectionCount = metadata.dependencies.length;
+      score += Math.min(connectionCount * 0.1, 0.3); // Cap at 0.3
+    }
+    
+    // Boost score for chunks with quality indicators
+    const quality = metadata?.quality as Record<string, unknown>;
+    if (quality?.relevance && typeof quality.relevance === 'number') {
+      score += quality.relevance * 0.2;
+    }
+    
+    // Boost score for central components (classes, main functions)
+    if (chunk.type === 'code_class' || chunk.type === 'code_module') {
+      score += 0.1;
+    }
+    
+    return Math.min(score, 1.0); // Cap at 1.0
   }
 }
