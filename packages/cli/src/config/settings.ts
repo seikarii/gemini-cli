@@ -7,7 +7,7 @@
 import * as fs from 'fs';
 // Removed unused import promisify
 import * as path from 'path';
-import { homedir, platform } from 'os';
+import { homedir } from 'os';
 import * as dotenv from 'dotenv';
 import {
   GEMINI_CONFIG_DIR as GEMINI_DIR,
@@ -27,17 +27,20 @@ export const USER_SETTINGS_PATH = Storage.getGlobalSettingsPath();
 export const USER_SETTINGS_DIR = path.dirname(USER_SETTINGS_PATH);
 export const DEFAULT_EXCLUDED_ENV_VARS = ['DEBUG', 'DEBUG_MODE'];
 
+// System paths configuration by platform
+const SYSTEM_PATHS_CONFIG = {
+  darwin: '/Library/Application Support/GeminiCli/settings.json',
+  win32: 'C:\\ProgramData\\gemini-cli\\settings.json',
+  linux: '/etc/gemini-cli/settings.json',
+} as const;
+
 export function getSystemSettingsPath(): string {
   if (process.env['GEMINI_CLI_SYSTEM_SETTINGS_PATH']) {
     return process.env['GEMINI_CLI_SYSTEM_SETTINGS_PATH'];
   }
-  if (platform() === 'darwin') {
-    return '/Library/Application Support/GeminiCli/settings.json';
-  } else if (platform() === 'win32') {
-    return 'C:\\ProgramData\\gemini-cli\\settings.json';
-  } else {
-    return '/etc/gemini-cli/settings.json';
-  }
+
+  const platform = process.platform as keyof typeof SYSTEM_PATHS_CONFIG;
+  return SYSTEM_PATHS_CONFIG[platform] || SYSTEM_PATHS_CONFIG.linux;
 }
 
 export type { DnsResolutionOrder } from './settingsSchema.js';
@@ -71,6 +74,40 @@ export interface SettingsFile {
   path: string;
 }
 
+// Utility function for deep merging settings objects
+function deepMergeSettings(
+  target: Settings,
+  ...sources: Settings[]
+): Settings {
+  const result = { ...target } as Record<string, unknown>;
+
+  for (const source of sources) {
+    for (const key in source) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        const sourceValue = source[key];
+        const targetValue = result[key];
+
+        if (sourceValue !== null && typeof sourceValue === 'object' && !Array.isArray(sourceValue)) {
+          // Deep merge objects
+          const targetObj = targetValue && typeof targetValue === 'object' && !Array.isArray(targetValue)
+            ? targetValue as Record<string, unknown>
+            : {};
+          result[key] = deepMergeSettings(targetObj as Settings, sourceValue as Settings);
+        } else if (Array.isArray(sourceValue)) {
+          // Concatenate arrays
+          const targetArray = Array.isArray(targetValue) ? targetValue as unknown[] : [];
+          result[key] = [...targetArray, ...sourceValue];
+        } else {
+          // Override with source value
+          result[key] = sourceValue;
+        }
+      }
+    }
+  }
+
+  return result as Settings;
+}
+
 function mergeSettings(
   system: Settings,
   user: Settings,
@@ -83,31 +120,42 @@ function mergeSettings(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { folderTrust, ...safeWorkspaceWithoutFolderTrust } = safeWorkspace;
 
-  return {
-    ...user,
-    ...safeWorkspaceWithoutFolderTrust,
-    ...system,
-    customThemes: {
-      ...(user.customThemes || {}),
-      ...(safeWorkspace.customThemes || {}),
-      ...(system.customThemes || {}),
-    },
-    mcpServers: {
-      ...(user.mcpServers || {}),
-      ...(safeWorkspace.mcpServers || {}),
-      ...(system.mcpServers || {}),
-    },
-    includeDirectories: [
-      ...(system.includeDirectories || []),
-      ...(user.includeDirectories || []),
-      ...(safeWorkspace.includeDirectories || []),
-    ],
-    chatCompression: {
-      ...(system.chatCompression || {}),
-      ...(user.chatCompression || {}),
-      ...(safeWorkspace.chatCompression || {}),
-    },
-  };
+  return deepMergeSettings(
+    {} as Settings,
+    system,
+    user,
+    safeWorkspaceWithoutFolderTrust
+  );
+}
+
+export class SettingsManager {
+  /**
+   * Saves settings to a file with proper error handling.
+   */
+  static async saveSettings(settingsFile: SettingsFile): Promise<void> {
+    try {
+      const dirPath = path.dirname(settingsFile.path);
+      try {
+        await fs.promises.access(dirPath);
+      } catch (error) {
+        // Only ignore ENOENT (directory doesn't exist), log other access errors
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+          await fs.promises.mkdir(dirPath, { recursive: true });
+        } else {
+          logger.debug('Error accessing settings directory:', error);
+          throw error;
+        }
+      }
+
+      await fs.promises.writeFile(
+        settingsFile.path,
+        JSON.stringify(settingsFile.settings, null, 2),
+        'utf-8',
+      );
+    } catch (error) {
+      logger.error('Error saving settings file:', error);
+    }
+  }
 }
 
 export class LoadedSettings {
@@ -168,7 +216,7 @@ export class LoadedSettings {
     const settingsFile = this.forScope(scope);
     settingsFile.settings[key] = value;
     this._merged = this.computeMergedSettings();
-    saveSettings(settingsFile);
+    SettingsManager.saveSettings(settingsFile);
   }
 }
 
@@ -194,21 +242,21 @@ function resolveEnvVarsInObject<T>(obj: T): T {
   }
 
   if (typeof obj === 'string') {
-    return resolveEnvVarsInString(obj) as unknown as T;
+    return resolveEnvVarsInString(obj) as T;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map((item) => resolveEnvVarsInObject(item)) as unknown as T;
+    return obj.map((item) => resolveEnvVarsInObject(item)) as T;
   }
 
   if (typeof obj === 'object') {
-    const newObj = { ...obj } as T;
-    for (const key in newObj) {
-      if (Object.prototype.hasOwnProperty.call(newObj, key)) {
-        newObj[key] = resolveEnvVarsInObject(newObj[key]);
+    const newObj: Record<string, unknown> = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        newObj[key] = resolveEnvVarsInObject((obj as Record<string, unknown>)[key]);
       }
     }
-    return newObj;
+    return newObj as T;
   }
 
   return obj;
@@ -219,46 +267,55 @@ export async function findEnvFile(startDir: string): Promise<string | null> {
   // alternative by using fs.promises.access. Implement as a synchronous loop
   // but using non-blocking access checks to avoid event-loop stalls.
   let currentDir = path.resolve(startDir);
-  const access = fs.promises.access;
+
+  // Check for .env files in directory hierarchy
   while (true) {
     const geminiEnvPath = path.join(currentDir, GEMINI_DIR, '.env');
-    try {
-      await access(geminiEnvPath);
+    if (await tryAccessPath(geminiEnvPath)) {
       return geminiEnvPath;
-    } catch (_) {
-      // file not found at this path
-      /* no-op */
     }
+
     const envPath = path.join(currentDir, '.env');
-    try {
-      await access(envPath);
+    if (await tryAccessPath(envPath)) {
       return envPath;
-    } catch (_) {
-      // file not found at this path
-      /* no-op */
     }
+
     const parentDir = path.dirname(currentDir);
     if (parentDir === currentDir || !parentDir) {
-  const homeGeminiEnvPath = path.join(homedir(), GEMINI_DIR, '.env');
-  const homeEnvPath = path.join(homedir(), '.env');
-      try {
-        await access(homeGeminiEnvPath);
-        return homeGeminiEnvPath;
-      } catch (_) {
-        // file not found in home directory
-        /* no-op */
-      }
-      try {
-        await access(homeEnvPath);
-        return homeEnvPath;
-      } catch (_) {
-        // file not found in home directory
-        /* no-op */
-      }
-      return null; // Exit the loop if no .env file is found after checking home directories
+      break; // Reached root directory
     }
     currentDir = parentDir;
   }
+
+  // Check home directory .env files
+  return await findEnvFileInHome();
+}
+
+async function tryAccessPath(filePath: string): Promise<boolean> {
+  try {
+    await fs.promises.access(filePath);
+    return true;
+  } catch (error) {
+    // Only ignore ENOENT (file not found), log other errors for debugging
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      logger.debug('Error accessing env file:', error);
+    }
+    return false;
+  }
+}
+
+async function findEnvFileInHome(): Promise<string | null> {
+  const homeGeminiEnvPath = path.join(homedir(), GEMINI_DIR, '.env');
+  if (await tryAccessPath(homeGeminiEnvPath)) {
+    return homeGeminiEnvPath;
+  }
+
+  const homeEnvPath = path.join(homedir(), '.env');
+  if (await tryAccessPath(homeEnvPath)) {
+    return homeEnvPath;
+  }
+
+  return null;
 }
 
 export async function setUpCloudShellEnvironment(
@@ -280,8 +337,9 @@ export async function setUpCloudShellEnvironment(
       // If not in .env, set to default and override global
       process.env['GOOGLE_CLOUD_PROJECT'] = 'cloudshell-gca';
     }
-    } catch (_e) {
-      // If read fails, still set default
+    } catch (error) {
+      // Log read/parse errors for debugging but continue with default
+      logger.debug('Error reading or parsing .env file in Cloud Shell:', error);
       process.env['GOOGLE_CLOUD_PROJECT'] = 'cloudshell-gca';
     }
   }
@@ -355,16 +413,21 @@ async function resolveDirectories(workspaceDir: string): Promise<{
   let realWorkspaceDir = resolvedWorkspaceDir;
   try {
     realWorkspaceDir = await fs.promises.realpath(resolvedWorkspaceDir);
-  } catch (_e) {
-    // path might not exist yet
+  } catch (error) {
+    // Log error if path resolution fails, but continue with unresolved path
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      logger.debug('Error resolving workspace directory path:', error);
+    }
+    // Keep the unresolved path if realpath fails
   }
 
   // We expect homedir to always exist and be resolvable.
   let realHomeDir = resolvedHomeDir;
   try {
     realHomeDir = await fs.promises.realpath(resolvedHomeDir);
-  } catch (_e) {
-    // ignore
+  } catch (error) {
+    // Log error but continue - homedir might not be resolvable in some environments
+    logger.debug('Error resolving home directory path:', error);
   }
 
   const workspaceSettingsPath = new Storage(workspaceDir).getWorkspaceSettingsPath();
@@ -415,70 +478,66 @@ function applyLegacyThemeMappings(settings: Settings): void {
 /**
  * Loads settings from user and workspace directories.
  * Project settings override user settings.
+ *
+ * The loading process follows these steps:
+ * 1. Resolve canonical paths for workspace and home directories
+ * 2. Load system, user, and workspace settings files
+ * 3. Apply legacy theme mappings to user and workspace settings
+ * 4. Perform initial trust check using only user and system settings
+ * 5. Load environment variables (may depend on merged settings)
+ * 6. Resolve environment variables in all settings
+ * 7. Create and validate final LoadedSettings object
  */
 export async function loadSettings(workspaceDir: string): Promise<LoadedSettings> {
-  let systemSettings: Settings = {};
-  let userSettings: Settings = {};
-  let workspaceSettings: Settings = {};
   const settingsErrors: SettingsError[] = [];
-  const systemSettingsPath = getSystemSettingsPath();
 
-  // Resolve paths to their canonical representation to handle symlinks
+  // Step 1: Resolve canonical paths
   const { realWorkspaceDir, realHomeDir, workspaceSettingsPath } = await resolveDirectories(workspaceDir);
 
-  // Load system settings
-  systemSettings = await loadSettingsFromFile(systemSettingsPath, settingsErrors);
+  // Step 2: Load settings from different scopes
+  const systemSettingsPath = getSystemSettingsPath();
+  const systemSettings = await loadSettingsFromFile(systemSettingsPath, settingsErrors);
+  const userSettings = await loadSettingsFromFile(USER_SETTINGS_PATH, settingsErrors);
+  const workspaceSettings = realWorkspaceDir !== realHomeDir
+    ? await loadSettingsFromFile(workspaceSettingsPath, settingsErrors)
+    : {};
 
-  // Load user settings
-  userSettings = await loadSettingsFromFile(USER_SETTINGS_PATH, settingsErrors);
+  // Step 3: Apply legacy theme mappings
   applyLegacyThemeMappings(userSettings);
+  applyLegacyThemeMappings(workspaceSettings);
 
-  if (realWorkspaceDir !== realHomeDir) {
-    // Load workspace settings
-    workspaceSettings = await loadSettingsFromFile(workspaceSettingsPath, settingsErrors);
-    applyLegacyThemeMappings(workspaceSettings);
-  }
-
-  // For the initial trust check, we can only use user and system settings.
-  const initialTrustCheckSettings = { ...systemSettings, ...userSettings };
+  // Step 4: Initial trust check (before loading environment)
+  const initialTrustCheckSettings = deepMergeSettings({} as Settings, systemSettings, userSettings);
   const isTrusted = (await isWorkspaceTrusted(initialTrustCheckSettings)) ?? true;
 
-  // Create a temporary merged settings object to pass to loadEnvironment.
-  const tempMergedSettings = mergeSettings(
-    systemSettings,
-    userSettings,
-    workspaceSettings,
-    isTrusted,
-  );
-
-  // loadEnviroment depends on settings so we have to create a temp version of
-  // the settings to avoid a cycle
+  // Step 5: Load environment (depends on settings to avoid circular dependency)
+  const tempMergedSettings = mergeSettings(systemSettings, userSettings, workspaceSettings, isTrusted);
   await loadEnvironment(tempMergedSettings);
 
-  // Now that the environment is loaded, resolve variables in the settings.
-  systemSettings = resolveEnvVarsInObject(systemSettings);
-  userSettings = resolveEnvVarsInObject(userSettings);
-  workspaceSettings = resolveEnvVarsInObject(workspaceSettings);
+  // Step 6: Resolve environment variables in settings
+  const resolvedSystemSettings = resolveEnvVarsInObject(systemSettings);
+  const resolvedUserSettings = resolveEnvVarsInObject(userSettings);
+  const resolvedWorkspaceSettings = resolveEnvVarsInObject(workspaceSettings);
 
-  // Create LoadedSettings first
+  // Step 7: Create and validate LoadedSettings
   const loadedSettings = new LoadedSettings(
-    {
-      path: systemSettingsPath,
-      settings: systemSettings,
-    },
-    {
-      path: USER_SETTINGS_PATH,
-      settings: userSettings,
-    },
-    {
-      path: workspaceSettingsPath,
-      settings: workspaceSettings,
-    },
+    { path: systemSettingsPath, settings: resolvedSystemSettings },
+    { path: USER_SETTINGS_PATH, settings: resolvedUserSettings },
+    { path: workspaceSettingsPath, settings: resolvedWorkspaceSettings },
     settingsErrors,
     isTrusted,
   );
 
-  // Validate chatCompression settings
+  // Validate critical settings
+  validateChatCompressionSettings(loadedSettings);
+
+  return loadedSettings;
+}
+
+/**
+ * Validates chat compression settings and logs warnings for invalid values.
+ */
+function validateChatCompressionSettings(loadedSettings: LoadedSettings): void {
   const chatCompression = loadedSettings.merged.chatCompression;
   const threshold = chatCompression?.contextPercentageThreshold;
   if (
@@ -489,25 +548,5 @@ export async function loadSettings(workspaceDir: string): Promise<LoadedSettings
       `Invalid value for chatCompression.contextPercentageThreshold: "${threshold}". Please use a value between 0 and 1. Using default compression settings.`,
     );
     delete loadedSettings.merged.chatCompression;
-  }
-
-  return loadedSettings;
-}
-export async function saveSettings(settingsFile: SettingsFile): Promise<void> {
-  try {
-    const dirPath = path.dirname(settingsFile.path);
-    try {
-      await fs.promises.access(dirPath);
-    } catch (_) {
-      await fs.promises.mkdir(dirPath, { recursive: true });
-    }
-
-    await fs.promises.writeFile(
-      settingsFile.path,
-      JSON.stringify(settingsFile.settings, null, 2),
-      'utf-8',
-    );
-  } catch (error) {
-    logger.error('Error saving user settings file:', error);
   }
 }
