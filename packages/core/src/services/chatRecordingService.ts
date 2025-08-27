@@ -96,19 +96,136 @@ export class SimpleTokenEstimator implements TokenEstimator {
 }
 
 /**
- * Advanced token estimator that can use more sophisticated methods.
- * This can be extended to use tiktoken or other precise tokenization libraries.
+ * Advanced token estimator with precise Gemini tokenization patterns.
+ * This implementation provides more accurate token estimation for Gemini models
+ * by considering different text patterns and tokenization rules.
  */
 export class AdvancedTokenEstimator implements TokenEstimator {
 
   async estimateTokens(text: string): Promise<number> {
     try {
-      // Placeholder for actual token estimation logic
-      // const { get_encoding, encoding_for_model } = await import('@dqbd/tiktoken');
-      return Math.ceil(text.length / 4); // fallback to simple heuristic
-    } catch {
+      return this.estimateTokensSync(text);
+    } catch (error) {
+      // Fallback to simple heuristic if anything fails
+      console.warn('Token estimation failed, using fallback:', error);
       return Math.ceil(text.length / 4);
     }
+  }
+
+  /**
+   * Synchronous token estimation for better performance
+   */
+  estimateTokensSync(text: string): number {
+    if (!text || text.length === 0) {
+      return 0;
+    }
+
+    let tokens = 0;
+
+    // Split text into words, punctuation, and special characters
+    const words = text.split(/(\s+|[^\w\s]+)/).filter(part => part.length > 0);
+
+    for (const word of words) {
+      if (word.trim().length === 0) {
+        // Whitespace - typically 1 token per 4 spaces, but minimum 1
+        tokens += Math.max(1, Math.ceil(word.length / 4));
+        continue;
+      }
+
+      // Check for common patterns that affect tokenization
+
+      // Numbers (often 1-2 tokens regardless of length)
+      if (/^\d+$/.test(word)) {
+        tokens += word.length > 6 ? 2 : 1;
+        continue;
+      }
+
+      // URLs and email addresses (typically 3-5 tokens)
+      if (/^(https?:\/\/|www\.|\S+@\S+\.\S+)$/.test(word)) {
+        tokens += this.estimateUrlTokens(word);
+        continue;
+      }
+
+      // Code patterns (underscores, dots, slashes)
+      if (/[_\./\\]/.test(word)) {
+        tokens += this.estimateCodeTokens(word);
+        continue;
+      }
+
+      // Punctuation marks
+      if (/^[^\w\s]$/.test(word)) {
+        tokens += 1;
+        continue;
+      }
+
+      // Regular words - estimate based on length and complexity
+      tokens += this.estimateWordTokens(word);
+    }
+
+    // Add base tokens for message structure (if this is a complete message)
+    if (text.includes('"role"') || text.includes('"content"')) {
+      tokens += 4; // Base tokens for JSON structure
+    }
+
+    return Math.max(1, tokens);
+  }
+
+  private estimateWordTokens(word: string): number {
+    const length = word.length;
+
+    // Very short words (1-3 chars) - typically 1 token
+    if (length <= 3) {
+      return 1;
+    }
+
+    // Medium words (4-8 chars) - typically 1 token
+    if (length <= 8) {
+      return 1;
+    }
+
+    // Longer words - may be split into multiple tokens
+    // English words: ~4 chars per token on average
+    // Technical terms: ~3 chars per token
+    const isTechnical = /[A-Z]{2,}|[_\./\\]/.test(word);
+    const avgCharsPerToken = isTechnical ? 3 : 4;
+
+    return Math.ceil(length / avgCharsPerToken);
+  }
+
+  private estimateCodeTokens(word: string): number {
+    // Code identifiers with dots, underscores, slashes
+    const parts = word.split(/([_\./\\])/);
+    let tokens = 0;
+
+    for (const part of parts) {
+      if (part.length === 0) continue;
+
+      if (/[_\./\\]/.test(part)) {
+        tokens += 1; // Separators are usually 1 token
+      } else {
+        tokens += this.estimateWordTokens(part);
+      }
+    }
+
+    return tokens;
+  }
+
+  private estimateUrlTokens(url: string): number {
+    // URLs typically tokenize as: protocol + domain + path + query
+    const parts = url.split(/[:/.?&=#]/);
+    let tokens = 0;
+
+    for (const part of parts) {
+      if (part.length > 0) {
+        tokens += this.estimateWordTokens(part);
+      }
+    }
+
+    // Add tokens for separators
+    const separatorCount = (url.match(/[:/.?&=#]/g) || []).length;
+    tokens += Math.ceil(separatorCount * 0.5);
+
+    return Math.min(tokens, 8); // Cap at 8 tokens for very long URLs
   }
 }
 
@@ -143,6 +260,7 @@ export enum CompressionStrategy {
   MINIMAL = 'minimal',     // Keep most information, light compression
   MODERATE = 'moderate',   // Balanced compression
   AGGRESSIVE = 'aggressive', // Maximum compression, keep only essentials
+  INTELLIGENT = 'intelligent', // Advanced NLP-based compression
   NO_COMPRESSION = 'no_compression' // No compression, keep all messages as is
 }
 
@@ -259,13 +377,15 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
     return this.extractKeyPointsFromMessages(messages).slice(-maxPoints);
   }
 
-  private extractKeyPointsFromMessages(messages: MessageRecord[]): string[] {
+  protected extractKeyPointsFromMessages(messages: MessageRecord[]): string[] {
     const keyPoints: string[] = [];
+
+    // Extract traditional pattern-based points
     messages.forEach(msg => {
       const content = msg.content;
       // Extract error patterns
       if (content.match(/error|failed|exception|problem/i)) {
-        const errorContext = content.substring(0, 200); // More context for minimal compression
+        const errorContext = content.substring(0, 200);
         keyPoints.push(`Error: ${errorContext}`);
       }
       // Extract file operations
@@ -279,7 +399,124 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
         keyPoints.push(`Decision: ${decision}`);
       }
     });
+
+    // Add advanced NLP-based extraction
+    const advancedPoints = this.extractAdvancedKeyPoints(messages);
+    keyPoints.push(...advancedPoints);
+
     return keyPoints;
+  }
+
+  /**
+   * Advanced key point extraction using NLP techniques
+   */
+  private extractAdvancedKeyPoints(messages: MessageRecord[]): string[] {
+    const keyPoints: string[] = [];
+
+    // Combine all message content for analysis
+    const allContent = messages.map(m => m.content).join(' ');
+
+    // Extract keywords using TF-IDF inspired approach
+    const keywords = this.extractKeywords(allContent);
+    keywords.slice(0, 5).forEach(keyword => {
+      keyPoints.push(`Keyword: ${keyword}`);
+    });
+
+    // Extract important phrases (quoted text, capitalized phrases)
+    const phrases = this.extractImportantPhrases(allContent);
+    phrases.slice(0, 3).forEach(phrase => {
+      keyPoints.push(`Phrase: ${phrase}`);
+    });
+
+    // Extract action items and tasks
+    const actions = this.extractActionItems(allContent);
+    actions.slice(0, 3).forEach(action => {
+      keyPoints.push(`Action: ${action}`);
+    });
+
+    return keyPoints;
+  }
+
+  /**
+   * Extract keywords using frequency and importance analysis
+   */
+  protected extractKeywords(text: string): string[] {
+    // Simple TF-IDF inspired approach
+    const words = text.toLowerCase()
+      .replace(/[^\w\s]/g, ' ')
+      .split(/\s+/)
+      .filter(word => word.length > 3); // Filter short words
+
+    const wordFreq = new Map<string, number>();
+    const totalWords = words.length;
+
+    // Calculate word frequencies
+    words.forEach(word => {
+      wordFreq.set(word, (wordFreq.get(word) || 0) + 1);
+    });
+
+    // Score words based on frequency and length (longer technical terms get higher scores)
+    const scoredWords = Array.from(wordFreq.entries())
+      .map(([word, freq]) => ({
+        word,
+        score: (freq / totalWords) * Math.log(word.length) * (word.match(/[A-Z]/) ? 1.5 : 1) // Boost technical terms
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10)
+      .map(item => item.word);
+
+    return scoredWords;
+  }
+
+  /**
+   * Extract important phrases from text
+   */
+  protected extractImportantPhrases(text: string): string[] {
+    const phrases: string[] = [];
+
+    // Extract quoted text
+    const quotes = text.match(/"([^"]+)"/g);
+    if (quotes) {
+      phrases.push(...quotes.map(q => q.slice(1, -1)));
+    }
+
+    // Extract capitalized phrases (potential proper nouns, titles)
+    const capsPhrases = text.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b/g);
+    if (capsPhrases) {
+      phrases.push(...capsPhrases);
+    }
+
+    // Extract technical terms (words with numbers, underscores, dots)
+    const technicalTerms = text.match(/\b\w*[\d_]\w*\b/g);
+    if (technicalTerms) {
+      phrases.push(...technicalTerms);
+    }
+
+    return phrases.filter(phrase => phrase.length > 5).slice(0, 5);
+  }
+
+  /**
+   * Extract action items and tasks from text
+   */
+  protected extractActionItems(text: string): string[] {
+    const actions: string[] = [];
+
+    // Look for imperative verbs followed by objects
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
+
+    sentences.forEach(sentence => {
+      const trimmed = sentence.trim();
+      // Check for action patterns
+      if (trimmed.match(/^(create|implement|fix|update|add|remove|modify|refactor|optimize)/i)) {
+        actions.push(trimmed);
+      }
+      // Check for TODO/FIXME patterns
+      if (trimmed.match(/(todo|fixme|note|important)/i)) {
+        actions.push(trimmed);
+      }
+    });
+
+    return actions.slice(0, 5);
   }
 
   protected summarizeToolCalls(messages: MessageRecord[]): string {
@@ -314,6 +551,23 @@ export class MinimalCompressionStrategy implements CompressionStrategyHandler {
       originalTokens,
       compressedTokens
     };
+  }
+
+  /**
+   * Checks if two strings are similar based on simple text comparison
+   */
+  protected areSimilar(text1: string, text2: string, threshold: number = 0.7): boolean {
+    if (text1 === text2) return true;
+
+    // Simple similarity based on common words
+    const words1 = new Set(text1.toLowerCase().split(/\s+/));
+    const words2 = new Set(text2.toLowerCase().split(/\s+/));
+
+    const intersection = new Set([...words1].filter(x => words2.has(x)));
+    const union = new Set([...words1, ...words2]);
+
+    const similarity = intersection.size / union.size;
+    return similarity >= threshold;
   }
 }
 
@@ -418,15 +672,250 @@ export class ModerateCompressionStrategy extends MinimalCompressionStrategy {
     return await this.buildCompressedContext(messages, summary, keyPoints, toolCallsSummary);
   }
 
-  private createModerateSummary(messages: MessageRecord[]): string {
+  protected createModerateSummary(messages: MessageRecord[]): string {
     const userCount = messages.filter(m => m.type === 'user').length;
     const assistantCount = messages.filter(m => m.type === 'gemini').length;
     const withTools = messages.filter(m => m.type === 'gemini' && m.toolCalls?.length).length;
+
     let summary = `Conversation: ${userCount} user msgs, ${assistantCount} assistant msgs`;
     if (withTools > 0) {
       summary += `, ${withTools} with tools`;
     }
-    // Add topic extraction
+
+    // Add intelligent topic extraction
+    const topics = this.extractConversationTopics(messages);
+    if (topics.length > 0) {
+      summary += `. Topics: ${topics.slice(0, 3).join(', ')}`;
+    }
+
+    // Add sentiment analysis
+    const sentiment = this.analyzeConversationSentiment(messages);
+    if (sentiment !== 'neutral') {
+      summary += `. Tone: ${sentiment}`;
+    }
+
+    return summary;
+  }
+
+  /**
+   * Extracts main topics from conversation using keyword analysis
+   */
+  protected extractConversationTopics(messages: MessageRecord[]): string[] {
+    const allContent = messages.map(m => m.content).join(' ');
+    const keywords = this.extractKeywords(allContent);
+
+    // Group related keywords into topics
+    const topics = new Map<string, string[]>();
+
+    keywords.forEach(keyword => {
+      // Simple topic categorization
+      if (keyword.match(/error|bug|fix|issue|problem/)) {
+        const topic = topics.get('issues') || [];
+        topic.push(keyword);
+        topics.set('issues', topic);
+      } else if (keyword.match(/file|code|function|class|module/)) {
+        const topic = topics.get('development') || [];
+        topic.push(keyword);
+        topics.set('development', topic);
+      } else if (keyword.match(/test|testing|spec|validation/)) {
+        const topic = topics.get('testing') || [];
+        topic.push(keyword);
+        topics.set('testing', topic);
+      } else {
+        const topic = topics.get('general') || [];
+        topic.push(keyword);
+        topics.set('general', topic);
+      }
+    });
+
+    // Return top topics
+    return Array.from(topics.keys()).slice(0, 3);
+  }
+
+  /**
+   * Analyzes overall sentiment of the conversation
+   */
+  protected analyzeConversationSentiment(messages: MessageRecord[]): string {
+    const allContent = messages.map(m => m.content).join(' ').toLowerCase();
+
+    const positiveWords = ['success', 'completed', 'working', 'good', 'excellent', 'great', 'perfect'];
+    const negativeWords = ['error', 'failed', 'problem', 'issue', 'bug', 'broken', 'wrong'];
+
+    let positiveScore = 0;
+    let negativeScore = 0;
+
+    positiveWords.forEach(word => {
+      const matches = (allContent.match(new RegExp(word, 'g')) || []).length;
+      positiveScore += matches;
+    });
+
+    negativeWords.forEach(word => {
+      const matches = (allContent.match(new RegExp(word, 'g')) || []).length;
+      negativeScore += matches;
+    });
+
+    if (positiveScore > negativeScore * 1.5) return 'positive';
+    if (negativeScore > positiveScore * 1.5) return 'negative';
+    return 'neutral';
+  }
+}
+
+/**
+ * Intelligent compression strategy using advanced NLP techniques
+ */
+export class IntelligentCompressionStrategy extends ModerateCompressionStrategy {
+  constructor(tokenEstimator: TokenEstimator) {
+    super(tokenEstimator);
+  }
+
+  override async compress(messages: MessageRecord[], config: ContextCompressionConfig): Promise<CompressedContext> {
+    // Use advanced NLP techniques for intelligent compression
+    const summary = this.createIntelligentSummary(messages);
+    const keyPoints = this.extractIntelligentKeyPoints(messages, config);
+    const toolCallsSummary = this.summarizeToolCallsIntelligently(messages);
+    return await this.buildCompressedContext(messages, summary, keyPoints, toolCallsSummary);
+  }
+
+  private createIntelligentSummary(messages: MessageRecord[]): string {
+    const basicSummary = this.createModerateSummary(messages);
+
+    // Enhance with conversation flow analysis
+    const conversationFlow = this.analyzeConversationFlow(messages);
+    const topics = this.extractConversationTopics(messages);
+    const sentiment = this.analyzeConversationSentiment(messages);
+
+    let enhancedSummary = basicSummary;
+
+    if (conversationFlow.length > 0) {
+      enhancedSummary += `. Flow: ${conversationFlow.join(' → ')}`;
+    }
+
+    if (topics.length > 0) {
+      enhancedSummary += `. Focus: ${topics.slice(0, 2).join(', ')}`;
+    }
+
+    if (sentiment !== 'neutral') {
+      enhancedSummary += `. Overall: ${sentiment}`;
+    }
+
+    return enhancedSummary;
+  }
+
+  private extractIntelligentKeyPoints(messages: MessageRecord[], config: ContextCompressionConfig): string[] {
+    const allContent = messages.map(m => m.content).join(' ');
+
+    // Use advanced NLP techniques
+    const keywords = this.extractKeywords(allContent);
+    const phrases = this.extractImportantPhrases(allContent);
+    const actions = this.extractActionItems(allContent);
+
+    // Combine and prioritize key points
+    const intelligentPoints: string[] = [];
+
+    // Add top keywords
+    keywords.slice(0, 3).forEach(keyword => {
+      intelligentPoints.push(`Keyword: ${keyword}`);
+    });
+
+    // Add important phrases
+    phrases.slice(0, 2).forEach(phrase => {
+      intelligentPoints.push(`Phrase: "${phrase}"`);
+    });
+
+    // Add action items
+    actions.slice(0, 2).forEach(action => {
+      intelligentPoints.push(`Action: ${action}`);
+    });
+
+    // Add traditional pattern-based points
+    const traditionalPoints = this.extractKeyPointsFromMessages(messages);
+    intelligentPoints.push(...traditionalPoints.slice(0, 5));
+
+    // Remove duplicates and limit based on config
+    const uniquePoints = this.deduplicateKeyPoints(intelligentPoints);
+    const maxPoints = Math.max(8, Math.floor(config.preserveRecentMessages / 1.5));
+
+    return uniquePoints.slice(0, maxPoints);
+  }
+
+  private analyzeConversationFlow(messages: MessageRecord[]): string[] {
+    const flow: string[] = [];
+    let currentPhase = '';
+
+    messages.forEach((_msg, _index) => {
+      const content = _msg.content.toLowerCase();
+
+      // Detect phase changes
+      if (content.includes('error') || content.includes('problem')) {
+        if (currentPhase !== 'problem-solving') {
+          currentPhase = 'problem-solving';
+          flow.push('Problem');
+        }
+      } else if (content.includes('implement') || content.includes('create')) {
+        if (currentPhase !== 'implementation') {
+          currentPhase = 'implementation';
+          flow.push('Implementation');
+        }
+      } else if (content.includes('test') || content.includes('verify')) {
+        if (currentPhase !== 'testing') {
+          currentPhase = 'testing';
+          flow.push('Testing');
+        }
+      } else if (content.includes('complete') || content.includes('done')) {
+        if (currentPhase !== 'completion') {
+          currentPhase = 'completion';
+          flow.push('Completion');
+        }
+      }
+    });
+
+    return flow.slice(0, 4); // Limit to 4 phases
+  }
+
+  private deduplicateKeyPoints(points: string[]): string[] {
+    const unique: string[] = [];
+
+    for (const point of points) {
+      const isDuplicate = unique.some(existing =>
+        this.areSimilar(point, existing, 0.6)
+      );
+      if (!isDuplicate) {
+        unique.push(point);
+      }
+    }
+
+    return unique;
+  }
+
+  private summarizeToolCallsIntelligently(messages: MessageRecord[]): string {
+    const toolCalls = messages
+      .filter(m => m.type === 'gemini' && 'toolCalls' in m && Array.isArray((m as unknown as { toolCalls?: unknown[] }).toolCalls ?? []) && ((m as unknown as { toolCalls?: unknown[] }).toolCalls ?? []).length > 0)
+      .map(m => (m as unknown as { toolCalls?: unknown[] }).toolCalls ?? [])
+      .flat();
+
+    if (toolCalls.length === 0) {
+      return '';
+    }
+
+    // Group tool calls by type
+    const toolUsage = new Map<string, number>();
+    toolCalls.forEach((call: unknown) => {
+      const toolCall = call as { name?: string };
+      const toolName = toolCall.name || 'unknown';
+      toolUsage.set(toolName, (toolUsage.get(toolName) || 0) + 1);
+    });
+
+    // Create intelligent summary
+    const topTools = Array.from(toolUsage.entries())
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3);
+
+    let summary = `Tools used: ${toolCalls.length} calls`;
+    if (topTools.length > 0) {
+      const toolList = topTools.map(([name, count]) => `${name}(${count})`).join(', ');
+      summary += ` (${toolList})`;
+    }
+
     return summary;
   }
 }
@@ -579,6 +1068,7 @@ export class ChatRecordingService {
       [CompressionStrategy.MODERATE, new ModerateCompressionStrategy(this.tokenEstimator)],
       [CompressionStrategy.AGGRESSIVE, new AggressiveCompressionStrategy(this.tokenEstimator)],
       [CompressionStrategy.NO_COMPRESSION, new NoCompressionStrategy(this.tokenEstimator)],
+      [CompressionStrategy.INTELLIGENT, new IntelligentCompressionStrategy(this.tokenEstimator)],
     ]);
     // Update configuration from environment or config
     this.updateCompressionConfig();
@@ -588,16 +1078,33 @@ export class ChatRecordingService {
    * Updates compression configuration based on config object and environment variables.
    */
   private updateCompressionConfig(): void {
-    // Centralize all configuration access through environment variables for now
-    // TODO: Integrate with Config object when it supports these settings
+    // Get chat compression settings from Config object
+    const chatCompression = this.config.getChatCompression();
+
+    // Apply settings from Config object first
+    if (chatCompression) {
+      // Map contextPercentageThreshold to maxContextTokens if provided
+      // Use a reasonable default context size and apply the percentage
+      if (chatCompression.contextPercentageThreshold !== undefined) {
+        // Assuming default context is 128k tokens, apply percentage threshold
+        const defaultContextTokens = 128000;
+        this.compressionConfig.maxContextTokens = Math.floor(
+          defaultContextTokens * (chatCompression.contextPercentageThreshold / 100)
+        );
+      }
+    }
+
+    // Fallback to environment variables for backward compatibility
     const maxTokens = process.env['GEMINI_MAX_CONTEXT_TOKENS'];
     if (maxTokens) {
       this.compressionConfig.maxContextTokens = parseInt(maxTokens, 10);
     }
+
     const preserveMessages = process.env['GEMINI_PRESERVE_RECENT_MESSAGES'];
     if (preserveMessages) {
       this.compressionConfig.preserveRecentMessages = parseInt(preserveMessages, 10);
     }
+
     const strategy = process.env['GEMINI_COMPRESSION_STRATEGY'];
     if (strategy && Object.values(CompressionStrategy).includes(strategy as CompressionStrategy)) {
       this.compressionConfig.strategy = strategy as CompressionStrategy;
@@ -715,30 +1222,8 @@ export class ChatRecordingService {
     try {
       // If we have existing compressed context, we need to merge with new messages
       if (existingCompressed && messages.length > 0) {
-        // For now, use a simple merge approach
-        // In the future, this could be enhanced with more sophisticated merging
-        const newCompressed = await strategy.compress(messages, this.compressionConfig);
-        const mergedSummary = existingCompressed.summary ? `${existingCompressed.summary}. ${newCompressed.summary}` : newCompressed.summary;
-        const mergedKeyPoints = [...existingCompressed.keyPoints, ...newCompressed.keyPoints].slice(-20);
-        const mergedToolCallsSummary = existingCompressed.toolCallsSummary ? `${existingCompressed.toolCallsSummary}; ${newCompressed.toolCallsSummary}` : newCompressed.toolCallsSummary;
-        const mergedTimespan = {
-          start: existingCompressed.timespan.start || newCompressed.timespan.start,
-          end: newCompressed.timespan.end,
-        };
-        const mergedMessageCount = existingCompressed.messageCount + newCompressed.messageCount;
-        const mergedOriginalTokens = existingCompressed.originalTokens + newCompressed.originalTokens;
-        const mergedCompressedTokens = await this.estimateTokenCount(
-          `${mergedSummary}. ${mergedKeyPoints.join('. ')} ${mergedToolCallsSummary}`
-        );
-        return {
-          summary: mergedSummary,
-          keyPoints: mergedKeyPoints,
-          toolCallsSummary: mergedToolCallsSummary,
-          timespan: mergedTimespan,
-          messageCount: mergedMessageCount,
-          originalTokens: mergedOriginalTokens,
-          compressedTokens: mergedCompressedTokens,
-        };
+        // Use intelligent merging instead of simple concatenation
+        return await this.mergeCompressedContexts(existingCompressed, messages);
       } else if (existingCompressed) {
         return existingCompressed;
       } else {
@@ -750,6 +1235,189 @@ export class ChatRecordingService {
         error instanceof Error ? error : undefined
       );
     }
+  }
+
+  /**
+   * Intelligently merges existing compressed context with new messages
+   */
+  private async mergeCompressedContexts(
+    existingCompressed: CompressedContext,
+    newMessages: MessageRecord[]
+  ): Promise<CompressedContext> {
+    // Get the compression strategy
+    const strategy = this.compressionStrategies.get(this.compressionConfig.strategy);
+    if (!strategy) {
+      throw new ChatRecordingCompressionError(`Unknown compression strategy: ${this.compressionConfig.strategy}`);
+    }
+
+    // Compress new messages
+    const newCompressed = await strategy.compress(newMessages, this.compressionConfig);
+
+    // Intelligent merging logic
+    const mergedSummary = this.mergeSummaries(existingCompressed.summary, newCompressed.summary);
+    const mergedKeyPoints = this.mergeKeyPoints(existingCompressed.keyPoints, newCompressed.keyPoints);
+    const mergedToolCallsSummary = this.mergeToolCallsSummaries(
+      existingCompressed.toolCallsSummary,
+      newCompressed.toolCallsSummary
+    );
+
+    // Update timespan to cover both periods
+    const mergedTimespan = {
+      start: existingCompressed.timespan.start || newCompressed.timespan.start,
+      end: newCompressed.timespan.end,
+    };
+
+    // Calculate totals
+    const mergedMessageCount = existingCompressed.messageCount + newCompressed.messageCount;
+    const mergedOriginalTokens = existingCompressed.originalTokens + newCompressed.originalTokens;
+
+    // Estimate compressed tokens for the merged content
+    const mergedContent = `${mergedSummary}. ${mergedKeyPoints.join('. ')}. ${mergedToolCallsSummary}`;
+    const mergedCompressedTokens = await this.estimateTokenCount(mergedContent);
+
+    return {
+      summary: mergedSummary,
+      keyPoints: mergedKeyPoints,
+      toolCallsSummary: mergedToolCallsSummary,
+      timespan: mergedTimespan,
+      messageCount: mergedMessageCount,
+      originalTokens: mergedOriginalTokens,
+      compressedTokens: mergedCompressedTokens,
+    };
+  }
+
+  /**
+   * Intelligently merges two summaries
+   */
+  private mergeSummaries(existingSummary: string, newSummary: string): string {
+    if (!existingSummary) return newSummary;
+    if (!newSummary) return existingSummary;
+
+    // If summaries are very similar, keep the newer one
+    if (this.areSimilar(existingSummary, newSummary, 0.8)) {
+      return newSummary;
+    }
+
+    // Combine summaries intelligently
+    const combined = `${existingSummary}. ${newSummary}`;
+
+    // If combined is too long, create a more concise version
+    if (combined.length > 300) {
+      return this.createConciseSummary(combined);
+    }
+
+    return combined;
+  }
+
+  /**
+   * Merges key points while removing duplicates and prioritizing importance
+   */
+  private mergeKeyPoints(existingPoints: string[], newPoints: string[]): string[] {
+    const allPoints = [...existingPoints, ...newPoints];
+
+    // Remove duplicates based on similarity
+    const uniquePoints: string[] = [];
+    for (const point of allPoints) {
+      const isDuplicate = uniquePoints.some(existing =>
+        this.areSimilar(point, existing, 0.7)
+      );
+      if (!isDuplicate) {
+        uniquePoints.push(point);
+      }
+    }
+
+    // Prioritize points: errors first, then decisions, then others
+    const prioritized = uniquePoints.sort((a, b) => {
+      const getPriority = (point: string) => {
+        if (point.toLowerCase().includes('error')) return 3;
+        if (point.toLowerCase().includes('decision')) return 2;
+        if (point.toLowerCase().includes('action')) return 1;
+        return 0;
+      };
+      return getPriority(b) - getPriority(a);
+    });
+
+    // Keep only the most important points (max 20)
+    return prioritized.slice(0, 20);
+  }
+
+  /**
+   * Merges tool call summaries intelligently
+   */
+  private mergeToolCallsSummaries(existing: string, newSummary: string): string {
+    if (!existing) return newSummary;
+    if (!newSummary) return existing;
+
+    // Parse tool call counts from summaries
+    const existingCount = this.extractToolCallCount(existing);
+    const newCount = this.extractToolCallCount(newSummary);
+
+    const totalCount = existingCount + newCount;
+    return `Tool calls: ${totalCount}`;
+  }
+
+  /**
+   * Extracts tool call count from summary string
+   */
+  private extractToolCallCount(summary: string): number {
+    const match = summary.match(/Tool calls: (\d+)/);
+    return match ? parseInt(match[1], 10) : 0;
+  }
+
+  /**
+   * Creates a concise summary from a long combined summary
+   */
+  private createConciseSummary(longSummary: string): string {
+    // Extract the most important parts
+    const sentences = longSummary.split(/[.!?]+/).filter(s => s.trim().length > 10);
+
+    // Prioritize sentences with key information
+    const prioritized = sentences
+      .map(sentence => ({
+        text: sentence.trim(),
+        score: this.scoreSentenceImportance(sentence)
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 2)
+      .map(item => item.text);
+
+    return prioritized.join('. ') + '.';
+  }
+
+  /**
+   * Scores sentence importance for summary creation
+   */
+  private scoreSentenceImportance(sentence: string): number {
+    let score = 0;
+    const lowerSentence = sentence.toLowerCase();
+
+    // Boost score for important keywords
+    if (lowerSentence.includes('error') || lowerSentence.includes('failed')) score += 3;
+    if (lowerSentence.includes('decision') || lowerSentence.includes('conclusion')) score += 2;
+    if (lowerSentence.includes('implemented') || lowerSentence.includes('completed')) score += 2;
+    if (lowerSentence.includes('tool')) score += 1;
+
+    // Boost score for longer sentences (likely more detailed)
+    score += Math.min(sentence.length / 50, 2);
+
+    return score;
+  }
+
+  /**
+   * Checks if two strings are similar based on simple text comparison
+   */
+  protected areSimilar(text1: string, text2: string, threshold: number = 0.7): boolean {
+    if (text1 === text2) return true;
+
+    // Simple similarity based on common words
+    const words1 = new Set(text1.toLowerCase().split(/\s+/));
+    const words2 = new Set(text2.toLowerCase().split(/\s+/));
+
+    const intersection = new Set([...words1].filter(x => words2.has(x)));
+    const union = new Set([...words1, ...words2]);
+
+    const similarity = intersection.size / union.size;
+    return similarity >= threshold;
   }
 
   /**

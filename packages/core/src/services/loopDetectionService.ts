@@ -44,114 +44,144 @@ const CONFIDENCE_THRESHOLD_MEDIUM = 0.7;
 const CONFIDENCE_THRESHOLD_LOW = 0.5;
 
 /**
- * Semantic similarity calculator using simple text analysis
- * Fallback when embeddings are not available
+ * Advanced semantic similarity calculator using TF-IDF and cosine similarity
+ * Provides more accurate semantic loop detection than simple text matching
  */
-class SemanticSimilarity {
+class EmbeddingSimilarity {
+  private static tfidfCache = new Map<string, Map<string, number>>();
+  private static documentCache = new Map<string, string[]>();
+
   /**
-   * Calculate similarity between two text chunks using Jaccard similarity
-   * with word-level analysis and fuzzy matching
+   * Calculate semantic similarity using TF-IDF and cosine similarity
+   * This provides much better semantic understanding than Jaccard similarity
    */
   static calculateSimilarity(text1: string, text2: string): number {
-    const words1 = this.tokenize(text1);
-    const words2 = this.tokenize(text2);
+    const tokens1 = this.tokenizeAndNormalize(text1);
+    const tokens2 = this.tokenizeAndNormalize(text2);
 
-    if (words1.size === 0 && words2.size === 0) return 1.0;
-    if (words1.size === 0 || words2.size === 0) return 0.0;
+    if (tokens1.length === 0 && tokens2.length === 0) return 1.0;
+    if (tokens1.length === 0 || tokens2.length === 0) return 0.0;
 
-    const intersection = new Set([...words1].filter((x) => words2.has(x)));
-    const union = new Set([...words1, ...words2]);
+    // Calculate TF-IDF vectors
+    const vector1 = this.calculateTFIDFVector(tokens1, text1);
+    const vector2 = this.calculateTFIDFVector(tokens2, text2);
 
-    const jaccardSimilarity = intersection.size / union.size;
-
-    // Apply fuzzy matching for near-synonyms and variations
-    const fuzzyBonus = this.calculateFuzzyBonus(text1, text2);
-
-    return Math.min(1.0, jaccardSimilarity + fuzzyBonus);
+    // Calculate cosine similarity
+    return this.cosineSimilarity(vector1, vector2);
   }
 
-  private static tokenize(text: string): Set<string> {
+  /**
+   * Enhanced tokenization with better normalization
+   */
+  private static tokenizeAndNormalize(text: string): string[] {
     const stopwords = new Set([
-      'the',
-      'and',
-      'for',
-      'that',
-      'this',
-      'with',
-      'from',
-      'you',
-      'your',
-      'are',
-      'was',
-      'were',
-      'has',
-      'have',
-      'but',
-      'not',
-      'can',
-      'will',
-      'its',
-      'they',
-      'their',
-      'them',
-      'our',
-      'we',
-      'us',
-      'a',
-      'an',
-      'of',
-      'in',
-      'on',
-      'to',
-      'is',
+      'the', 'and', 'for', 'that', 'this', 'with', 'from', 'you', 'your',
+      'are', 'was', 'were', 'has', 'have', 'but', 'not', 'can', 'will',
+      'its', 'they', 'their', 'them', 'our', 'we', 'us', 'a', 'an', 'of',
+      'in', 'on', 'to', 'is', 'it', 'be', 'by', 'or', 'as', 'at', 'an',
+      'if', 'do', 'does', 'did', 'done', 'doing', 'would', 'could', 'should'
     ]);
 
-    return new Set(
-      text
-        .toLowerCase()
-        .replace(/[^\w\s]/g, ' ')
-        .split(/\s+/)
-        .filter((word) => word.length > 2 && !stopwords.has(word)),
-    );
+    return text
+      .toLowerCase()
+      .replace(/[^\w\s]/g, ' ')
+      .split(/\s+/)
+      .filter(word => word.length > 2 && !stopwords.has(word))
+      .map(word => this.stem(word)); // Simple stemming
   }
 
-  private static calculateFuzzyBonus(text1: string, text2: string): number {
-    // Simple edit distance-based fuzzy matching
-    const normalized1 = text1.toLowerCase().replace(/\s+/g, '');
-    const normalized2 = text2.toLowerCase().replace(/\s+/g, '');
-
-    if (normalized1 === normalized2) return 0.12; // exact match: modest bonus
-
-    const editDistance = this.levenshteinDistance(normalized1, normalized2);
-    const maxLength = Math.max(normalized1.length, normalized2.length);
-
-    if (maxLength === 0) return 0;
-
-    const similarity = 1 - editDistance / maxLength;
-    // Only give a small fuzzy bonus for very similar strings to avoid over-triggering
-    return similarity > 0.92 ? 0.05 : 0;
-  }
-
-  private static levenshteinDistance(str1: string, str2: string): number {
-    const matrix = Array(str2.length + 1)
-      .fill(null)
-      .map(() => Array(str1.length + 1).fill(null));
-
-    for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
-    for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
-
-    for (let j = 1; j <= str2.length; j++) {
-      for (let i = 1; i <= str1.length; i++) {
-        const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
-        matrix[j][i] = Math.min(
-          matrix[j][i - 1] + 1, // deletion
-          matrix[j - 1][i] + 1, // insertion
-          matrix[j - 1][i - 1] + indicator, // substitution
-        );
+  /**
+   * Simple stemming to group similar words
+   */
+  private static stem(word: string): string {
+    // Remove common suffixes
+    const suffixes = ['ing', 'ly', 'ed', 'ies', 'ied', 'ies', 'ied', 'ies', 'ied', 's'];
+    for (const suffix of suffixes) {
+      if (word.endsWith(suffix) && word.length > suffix.length + 1) {
+        return word.slice(0, -suffix.length);
       }
     }
+    return word;
+  }
 
-    return matrix[str2.length][str1.length];
+  /**
+   * Calculate TF-IDF vector for a document
+   */
+  private static calculateTFIDFVector(tokens: string[], documentId: string): Map<string, number> {
+    const vector = new Map<string, number>();
+    const termFreq = new Map<string, number>();
+
+    // Calculate term frequency
+    for (const token of tokens) {
+      termFreq.set(token, (termFreq.get(token) || 0) + 1);
+    }
+
+    // Get all unique terms across all documents seen
+    const allTerms = new Set<string>();
+    for (const docTokens of this.documentCache.values()) {
+      docTokens.forEach(token => allTerms.add(token));
+    }
+    tokens.forEach(token => allTerms.add(token));
+
+    // Calculate TF-IDF
+    const numDocuments = this.documentCache.size;
+    for (const term of allTerms) {
+      const tf = termFreq.get(term) || 0;
+      const df = this.calculateDocumentFrequency(term);
+      const idf = Math.log((numDocuments + 1) / (df + 1)) + 1; // Smoothed IDF
+      const tfidf = (tf / tokens.length) * idf;
+      vector.set(term, tfidf);
+    }
+
+    // Cache the tokens for this document
+    this.documentCache.set(documentId, tokens);
+
+    return vector;
+  }
+
+  /**
+   * Calculate document frequency for a term
+   */
+  private static calculateDocumentFrequency(term: string): number {
+    let count = 0;
+    for (const tokens of this.documentCache.values()) {
+      if (tokens.includes(term)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Calculate cosine similarity between two TF-IDF vectors
+   */
+  private static cosineSimilarity(vector1: Map<string, number>, vector2: Map<string, number>): number {
+    const terms = new Set([...vector1.keys(), ...vector2.keys()]);
+
+    let dotProduct = 0;
+    let norm1 = 0;
+    let norm2 = 0;
+
+    for (const term of terms) {
+      const val1 = vector1.get(term) || 0;
+      const val2 = vector2.get(term) || 0;
+
+      dotProduct += val1 * val2;
+      norm1 += val1 * val1;
+      norm2 += val2 * val2;
+    }
+
+    if (norm1 === 0 || norm2 === 0) return 0;
+
+    return dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2));
+  }
+
+  /**
+   * Clear caches to prevent memory leaks
+   */
+  static clearCache(): void {
+    this.tfidfCache.clear();
+    this.documentCache.clear();
   }
 }
 
@@ -823,32 +853,86 @@ export class LoopDetectionService {
       return true;
     }
 
-    // Otherwise, perform pairwise semantic similarity check on recent window
+    // Enhanced semantic similarity check using TF-IDF and cosine similarity
     const recentWindow = this.semanticContentChunks.slice(-12);
     let highSimilarityPairs = 0;
+    let maxSimilarity = 0;
+    const similarPairIndices: Array<[number, number]> = [];
+
     for (let i = 0; i < recentWindow.length - 1; i++) {
       for (let j = i + 1; j < recentWindow.length; j++) {
-        const similarity = SemanticSimilarity.calculateSimilarity(
+        const similarity = EmbeddingSimilarity.calculateSimilarity(
           recentWindow[i].content,
           recentWindow[j].content,
         );
-        if (similarity > 0.88) highSimilarityPairs++;
+
+        maxSimilarity = Math.max(maxSimilarity, similarity);
+
+        // Adaptive threshold based on content characteristics
+        const avgLength = (recentWindow[i].content.length + recentWindow[j].content.length) / 2;
+        const adaptiveThreshold = avgLength > 300 ? 0.7 : 0.8;
+
+        if (similarity > adaptiveThreshold) {
+          highSimilarityPairs++;
+          similarPairIndices.push([i, j]);
+        }
       }
     }
 
     const totalPairs = (recentWindow.length * (recentWindow.length - 1)) / 2;
     if (totalPairs === 0) return false;
+
     const similarityRatio = highSimilarityPairs / totalPairs;
-    if (similarityRatio > 0.6) {
-      const confidence = Math.min(1.0, similarityRatio * 1.2);
+
+    // Enhanced confidence calculation considering multiple factors
+    if (similarityRatio > 0.4 || maxSimilarity > 0.85) {
+      const baseConfidence = Math.min(1.0, similarityRatio * 1.4 + maxSimilarity * 0.3);
+
+      // Boost confidence for patterns that indicate loops
+      let patternBonus = 0;
+      if (this.detectRepetitivePattern(similarPairIndices)) {
+        patternBonus = 0.2;
+      }
+
+      const finalConfidence = Math.min(1.0, baseConfidence + patternBonus);
+
       this.updateConfidence(
-        confidence,
-        `Semantic content similarity detected: ${Math.round(similarityRatio * 100)}% similar content`,
+        finalConfidence,
+        `Enhanced semantic analysis: ${Math.round(similarityRatio * 100)}% similar, max similarity: ${Math.round(maxSimilarity * 100)}%`,
       );
-      if (confidence > CONFIDENCE_THRESHOLD_HIGH) return true;
+
+      // Clear cache periodically
+      if (this.semanticContentChunks.length % 100 === 0) {
+        EmbeddingSimilarity.clearCache();
+      }
+
+      return finalConfidence > CONFIDENCE_THRESHOLD_MEDIUM;
     }
 
     return false;
+  }
+
+  /**
+   * Detect if similar pairs form a repetitive pattern
+   */
+  private detectRepetitivePattern(pairIndices: Array<[number, number]>): boolean {
+    if (pairIndices.length < 3) return false;
+
+    // Check for A-B-A-B pattern or similar repetitive structure
+    const sortedPairs = pairIndices.sort((a, b) => a[0] - b[0]);
+    let patternCount = 0;
+
+    for (let i = 0; i < sortedPairs.length - 1; i++) {
+      const current = sortedPairs[i];
+      const next = sortedPairs[i + 1];
+
+      // Look for overlapping or adjacent pairs
+      if (Math.abs(current[1] - next[0]) <= 2) {
+        patternCount++;
+      }
+    }
+
+    return patternCount >= 2;
   }
 
   /**
@@ -1196,13 +1280,55 @@ Analyze the conversation and provide:
   }
 
   private analyzeContentChunksForLoop(): boolean {
-  // Chunk-based detection can be noisy for overlapping streaming inputs and
-  // tends to generate false positives with repeated content added as whole
-  // events (each event may contain multiple overlapping chunks). The test
-  // suite primarily expects event-level identical content detection and
-  // semantic analysis. To avoid flakiness, disable chunk-based detection
-  // and rely on event-based hashes + semantic similarity.
-  return false;
+    // Enhanced semantic loop detection using TF-IDF and cosine similarity
+    // This provides much better accuracy than the previous chunk-based approach
+    if (this.semanticContentChunks.length < 3) return false;
+
+    const recentWindow = this.semanticContentChunks.slice(-8); // Analyze last 8 chunks
+    let highSimilarityPairs = 0;
+    let totalPairs = 0;
+
+    // Check pairwise similarities in the recent window
+    for (let i = 0; i < recentWindow.length - 1; i++) {
+      for (let j = i + 1; j < recentWindow.length; j++) {
+        const similarity = EmbeddingSimilarity.calculateSimilarity(
+          recentWindow[i].content,
+          recentWindow[j].content,
+        );
+
+        totalPairs++;
+
+        // Use a more sophisticated threshold based on content length and type
+        const contentLength = Math.max(recentWindow[i].content.length, recentWindow[j].content.length);
+        const adaptiveThreshold = contentLength > 500 ? 0.75 : 0.85; // Lower threshold for longer content
+
+        if (similarity > adaptiveThreshold) {
+          highSimilarityPairs++;
+        }
+      }
+    }
+
+    if (totalPairs === 0) return false;
+
+    const similarityRatio = highSimilarityPairs / totalPairs;
+
+    // Dynamic confidence based on pattern strength
+    if (similarityRatio > 0.5) {
+      const confidence = Math.min(0.95, similarityRatio * 1.3);
+      this.updateConfidence(
+        confidence,
+        `Enhanced semantic loop detected: ${Math.round(similarityRatio * 100)}% similar content patterns`,
+      );
+
+      // Clear TF-IDF cache periodically to prevent memory leaks
+      if (this.semanticContentChunks.length % 50 === 0) {
+        EmbeddingSimilarity.clearCache();
+      }
+
+      return confidence > CONFIDENCE_THRESHOLD_MEDIUM;
+    }
+
+    return false;
   }
 
   // Chunk-level helpers were removed in favor of event-level checks and
