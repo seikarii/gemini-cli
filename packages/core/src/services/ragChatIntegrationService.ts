@@ -53,7 +53,9 @@ export class RAGChatIntegrationService {
         this.chatRecordingService,
         this.config,
         {
-          maxTotalTokens: 28000,
+          // Dual-context strategy: Short-term memory for immediate tool execution
+          // TODO: Integrate with DualContextManager for full 1M token long-term memory
+          maxTotalTokens: 28000, // Current short-term limit for tool execution context
           maxRAGChunks: 6,
           ragRelevanceThreshold: 0.65,
           ragWeight: 0.35,

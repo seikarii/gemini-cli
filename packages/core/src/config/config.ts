@@ -101,6 +101,10 @@ export interface BugCommandSettings {
 
 export interface ChatCompressionSettings {
   contextPercentageThreshold?: number;
+  // Dual-context token management
+  promptContextTokens?: number; // Default: 1M for Gemini 2.5 Pro
+  toolContextTokens?: number; // Default: 28K for Gemini 2.5 Flash-Lite
+  enableDualContext?: boolean; // Enable dual-context mode
 }
 
 export interface SummarizeToolOutputSettings {

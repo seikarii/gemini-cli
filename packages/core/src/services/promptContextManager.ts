@@ -9,7 +9,7 @@ import { RAGService } from '../rag/ragService.js';
 import { ChatRecordingService } from './chatRecordingService.js';
 import { Config } from '../config/config.js';
 import { ToolSelectionGuidance } from './toolSelectionGuidance.js';
-import { EnhancedContextService, ContextType } from './enhancedContextService.js';
+import { EnhancedContextService } from './enhancedContextService.js';
 import {
   RAGQuery,
   EnhancedQueryResult,
@@ -78,8 +78,10 @@ export class PromptContextManager {
     config?: Partial<PromptContextConfig>,
   ) {
     // Default configuration with smart defaults
+    // Dual-context strategy: Currently using short-term memory limits
+    // TODO: Integrate with DualContextManager for 1M token long-term memory capability
     this.config = {
-      maxTotalTokens: 30000, // Conservative limit for most models
+      maxTotalTokens: 30000, // Short-term memory limit for tool execution context
       maxRAGChunks: 8,
       ragRelevanceThreshold: 0.6,
       ragWeight: 0.4, // 40% RAG, 60% conversation

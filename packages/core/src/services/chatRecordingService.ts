@@ -1,5 +1,6 @@
 import { PartListUnion, Status, ThoughtSummary, Config } from '../index.js';
 import { Content } from '@google/genai';
+import { ContextManager, DualContextConfig, ContextType } from './contextManager.js';
 
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -1169,6 +1170,9 @@ export class ChatRecordingService {
     importanceThreshold: 0.7, // High threshold for preserving important messages
   };
 
+  // Dual-context manager for intelligent routing
+  private contextManager: ContextManager;
+
   constructor(
     config: Config,
     fileSystem?: FileSystemAdapter,
@@ -1209,6 +1213,27 @@ export class ChatRecordingService {
     ]);
     // Update configuration from environment or config
     this.updateCompressionConfig();
+
+    // Initialize dual-context manager
+    this.contextManager = new ContextManager(
+      this.createDualContextConfig(),
+      this.tokenEstimator
+    );
+  }
+
+  /**
+   * Creates dual-context configuration from current settings
+   */
+  private createDualContextConfig(): DualContextConfig {
+    const chatCompression = this.config.getChatCompression();
+
+    return {
+      promptContextTokens: chatCompression?.promptContextTokens ?? 1000000, // 1M tokens for prompts
+      toolContextTokens: chatCompression?.toolContextTokens ?? 28000, // 28K tokens for tool execution
+      enableDualContext: chatCompression?.enableDualContext ?? true,
+      promptModel: 'gemini-2.5-pro',
+      toolModel: 'gemini-2.5-flash-lite',
+    };
   }
 
   /**
@@ -1229,6 +1254,12 @@ export class ChatRecordingService {
           defaultContextTokens *
             (chatCompression.contextPercentageThreshold / 100),
         );
+      }
+
+      // Handle dual-context settings
+      if (chatCompression.enableDualContext) {
+        // Update context manager with new dual-context config
+        this.contextManager.updateConfig(this.createDualContextConfig());
       }
     }
 
@@ -1254,6 +1285,20 @@ export class ChatRecordingService {
       )
     ) {
       this.compressionConfig.strategy = strategy as CompressionStrategy;
+    }
+
+    // Handle dual-context environment variables
+    const promptTokens = process.env['GEMINI_PROMPT_CONTEXT_TOKENS'];
+    const toolTokens = process.env['GEMINI_TOOL_CONTEXT_TOKENS'];
+    const enableDual = process.env['GEMINI_ENABLE_DUAL_CONTEXT'];
+
+    if (promptTokens || toolTokens || enableDual) {
+      const dualConfig = this.createDualContextConfig();
+      if (promptTokens) dualConfig.promptContextTokens = parseInt(promptTokens, 10);
+      if (toolTokens) dualConfig.toolContextTokens = parseInt(toolTokens, 10);
+      if (enableDual) dualConfig.enableDualContext = enableDual === 'true';
+
+      this.contextManager.updateConfig(dualConfig);
     }
   }
 
@@ -2561,5 +2606,56 @@ export class ChatRecordingService {
         error instanceof Error ? error : undefined,
       );
     }
+  }
+
+  /**
+   * Determines the appropriate context type for a given operation and content.
+   * This is used by other services to route operations to the correct context.
+   */
+  determineContextType(operation: string, content: string): ContextType {
+    return this.contextManager.determineContextType(operation, content);
+  }
+
+  /**
+   * Gets the appropriate model for a given context type.
+   * This enables intelligent model selection based on operation type.
+   */
+  getModelForContext(contextType: ContextType): string {
+    return this.contextManager.getModelForContext(contextType);
+  }
+
+  /**
+   * Checks if content fits within the specified context limits.
+   * Useful for pre-flight checks before processing.
+   */
+  async canFitInContext(
+    content: string,
+    contextType: ContextType
+  ): Promise<boolean> {
+    return await this.contextManager.canFitInContext(content, contextType);
+  }
+
+  /**
+   * Gets usage statistics for all contexts.
+   * Useful for monitoring and debugging.
+   */
+  getContextUsageStats() {
+    return this.contextManager.getAllUsageStats();
+  }
+
+  /**
+   * Updates usage statistics for a context after processing.
+   * Should be called after message processing to maintain accurate stats.
+   */
+  async updateContextUsage(
+    contextType: ContextType,
+    content: string,
+    messageCount: number
+  ): Promise<void> {
+    await this.contextManager.updateUsageStats(
+      contextType,
+      content,
+      messageCount
+    );
   }
 }

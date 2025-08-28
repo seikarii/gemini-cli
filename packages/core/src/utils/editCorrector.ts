@@ -31,12 +31,25 @@ import {
 // Re-export certain utils for backwards compatibility with existing imports/tests
 export { countOccurrences };
 
-const EditModel = DEFAULT_GEMINI_FLASH_LITE_MODEL;
+const _EditModel = DEFAULT_GEMINI_FLASH_LITE_MODEL; // Kept for backward compatibility
 const EditConfig: GenerateContentConfig = {
   thinkingConfig: {
     thinkingBudget: 0,
   },
 };
+
+/**
+ * Determines the appropriate model for edit correction based on operation complexity
+ */
+function getEditCorrectionModel(operation: string, content: string): string {
+  // For complex corrections involving large contexts or analysis, use Pro model
+  if (content.length > 10000 || operation.includes('analysis') || operation.includes('complex')) {
+    return 'gemini-2.5-pro';
+  }
+
+  // For simple corrections, use Flash-Lite for speed
+  return DEFAULT_GEMINI_FLASH_LITE_MODEL;
+}
 
 const MAX_CACHE_SIZE = 50;
 
@@ -976,21 +989,67 @@ async function correctOldStringMismatch(
   abortSignal: AbortSignal,
 ): Promise<string> {
   const prompt = `
-Context: A process needs to find an exact literal, unique match for a specific text snippet within a file's content. The provided snippet failed to match exactly. This is most likely because it has been overly escaped.
+# Edit Correction Assistant - Old String Mismatch
 
-Task: Analyze the provided file content and the problematic target snippet. Identify the segment in the file content that the snippet was *most likely* intended to match. Output the *exact*, literal text of that segment from the file content. Focus *only* on removing extra escape characters and correcting formatting, whitespace, or minor differences to achieve a PERFECT literal match. The output must be the exact literal text as it appears in the file.
+## Context
+A text replacement operation failed because the target snippet could not be found exactly in the file. This commonly occurs due to:
+- Extra escape characters in the snippet
+- Minor whitespace or formatting differences
+- Case sensitivity issues
+- Hidden characters or encoding problems
 
-Problematic target snippet:
+## System Capabilities
+You have access to powerful tools for file analysis and editing. Use the dual-context strategy:
+- **Short-term context (current session)**: For immediate tool execution and analysis
+- **Long-term context (knowledge base)**: For comprehensive understanding and pattern recognition
+
+### Available Tools:
+- **ReadFileTool**: Examine file contents with precise line ranges
+  - *Use when*: Need specific file sections or syntax verification
+  - *Failure recovery*: Try broader line ranges if initial read fails
+- **GrepTool**: Search for patterns across files using regex
+  - *Use when*: Need to find similar patterns or code structures
+  - *Failure recovery*: Simplify regex patterns, use plain text search
+- **ReadManyFilesTool**: Analyze multiple files simultaneously
+  - *Use when*: Need to understand cross-file relationships
+  - *Failure recovery*: Reduce file count, focus on most relevant files
+- **EditTool**: Perform precise text replacements with validation
+  - *Use when*: Ready to make the corrected replacement
+  - *Failure recovery*: Break down complex edits into smaller operations
+
+### Tool Selection Strategy:
+1. **Start with ReadFileTool** for focused analysis
+2. **Use GrepTool** for pattern discovery when text matching fails
+3. **Apply ReadManyFilesTool** when context spans multiple files
+4. **Execute EditTool** only after validation with other tools
+
+## Task
+Analyze the provided file content and problematic target snippet. Identify the exact segment in the file that the snippet was intended to match.
+
+**Problematic target snippet:**
 \`\`\`
 ${problematicSnippet}
 \`\`\`
 
-File Content:
+**File Content:**
 \`\`\`
 ${fileContent}
 \`\`\`
 
-Return ONLY the corrected target snippet in the specified JSON format with the key 'corrected_target_snippet'. If no clear, unique match can be found, return an empty string for 'corrected_target_snippet'.
+## Analysis Steps
+1. **Compare character-by-character** between snippet and file content
+2. **Identify discrepancies** in escaping, whitespace, or formatting
+3. **Locate the most similar segment** in the file content
+4. **Verify uniqueness** of the match
+
+## Output Requirements
+Return ONLY a JSON object with the key 'corrected_target_snippet' containing the exact literal text from the file that should be replaced. If no clear match exists, return an empty string.
+
+## Error Recovery Strategy
+If the snippet cannot be matched:
+- Consider using GrepTool to search for similar patterns
+- Use ReadFileTool to examine the exact area of interest
+- Check for encoding or invisible character issues
 `.trim();
 
   const contents = [{ role: 'user', parts: [{ text: prompt }] }];
@@ -999,7 +1058,7 @@ Return ONLY the corrected target snippet in the specified JSON format with the k
       contents,
       OLD_STRING_CORRECTION_SCHEMA,
       abortSignal,
-      EditModel,
+      getEditCorrectionModel('old_string_correction', fileContent),
       EditConfig,
     )) as Record<string, unknown> | undefined;
     if (result) {
@@ -1028,28 +1087,73 @@ async function correctNewString(
   if (originalOldString === correctedOldString) return originalNewString;
 
   const prompt = `
-Context: A text replacement operation was planned. The original text to be replaced (original_old_string) was slightly different from the actual text in the file (corrected_old_string). The original_old_string has now been corrected to match the file content.
-We now need to adjust the replacement text (original_new_string) so that it makes sense as a replacement for the corrected_old_string, while preserving the original intent of the change.
+# Edit Correction Assistant - New String Adjustment
 
-original_old_string (what was initially intended to be found):
+## Context
+A text replacement was planned, but the original target text (original_old_string) didn't match exactly with the actual file content (corrected_old_string). The target has been corrected, and now the replacement text needs adjustment to maintain the original intent.
+
+## System Capabilities
+When string corrections are needed, leverage the dual-context strategy and these recovery tools:
+
+### Available Tools (prioritized by failure recovery):
+- **ReadFileTool**: Get fresh file content to verify current state
+  - *Best for*: Real-time file validation and syntax checking
+  - *Recovery*: Use broader line ranges if specific sections fail
+- **GrepTool**: Search for related patterns or similar code
+  - *Best for*: Finding comparable implementations and patterns
+  - *Recovery*: Simplify search terms, use literal strings instead of regex
+- **EditTool**: Apply the corrected replacement with validation
+  - *Best for*: Precise, validated text replacements
+  - *Recovery*: Break complex replacements into smaller, safer operations
+- **ReadManyFilesTool**: Check related files for consistency
+  - *Best for*: Understanding cross-file dependencies and standards
+  - *Recovery*: Focus on most critical files if batch operations fail
+
+### Intelligent Tool Selection:
+1. **Context Analysis**: Use ReadFileTool to understand current file state
+2. **Pattern Discovery**: Apply GrepTool when unsure about text variations
+3. **Consistency Check**: Leverage ReadManyFilesTool for multi-file validation
+4. **Safe Execution**: Use EditTool only after thorough validation
+
+## Text Comparison Analysis
+
+**Original intended target (what was planned to be replaced):**
 \`\`\`
 ${originalOldString}
 \`\`\`
 
-corrected_old_string (what was actually found in the file and will be replaced):
+**Actual target found (what will actually be replaced):**
 \`\`\`
 ${correctedOldString}
 \`\`\`
 
-original_new_string (what was intended to replace original_old_string):
+**Original replacement text (needs adjustment):**
 \`\`\`
 ${originalNewString}
 \`\`\`
 
-Task: Based on the differences between original_old_string and corrected_old_string, and the content of original_new_string, generate a corrected_new_string. This corrected_new_string should be what original_new_string would have been if it was designed to replace corrected_old_string directly, while maintaining the spirit of the original transformation.
+## Task
+Based on the differences between the original and corrected target strings, adjust the replacement text to:
+1. **Maintain the original transformation intent**
+2. **Account for any structural differences**
+3. **Preserve code syntax and formatting**
+4. **Ensure logical consistency**
 
-Return ONLY the corrected string in the specified JSON format with the key 'corrected_new_string'. If no adjustment is deemed necessary or possible, return the original_new_string.
-  `.trim();
+## Analysis Guidelines
+- Compare the structural differences between original_old_string and corrected_old_string
+- Determine how these differences affect the replacement logic
+- Adjust the replacement text accordingly while preserving the core change
+- Consider edge cases and potential side effects
+
+## Output Requirements
+Return ONLY a JSON object with the key 'corrected_new_string' containing the adjusted replacement text. If no adjustment is needed, return the original_new_string.
+
+## Error Recovery Strategy
+If the adjustment seems complex:
+- Use ReadFileTool to examine the broader context
+- Consider using GrepTool to find similar patterns
+- Validate the change with a test edit operation
+`.trim();
 
   const contents = [{ role: 'user', parts: [{ text: prompt }] }];
   try {
@@ -1057,7 +1161,7 @@ Return ONLY the corrected string in the specified JSON format with the key 'corr
       contents,
       NEW_STRING_CORRECTION_SCHEMA,
       abortSignal,
-      EditModel,
+      getEditCorrectionModel('new_string_correction', originalNewString),
       EditConfig,
     )) as Record<string, unknown> | undefined;
     if (result) {
@@ -1084,16 +1188,75 @@ async function correctNewStringEscaping(
   newString = escapeBackticks(newString);
 
   const prompt = `
-Context: A text replacement operation is planned. The text to be replaced (old_string) has been correctly identified in the file. However, the replacement text (new_string) might have been improperly escaped by a previous LLM generation.
+# Edit Correction Assistant - String Escaping Validation
 
-old_string (this is the exact text that will be replaced):
-\`\`${oldStringEscaped}
+## Context
+A text replacement operation is being prepared. The target text (old_string) has been correctly identified, but the replacement text (new_string) may have incorrect escaping that could cause syntax errors or unexpected behavior.
 
-potentially_problematic_new_string (this is the text that should replace old_string, but MIGHT have bad escaping, or might be entirely correct):
-\`\`${newString}
+## Common Escaping Issues
+- **Over-escaping**: Too many backslashes (\\\\ instead of \\)
+- **Under-escaping**: Missing escape characters for special regex/symbols
+- **Quote mismatches**: Incorrect quote escaping in strings
+- **Path separators**: Incorrect escaping of file paths
+- **Regex patterns**: Improper escaping of special regex characters
 
-Task: Analyze the potentially_problematic_new_string. If it's syntactically invalid due to incorrect escaping, correct the invalid syntax. Return ONLY the corrected string in the specified JSON format with the key 'corrected_new_string_escaping'. If no escaping correction is needed, return the original potentially_problematic_new_string.
-  `.trim();
+## System Capabilities for Validation
+If escaping issues are detected, utilize these tools with intelligent selection:
+
+### Advanced Validation Tools:
+- **ReadFileTool**: Examine the target file's syntax and context
+  - *Strategy*: Read surrounding context to understand syntax patterns
+  - *Recovery*: If syntax validation fails, read broader context for patterns
+- **GrepTool**: Search for similar patterns in the codebase
+  - *Strategy*: Find comparable escaping examples across the project
+  - *Recovery*: Use simpler search patterns if complex regex fails
+- **EditTool**: Test the replacement with validation
+  - *Strategy*: Apply escaping corrections with immediate validation
+  - *Recovery*: Revert to safer escaping if validation fails
+- **FileSystemService**: Check file system compatibility
+  - *Strategy*: Validate path separators and special characters
+  - *Recovery*: Use platform-agnostic alternatives when needed
+
+### Dual-Context Escaping Strategy:
+- **Short-term memory**: Focus on immediate syntax requirements
+- **Long-term memory**: Leverage project-wide escaping patterns and conventions
+
+## Text Analysis
+
+**Target text (will be replaced):**
+\`\`\`
+${oldStringEscaped}
+\`\`\`
+
+**Replacement text (potentially problematic):**
+\`\`\`
+${newString}
+\`\`\`
+
+## Task
+Analyze the replacement text for escaping issues that could cause:
+1. **Syntax errors** in the target language/file type
+2. **Runtime errors** when the code is executed
+3. **Unexpected behavior** due to incorrect character interpretation
+4. **File system issues** with paths or special characters
+
+## Validation Steps
+1. **Identify the target language/file type** from context
+2. **Check escaping rules** for that language
+3. **Validate special characters** and their escaping
+4. **Test string boundaries** and quote consistency
+5. **Verify path separators** and file system compatibility
+
+## Output Requirements
+Return ONLY a JSON object with the key 'corrected_new_string_escaping' containing the corrected replacement text with proper escaping. If no correction is needed, return the original text.
+
+## Error Recovery Strategy
+For complex escaping issues:
+- Use ReadFileTool to examine similar patterns in the file
+- Check the broader codebase with GrepTool for consistency
+- Consider the file type and apply language-specific escaping rules
+- Test the correction with a small edit operation first
+`.trim();
 
   const contents = [{ role: 'user', parts: [{ text: prompt }] }];
   try {
@@ -1101,7 +1264,7 @@ Task: Analyze the potentially_problematic_new_string. If it's syntactically inva
       contents,
       CORRECT_NEW_STRING_ESCAPING_SCHEMA,
       abortSignal,
-      EditModel,
+      getEditCorrectionModel('escaping_correction', newString),
       EditConfig,
     )) as Record<string, unknown> | undefined;
     if (result) {
@@ -1129,17 +1292,72 @@ async function correctStringEscaping(
   abortSignal: AbortSignal,
 ): Promise<string> {
   const prompt = `
-Context: An LLM has just generated potentially_problematic_string and the text might have been improperly escaped.
+# String Escaping Correction Assistant
 
-potentially_problematic_string (this text MIGHT have bad escaping, or might be entirely correct):
+## Context
+An LLM has generated text that may contain improper escaping, potentially causing syntax errors, parsing issues, or unexpected behavior when used in code or configuration files.
+
+## System Capabilities
+For complex escaping validation, leverage these intelligent tools:
+
+### Professional Validation Suite:
+- **ReadFileTool**: Examine target files for syntax validation
+  - *Application*: Verify escaping in context of actual file syntax
+  - *Recovery*: Read broader context if specific syntax checking fails
+- **GrepTool**: Search codebase for similar patterns and consistency
+  - *Application*: Find established escaping conventions in the project
+  - *Recovery*: Use literal string searches if pattern matching fails
+- **FileSystemService**: Validate file paths and system compatibility
+  - *Application*: Ensure path separators work across platforms
+  - *Recovery*: Apply platform-specific escaping when generic fails
+- **AST Parser**: Check code syntax and structure
+  - *Application*: Parse code to validate syntactic correctness
+  - *Recovery*: Use simpler text-based validation if parsing fails
+
+### Dual-Context Validation Strategy:
+- **Short-term context**: Immediate escaping requirements and syntax
+- **Long-term context**: Project conventions and established patterns
+
+## Text Analysis
+
+**Potentially problematic text:**
 \`\`\`
 ${potentiallyProblematicString}
 \`\`\`
 
-Task: Analyze the potentially_problematic_string. If it's syntactically invalid due to incorrect escaping, correct the invalid syntax.
+## Task
+Analyze the text for escaping issues that could cause:
+1. **Syntax errors** in programming languages
+2. **Parsing errors** in configuration files
+3. **Runtime exceptions** during execution
+4. **File system errors** with paths
+5. **Data corruption** in serialized formats
 
-Return ONLY the corrected string in the specified JSON format with the key 'corrected_string_escaping'. If no escaping correction is needed, return the original potentially_problematic_string.
-  `.trim();
+## Common Issues to Check
+- **String literals**: Proper quote escaping
+- **Regular expressions**: Special character escaping
+- **File paths**: OS-specific path separator handling
+- **JSON/XML**: Proper entity encoding
+- **SQL queries**: Safe parameter escaping
+- **HTML**: Entity encoding for special characters
+
+## Validation Guidelines
+1. **Determine context**: What type of content is this text for?
+2. **Apply appropriate escaping rules** for that context
+3. **Check for over-escaping** (too many backslashes)
+4. **Verify under-escaping** (missing required escapes)
+5. **Test string boundaries** and delimiter consistency
+
+## Output Requirements
+Return ONLY a JSON object with the key 'corrected_string_escaping' containing the properly escaped text. If no correction is needed, return the original text.
+
+## Error Recovery Strategy
+For ambiguous cases:
+- Use ReadFileTool to check how similar strings are handled in the codebase
+- Search with GrepTool for patterns and best practices
+- Consider the file type and apply domain-specific escaping rules
+- When in doubt, prefer safer (more escaped) versions
+`.trim();
 
   const contents = [{ role: 'user', parts: [{ text: prompt }] }];
   try {
@@ -1147,7 +1365,7 @@ Return ONLY the corrected string in the specified JSON format with the key 'corr
       contents,
       CORRECT_STRING_ESCAPING_SCHEMA,
       abortSignal,
-      EditModel,
+      getEditCorrectionModel('string_escaping', potentiallyProblematicString),
       EditConfig,
     )) as Record<string, unknown> | undefined;
     if (result) {
