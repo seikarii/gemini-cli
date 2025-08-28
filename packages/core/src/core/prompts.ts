@@ -22,10 +22,14 @@ import process from 'node:process';
 import { isGitRepository } from '../utils/gitUtils.js';
 import { MemoryTool, GEMINI_CONFIG_DIR } from '../tools/memoryTool.js';
 
-export function getCoreSystemPrompt(
+/**
+ * Async version of getCoreSystemPrompt that uses fs.promises instead of sync operations.
+ * This is the recommended version for new code and performance-critical paths.
+ */
+export async function getCoreSystemPromptAsync(
   userMemory?: string,
   model?: string,
-): string {
+): Promise<string> {
   // if GEMINI_SYSTEM_MD is set (and not 0|false), override system prompt from file
   // default path is .gemini/system.md but can be modified via custom path in GEMINI_SYSTEM_MD
   let systemMdEnabled = false;
@@ -45,14 +49,75 @@ export function getCoreSystemPrompt(
         systemMdPath = path.resolve(customPath); // use custom path from GEMINI_SYSTEM_MD
       }
       // require file to exist when override is enabled
-      if (!fs.existsSync(systemMdPath)) {
+      try {
+        await fsp.access(systemMdPath, fs.constants.F_OK);
+      } catch {
         throw new Error(`missing system prompt file '${systemMdPath}'`);
       }
     }
   }
-  const basePrompt = systemMdEnabled
-    ? fs.readFileSync(systemMdPath, 'utf8')
-    : `
+  
+  let basePrompt: string;
+  if (systemMdEnabled) {
+    try {
+      basePrompt = await fsp.readFile(systemMdPath, 'utf8');
+    } catch (error) {
+      throw new Error(`Failed to read system prompt file '${systemMdPath}': ${error}`);
+    }
+  } else {
+    basePrompt = getDefaultBasePrompt();
+  }
+
+  // if GEMINI_WRITE_SYSTEM_MD is set (and not 0|false), write base system prompt to file
+  const writeSystemMdVar = process.env['GEMINI_WRITE_SYSTEM_MD'];
+  if (writeSystemMdVar) {
+    const writeSystemMdVarLower = writeSystemMdVar.toLowerCase();
+    if (!['0', 'false'].includes(writeSystemMdVarLower)) {
+      if (['1', 'true'].includes(writeSystemMdVarLower)) {
+        // Use non-blocking writes so we don't block callers of getCoreSystemPrompt.
+        void fsp
+          .mkdir(path.dirname(systemMdPath), { recursive: true })
+          .catch(() => {});
+        void fsp.writeFile(systemMdPath, basePrompt).catch(() => {}); // write to default path, can be modified via GEMINI_SYSTEM_MD
+      } else {
+        let customPath = writeSystemMdVar;
+        if (customPath.startsWith('~/')) {
+          customPath = path.join(os.homedir(), customPath.slice(2));
+        } else if (customPath === '~') {
+          customPath = os.homedir();
+        }
+        const resolvedPath = path.resolve(customPath);
+        void fsp
+          .mkdir(path.dirname(resolvedPath), { recursive: true })
+          .catch(() => {});
+        void fsp.writeFile(resolvedPath, basePrompt).catch(() => {}); // write to custom path from GEMINI_WRITE_SYSTEM_MD
+      }
+    }
+  }
+
+  const memorySuffix =
+    userMemory && userMemory.trim().length > 0
+      ? `\n\n---\n\n${userMemory.trim()}`
+      : '';
+
+  // Select appropriate prompt based on model
+  let selectedPrompt: string;
+  if (systemMdEnabled) {
+    selectedPrompt = basePrompt;
+  } else if (model && model.startsWith('gemini-2.5')) {
+    selectedPrompt = getEnhancedSystemPromptForGemini25();
+  } else {
+    selectedPrompt = basePrompt;
+  }
+
+  return `${selectedPrompt}${memorySuffix}`;
+}
+
+/**
+ * Extracts the default base prompt logic into a separate function for reuse.
+ */
+function getDefaultBasePrompt(): string {
+  return `
 You are an Architect/Engineer software agent. Analyze code for strengths, weaknesses, improvements, missing components, and excesses. Deliver robust, complete solutions - no placeholders or minimal builds.
 
 # Core Analysis Framework
@@ -135,6 +200,39 @@ model: Plan: 1. Analyze existing code 2. Identify gaps 3. Implement robust solut
 # Final Reminder
 Act as Architect/Engineer: Analyze deeply, deliver complete solutions, never settle for less.
 `.trim();
+}
+
+export function getCoreSystemPrompt(
+  userMemory?: string,
+  model?: string,
+): string {
+  // if GEMINI_SYSTEM_MD is set (and not 0|false), override system prompt from file
+  // default path is .gemini/system.md but can be modified via custom path in GEMINI_SYSTEM_MD
+  let systemMdEnabled = false;
+  let systemMdPath = path.resolve(path.join(GEMINI_CONFIG_DIR, 'system.md'));
+  const systemMdVar = process.env['GEMINI_SYSTEM_MD'];
+  if (systemMdVar) {
+    const systemMdVarLower = systemMdVar.toLowerCase();
+    if (!['0', 'false'].includes(systemMdVarLower)) {
+      systemMdEnabled = true; // enable system prompt override
+      if (!['1', 'true'].includes(systemMdVarLower)) {
+        let customPath = systemMdVar;
+        if (customPath.startsWith('~/')) {
+          customPath = path.join(os.homedir(), customPath.slice(2));
+        } else if (customPath === '~') {
+          customPath = os.homedir();
+        }
+        systemMdPath = path.resolve(customPath); // use custom path from GEMINI_SYSTEM_MD
+      }
+      // require file to exist when override is enabled
+      if (!fs.existsSync(systemMdPath)) {
+        throw new Error(`missing system prompt file '${systemMdPath}'`);
+      }
+    }
+  }
+  const basePrompt = systemMdEnabled
+    ? fs.readFileSync(systemMdPath, 'utf8')
+    : getDefaultBasePrompt();
 
   // if GEMINI_WRITE_SYSTEM_MD is set (and not 0|false), write base system prompt to file
   const writeSystemMdVar = process.env['GEMINI_WRITE_SYSTEM_MD'];

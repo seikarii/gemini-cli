@@ -5,6 +5,7 @@
  */
 
 import fs from 'fs';
+import { promises as fsp } from 'fs';
 import path from 'path';
 import { glob, escape } from 'glob';
 import {
@@ -113,6 +114,18 @@ class GlobToolInvocation extends BaseToolInvocation<
     return description;
   }
 
+  /**
+   * Async helper to check if a path exists (for use in execute method)
+   */
+  private async pathExistsAsync(fullPath: string): Promise<boolean> {
+    try {
+      await fsp.access(fullPath, fs.constants.F_OK);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async execute(signal: AbortSignal): Promise<ToolResult> {
     try {
       const workspaceContext = this.config.getWorkspaceContext();
@@ -157,13 +170,14 @@ class GlobToolInvocation extends BaseToolInvocation<
         const fullPath = path.join(searchDir, pattern);
 
         // Optimize file existence check - only check if pattern looks like a specific file
+        // Use async version for better performance in execute method
         if (
           !pattern.includes('*') &&
           !pattern.includes('?') &&
           !pattern.includes('{')
         ) {
           try {
-            if (fs.existsSync(fullPath)) {
+            if (await this.pathExistsAsync(fullPath)) {
               pattern = escape(pattern);
             }
           } catch (_error) {

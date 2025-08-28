@@ -4,7 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { exec, execSync, spawn, type ChildProcess } from 'node:child_process';
+import { exec, spawn, type ChildProcess } from 'node:child_process';
+import { promisify } from 'util';
 import os from 'node:os';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -13,10 +14,10 @@ import { fileURLToPath } from 'node:url';
 import { quote, parse } from 'shell-quote';
 import { USER_SETTINGS_DIR } from '../config/settings.js';
 import { SETTINGS_DIRECTORY_NAME } from '../config/constants.js';
-import { promisify } from 'util';
 import { Config, SandboxConfig } from '@google/gemini-cli-core';
 import { ConsolePatcher } from '../ui/utils/ConsolePatcher.js';
 
+// Create promisified version of exec for async operations
 const execAsync = promisify(exec);
 const fsp = fs.promises;
 
@@ -412,10 +413,9 @@ export async function start_sandbox(
           console.error(`using ${projectSandboxDockerfile} for sandbox`);
           buildArgs += `-f ${path.resolve(projectSandboxDockerfile)} -i ${image}`;
         }
-        execSync(
+        await execAsync(
           `cd ${gcRoot} && node scripts/build_sandbox.js -s ${buildArgs}`,
           {
-            stdio: 'inherit',
             env: {
               ...process.env,
               GEMINI_SANDBOX: config.command, // in case sandbox is enabled via flags (see config.ts under cli package)

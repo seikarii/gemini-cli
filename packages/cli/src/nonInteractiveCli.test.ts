@@ -29,6 +29,7 @@ describe('runNonInteractive', () => {
     mockConfig = {
       getProjectRoot: vi.fn(() => '/test'),
       getExtensions: vi.fn(() => []),
+      getDebugMode: vi.fn(() => false),
     } as unknown as Config;
   });
 

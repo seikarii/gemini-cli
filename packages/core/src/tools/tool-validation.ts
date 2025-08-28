@@ -8,10 +8,14 @@
  * Tool validation utilities for pre-execution parameter validation
  */
 
-import { execSync } from 'child_process';
+import { execSync, exec } from 'child_process';
+import { promisify } from 'util';
 import * as path from 'path';
 import { ToolError, ToolErrorType } from './tool-error.js';
 import { FileSystemService } from '../services/fileSystemService.js';
+
+// Create promisified version of exec for async operations
+const execAsync = promisify(exec);
 
 /**
  * Validation result interface
@@ -322,6 +326,57 @@ export class ToolValidationUtils {
         error: ToolError.validationError(
           ToolErrorType.FILE_TOO_LARGE,
           `Content too large: ${content.length} characters (max: ${maxSize})`,
+        ),
+      };
+    }
+
+    return { isValid: true };
+  }
+
+  /**
+   * Async version of validateShellCommand using promises instead of execSync
+   */
+  async validateShellCommandAsync(command: string): Promise<ValidationResult> {
+    if (!command || typeof command !== 'string') {
+      return {
+        isValid: false,
+        error: ToolError.validationError(
+          ToolErrorType.VALIDATION_PARAMETERS_INVALID,
+          'Command must be a non-empty string',
+        ),
+      };
+    }
+
+    // Basic syntax validation - check for obviously malformed commands
+    const trimmedCommand = command.trim();
+    if (!trimmedCommand) {
+      return {
+        isValid: false,
+        error: ToolError.validationError(
+          ToolErrorType.SHELL_COMMAND_SYNTAX_ERROR,
+          'Command cannot be empty after trimming',
+        ),
+      };
+    }
+
+    // Extract the main command (first word before any arguments)
+    const commandParts = trimmedCommand.split(/\s+/);
+    const mainCommand = commandParts[0];
+
+    // Check if the binary exists in PATH using async exec
+    try {
+      await execAsync(`which "${mainCommand}" 2>/dev/null`);
+    } catch {
+      return {
+        isValid: false,
+        error: ToolError.validationError(
+          ToolErrorType.SHELL_COMMAND_BINARY_NOT_FOUND,
+          `Command not found in PATH: ${mainCommand}`,
+          {
+            metadata: { command: mainCommand },
+            suggestedAction:
+              'Check if the command is installed and available in PATH',
+          },
         ),
       };
     }

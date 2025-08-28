@@ -23,11 +23,75 @@ import {
 } from './editor.js';
 import { exec, execSync, spawn } from 'child_process';
 
-vi.mock('child_process', () => ({
-  exec: vi.fn(),
-  execSync: vi.fn(),
-  spawn: vi.fn(),
-}));
+
+vi.mock('child_process', () => {
+  const exec = vi.fn(
+    (
+      command: string,
+      options: unknown,
+      callback?: (
+        error: Error | null,
+        stdout: string,
+        stderr: string,
+      ) => void,
+    ) => {
+      if (callback) {
+        // @ts-ignore
+        const mockError = exec.mock.results[exec.mock.calls.length - 1]?.value?.error;
+        // @ts-ignore
+        const mockStdout = exec.mock.results[exec.mock.calls.length - 1]?.value?.stdout || '';
+        // @ts-ignore
+        const mockStderr = exec.mock.results[exec.mock.calls.length - 1]?.value?.stderr || '';
+        if (mockError) {
+          callback(new Error(mockError), '', '');
+        } else {
+          callback(null, mockStdout, mockStderr);
+        }
+      }
+      return {
+        on: vi.fn(),
+      };
+    },
+  );
+
+  const execSync = vi.fn((command: string) => {
+    // @ts-ignore
+    const mockError = execSync.mock.results[execSync.mock.calls.length - 1]?.value?.error;
+    // @ts-ignore
+    const mockStdout = execSync.mock.results[execSync.mock.calls.length - 1]?.value?.stdout || '';
+    if (mockError) {
+      throw new Error(mockError);
+    }
+    return Buffer.from(mockStdout);
+  });
+
+  const spawn = vi.fn(() => {
+    const mock = {
+      on: vi.fn((event, cb) => {
+        // @ts-ignore
+        const mockError = spawn.mock.results[spawn.mock.calls.length - 1]?.value?.error;
+        // @ts-ignore
+        const mockExitCode = spawn.mock.results[spawn.mock.calls.length - 1]?.value?.exitCode ?? 0;
+        if (event === 'error' && mockError) {
+          cb(new Error(mockError));
+        } else if (event === 'close') {
+          cb(mockExitCode);
+        }
+        return mock;
+      }),
+      stdout: {
+        on: vi.fn(),
+      },
+      stderr: {
+        on: vi.fn(),
+      },
+    };
+    return mock;
+  });
+
+  return { exec, execSync, spawn };
+});
+
 
 const originalPlatform = process.platform;
 
@@ -77,20 +141,18 @@ describe('editor utils', () => {
         it(`should return true if first command "${commands[0]}" exists on non-windows`, async () => {
           Object.defineProperty(process, 'platform', { value: 'linux' });
           (exec as Mock).mockResolvedValue(
-            { stdout: `/usr/bin/${commands[0]}`, stderr: '' },
+            { stdout: `/usr/bin/${commands[0]}` },
           );
           expect(await checkHasEditorType(editor)).toBe(true);
-          expect(exec).toHaveBeenCalledWith(`command -v ${commands[0]}`, {
-            stdio: 'ignore',
-          });
+          expect(exec).toHaveBeenCalledWith(`command -v ${commands[0]}`, expect.any(Function));
         });
 
         if (commands.length > 1) {
           it(`should return true if first command doesn't exist but second command "${commands[1]}" exists on non-windows`, async () => {
             Object.defineProperty(process, 'platform', { value: 'linux' });
             (exec as Mock)
-              .mockRejectedValueOnce(new Error()) // first command not found
-              .mockResolvedValueOnce({ stdout: `/usr/bin/${commands[1]}`, stderr: '' }); // second command found
+              .mockRejectedValueOnce(new Error('not found')) // first command not found
+              .mockResolvedValueOnce({ stdout: `/usr/bin/${commands[1]}` }); // second command found
             expect(await checkHasEditorType(editor)).toBe(true);
             expect(exec).toHaveBeenCalledTimes(2);
           });
@@ -98,7 +160,7 @@ describe('editor utils', () => {
 
         it(`should return false if none of the commands exist on non-windows`, async () => {
           Object.defineProperty(process, 'platform', { value: 'linux' });
-          (exec as Mock).mockRejectedValue(new Error()); // all commands not found
+          (exec as Mock).mockRejectedValue(new Error('not found')); // all commands not found
           expect(await checkHasEditorType(editor)).toBe(false);
           expect(exec).toHaveBeenCalledTimes(commands.length);
         });
@@ -107,14 +169,12 @@ describe('editor utils', () => {
         it(`should return true if first command "${win32Commands[0]}" exists on windows`, async () => {
           Object.defineProperty(process, 'platform', { value: 'win32' });
           (exec as Mock).mockResolvedValue(
-            { stdout: `/usr/bin/${win32Commands[0]}`, stderr: '' },
+            { stdout: `C:\\Windows\\System32\\${win32Commands[0]}` },
           );
           expect(await checkHasEditorType(editor)).toBe(true);
           expect(exec).toHaveBeenCalledWith(
             `where.exe ${win32Commands[0]}`,
-            {
-              stdio: 'ignore',
-            },
+            expect.any(Function),
           );
         });
 
@@ -122,16 +182,17 @@ describe('editor utils', () => {
           it(`should return true if first command doesn't exist but second command "${win32Commands[1]}" exists on windows`, async () => {
             Object.defineProperty(process, 'platform', { value: 'win32' });
             (exec as Mock)
-              .mockRejectedValueOnce(new Error()) // first command not found
-              .mockResolvedValueOnce({ stdout: `/usr/bin/${win32Commands[1]}`, stderr: '' }); // second command found
+              .mockRejectedValueOnce(new Error('not found')) // first command not found
+              .mockResolvedValueOnce({ stdout: `C:\\Windows\\System32\\${win32Commands[1]}` }); // second command found
             expect(await checkHasEditorType(editor)).toBe(true);
             expect(exec).toHaveBeenCalledTimes(2);
           });
         }
 
+
         it(`should return false if none of the commands exist on windows`, async () => {
           Object.defineProperty(process, 'platform', { value: 'win32' });
-          (exec as Mock).mockRejectedValue(new Error()); // all commands not found
+          (exec as Mock).mockRejectedValue(new Error('not found')); // all commands not found
           expect(await checkHasEditorType(editor)).toBe(false);
           expect(exec).toHaveBeenCalledTimes(win32Commands.length);
         });

@@ -452,8 +452,7 @@ export function validateDnsResolutionOrder(
   if (order === 'ipv4first' || order === 'verbatim') {
     return order;
   }
-  // Use optimized logger instead of direct console.warn
-  OptimizedLogger.getInstance().warn(
+  console.warn(
     `Invalid value for dnsResolutionOrder in settings: "${order}". Using default "${defaultValue}".`,
   );
   return defaultValue;
