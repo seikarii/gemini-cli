@@ -106,7 +106,14 @@ describe('ChatRecordingService - Core Functionality', () => {
         { role: 'user', parts: [{ text: 'Hello, how are you?' }] },
         { role: 'model', parts: [{ text: 'I am doing well, thank you!' }] },
         { role: 'user', parts: [{ text: 'What can you help me with?' }] },
-        { role: 'model', parts: [{ text: 'I can help with various tasks including coding, writing, and answering questions.' }] },
+        {
+          role: 'model',
+          parts: [
+            {
+              text: 'I can help with various tasks including coding, writing, and answering questions.',
+            },
+          ],
+        },
       ];
 
       const result = await chatRecordingService.getOptimizedHistoryForPrompt(
@@ -126,7 +133,11 @@ describe('ChatRecordingService - Core Functionality', () => {
       // Create sample conversation history that will exceed budget
       const longHistory: Content[] = Array.from({ length: 20 }, (_, i) => ({
         role: i % 2 === 0 ? 'user' : 'model',
-        parts: [{ text: `This is a longer message ${i} that should help test token budget limits and compression functionality when dealing with extensive conversation histories.` }],
+        parts: [
+          {
+            text: `This is a longer message ${i} that should help test token budget limits and compression functionality when dealing with extensive conversation histories.`,
+          },
+        ],
       }));
 
       const result = await chatRecordingService.getOptimizedHistoryForPrompt(
@@ -134,7 +145,7 @@ describe('ChatRecordingService - Core Functionality', () => {
         1000,
         false,
       );
-            expect(result.estimatedTokens).toBeLessThanOrEqual(1200); // Allow some buffer for estimation differences
+      expect(result.estimatedTokens).toBeLessThanOrEqual(1200); // Allow some buffer for estimation differences
     });
   });
 });

@@ -56,13 +56,15 @@ export async function getCoreSystemPromptAsync(
       }
     }
   }
-  
+
   let basePrompt: string;
   if (systemMdEnabled) {
     try {
       basePrompt = await fsp.readFile(systemMdPath, 'utf8');
     } catch (error) {
-      throw new Error(`Failed to read system prompt file '${systemMdPath}': ${error}`);
+      throw new Error(
+        `Failed to read system prompt file '${systemMdPath}': ${error}`,
+      );
     }
   } else {
     basePrompt = getDefaultBasePrompt();

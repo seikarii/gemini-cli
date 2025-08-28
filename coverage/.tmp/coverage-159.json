@@ -1,1 +1,113 @@
-{"result":[{"scriptId":"315","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/useFocus.test.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":11528,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":11528,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":377,"endOffset":572,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1202,"endOffset":4066,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1276,"endOffset":1486,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":1501,"endOffset":1558,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":1651,"endOffset":1900,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":2002,"endOffset":2318,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":2418,"endOffset":2823,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":2915,"endOffset":3265,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":3348,"endOffset":4062,"count":0}],"isBlockCoverage":false}],"startOffset":209},{"scriptId":"610","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/useFocus.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":4973,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":4973,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":259,"endOffset":315,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":369,"endOffset":426,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":465,"endOffset":507,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":547,"endOffset":590,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":629,"endOffset":671,"count":0}],"isBlockCoverage":false},{"functionName":"useFocus","ranges":[{"startOffset":1147,"endOffset":1992,"count":0}],"isBlockCoverage":false}],"startOffset":209}]}
+{
+  "result": [
+    {
+      "scriptId": "315",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/useFocus.test.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 11528, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 11528, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 377, "endOffset": 572, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1202, "endOffset": 4066, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1276, "endOffset": 1486, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1501, "endOffset": 1558, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1651, "endOffset": 1900, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2002, "endOffset": 2318, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2418, "endOffset": 2823, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2915, "endOffset": 3265, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3348, "endOffset": 4062, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "610",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/useFocus.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 4973, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 4973, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 259, "endOffset": 315, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 369, "endOffset": 426, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 465, "endOffset": 507, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 547, "endOffset": 590, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 629, "endOffset": 671, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "useFocus",
+          "ranges": [{ "startOffset": 1147, "endOffset": 1992, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    }
+  ]
+}

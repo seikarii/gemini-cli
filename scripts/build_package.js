@@ -29,7 +29,9 @@ if (!process.cwd().includes('packages')) {
 // build typescript files
 execSync('find . -name "*.tsbuildinfo" -delete', { stdio: 'inherit' });
 // Use tsconfig.build.json if it exists, otherwise fallback to default tsconfig.json
-const buildConfig = existsSync('tsconfig.build.json') ? 'tsconfig.build.json' : 'tsconfig.json';
+const buildConfig = existsSync('tsconfig.build.json')
+  ? 'tsconfig.build.json'
+  : 'tsconfig.json';
 const tscCommand = `npx tsc --project ${buildConfig}`;
 execSync(tscCommand, { stdio: 'inherit' });
 

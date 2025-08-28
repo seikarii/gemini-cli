@@ -5,7 +5,7 @@
  */
 
 async function flushAllPromises() {
-  await new Promise(resolve => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 import stripAnsi from 'strip-ansi';
@@ -25,7 +25,6 @@ import { appEvents, AppEvent } from './utils/events.js';
 import { Config } from '@google/gemini-cli-core';
 
 // Custom error to identify mock process.exit calls
-
 
 // Mock dependencies
 vi.mock('./config/settings.js', async (importOriginal) => {
@@ -86,7 +85,9 @@ describe('gemini.tsx main function', () => {
 
   const processExitSpy = vi
     .spyOn(process, 'exit')
-    .mockImplementation((() => {}) as (code?: string | number | null | undefined) => never);
+    .mockImplementation((() => {}) as (
+      code?: string | number | null | undefined,
+    ) => never);
 
   beforeEach(() => {
     loadSettingsMock = vi.mocked(loadSettings);

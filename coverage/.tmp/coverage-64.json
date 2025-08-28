@@ -1,1 +1,411 @@
-{"result":[{"scriptId":"315","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/mcp/oauth-token-storage.test.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":36783,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":36783,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":393,"endOffset":641,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":685,"endOffset":755,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":733,"endOffset":751,"count":26}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1159,"endOffset":13989,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1607,"endOffset":1752,"count":21}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1733,"endOffset":1746,"count":5}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1793,"endOffset":1852,"count":21}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1906,"endOffset":4153,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2005,"endOffset":2353,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2434,"endOffset":3051,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3136,"endOffset":3576,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3664,"endOffset":4147,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":4206,"endOffset":7086,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":4296,"endOffset":5248,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":5332,"endOffset":6283,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":6360,"endOffset":7080,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":7138,"endOffset":8309,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":7222,"endOffset":7546,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":7628,"endOffset":7939,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":8024,"endOffset":8303,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":8364,"endOffset":11109,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":8448,"endOffset":9248,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":9334,"endOffset":9952,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":10046,"endOffset":10481,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":10567,"endOffset":11103,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":11167,"endOffset":12652,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":11256,"endOffset":11517,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":11592,"endOffset":11875,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":11951,"endOffset":12230,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":12326,"endOffset":12646,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":12710,"endOffset":13985,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":12792,"endOffset":13158,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13240,"endOffset":13514,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13596,"endOffset":13979,"count":1}],"isBlockCoverage":true}],"startOffset":209},{"scriptId":"317","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/mcp/oauth-token-storage.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":15606,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":15606,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":257,"endOffset":311,"count":21},{"startOffset":301,"endOffset":309,"count":0}],"isBlockCoverage":true},{"functionName":"getTokenFilePath","ranges":[{"startOffset":992,"endOffset":1082,"count":26}],"isBlockCoverage":true},{"functionName":"ensureConfigDir","ranges":[{"startOffset":1145,"endOffset":1332,"count":3}],"isBlockCoverage":true},{"functionName":"loadTokens","ranges":[{"startOffset":1449,"endOffset":2037,"count":14},{"startOffset":1662,"endOffset":1807,"count":9},{"startOffset":1807,"endOffset":1814,"count":8},{"startOffset":1814,"endOffset":2011,"count":6},{"startOffset":1865,"endOffset":2005,"count":2}],"isBlockCoverage":true},{"functionName":"saveToken","ranges":[{"startOffset":2370,"endOffset":3171,"count":3},{"startOffset":2996,"endOffset":3003,"count":2},{"startOffset":3003,"endOffset":3167,"count":1}],"isBlockCoverage":true},{"functionName":"getToken","ranges":[{"startOffset":3350,"endOffset":3469,"count":3},{"startOffset":3457,"endOffset":3464,"count":2}],"isBlockCoverage":true},{"functionName":"removeToken","ranges":[{"startOffset":3593,"endOffset":4269,"count":4},{"startOffset":3704,"endOffset":4265,"count":3},{"startOffset":3858,"endOffset":3935,"count":2},{"startOffset":3925,"endOffset":3935,"count":1},{"startOffset":3935,"endOffset":4095,"count":1},{"startOffset":4104,"endOffset":4259,"count":1}],"isBlockCoverage":true},{"functionName":"isTokenExpired","ranges":[{"startOffset":4410,"endOffset":4580,"count":4},{"startOffset":4460,"endOffset":4487,"count":1},{"startOffset":4487,"endOffset":4579,"count":3}],"isBlockCoverage":true},{"functionName":"clearAllTokens","ranges":[{"startOffset":4642,"endOffset":4996,"count":3},{"startOffset":4787,"endOffset":4794,"count":1},{"startOffset":4794,"endOffset":4992,"count":2},{"startOffset":4845,"endOffset":4986,"count":1}],"isBlockCoverage":true}],"startOffset":209},{"scriptId":"318","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/config/storage.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":11959,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":11959,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":247,"endOffset":291,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":346,"endOffset":404,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":442,"endOffset":483,"count":26},{"startOffset":473,"endOffset":481,"count":0}],"isBlockCoverage":true},{"functionName":"<instance_members_initializer>","ranges":[{"startOffset":984,"endOffset":4075,"count":0}],"isBlockCoverage":true},{"functionName":"getGlobalGeminiDir","ranges":[{"startOffset":1335,"endOffset":1585,"count":26},{"startOffset":1429,"endOffset":1520,"count":0}],"isBlockCoverage":true},{"functionName":"getMcpOAuthTokensPath","ranges":[{"startOffset":1595,"endOffset":1718,"count":26}],"isBlockCoverage":true}],"startOffset":209},{"scriptId":"320","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/errors.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":5919,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":5919,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":248,"endOffset":293,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":339,"endOffset":388,"count":5},{"startOffset":378,"endOffset":386,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":433,"endOffset":481,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":529,"endOffset":580,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":626,"endOffset":675,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":721,"endOffset":770,"count":0}],"isBlockCoverage":false},{"functionName":"isNodeError","ranges":[{"startOffset":861,"endOffset":944,"count":0}],"isBlockCoverage":false},{"functionName":"getErrorMessage","ranges":[{"startOffset":946,"endOffset":1136,"count":5},{"startOffset":1041,"endOffset":1134,"count":0}],"isBlockCoverage":true},{"functionName":"toFriendlyError","ranges":[{"startOffset":1262,"endOffset":1821,"count":0}],"isBlockCoverage":false},{"functionName":"parseResponseData","ranges":[{"startOffset":1823,"endOffset":1991,"count":0}],"isBlockCoverage":false}],"startOffset":209}]}
+{
+  "result": [
+    {
+      "scriptId": "315",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/mcp/oauth-token-storage.test.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 36783, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 36783, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 393, "endOffset": 641, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 685, "endOffset": 755, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 733, "endOffset": 751, "count": 26 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1159, "endOffset": 13989, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1607, "endOffset": 1752, "count": 21 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1733, "endOffset": 1746, "count": 5 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1793, "endOffset": 1852, "count": 21 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1906, "endOffset": 4153, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2005, "endOffset": 2353, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2434, "endOffset": 3051, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3136, "endOffset": 3576, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3664, "endOffset": 4147, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4206, "endOffset": 7086, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4296, "endOffset": 5248, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 5332, "endOffset": 6283, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 6360, "endOffset": 7080, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 7138, "endOffset": 8309, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 7222, "endOffset": 7546, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 7628, "endOffset": 7939, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 8024, "endOffset": 8303, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 8364, "endOffset": 11109, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 8448, "endOffset": 9248, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 9334, "endOffset": 9952, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 10046, "endOffset": 10481, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 10567, "endOffset": 11103, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 11167, "endOffset": 12652, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 11256, "endOffset": 11517, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 11592, "endOffset": 11875, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 11951, "endOffset": 12230, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 12326, "endOffset": 12646, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 12710, "endOffset": 13985, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 12792, "endOffset": 13158, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13240, "endOffset": 13514, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13596, "endOffset": 13979, "count": 1 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "317",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/mcp/oauth-token-storage.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 15606, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 15606, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 257, "endOffset": 311, "count": 21 },
+            { "startOffset": 301, "endOffset": 309, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "getTokenFilePath",
+          "ranges": [{ "startOffset": 992, "endOffset": 1082, "count": 26 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "ensureConfigDir",
+          "ranges": [{ "startOffset": 1145, "endOffset": 1332, "count": 3 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "loadTokens",
+          "ranges": [
+            { "startOffset": 1449, "endOffset": 2037, "count": 14 },
+            { "startOffset": 1662, "endOffset": 1807, "count": 9 },
+            { "startOffset": 1807, "endOffset": 1814, "count": 8 },
+            { "startOffset": 1814, "endOffset": 2011, "count": 6 },
+            { "startOffset": 1865, "endOffset": 2005, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "saveToken",
+          "ranges": [
+            { "startOffset": 2370, "endOffset": 3171, "count": 3 },
+            { "startOffset": 2996, "endOffset": 3003, "count": 2 },
+            { "startOffset": 3003, "endOffset": 3167, "count": 1 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "getToken",
+          "ranges": [
+            { "startOffset": 3350, "endOffset": 3469, "count": 3 },
+            { "startOffset": 3457, "endOffset": 3464, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "removeToken",
+          "ranges": [
+            { "startOffset": 3593, "endOffset": 4269, "count": 4 },
+            { "startOffset": 3704, "endOffset": 4265, "count": 3 },
+            { "startOffset": 3858, "endOffset": 3935, "count": 2 },
+            { "startOffset": 3925, "endOffset": 3935, "count": 1 },
+            { "startOffset": 3935, "endOffset": 4095, "count": 1 },
+            { "startOffset": 4104, "endOffset": 4259, "count": 1 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "isTokenExpired",
+          "ranges": [
+            { "startOffset": 4410, "endOffset": 4580, "count": 4 },
+            { "startOffset": 4460, "endOffset": 4487, "count": 1 },
+            { "startOffset": 4487, "endOffset": 4579, "count": 3 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "clearAllTokens",
+          "ranges": [
+            { "startOffset": 4642, "endOffset": 4996, "count": 3 },
+            { "startOffset": 4787, "endOffset": 4794, "count": 1 },
+            { "startOffset": 4794, "endOffset": 4992, "count": 2 },
+            { "startOffset": 4845, "endOffset": 4986, "count": 1 }
+          ],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "318",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/config/storage.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 11959, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 11959, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 247, "endOffset": 291, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 346, "endOffset": 404, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 442, "endOffset": 483, "count": 26 },
+            { "startOffset": 473, "endOffset": 481, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "<instance_members_initializer>",
+          "ranges": [{ "startOffset": 984, "endOffset": 4075, "count": 0 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "getGlobalGeminiDir",
+          "ranges": [
+            { "startOffset": 1335, "endOffset": 1585, "count": 26 },
+            { "startOffset": 1429, "endOffset": 1520, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "getMcpOAuthTokensPath",
+          "ranges": [{ "startOffset": 1595, "endOffset": 1718, "count": 26 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "320",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/errors.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 5919, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 5919, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 248, "endOffset": 293, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 339, "endOffset": 388, "count": 5 },
+            { "startOffset": 378, "endOffset": 386, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 433, "endOffset": 481, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 529, "endOffset": 580, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 626, "endOffset": 675, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 721, "endOffset": 770, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "isNodeError",
+          "ranges": [{ "startOffset": 861, "endOffset": 944, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "getErrorMessage",
+          "ranges": [
+            { "startOffset": 946, "endOffset": 1136, "count": 5 },
+            { "startOffset": 1041, "endOffset": 1134, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "toFriendlyError",
+          "ranges": [{ "startOffset": 1262, "endOffset": 1821, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "parseResponseData",
+          "ranges": [{ "startOffset": 1823, "endOffset": 1991, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    }
+  ]
+}

@@ -5,6 +5,13 @@
  */
 
 import { SlashCommand, CommandKind } from './types.js';
+import type { Config } from '../../config/config.js';
+
+interface GeminiAgentClass {
+  new (config: Config): {
+    start: () => Promise<void>;
+  };
+}
 
 export const mewCommand: SlashCommand = {
   kind: CommandKind.BUILT_IN,
@@ -38,7 +45,8 @@ export const mewCommand: SlashCommand = {
       const { GeminiAgent } = await import(
         '@google/gemini-cli-mew-upgrade/agent/gemini-agent.js'
       );
-      const agent = new (GeminiAgent as any)(context.services.config);
+      const Agent = GeminiAgent as GeminiAgentClass;
+      const agent = new Agent(context.services.config);
       await agent.start();
 
       const open = (await import('open')).default;

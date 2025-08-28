@@ -42,7 +42,7 @@ async function commandExists(cmd: string): Promise<boolean> {
     // The `exec` command will throw an error if the command is not found.
     // We don't need to inspect stdout, just catch the error.
     await execPromise(
-      process.platform === 'win32' ? `where.exe ${cmd}` : `command -v ${cmd}`
+      process.platform === 'win32' ? `where.exe ${cmd}` : `command -v ${cmd}`,
     );
     return true;
   } catch {
@@ -94,7 +94,7 @@ export function allowEditorTypeInSandbox(editor: EditorType): boolean {
  * Returns false if preferred editor is not set / invalid / not available / not allowed in sandbox.
  */
 export async function isEditorAvailable(
-  editor: string | undefined
+  editor: string | undefined,
 ): Promise<boolean> {
   if (editor && isValidEditorType(editor)) {
     return (
@@ -110,7 +110,7 @@ export async function isEditorAvailable(
 export async function getDiffCommand(
   oldPath: string,
   newPath: string,
-  editor: EditorType
+  editor: EditorType,
 ): Promise<DiffCommand | null> {
   if (!isValidEditorType(editor)) {
     return null;
@@ -184,7 +184,7 @@ export async function openDiff(
   oldPath: string,
   newPath: string,
   editor: EditorType,
-  onEditorClose: () => void
+  onEditorClose: () => void,
 ): Promise<void> {
   const diffCommand = await getDiffCommand(oldPath, newPath, editor);
   if (!diffCommand) {

@@ -17,7 +17,9 @@ const execAsync = promisify(exec);
  */
 export const isGitHubRepository = async (): Promise<boolean> => {
   try {
-    const { stdout: remotes } = await execAsync('git remote -v', { encoding: 'utf-8' });
+    const { stdout: remotes } = await execAsync('git remote -v', {
+      encoding: 'utf-8',
+    });
     const pattern = /github\.com/;
     return pattern.test(remotes.trim());
   } catch (error) {
@@ -33,7 +35,10 @@ export const isGitHubRepository = async (): Promise<boolean> => {
  * @throws error if the exec command fails.
  */
 export const getGitRepoRoot = async (): Promise<string> => {
-  const { stdout: gitRepoRoot } = await execAsync('git rev-parse --show-toplevel', { encoding: 'utf-8' });
+  const { stdout: gitRepoRoot } = await execAsync(
+    'git rev-parse --show-toplevel',
+    { encoding: 'utf-8' },
+  );
 
   if (!gitRepoRoot) {
     throw new Error(`Git repo returned empty value`);
@@ -93,12 +98,16 @@ export async function getGitHubRepoInfo(): Promise<{
   owner: string;
   repo: string;
 }> {
-  const { stdout: remoteUrl } = await execAsync('git remote get-url origin', { encoding: 'utf-8' });
+  const { stdout: remoteUrl } = await execAsync('git remote get-url origin', {
+    encoding: 'utf-8',
+  });
 
   // Matches either https://github.com/owner/repo.git or git@github.com:owner/repo.git
-  const match = remoteUrl.trim().match(
-    /(?:https?:\/\/|git@)github\.com(?::|\/)([^/]+)\/([^/]+?)(?:\.git)?$/,
-  );
+  const match = remoteUrl
+    .trim()
+    .match(
+      /(?:https?:\/\/|git@)github\.com(?::|\/)([^/]+)\/([^/]+?)(?:\.git)?$/,
+    );
 
   // If the regex fails match, throw an error.
   if (!match || !match[1] || !match[2]) {

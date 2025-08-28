@@ -117,7 +117,7 @@ describe('useAutoAcceptIndicator', () => {
       },
     );
 
-    mockConfigInstance = new (Config as any)() as MockConfigInstanceShape;
+        mockConfigInstance = new (Config as unknown as new () => MockConfigInstanceShape)();
   });
 
   it('should initialize with ApprovalMode.AUTO_EDIT if config.getApprovalMode returns ApprovalMode.AUTO_EDIT', () => {

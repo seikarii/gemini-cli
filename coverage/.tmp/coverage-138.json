@@ -1,1 +1,309 @@
-{"result":[{"scriptId":"315","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/useLoadingIndicator.test.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":16356,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":16356,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1086,"endOffset":6490,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1133,"endOffset":1190,"count":5}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1231,"endOffset":1376,"count":5}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1319,"endOffset":1370,"count":5}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1461,"endOffset":1843,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1536,"endOffset":1630,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":1918,"endOffset":2654,"count":1},{"startOffset":2504,"endOffset":2653,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1999,"endOffset":2099,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":2367,"endOffset":2502,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":2769,"endOffset":3809,"count":1},{"startOffset":3175,"endOffset":3808,"count":0}],"isBlockCoverage":true},{"functionName":"initialProps.streamingState","ranges":[{"startOffset":2860,"endOffset":2945,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":3086,"endOffset":3173,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":3285,"endOffset":3395,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":3641,"endOffset":3728,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":3955,"endOffset":5347,"count":1},{"startOffset":4361,"endOffset":5346,"count":0}],"isBlockCoverage":true},{"functionName":"initialProps.streamingState","ranges":[{"startOffset":4046,"endOffset":4131,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":4272,"endOffset":4359,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":4470,"endOffset":4580,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":4819,"endOffset":4917,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":5180,"endOffset":5267,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":5466,"endOffset":6486,"count":1},{"startOffset":5872,"endOffset":6485,"count":0}],"isBlockCoverage":true},{"functionName":"initialProps.streamingState","ranges":[{"startOffset":5557,"endOffset":5642,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":5783,"endOffset":5870,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":5982,"endOffset":6074,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":6319,"endOffset":6406,"count":0}],"isBlockCoverage":false}],"startOffset":209},{"scriptId":"610","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/useLoadingIndicator.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":7026,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":7026,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":256,"endOffset":309,"count":0}],"isBlockCoverage":false},{"functionName":"useLoadingIndicator","ranges":[{"startOffset":955,"endOffset":2725,"count":0}],"isBlockCoverage":false}],"startOffset":209},{"scriptId":"611","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/types.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":11683,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":11683,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":251,"endOffset":299,"count":3},{"startOffset":289,"endOffset":297,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":345,"endOffset":394,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":439,"endOffset":487,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":529,"endOffset":574,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":703,"endOffset":911,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":975,"endOffset":1131,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1195,"endOffset":1505,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1565,"endOffset":2022,"count":1}],"isBlockCoverage":true}],"startOffset":209},{"scriptId":"612","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/useTimer.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":5612,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":5612,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":245,"endOffset":287,"count":0}],"isBlockCoverage":false},{"functionName":"useTimer","ranges":[{"startOffset":515,"endOffset":1743,"count":0}],"isBlockCoverage":false}],"startOffset":209},{"scriptId":"615","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/usePhraseCycler.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":21546,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":21546,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":258,"endOffset":313,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":369,"endOffset":428,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":474,"endOffset":523,"count":0}],"isBlockCoverage":false},{"functionName":"usePhraseCycler","ranges":[{"startOffset":6262,"endOffset":7773,"count":0}],"isBlockCoverage":false}],"startOffset":209}]}
+{
+  "result": [
+    {
+      "scriptId": "315",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/useLoadingIndicator.test.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 16356, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 16356, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1086, "endOffset": 6490, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1133, "endOffset": 1190, "count": 5 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1231, "endOffset": 1376, "count": 5 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1319, "endOffset": 1370, "count": 5 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1461, "endOffset": 1843, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1536, "endOffset": 1630, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 1918, "endOffset": 2654, "count": 1 },
+            { "startOffset": 2504, "endOffset": 2653, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1999, "endOffset": 2099, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2367, "endOffset": 2502, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 2769, "endOffset": 3809, "count": 1 },
+            { "startOffset": 3175, "endOffset": 3808, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "initialProps.streamingState",
+          "ranges": [{ "startOffset": 2860, "endOffset": 2945, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3086, "endOffset": 3173, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3285, "endOffset": 3395, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3641, "endOffset": 3728, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 3955, "endOffset": 5347, "count": 1 },
+            { "startOffset": 4361, "endOffset": 5346, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "initialProps.streamingState",
+          "ranges": [{ "startOffset": 4046, "endOffset": 4131, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4272, "endOffset": 4359, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4470, "endOffset": 4580, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4819, "endOffset": 4917, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 5180, "endOffset": 5267, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 5466, "endOffset": 6486, "count": 1 },
+            { "startOffset": 5872, "endOffset": 6485, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "initialProps.streamingState",
+          "ranges": [{ "startOffset": 5557, "endOffset": 5642, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 5783, "endOffset": 5870, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 5982, "endOffset": 6074, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 6319, "endOffset": 6406, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "610",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/useLoadingIndicator.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 7026, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 7026, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 256, "endOffset": 309, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "useLoadingIndicator",
+          "ranges": [{ "startOffset": 955, "endOffset": 2725, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "611",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/types.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 11683, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 11683, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 251, "endOffset": 299, "count": 3 },
+            { "startOffset": 289, "endOffset": 297, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 345, "endOffset": 394, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 439, "endOffset": 487, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 529, "endOffset": 574, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 703, "endOffset": 911, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 975, "endOffset": 1131, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1195, "endOffset": 1505, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1565, "endOffset": 2022, "count": 1 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "612",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/useTimer.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 5612, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 5612, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 245, "endOffset": 287, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "useTimer",
+          "ranges": [{ "startOffset": 515, "endOffset": 1743, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "615",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/usePhraseCycler.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 21546, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 21546, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 258, "endOffset": 313, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 369, "endOffset": 428, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 474, "endOffset": 523, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "usePhraseCycler",
+          "ranges": [{ "startOffset": 6262, "endOffset": 7773, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    }
+  ]
+}

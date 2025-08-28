@@ -564,7 +564,6 @@ export const useSlashCommandProcessor = (
       setSessionShellAllowlist,
       setIsProcessing,
       setConfirmationRequest,
-      setHistory,
     ],
   );
 

@@ -52,7 +52,7 @@ export function useHistory(): UseHistoryManagerReturn {
       });
       setHistory(historyWithIds);
     },
-    [],
+    [setHistory],
   );
 
   // Adds a new item to the history state with a unique ID.
@@ -104,14 +104,14 @@ export function useHistory(): UseHistoryManagerReturn {
         }),
       );
     },
-    [],
+    [setHistory],
   );
 
   // Clears the entire history state and resets the ID counter.
   const clearItems = useCallback(() => {
     setHistory([]);
     messageIdCounterRef.current = 0;
-  }, []);
+  }, [setHistory]);
 
   return {
     history,

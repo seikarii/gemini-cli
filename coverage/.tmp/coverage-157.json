@@ -1,1 +1,143 @@
-{"result":[{"scriptId":"315","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/utils/userStartupWarnings.test.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":10813,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":10813,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":388,"endOffset":536,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1008,"endOffset":4227,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1089,"endOffset":1460,"count":5}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1501,"endOffset":1649,"count":5}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1713,"endOffset":2548,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1812,"endOffset":2055,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2158,"endOffset":2542,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2612,"endOffset":3682,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2713,"endOffset":3188,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3292,"endOffset":3676,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3740,"endOffset":4223,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3829,"endOffset":4217,"count":1}],"isBlockCoverage":true}],"startOffset":209},{"scriptId":"317","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/utils/userStartupWarnings.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":6379,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":6379,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":259,"endOffset":315,"count":5},{"startOffset":305,"endOffset":313,"count":0}],"isBlockCoverage":true},{"functionName":"check","ranges":[{"startOffset":733,"endOffset":1307,"count":5},{"startOffset":990,"endOffset":1037,"count":4},{"startOffset":1037,"endOffset":1173,"count":1},{"startOffset":1173,"endOffset":1200,"count":3},{"startOffset":1200,"endOffset":1303,"count":1}],"isBlockCoverage":true},{"functionName":"check","ranges":[{"startOffset":1373,"endOffset":1976,"count":5},{"startOffset":1502,"endOffset":1804,"count":4},{"startOffset":1804,"endOffset":1842,"count":1},{"startOffset":1842,"endOffset":1869,"count":3},{"startOffset":1869,"endOffset":1972,"count":1}],"isBlockCoverage":true},{"functionName":"getUserStartupWarnings","ranges":[{"startOffset":2051,"endOffset":2259,"count":5}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2166,"endOffset":2203,"count":10}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2234,"endOffset":2255,"count":10}],"isBlockCoverage":true}],"startOffset":209}]}
+{
+  "result": [
+    {
+      "scriptId": "315",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/utils/userStartupWarnings.test.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 10813, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 10813, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 388, "endOffset": 536, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1008, "endOffset": 4227, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1089, "endOffset": 1460, "count": 5 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1501, "endOffset": 1649, "count": 5 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1713, "endOffset": 2548, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1812, "endOffset": 2055, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2158, "endOffset": 2542, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2612, "endOffset": 3682, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2713, "endOffset": 3188, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3292, "endOffset": 3676, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3740, "endOffset": 4223, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3829, "endOffset": 4217, "count": 1 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "317",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/utils/userStartupWarnings.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 6379, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 6379, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 259, "endOffset": 315, "count": 5 },
+            { "startOffset": 305, "endOffset": 313, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "check",
+          "ranges": [
+            { "startOffset": 733, "endOffset": 1307, "count": 5 },
+            { "startOffset": 990, "endOffset": 1037, "count": 4 },
+            { "startOffset": 1037, "endOffset": 1173, "count": 1 },
+            { "startOffset": 1173, "endOffset": 1200, "count": 3 },
+            { "startOffset": 1200, "endOffset": 1303, "count": 1 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "check",
+          "ranges": [
+            { "startOffset": 1373, "endOffset": 1976, "count": 5 },
+            { "startOffset": 1502, "endOffset": 1804, "count": 4 },
+            { "startOffset": 1804, "endOffset": 1842, "count": 1 },
+            { "startOffset": 1842, "endOffset": 1869, "count": 3 },
+            { "startOffset": 1869, "endOffset": 1972, "count": 1 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "getUserStartupWarnings",
+          "ranges": [{ "startOffset": 2051, "endOffset": 2259, "count": 5 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2166, "endOffset": 2203, "count": 10 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2234, "endOffset": 2255, "count": 10 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    }
+  ]
+}

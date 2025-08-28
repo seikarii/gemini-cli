@@ -7,7 +7,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Config } from '../config/config.js';
 import { LoopDetectionService } from './loopDetectionService.js';
-import { GeminiEventType, ServerGeminiToolCallRequestEvent } from '../core/turn.js';
+import {
+  GeminiEventType,
+  ServerGeminiToolCallRequestEvent,
+} from '../core/turn.js';
 
 vi.mock('../telemetry/loggers.js', () => ({
   logLoopDetected: vi.fn(),

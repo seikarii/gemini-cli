@@ -1,1 +1,150 @@
-{"result":[{"scriptId":"315","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/utils/clipboardUtils.test.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":7909,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":7909,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":660,"endOffset":2911,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":726,"endOffset":1464,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":813,"endOffset":1095,"count":1},{"startOffset":1015,"endOffset":1089,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1165,"endOffset":1458,"count":1},{"startOffset":1220,"endOffset":1378,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1526,"endOffset":2343,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1612,"endOffset":1894,"count":1},{"startOffset":1814,"endOffset":1888,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1965,"endOffset":2337,"count":1},{"startOffset":2146,"endOffset":2255,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2412,"endOffset":2907,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2480,"endOffset":2666,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2755,"endOffset":2901,"count":1}],"isBlockCoverage":true}],"startOffset":209},{"scriptId":"317","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/utils/clipboardUtils.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":12609,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":12609,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":254,"endOffset":305,"count":1},{"startOffset":295,"endOffset":303,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":354,"endOffset":406,"count":2},{"startOffset":396,"endOffset":404,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":462,"endOffset":521,"count":2},{"startOffset":511,"endOffset":519,"count":0}],"isBlockCoverage":true},{"functionName":"clipboardHasImage","ranges":[{"startOffset":1040,"endOffset":1467,"count":1},{"startOffset":1137,"endOffset":1465,"count":0}],"isBlockCoverage":true},{"functionName":"saveClipboardImage","ranges":[{"startOffset":1469,"endOffset":3193,"count":2},{"startOffset":1575,"endOffset":1631,"count":0},{"startOffset":1779,"endOffset":3191,"count":0}],"isBlockCoverage":true},{"functionName":"cleanupOldClipboardImages","ranges":[{"startOffset":3195,"endOffset":3949,"count":2},{"startOffset":3287,"endOffset":3303,"count":0},{"startOffset":3446,"endOffset":3936,"count":0}],"isBlockCoverage":true}],"startOffset":209}]}
+{
+  "result": [
+    {
+      "scriptId": "315",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/utils/clipboardUtils.test.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 7909, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 7909, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 660, "endOffset": 2911, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 726, "endOffset": 1464, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 813, "endOffset": 1095, "count": 1 },
+            { "startOffset": 1015, "endOffset": 1089, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 1165, "endOffset": 1458, "count": 1 },
+            { "startOffset": 1220, "endOffset": 1378, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1526, "endOffset": 2343, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 1612, "endOffset": 1894, "count": 1 },
+            { "startOffset": 1814, "endOffset": 1888, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 1965, "endOffset": 2337, "count": 1 },
+            { "startOffset": 2146, "endOffset": 2255, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2412, "endOffset": 2907, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2480, "endOffset": 2666, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2755, "endOffset": 2901, "count": 1 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "317",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/utils/clipboardUtils.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 12609, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 12609, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 254, "endOffset": 305, "count": 1 },
+            { "startOffset": 295, "endOffset": 303, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 354, "endOffset": 406, "count": 2 },
+            { "startOffset": 396, "endOffset": 404, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 462, "endOffset": 521, "count": 2 },
+            { "startOffset": 511, "endOffset": 519, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "clipboardHasImage",
+          "ranges": [
+            { "startOffset": 1040, "endOffset": 1467, "count": 1 },
+            { "startOffset": 1137, "endOffset": 1465, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "saveClipboardImage",
+          "ranges": [
+            { "startOffset": 1469, "endOffset": 3193, "count": 2 },
+            { "startOffset": 1575, "endOffset": 1631, "count": 0 },
+            { "startOffset": 1779, "endOffset": 3191, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "cleanupOldClipboardImages",
+          "ranges": [
+            { "startOffset": 3195, "endOffset": 3949, "count": 2 },
+            { "startOffset": 3287, "endOffset": 3303, "count": 0 },
+            { "startOffset": 3446, "endOffset": 3936, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    }
+  ]
+}

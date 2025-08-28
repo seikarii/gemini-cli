@@ -21,7 +21,7 @@ describe('replace', () => {
 
     const result = await rig.run(prompt);
 
-    const foundToolCall = await rig.waitForToolCall('replace');
+    const foundToolCall = await rig.waitForToolCall('replace', 8000); // 8 seconds
 
     // Add debugging information
     if (!foundToolCall) {

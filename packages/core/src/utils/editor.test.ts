@@ -23,22 +23,20 @@ import {
 } from './editor.js';
 import { exec, execSync, spawn } from 'child_process';
 
-
 vi.mock('child_process', () => {
   const exec = vi.fn(
     (
       command: string,
       _options: unknown,
-      callback?: (
-        error: Error | null,
-        stdout: string,
-        stderr: string,
-      ) => void,
+      callback?: (error: Error | null, stdout: string, stderr: string) => void,
     ) => {
       if (callback) {
-        const mockError = exec.mock.results[exec.mock.calls.length - 1]?.value?.error;
-        const mockStdout = exec.mock.results[exec.mock.calls.length - 1]?.value?.stdout || '';
-        const mockStderr = exec.mock.results[exec.mock.calls.length - 1]?.value?.stderr || '';
+        const mockError =
+          exec.mock.results[exec.mock.calls.length - 1]?.value?.error;
+        const mockStdout =
+          exec.mock.results[exec.mock.calls.length - 1]?.value?.stdout || '';
+        const mockStderr =
+          exec.mock.results[exec.mock.calls.length - 1]?.value?.stderr || '';
         if (mockError) {
           callback(new Error(mockError), '', '');
         } else {
@@ -52,8 +50,11 @@ vi.mock('child_process', () => {
   );
 
   const execSync = vi.fn((_command: string) => {
-    const mockError = execSync.mock.results[execSync.mock.calls.length - 1]?.value?.error;
-    const mockStdout = execSync.mock.results[execSync.mock.calls.length - 1]?.value?.stdout || '';
+    const mockError =
+      execSync.mock.results[execSync.mock.calls.length - 1]?.value?.error;
+    const mockStdout =
+      execSync.mock.results[execSync.mock.calls.length - 1]?.value?.stdout ||
+      '';
     if (mockError) {
       throw new Error(mockError);
     }
@@ -63,8 +64,10 @@ vi.mock('child_process', () => {
   const spawn = vi.fn(() => {
     const mock = {
       on: vi.fn((event, cb) => {
-        const mockError = spawn.mock.results[spawn.mock.calls.length - 1]?.value?.error;
-        const mockExitCode = spawn.mock.results[spawn.mock.calls.length - 1]?.value?.exitCode ?? 0;
+        const mockError =
+          spawn.mock.results[spawn.mock.calls.length - 1]?.value?.error;
+        const mockExitCode =
+          spawn.mock.results[spawn.mock.calls.length - 1]?.value?.exitCode ?? 0;
         if (event === 'error' && mockError) {
           cb(new Error(mockError));
         } else if (event === 'close') {
@@ -84,7 +87,6 @@ vi.mock('child_process', () => {
 
   return { exec, execSync, spawn };
 });
-
 
 const originalPlatform = process.platform;
 
@@ -108,36 +110,42 @@ describe('editor utils', () => {
   });
 
   describe('checkHasEditorType', () => {
-    const testCases: Array<{ editor: EditorType; commands: string[]; win32Commands: string[] }>
-      = [
-        { editor: 'vscode', commands: ['code'], win32Commands: ['code.cmd'] },
-        {
-          editor: 'vscodium',
-          commands: ['codium'],
-          win32Commands: ['codium.cmd'],
-        },
-        {
-          editor: 'windsurf',
-          commands: ['windsurf'],
-          win32Commands: ['windsurf'],
-        },
-        { editor: 'cursor', commands: ['cursor'], win32Commands: ['cursor'] },
-        { editor: 'vim', commands: ['vim'], win32Commands: ['vim'] },
-        { editor: 'neovim', commands: ['nvim'], win32Commands: ['nvim'] },
-        { editor: 'zed', commands: ['zed', 'zeditor'], win32Commands: ['zed'] },
-        { editor: 'emacs', commands: ['emacs'], win32Commands: ['emacs.exe'] },
-      ];
+    const testCases: Array<{
+      editor: EditorType;
+      commands: string[];
+      win32Commands: string[];
+    }> = [
+      { editor: 'vscode', commands: ['code'], win32Commands: ['code.cmd'] },
+      {
+        editor: 'vscodium',
+        commands: ['codium'],
+        win32Commands: ['codium.cmd'],
+      },
+      {
+        editor: 'windsurf',
+        commands: ['windsurf'],
+        win32Commands: ['windsurf'],
+      },
+      { editor: 'cursor', commands: ['cursor'], win32Commands: ['cursor'] },
+      { editor: 'vim', commands: ['vim'], win32Commands: ['vim'] },
+      { editor: 'neovim', commands: ['nvim'], win32Commands: ['nvim'] },
+      { editor: 'zed', commands: ['zed', 'zeditor'], win32Commands: ['zed'] },
+      { editor: 'emacs', commands: ['emacs'], win32Commands: ['emacs.exe'] },
+    ];
 
     for (const { editor, commands, win32Commands } of testCases) {
       describe(`${editor}`, () => {
         // Non-windows tests
         it(`should return true if first command "${commands[0]}" exists on non-windows`, async () => {
           Object.defineProperty(process, 'platform', { value: 'linux' });
-          (exec as Mock).mockResolvedValue(
-            { stdout: `/usr/bin/${commands[0]}` },
-          );
+          (exec as Mock).mockResolvedValue({
+            stdout: `/usr/bin/${commands[0]}`,
+          });
           expect(await checkHasEditorType(editor)).toBe(true);
-          expect(exec).toHaveBeenCalledWith(`command -v ${commands[0]}`, expect.any(Function));
+          expect(exec).toHaveBeenCalledWith(
+            `command -v ${commands[0]}`,
+            expect.any(Function),
+          );
         });
 
         if (commands.length > 1) {
@@ -161,9 +169,9 @@ describe('editor utils', () => {
         // Windows tests
         it(`should return true if first command "${win32Commands[0]}" exists on windows`, async () => {
           Object.defineProperty(process, 'platform', { value: 'win32' });
-          (exec as Mock).mockResolvedValue(
-            { stdout: `C:\\Windows\\System32\\${win32Commands[0]}` },
-          );
+          (exec as Mock).mockResolvedValue({
+            stdout: `C:\\Windows\\System32\\${win32Commands[0]}`,
+          });
           expect(await checkHasEditorType(editor)).toBe(true);
           expect(exec).toHaveBeenCalledWith(
             `where.exe ${win32Commands[0]}`,
@@ -176,12 +184,13 @@ describe('editor utils', () => {
             Object.defineProperty(process, 'platform', { value: 'win32' });
             (exec as Mock)
               .mockRejectedValueOnce(new Error('not found')) // first command not found
-              .mockResolvedValueOnce({ stdout: `C:\\Windows\\System32\\${win32Commands[1]}` }); // second command found
+              .mockResolvedValueOnce({
+                stdout: `C:\\Windows\\System32\\${win32Commands[1]}`,
+              }); // second command found
             expect(await checkHasEditorType(editor)).toBe(true);
             expect(exec).toHaveBeenCalledTimes(2);
           });
         }
-
 
         it(`should return false if none of the commands exist on windows`, async () => {
           Object.defineProperty(process, 'platform', { value: 'win32' });
@@ -194,22 +203,25 @@ describe('editor utils', () => {
   });
 
   describe('getDiffCommand', () => {
-    const guiEditors: Array<{ editor: EditorType; commands: string[]; win32Commands: string[] }>
-      = [
-        { editor: 'vscode', commands: ['code'], win32Commands: ['code.cmd'] },
-        {
-          editor: 'vscodium',
-          commands: ['codium'],
-          win32Commands: ['codium.cmd'],
-        },
-        {
-          editor: 'windsurf',
-          commands: ['windsurf'],
-          win32Commands: ['windsurf'],
-        },
-        { editor: 'cursor', commands: ['cursor'], win32Commands: ['cursor'] },
-        { editor: 'zed', commands: ['zed', 'zeditor'], win32Commands: ['zed'] },
-      ];
+    const guiEditors: Array<{
+      editor: EditorType;
+      commands: string[];
+      win32Commands: string[];
+    }> = [
+      { editor: 'vscode', commands: ['code'], win32Commands: ['code.cmd'] },
+      {
+        editor: 'vscodium',
+        commands: ['codium'],
+        win32Commands: ['codium.cmd'],
+      },
+      {
+        editor: 'windsurf',
+        commands: ['windsurf'],
+        win32Commands: ['windsurf'],
+      },
+      { editor: 'cursor', commands: ['cursor'], win32Commands: ['cursor'] },
+      { editor: 'zed', commands: ['zed', 'zeditor'], win32Commands: ['zed'] },
+    ];
 
     for (const { editor, commands, win32Commands } of guiEditors) {
       // Non-windows tests
@@ -275,9 +287,7 @@ describe('editor utils', () => {
             .mockImplementationOnce(() => {
               throw new Error(); // first command not found
             })
-            .mockReturnValueOnce(
-              Buffer.from(`/usr/bin/${win32Commands[1]}`),
-            ); // second command found
+            .mockReturnValueOnce(Buffer.from(`/usr/bin/${win32Commands[1]}`)); // second command found
 
           const diffCommand = getDiffCommand('old.txt', 'new.txt', editor);
           expect(diffCommand).toEqual({
@@ -301,11 +311,10 @@ describe('editor utils', () => {
       });
     }
 
-    const terminalEditors: Array<{ editor: EditorType; command: string }>
-      = [
-        { editor: 'vim', command: 'vim' },
-        { editor: 'neovim', command: 'nvim' },
-      ];
+    const terminalEditors: Array<{ editor: EditorType; command: string }> = [
+      { editor: 'vim', command: 'vim' },
+      { editor: 'neovim', command: 'nvim' },
+    ];
 
     for (const { editor, command } of terminalEditors) {
       it(`should return the correct command for ${editor}`, () => {

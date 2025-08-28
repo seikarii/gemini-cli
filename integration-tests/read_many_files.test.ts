@@ -20,7 +20,7 @@ describe('read_many_files', () => {
 
     // Check for either read_many_files or multiple read_file calls
     const allTools = rig.readToolLogs();
-    const readManyFilesCall = await rig.waitForToolCall('read_many_files');
+    const readManyFilesCall = await rig.waitForToolCall('read_many_files', 8000); // 8 seconds
     const readFileCalls = allTools.filter(
       (t) => t.toolRequest.name === 'read_file',
     );

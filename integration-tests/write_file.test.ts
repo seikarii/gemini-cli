@@ -20,7 +20,7 @@ describe('write_file', () => {
 
     const result = await rig.run(prompt);
 
-    const foundToolCall = await rig.waitForToolCall('write_file');
+    const foundToolCall = await rig.waitForToolCall('write_file', 8000); // 8 seconds
 
     // Add debugging information
     if (!foundToolCall) {

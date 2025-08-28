@@ -1,1 +1,93 @@
-{"result":[{"scriptId":"315","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/tools/diffPreview.test.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":10446,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":10446,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":613,"endOffset":3936,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":710,"endOffset":1232,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1301,"endOffset":1714,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1780,"endOffset":2211,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2277,"endOffset":2708,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2774,"endOffset":3385,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3465,"endOffset":3932,"count":1}],"isBlockCoverage":true}],"startOffset":209},{"scriptId":"317","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/tools/diffPreview.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":6524,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":6524,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":256,"endOffset":309,"count":6},{"startOffset":299,"endOffset":307,"count":0}],"isBlockCoverage":true},{"functionName":"generateUnifiedDiff","ranges":[{"startOffset":430,"endOffset":1752,"count":6},{"startOffset":840,"endOffset":886,"count":5},{"startOffset":915,"endOffset":963,"count":5},{"startOffset":1163,"endOffset":1189,"count":5},{"startOffset":1190,"endOffset":1216,"count":1},{"startOffset":1222,"endOffset":1750,"count":0}],"isBlockCoverage":true}],"startOffset":209}]}
+{
+  "result": [
+    {
+      "scriptId": "315",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/tools/diffPreview.test.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 10446, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 10446, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 613, "endOffset": 3936, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 710, "endOffset": 1232, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1301, "endOffset": 1714, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1780, "endOffset": 2211, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2277, "endOffset": 2708, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2774, "endOffset": 3385, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3465, "endOffset": 3932, "count": 1 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "317",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/tools/diffPreview.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 6524, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 6524, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 256, "endOffset": 309, "count": 6 },
+            { "startOffset": 299, "endOffset": 307, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "generateUnifiedDiff",
+          "ranges": [
+            { "startOffset": 430, "endOffset": 1752, "count": 6 },
+            { "startOffset": 840, "endOffset": 886, "count": 5 },
+            { "startOffset": 915, "endOffset": 963, "count": 5 },
+            { "startOffset": 1163, "endOffset": 1189, "count": 5 },
+            { "startOffset": 1190, "endOffset": 1216, "count": 1 },
+            { "startOffset": 1222, "endOffset": 1750, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    }
+  ]
+}

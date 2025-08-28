@@ -91,7 +91,11 @@ describe('ChatRecordingService additions', () => {
         { role: 'model', parts: [{ text: 'Hi there!' }] },
       ];
 
-      const result = await svc.getOptimizedHistoryForPrompt(sampleHistory, 2000, true);
+      const result = await svc.getOptimizedHistoryForPrompt(
+        sampleHistory,
+        2000,
+        true,
+      );
       expect(result).toHaveProperty('contents');
       expect(Array.isArray(result.contents)).toBe(true);
       expect(result).toHaveProperty('estimatedTokens');
@@ -104,8 +108,12 @@ describe('ChatRecordingService additions', () => {
       const sampleHistory: Content[] = [
         { role: 'user', parts: [{ text: 'Test message' }] },
       ];
-      
-      const result = await svc.getOptimizedHistoryForPrompt(sampleHistory, 1000, false);
+
+      const result = await svc.getOptimizedHistoryForPrompt(
+        sampleHistory,
+        1000,
+        false,
+      );
       expect(result.estimatedTokens).toBeLessThanOrEqual(1200); // Allow buffer for estimation differences
     });
   });

@@ -1,1 +1,260 @@
-{"result":[{"scriptId":"315","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/services/promptContextManager.test.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":6401,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":6401,"count":1}],"isBlockCoverage":true},{"functionName":"getOptimizedHistoryForPrompt","ranges":[{"startOffset":616,"endOffset":976,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":1075,"endOffset":2059,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1133,"endOffset":1546,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1652,"endOffset":2055,"count":1}],"isBlockCoverage":true}],"startOffset":209},{"scriptId":"317","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/services/promptContextManager.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":32743,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":32743,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":257,"endOffset":311,"count":1},{"startOffset":301,"endOffset":309,"count":0}],"isBlockCoverage":true},{"functionName":"<instance_members_initializer>","ranges":[{"startOffset":555,"endOffset":8987,"count":1}],"isBlockCoverage":true},{"functionName":"PromptContextManager","ranges":[{"startOffset":559,"endOffset":1154,"count":1}],"isBlockCoverage":true},{"functionName":"assembleContext","ranges":[{"startOffset":1316,"endOffset":2931,"count":1},{"startOffset":1566,"endOffset":1570,"count":0},{"startOffset":1708,"endOffset":1721,"count":0},{"startOffset":2102,"endOffset":2772,"count":0}],"isBlockCoverage":true},{"functionName":"extractConversationalContext","ranges":[{"startOffset":3028,"endOffset":3792,"count":1},{"startOffset":3110,"endOffset":3120,"count":0},{"startOffset":3374,"endOffset":3449,"count":0},{"startOffset":3457,"endOffset":3680,"count":0},{"startOffset":3723,"endOffset":3782,"count":0}],"isBlockCoverage":true},{"functionName":"extractTextFromContent","ranges":[{"startOffset":3856,"endOffset":4024,"count":2},{"startOffset":3914,"endOffset":3924,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3957,"endOffset":3976,"count":2}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3982,"endOffset":4001,"count":2}],"isBlockCoverage":true},{"functionName":"getOptimizedConversationHistory","ranges":[{"startOffset":4112,"endOffset":5899,"count":0}],"isBlockCoverage":false},{"functionName":"combineContexts","ranges":[{"startOffset":5987,"endOffset":6880,"count":0}],"isBlockCoverage":false},{"functionName":"formatRAGContext","ranges":[{"startOffset":6955,"endOffset":7980,"count":0}],"isBlockCoverage":false},{"functionName":"estimateTokens","ranges":[{"startOffset":8067,"endOffset":8132,"count":1}],"isBlockCoverage":true},{"functionName":"createFallbackContext","ranges":[{"startOffset":8194,"endOffset":8698,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":8489,"endOffset":8526,"count":1}],"isBlockCoverage":true},{"functionName":"updateConfig","ranges":[{"startOffset":8751,"endOffset":8890,"count":0}],"isBlockCoverage":false},{"functionName":"getConfig","ranges":[{"startOffset":8937,"endOffset":8985,"count":0}],"isBlockCoverage":false}],"startOffset":209},{"scriptId":"318","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/rag/types.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":24035,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":24035,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":246,"endOffset":289,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":329,"endOffset":372,"count":1},{"startOffset":362,"endOffset":370,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":417,"endOffset":465,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":515,"endOffset":568,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":607,"endOffset":649,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":701,"endOffset":756,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":806,"endOffset":859,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":907,"endOffset":958,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":1006,"endOffset":1057,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":1181,"endOffset":1653,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1706,"endOffset":2124,"count":1}],"isBlockCoverage":true},{"functionName":"<instance_members_initializer>","ranges":[{"startOffset":2165,"endOffset":2232,"count":0}],"isBlockCoverage":true},{"functionName":"<instance_members_initializer>","ranges":[{"startOffset":2294,"endOffset":2450,"count":0}],"isBlockCoverage":true},{"functionName":"RAGConfigurationError","ranges":[{"startOffset":2501,"endOffset":2588,"count":0}],"isBlockCoverage":false},{"functionName":"RAGVectorStoreError","ranges":[{"startOffset":2639,"endOffset":2725,"count":0}],"isBlockCoverage":false},{"functionName":"RAGEmbeddingError","ranges":[{"startOffset":2774,"endOffset":2857,"count":0}],"isBlockCoverage":false},{"functionName":"RAGRetrievalError","ranges":[{"startOffset":2906,"endOffset":2989,"count":0}],"isBlockCoverage":false}],"startOffset":209}]}
+{
+  "result": [
+    {
+      "scriptId": "315",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/services/promptContextManager.test.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 6401, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 6401, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "getOptimizedHistoryForPrompt",
+          "ranges": [{ "startOffset": 616, "endOffset": 976, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1075, "endOffset": 2059, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1133, "endOffset": 1546, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1652, "endOffset": 2055, "count": 1 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "317",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/services/promptContextManager.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 32743, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 32743, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 257, "endOffset": 311, "count": 1 },
+            { "startOffset": 301, "endOffset": 309, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "<instance_members_initializer>",
+          "ranges": [{ "startOffset": 555, "endOffset": 8987, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "PromptContextManager",
+          "ranges": [{ "startOffset": 559, "endOffset": 1154, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "assembleContext",
+          "ranges": [
+            { "startOffset": 1316, "endOffset": 2931, "count": 1 },
+            { "startOffset": 1566, "endOffset": 1570, "count": 0 },
+            { "startOffset": 1708, "endOffset": 1721, "count": 0 },
+            { "startOffset": 2102, "endOffset": 2772, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "extractConversationalContext",
+          "ranges": [
+            { "startOffset": 3028, "endOffset": 3792, "count": 1 },
+            { "startOffset": 3110, "endOffset": 3120, "count": 0 },
+            { "startOffset": 3374, "endOffset": 3449, "count": 0 },
+            { "startOffset": 3457, "endOffset": 3680, "count": 0 },
+            { "startOffset": 3723, "endOffset": 3782, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "extractTextFromContent",
+          "ranges": [
+            { "startOffset": 3856, "endOffset": 4024, "count": 2 },
+            { "startOffset": 3914, "endOffset": 3924, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3957, "endOffset": 3976, "count": 2 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3982, "endOffset": 4001, "count": 2 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "getOptimizedConversationHistory",
+          "ranges": [{ "startOffset": 4112, "endOffset": 5899, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "combineContexts",
+          "ranges": [{ "startOffset": 5987, "endOffset": 6880, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "formatRAGContext",
+          "ranges": [{ "startOffset": 6955, "endOffset": 7980, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "estimateTokens",
+          "ranges": [{ "startOffset": 8067, "endOffset": 8132, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "createFallbackContext",
+          "ranges": [{ "startOffset": 8194, "endOffset": 8698, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 8489, "endOffset": 8526, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "updateConfig",
+          "ranges": [{ "startOffset": 8751, "endOffset": 8890, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "getConfig",
+          "ranges": [{ "startOffset": 8937, "endOffset": 8985, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "318",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/rag/types.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 24035, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 24035, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 246, "endOffset": 289, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 329, "endOffset": 372, "count": 1 },
+            { "startOffset": 362, "endOffset": 370, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 417, "endOffset": 465, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 515, "endOffset": 568, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 607, "endOffset": 649, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 701, "endOffset": 756, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 806, "endOffset": 859, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 907, "endOffset": 958, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1006, "endOffset": 1057, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1181, "endOffset": 1653, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1706, "endOffset": 2124, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "<instance_members_initializer>",
+          "ranges": [{ "startOffset": 2165, "endOffset": 2232, "count": 0 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "<instance_members_initializer>",
+          "ranges": [{ "startOffset": 2294, "endOffset": 2450, "count": 0 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "RAGConfigurationError",
+          "ranges": [{ "startOffset": 2501, "endOffset": 2588, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "RAGVectorStoreError",
+          "ranges": [{ "startOffset": 2639, "endOffset": 2725, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "RAGEmbeddingError",
+          "ranges": [{ "startOffset": 2774, "endOffset": 2857, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "RAGRetrievalError",
+          "ranges": [{ "startOffset": 2906, "endOffset": 2989, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    }
+  ]
+}

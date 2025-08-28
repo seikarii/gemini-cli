@@ -34,7 +34,7 @@ export function useInputHistory({
   const resetHistoryNav = useCallback(() => {
     setHistoryIndex(-1);
     setOriginalQueryBeforeNav('');
-  }, []);
+  }, [setHistoryIndex, setOriginalQueryBeforeNav]);
 
   const handleSubmit = useCallback(
     (value: string) => {

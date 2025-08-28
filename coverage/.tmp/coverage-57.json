@@ -1,1 +1,428 @@
-{"result":[{"scriptId":"315","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/keyMatchers.test.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":41589,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":41589,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":766,"endOffset":13411,"count":1}],"isBlockCoverage":true},{"functionName":"createKey","ranges":[{"startOffset":794,"endOffset":934,"count":105}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":1009,"endOffset":1039,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":1083,"endOffset":1120,"count":4},{"startOffset":1101,"endOffset":1120,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":1163,"endOffset":1200,"count":4},{"startOffset":1181,"endOffset":1200,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":1255,"endOffset":1292,"count":3},{"startOffset":1273,"endOffset":1292,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":1346,"endOffset":1383,"count":3},{"startOffset":1364,"endOffset":1383,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":1434,"endOffset":1471,"count":3},{"startOffset":1452,"endOffset":1471,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":1523,"endOffset":1560,"count":3},{"startOffset":1541,"endOffset":1560,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":1610,"endOffset":1647,"count":3},{"startOffset":1628,"endOffset":1647,"count":1}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":1699,"endOffset":1736,"count":3},{"startOffset":1717,"endOffset":1736,"count":1}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":1789,"endOffset":1815,"count":4}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":1870,"endOffset":1898,"count":4}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":1955,"endOffset":2020,"count":4},{"startOffset":1983,"endOffset":2020,"count":3},{"startOffset":2008,"endOffset":2020,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":2073,"endOffset":2131,"count":4},{"startOffset":2100,"endOffset":2131,"count":3},{"startOffset":2112,"endOffset":2131,"count":1}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":2186,"endOffset":2246,"count":4},{"startOffset":2215,"endOffset":2246,"count":3},{"startOffset":2227,"endOffset":2246,"count":1}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":2292,"endOffset":2322,"count":4}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":2368,"endOffset":2438,"count":4},{"startOffset":2412,"endOffset":2424,"count":3},{"startOffset":2425,"endOffset":2438,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":2485,"endOffset":2554,"count":5},{"startOffset":2516,"endOffset":2554,"count":4},{"startOffset":2529,"endOffset":2540,"count":3},{"startOffset":2541,"endOffset":2553,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":2614,"endOffset":2677,"count":4},{"startOffset":2632,"endOffset":2677,"count":3},{"startOffset":2653,"endOffset":2676,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":2738,"endOffset":2775,"count":3},{"startOffset":2756,"endOffset":2775,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":2833,"endOffset":2870,"count":3},{"startOffset":2851,"endOffset":2870,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":2934,"endOffset":2971,"count":3},{"startOffset":2952,"endOffset":2971,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":3036,"endOffset":3073,"count":3},{"startOffset":3054,"endOffset":3073,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":3117,"endOffset":3154,"count":3},{"startOffset":3135,"endOffset":3154,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":3198,"endOffset":3235,"count":3},{"startOffset":3216,"endOffset":3235,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":3290,"endOffset":3327,"count":3},{"startOffset":3308,"endOffset":3327,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":3381,"endOffset":3418,"count":3},{"startOffset":3399,"endOffset":3418,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":3479,"endOffset":3522,"count":3},{"startOffset":3510,"endOffset":3522,"count":2}],"isBlockCoverage":true},{"functionName":"originalMatchers","ranges":[{"startOffset":3594,"endOffset":3621,"count":4}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":9614,"endOffset":11390,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":9644,"endOffset":10642,"count":28}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":9755,"endOffset":10634,"count":28}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":9788,"endOffset":10187,"count":38}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":10215,"endOffset":10624,"count":58}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":10743,"endOffset":11384,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":11453,"endOffset":12899,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":11535,"endOffset":12236,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":12329,"endOffset":12893,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":12953,"endOffset":13407,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13032,"endOffset":13401,"count":1}],"isBlockCoverage":true}],"startOffset":209},{"scriptId":"317","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/keyMatchers.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":6987,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":6987,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":254,"endOffset":305,"count":3},{"startOffset":295,"endOffset":303,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":347,"endOffset":392,"count":99},{"startOffset":382,"endOffset":390,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":430,"endOffset":493,"count":68},{"startOffset":483,"endOffset":491,"count":0}],"isBlockCoverage":true},{"functionName":"matchKeyBinding","ranges":[{"startOffset":737,"endOffset":1460,"count":130},{"startOffset":840,"endOffset":891,"count":127},{"startOffset":891,"endOffset":1022,"count":3},{"startOffset":993,"endOffset":1022,"count":0},{"startOffset":1043,"endOffset":1066,"count":52},{"startOffset":1066,"endOffset":1101,"count":78},{"startOffset":1101,"endOffset":1132,"count":56},{"startOffset":1134,"endOffset":1157,"count":28},{"startOffset":1157,"endOffset":1193,"count":50},{"startOffset":1193,"endOffset":1226,"count":4},{"startOffset":1228,"endOffset":1251,"count":1},{"startOffset":1251,"endOffset":1289,"count":49},{"startOffset":1289,"endOffset":1323,"count":7},{"startOffset":1325,"endOffset":1348,"count":3},{"startOffset":1348,"endOffset":1384,"count":46},{"startOffset":1384,"endOffset":1417,"count":4},{"startOffset":1419,"endOffset":1442,"count":2},{"startOffset":1442,"endOffset":1459,"count":44}],"isBlockCoverage":true},{"functionName":"matchCommand","ranges":[{"startOffset":1461,"endOffset":1655,"count":105}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1609,"endOffset":1651,"count":130}],"isBlockCoverage":true},{"functionName":"createKeyMatchers","ranges":[{"startOffset":1656,"endOffset":1929,"count":4},{"startOffset":1833,"endOffset":1907,"count":112}],"isBlockCoverage":true},{"functionName":"matchers.<computed>","ranges":[{"startOffset":1859,"endOffset":1902,"count":105}],"isBlockCoverage":true}],"startOffset":209},{"scriptId":"318","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/config/keyBindings.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":18433,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":18433,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":244,"endOffset":285,"count":72},{"startOffset":275,"endOffset":283,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":334,"endOffset":386,"count":4},{"startOffset":376,"endOffset":384,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":508,"endOffset":1854,"count":1}],"isBlockCoverage":true}],"startOffset":209}]}
+{
+  "result": [
+    {
+      "scriptId": "315",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/keyMatchers.test.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 41589, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 41589, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 766, "endOffset": 13411, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "createKey",
+          "ranges": [{ "startOffset": 794, "endOffset": 934, "count": 105 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [{ "startOffset": 1009, "endOffset": 1039, "count": 2 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 1083, "endOffset": 1120, "count": 4 },
+            { "startOffset": 1101, "endOffset": 1120, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 1163, "endOffset": 1200, "count": 4 },
+            { "startOffset": 1181, "endOffset": 1200, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 1255, "endOffset": 1292, "count": 3 },
+            { "startOffset": 1273, "endOffset": 1292, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 1346, "endOffset": 1383, "count": 3 },
+            { "startOffset": 1364, "endOffset": 1383, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 1434, "endOffset": 1471, "count": 3 },
+            { "startOffset": 1452, "endOffset": 1471, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 1523, "endOffset": 1560, "count": 3 },
+            { "startOffset": 1541, "endOffset": 1560, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 1610, "endOffset": 1647, "count": 3 },
+            { "startOffset": 1628, "endOffset": 1647, "count": 1 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 1699, "endOffset": 1736, "count": 3 },
+            { "startOffset": 1717, "endOffset": 1736, "count": 1 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [{ "startOffset": 1789, "endOffset": 1815, "count": 4 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [{ "startOffset": 1870, "endOffset": 1898, "count": 4 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 1955, "endOffset": 2020, "count": 4 },
+            { "startOffset": 1983, "endOffset": 2020, "count": 3 },
+            { "startOffset": 2008, "endOffset": 2020, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 2073, "endOffset": 2131, "count": 4 },
+            { "startOffset": 2100, "endOffset": 2131, "count": 3 },
+            { "startOffset": 2112, "endOffset": 2131, "count": 1 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 2186, "endOffset": 2246, "count": 4 },
+            { "startOffset": 2215, "endOffset": 2246, "count": 3 },
+            { "startOffset": 2227, "endOffset": 2246, "count": 1 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [{ "startOffset": 2292, "endOffset": 2322, "count": 4 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 2368, "endOffset": 2438, "count": 4 },
+            { "startOffset": 2412, "endOffset": 2424, "count": 3 },
+            { "startOffset": 2425, "endOffset": 2438, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 2485, "endOffset": 2554, "count": 5 },
+            { "startOffset": 2516, "endOffset": 2554, "count": 4 },
+            { "startOffset": 2529, "endOffset": 2540, "count": 3 },
+            { "startOffset": 2541, "endOffset": 2553, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 2614, "endOffset": 2677, "count": 4 },
+            { "startOffset": 2632, "endOffset": 2677, "count": 3 },
+            { "startOffset": 2653, "endOffset": 2676, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 2738, "endOffset": 2775, "count": 3 },
+            { "startOffset": 2756, "endOffset": 2775, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 2833, "endOffset": 2870, "count": 3 },
+            { "startOffset": 2851, "endOffset": 2870, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 2934, "endOffset": 2971, "count": 3 },
+            { "startOffset": 2952, "endOffset": 2971, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 3036, "endOffset": 3073, "count": 3 },
+            { "startOffset": 3054, "endOffset": 3073, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 3117, "endOffset": 3154, "count": 3 },
+            { "startOffset": 3135, "endOffset": 3154, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 3198, "endOffset": 3235, "count": 3 },
+            { "startOffset": 3216, "endOffset": 3235, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 3290, "endOffset": 3327, "count": 3 },
+            { "startOffset": 3308, "endOffset": 3327, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 3381, "endOffset": 3418, "count": 3 },
+            { "startOffset": 3399, "endOffset": 3418, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [
+            { "startOffset": 3479, "endOffset": 3522, "count": 3 },
+            { "startOffset": 3510, "endOffset": 3522, "count": 2 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "originalMatchers",
+          "ranges": [{ "startOffset": 3594, "endOffset": 3621, "count": 4 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 9614, "endOffset": 11390, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 9644, "endOffset": 10642, "count": 28 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 9755, "endOffset": 10634, "count": 28 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 9788, "endOffset": 10187, "count": 38 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 10215, "endOffset": 10624, "count": 58 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 10743, "endOffset": 11384, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 11453, "endOffset": 12899, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 11535, "endOffset": 12236, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 12329, "endOffset": 12893, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 12953, "endOffset": 13407, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13032, "endOffset": 13401, "count": 1 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "317",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/keyMatchers.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 6987, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 6987, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 254, "endOffset": 305, "count": 3 },
+            { "startOffset": 295, "endOffset": 303, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 347, "endOffset": 392, "count": 99 },
+            { "startOffset": 382, "endOffset": 390, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 430, "endOffset": 493, "count": 68 },
+            { "startOffset": 483, "endOffset": 491, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "matchKeyBinding",
+          "ranges": [
+            { "startOffset": 737, "endOffset": 1460, "count": 130 },
+            { "startOffset": 840, "endOffset": 891, "count": 127 },
+            { "startOffset": 891, "endOffset": 1022, "count": 3 },
+            { "startOffset": 993, "endOffset": 1022, "count": 0 },
+            { "startOffset": 1043, "endOffset": 1066, "count": 52 },
+            { "startOffset": 1066, "endOffset": 1101, "count": 78 },
+            { "startOffset": 1101, "endOffset": 1132, "count": 56 },
+            { "startOffset": 1134, "endOffset": 1157, "count": 28 },
+            { "startOffset": 1157, "endOffset": 1193, "count": 50 },
+            { "startOffset": 1193, "endOffset": 1226, "count": 4 },
+            { "startOffset": 1228, "endOffset": 1251, "count": 1 },
+            { "startOffset": 1251, "endOffset": 1289, "count": 49 },
+            { "startOffset": 1289, "endOffset": 1323, "count": 7 },
+            { "startOffset": 1325, "endOffset": 1348, "count": 3 },
+            { "startOffset": 1348, "endOffset": 1384, "count": 46 },
+            { "startOffset": 1384, "endOffset": 1417, "count": 4 },
+            { "startOffset": 1419, "endOffset": 1442, "count": 2 },
+            { "startOffset": 1442, "endOffset": 1459, "count": 44 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "matchCommand",
+          "ranges": [{ "startOffset": 1461, "endOffset": 1655, "count": 105 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1609, "endOffset": 1651, "count": 130 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "createKeyMatchers",
+          "ranges": [
+            { "startOffset": 1656, "endOffset": 1929, "count": 4 },
+            { "startOffset": 1833, "endOffset": 1907, "count": 112 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "matchers.<computed>",
+          "ranges": [{ "startOffset": 1859, "endOffset": 1902, "count": 105 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "318",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/config/keyBindings.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 18433, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 18433, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 244, "endOffset": 285, "count": 72 },
+            { "startOffset": 275, "endOffset": 283, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 334, "endOffset": 386, "count": 4 },
+            { "startOffset": 376, "endOffset": 384, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 508, "endOffset": 1854, "count": 1 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    }
+  ]
+}

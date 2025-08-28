@@ -129,6 +129,42 @@ export class TestRig {
     return 15000; // 15s locally
   }
 
+  // Get shorter timeout for simple tests that should complete quickly
+  getQuickTimeout() {
+    if (env.CI) return 30000; // 30s in CI
+    if (env.GEMINI_SANDBOX) return 15000; // 15s in containers
+    return 8000; // 8s locally for quick tests
+  }
+
+  /**
+   * Wait for a tool call with improved error handling and flexible validation
+   * @param toolName - Name of the tool to wait for
+   * @param timeout - Custom timeout in ms (optional, uses getQuickTimeout() by default)
+   * @param fallbackPredicate - Optional predicate to check as alternative validation
+   * @returns Promise<boolean> - True if tool was called or fallback predicate passes
+   */
+  async waitForToolCallWithFallback(
+    toolName: string,
+    timeout?: number,
+    fallbackPredicate?: () => boolean,
+  ): Promise<boolean> {
+    if (!timeout) {
+      timeout = this.getQuickTimeout();
+    }
+
+    const toolFound = await this.waitForToolCall(toolName, timeout);
+    if (toolFound) {
+      return true;
+    }
+
+    // If tool wasn't found, check fallback predicate
+    if (fallbackPredicate) {
+      return fallbackPredicate();
+    }
+
+    return false;
+  }
+
   setup(
     testName: string,
     options: { settings?: Record<string, unknown> } = {},
@@ -257,7 +293,7 @@ export class TestRig {
           if (env.GEMINI_SANDBOX === 'podman') {
             // Remove telemetry JSON objects from output
             // They are multi-line JSON objects that start with { and contain telemetry fields
-            const lines = result.split(EOL);
+            const lines = result.split('\n');
             const filteredLines = [];
             let inTelemetryObject = false;
             let braceDepth = 0;
@@ -458,7 +494,8 @@ export class TestRig {
       await new Promise((resolve) => setTimeout(resolve, interval));
     }
     if (env.VERBOSE === 'true') {
-      console.log(`Poll timed out after ${attempts} attempts`);
+      console.log(`Poll timed out after ${attempts} attempts (${timeout}ms)`);
+      console.log(`Last predicate result: ${predicate()}`);
     }
     return false;
   }
@@ -479,7 +516,11 @@ export class TestRig {
     // Updated regex to handle tool names with hyphens and underscores
     const toolCallPattern =
       /body:\s*'Tool call:\s*([\w-]+)\..*?Success:\s*(\w+)\..*?Duration:\s*(\d+)ms\.'/g;
-    const matches = [...stdout.matchAll(toolCallPattern)];
+    const matches = [];
+    let match;
+    while ((match = toolCallPattern.exec(stdout)) !== null) {
+      matches.push(match);
+    }
 
     for (const match of matches) {
       const toolName = match[1];
@@ -518,7 +559,7 @@ export class TestRig {
     // If no matches found with the simple pattern, try the JSON parsing approach
     // in case the format changes
     if (logs.length === 0) {
-      const lines = stdout.split(EOL);
+      const lines = stdout.split('\n');
       let currentObject = '';
       let inObject = false;
       let braceDepth = 0;

@@ -663,9 +663,7 @@ export class BrainFallback {
     this.patterns = new PatternRecognizer(
       get_embedding ||
         ((_x: unknown) =>
-          new Array(_safe_float(this.config['EMBEDDING_DIM'], 16)).fill(
-            0.0,
-          )),
+          new Array(_safe_float(this.config['EMBEDDING_DIM'], 16)).fill(0.0)),
       this.config,
     );
     this.exec = new ExecutivePFC(this.config);
@@ -1246,10 +1244,7 @@ export class BrainFallback {
     return forgotten;
   }
 
-  generate_complex_film(
-    base_actions: string[],
-    _context: ContextData,
-  ): string {
+  generate_complex_film(base_actions: string[], _context: ContextData): string {
     const film_id = `complex_${gen_id()}`;
     const nodes: Record<string, FilmNode> = {};
     const edges: FilmEdge[] = [];

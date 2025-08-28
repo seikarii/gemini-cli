@@ -1,1 +1,138 @@
-{"result":[{"scriptId":"315","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/utils/updateCheck.test.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":17039,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":17039,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":396,"endOffset":431,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":490,"endOffset":518,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":577,"endOffset":612,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":664,"endOffset":701,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":952,"endOffset":6077,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":999,"endOffset":1133,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":1148,"endOffset":1253,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":1345,"endOffset":1913,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":1996,"endOffset":2174,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":2252,"endOffset":2600,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":2693,"endOffset":3200,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":3313,"endOffset":3694,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":3806,"endOffset":4187,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":4264,"endOffset":4628,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":4697,"endOffset":4894,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":4953,"endOffset":6073,"count":0}],"isBlockCoverage":false}],"startOffset":209},{"scriptId":"317","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/utils/updateCheck.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":9095,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":9095,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":253,"endOffset":303,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":349,"endOffset":398,"count":0}],"isBlockCoverage":false},{"functionName":"getBestAvailableUpdate","ranges":[{"startOffset":860,"endOffset":1300,"count":0}],"isBlockCoverage":false},{"functionName":"checkForUpdates","ranges":[{"startOffset":1301,"endOffset":3063,"count":0}],"isBlockCoverage":false}],"startOffset":209}]}
+{
+  "result": [
+    {
+      "scriptId": "315",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/utils/updateCheck.test.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 17039, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 17039, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 396, "endOffset": 431, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 490, "endOffset": 518, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 577, "endOffset": 612, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 664, "endOffset": 701, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 952, "endOffset": 6077, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 999, "endOffset": 1133, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1148, "endOffset": 1253, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1345, "endOffset": 1913, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1996, "endOffset": 2174, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2252, "endOffset": 2600, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2693, "endOffset": 3200, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3313, "endOffset": 3694, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3806, "endOffset": 4187, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4264, "endOffset": 4628, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4697, "endOffset": 4894, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4953, "endOffset": 6073, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "317",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/utils/updateCheck.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 9095, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 9095, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 253, "endOffset": 303, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 349, "endOffset": 398, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "getBestAvailableUpdate",
+          "ranges": [{ "startOffset": 860, "endOffset": 1300, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "checkForUpdates",
+          "ranges": [{ "startOffset": 1301, "endOffset": 3063, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    }
+  ]
+}

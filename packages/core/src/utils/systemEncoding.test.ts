@@ -53,7 +53,9 @@ describe('Shell Command Processor - Encoding Functions', () => {
     mockedExec.mockImplementation((command, options, callback) => {
       if (typeof callback === 'function') {
         // Default to error for unexpected commands
-        process.nextTick(() => callback(new Error(`Unmocked command: ${command}`), '', ''));
+        process.nextTick(() =>
+          callback(new Error(`Unmocked command: ${command}`), '', ''),
+        );
       }
       return { on: vi.fn(), kill: vi.fn() } as unknown as ChildProcess;
     });
@@ -294,7 +296,9 @@ describe('Shell Command Processor - Encoding Functions', () => {
           process.nextTick(() => callback(null, 'Active code page: 65001', ''));
         } else if (typeof callback === 'function') {
           // Fallback for unexpected commands
-          process.nextTick(() => callback(new Error(`Unexpected command: ${command}`), '', ''));
+          process.nextTick(() =>
+            callback(new Error(`Unexpected command: ${command}`), '', ''),
+          );
         }
         return { on: vi.fn(), kill: vi.fn() } as unknown as ChildProcess;
       });
@@ -314,7 +318,9 @@ describe('Shell Command Processor - Encoding Functions', () => {
         if (command === 'chcp' && typeof callback === 'function') {
           process.nextTick(() => callback(null, 'Current code page: 1252', ''));
         } else if (typeof callback === 'function') {
-          process.nextTick(() => callback(new Error(`Unexpected command: ${command}`), '', ''));
+          process.nextTick(() =>
+            callback(new Error(`Unexpected command: ${command}`), '', ''),
+          );
         }
         return { on: vi.fn(), kill: vi.fn() } as unknown as ChildProcess;
       });
@@ -329,7 +335,9 @@ describe('Shell Command Processor - Encoding Functions', () => {
         if (command === 'chcp' && typeof callback === 'function') {
           process.nextTick(() => callback(new Error('Command failed'), '', ''));
         } else if (typeof callback === 'function') {
-          process.nextTick(() => callback(new Error(`Unexpected command: ${command}`), '', ''));
+          process.nextTick(() =>
+            callback(new Error(`Unexpected command: ${command}`), '', ''),
+          );
         }
         return { on: vi.fn(), kill: vi.fn() } as unknown as ChildProcess;
       });
@@ -471,13 +479,13 @@ describe('Shell Command Processor - Encoding Functions', () => {
       });
 
       const buffer = Buffer.from('test');
-      
+
       // First call will trigger async detection and return fallback
       getCachedEncodingForBuffer(buffer);
-      
+
       // Wait for the async detection to complete
       await new Promise((resolve) => setTimeout(resolve, 100));
-      
+
       // Second call should use the cached result
       const result2 = getCachedEncodingForBuffer(buffer);
 

@@ -1,1 +1,232 @@
-{"result":[{"scriptId":"315","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/installationManager.test.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":11486,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":11486,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":393,"endOffset":625,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":664,"endOffset":802,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":845,"endOffset":992,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1538,"endOffset":4280,"count":1}],"isBlockCoverage":true},{"functionName":"installationIdFile","ranges":[{"startOffset":1621,"endOffset":1698,"count":4}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1739,"endOffset":2017,"count":4}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2058,"endOffset":2190,"count":4}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2251,"endOffset":4276,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2363,"endOffset":2821,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2912,"endOffset":3294,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3379,"endOffset":3583,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3673,"endOffset":4270,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3896,"endOffset":3950,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":4051,"endOffset":4066,"count":1}],"isBlockCoverage":true}],"startOffset":209},{"scriptId":"317","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/installationManager.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":8676,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":8676,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":256,"endOffset":309,"count":4},{"startOffset":299,"endOffset":307,"count":0}],"isBlockCoverage":true},{"functionName":"<instance_members_initializer>","ranges":[{"startOffset":888,"endOffset":2980,"count":4}],"isBlockCoverage":true},{"functionName":"getInstallationIdPath","ranges":[{"startOffset":913,"endOffset":1008,"count":9}],"isBlockCoverage":true},{"functionName":"setFileSystemService","ranges":[{"startOffset":1155,"endOffset":1228,"count":0}],"isBlockCoverage":false},{"functionName":"readInstallationIdFromFile","ranges":[{"startOffset":1231,"endOffset":1665,"count":5},{"startOffset":1397,"endOffset":1548,"count":2},{"startOffset":1532,"endOffset":1539,"count":0},{"startOffset":1555,"endOffset":1643,"count":1},{"startOffset":1643,"endOffset":1664,"count":4}],"isBlockCoverage":true},{"functionName":"writeInstallationIdToFile","ranges":[{"startOffset":1668,"endOffset":2323,"count":4},{"startOffset":1872,"endOffset":2087,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1956,"endOffset":1971,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":2064,"endOffset":2079,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":2175,"endOffset":2190,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2296,"endOffset":2311,"count":1}],"isBlockCoverage":true},{"functionName":"getInstallationId","ranges":[{"startOffset":2521,"endOffset":2978,"count":5},{"startOffset":2642,"endOffset":2772,"count":4},{"startOffset":2809,"endOffset":2974,"count":0}],"isBlockCoverage":true}],"startOffset":209},{"scriptId":"318","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/config/storage.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":11959,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":11959,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":247,"endOffset":291,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":346,"endOffset":404,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":442,"endOffset":483,"count":9},{"startOffset":473,"endOffset":481,"count":0}],"isBlockCoverage":true},{"functionName":"<instance_members_initializer>","ranges":[{"startOffset":984,"endOffset":4075,"count":0}],"isBlockCoverage":true},{"functionName":"getGlobalGeminiDir","ranges":[{"startOffset":1335,"endOffset":1585,"count":9},{"startOffset":1429,"endOffset":1520,"count":0}],"isBlockCoverage":true},{"functionName":"getInstallationIdPath","ranges":[{"startOffset":1853,"endOffset":1970,"count":9}],"isBlockCoverage":true}],"startOffset":209}]}
+{
+  "result": [
+    {
+      "scriptId": "315",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/installationManager.test.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 11486, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 11486, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 393, "endOffset": 625, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 664, "endOffset": 802, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 845, "endOffset": 992, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1538, "endOffset": 4280, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "installationIdFile",
+          "ranges": [{ "startOffset": 1621, "endOffset": 1698, "count": 4 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1739, "endOffset": 2017, "count": 4 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2058, "endOffset": 2190, "count": 4 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2251, "endOffset": 4276, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2363, "endOffset": 2821, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2912, "endOffset": 3294, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3379, "endOffset": 3583, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3673, "endOffset": 4270, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3896, "endOffset": 3950, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4051, "endOffset": 4066, "count": 1 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "317",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/installationManager.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 8676, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 8676, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 256, "endOffset": 309, "count": 4 },
+            { "startOffset": 299, "endOffset": 307, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "<instance_members_initializer>",
+          "ranges": [{ "startOffset": 888, "endOffset": 2980, "count": 4 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "getInstallationIdPath",
+          "ranges": [{ "startOffset": 913, "endOffset": 1008, "count": 9 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "setFileSystemService",
+          "ranges": [{ "startOffset": 1155, "endOffset": 1228, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "readInstallationIdFromFile",
+          "ranges": [
+            { "startOffset": 1231, "endOffset": 1665, "count": 5 },
+            { "startOffset": 1397, "endOffset": 1548, "count": 2 },
+            { "startOffset": 1532, "endOffset": 1539, "count": 0 },
+            { "startOffset": 1555, "endOffset": 1643, "count": 1 },
+            { "startOffset": 1643, "endOffset": 1664, "count": 4 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "writeInstallationIdToFile",
+          "ranges": [
+            { "startOffset": 1668, "endOffset": 2323, "count": 4 },
+            { "startOffset": 1872, "endOffset": 2087, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1956, "endOffset": 1971, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2064, "endOffset": 2079, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2175, "endOffset": 2190, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2296, "endOffset": 2311, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "getInstallationId",
+          "ranges": [
+            { "startOffset": 2521, "endOffset": 2978, "count": 5 },
+            { "startOffset": 2642, "endOffset": 2772, "count": 4 },
+            { "startOffset": 2809, "endOffset": 2974, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "318",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/config/storage.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 11959, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 11959, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 247, "endOffset": 291, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 346, "endOffset": 404, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 442, "endOffset": 483, "count": 9 },
+            { "startOffset": 473, "endOffset": 481, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "<instance_members_initializer>",
+          "ranges": [{ "startOffset": 984, "endOffset": 4075, "count": 0 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "getGlobalGeminiDir",
+          "ranges": [
+            { "startOffset": 1335, "endOffset": 1585, "count": 9 },
+            { "startOffset": 1429, "endOffset": 1520, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "getInstallationIdPath",
+          "ranges": [{ "startOffset": 1853, "endOffset": 1970, "count": 9 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    }
+  ]
+}

@@ -30,7 +30,7 @@ describe('google_web_search', () => {
       throw error; // Re-throw if not a network error
     }
 
-    const foundToolCall = await rig.waitForToolCall('google_web_search');
+    const foundToolCall = await rig.waitForToolCall('google_web_search', 10000); // 10 seconds for network calls
 
     // Add debugging information
     if (!foundToolCall) {

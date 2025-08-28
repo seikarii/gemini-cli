@@ -137,15 +137,14 @@ export class AdvancedTokenEstimator implements TokenEstimator {
       // Check for common patterns that affect tokenization
 
       // Numbers (often 1-2 tokens regardless of length)
-       
+
       if (/^\d+$/.test(word)) {
         tokens += word.length > 6 ? 2 : 1;
         continue;
       }
 
       // URLs and email addresses (typically 3-5 tokens)
-       
-       
+
       if (/^(https?:\/\/|www\.|\S+@\S+\.\S+)$/.test(word)) {
         tokens += this.estimateUrlTokens(word);
         continue;
@@ -2268,12 +2267,14 @@ export class ChatRecordingService {
     }
 
     // Convert Content[] to MessageRecord[] for compression processing
-    const messageRecords: MessageRecord[] = fullHistory.map((content, index) => ({
-      id: `msg_${index}_${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      type: content.role === 'user' ? 'user' : 'gemini',
-      content: this.extractTextFromContent(content),
-    }));
+    const messageRecords: MessageRecord[] = fullHistory.map(
+      (content, index) => ({
+        id: `msg_${index}_${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        type: content.role === 'user' ? 'user' : 'gemini',
+        content: this.extractTextFromContent(content),
+      }),
+    );
 
     // Calculate current token count
     let originalTokens = 0;
@@ -2300,7 +2301,7 @@ export class ChatRecordingService {
     // Apply compression by creating a temporary conversation record
     const tempConversation: EnhancedConversationRecord = {
       sessionId: 'temp_optimization',
-      projectHash: 'temp_project', 
+      projectHash: 'temp_project',
       startTime: new Date().toISOString(),
       lastUpdated: new Date().toISOString(),
       messages: messageRecords,
@@ -2312,10 +2313,12 @@ export class ChatRecordingService {
     this.compressionConfig = originalConfig;
 
     // Convert messages back to Content[] format
-    const optimizedContents: Content[] = optimized.messages.map((msg: MessageRecord) => ({
-      role: msg.type === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content }],
-    }));
+    const optimizedContents: Content[] = optimized.messages.map(
+      (msg: MessageRecord) => ({
+        role: msg.type === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.content }],
+      }),
+    );
 
     // Calculate final tokens
     let finalTokens = 0;

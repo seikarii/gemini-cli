@@ -18,7 +18,7 @@ describe('stdin context', () => {
 
     const result = await rig.run({ prompt, stdin: stdinContent });
 
-    await rig.waitForTelemetryEvent('api_request');
+    await rig.waitForTelemetryEvent('api_request', 8000); // 8 seconds
     const lastRequest = rig.readLastApiRequest();
     expect(lastRequest).not.toBeNull();
 

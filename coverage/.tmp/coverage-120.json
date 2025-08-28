@@ -1,1 +1,187 @@
-{"result":[{"scriptId":"315","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/usePhraseCycler.test.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":17823,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":17823,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":817,"endOffset":6669,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":864,"endOffset":921,"count":7}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":962,"endOffset":1021,"count":7}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1136,"endOffset":1378,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1204,"endOffset":1265,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":1485,"endOffset":1880,"count":1}],"isBlockCoverage":true},{"functionName":"initialProps.isActive","ranges":[{"startOffset":1570,"endOffset":1661,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":1979,"endOffset":2376,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2047,"endOffset":2108,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":2145,"endOffset":2263,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":2486,"endOffset":3354,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2554,"endOffset":2614,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":2807,"endOffset":2925,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":3117,"endOffset":3235,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":3485,"endOffset":5093,"count":1},{"startOffset":3557,"endOffset":3578,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3673,"endOffset":3809,"count":0}],"isBlockCoverage":false},{"functionName":"initialProps.isActive","ranges":[{"startOffset":3889,"endOffset":3980,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":4409,"endOffset":4527,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":4913,"endOffset":4980,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":5182,"endOffset":5497,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":5251,"endOffset":5311,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":5607,"endOffset":6665,"count":1},{"startOffset":6228,"endOffset":6664,"count":0}],"isBlockCoverage":true},{"functionName":"initialProps.isActive","ranges":[{"startOffset":5692,"endOffset":5783,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":6043,"endOffset":6161,"count":0}],"isBlockCoverage":false}],"startOffset":209},{"scriptId":"610","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/usePhraseCycler.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":21546,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":21546,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":258,"endOffset":313,"count":1},{"startOffset":303,"endOffset":311,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":369,"endOffset":428,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":474,"endOffset":523,"count":0}],"isBlockCoverage":false},{"functionName":"usePhraseCycler","ranges":[{"startOffset":6262,"endOffset":7773,"count":0}],"isBlockCoverage":false}],"startOffset":209}]}
+{
+  "result": [
+    {
+      "scriptId": "315",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/usePhraseCycler.test.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 17823, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 17823, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 817, "endOffset": 6669, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 864, "endOffset": 921, "count": 7 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 962, "endOffset": 1021, "count": 7 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1136, "endOffset": 1378, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1204, "endOffset": 1265, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1485, "endOffset": 1880, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "initialProps.isActive",
+          "ranges": [{ "startOffset": 1570, "endOffset": 1661, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1979, "endOffset": 2376, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2047, "endOffset": 2108, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2145, "endOffset": 2263, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2486, "endOffset": 3354, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2554, "endOffset": 2614, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2807, "endOffset": 2925, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3117, "endOffset": 3235, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 3485, "endOffset": 5093, "count": 1 },
+            { "startOffset": 3557, "endOffset": 3578, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3673, "endOffset": 3809, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "initialProps.isActive",
+          "ranges": [{ "startOffset": 3889, "endOffset": 3980, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4409, "endOffset": 4527, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4913, "endOffset": 4980, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 5182, "endOffset": 5497, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 5251, "endOffset": 5311, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 5607, "endOffset": 6665, "count": 1 },
+            { "startOffset": 6228, "endOffset": 6664, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "initialProps.isActive",
+          "ranges": [{ "startOffset": 5692, "endOffset": 5783, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 6043, "endOffset": 6161, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "610",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/usePhraseCycler.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 21546, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 21546, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 258, "endOffset": 313, "count": 1 },
+            { "startOffset": 303, "endOffset": 311, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 369, "endOffset": 428, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 474, "endOffset": 523, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "usePhraseCycler",
+          "ranges": [{ "startOffset": 6262, "endOffset": 7773, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    }
+  ]
+}

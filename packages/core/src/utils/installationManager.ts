@@ -53,15 +53,20 @@ export class InstallationManager {
     try {
       if (this.fileSystemService) {
         // Use FileSystemService for standardized file operations
-        const fileInfo = await this.fileSystemService.getFileInfo(installationIdFile);
+        const fileInfo =
+          await this.fileSystemService.getFileInfo(installationIdFile);
         if (fileInfo.success && fileInfo.data?.exists) {
-          const readResult = await this.fileSystemService.readTextFile(installationIdFile);
-          return readResult.success ? (readResult.data?.trim() || null) : null;
+          const readResult =
+            await this.fileSystemService.readTextFile(installationIdFile);
+          return readResult.success ? readResult.data?.trim() || null : null;
         }
       } else {
         // Fallback to direct fs.promises operations
         try {
-          const installationid = await fsp.readFile(installationIdFile, 'utf-8');
+          const installationid = await fsp.readFile(
+            installationIdFile,
+            'utf-8',
+          );
           return installationid.trim() || null;
         } catch {
           // File doesn't exist or can't be read

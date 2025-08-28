@@ -1,1 +1,232 @@
-{"result":[{"scriptId":"315","url":"file:///media/seikarii/Nvme/gemini-cli/integration-tests/shell-service.test.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":15365,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":15365,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":906,"endOffset":5395,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":967,"endOffset":1178,"count":1},{"startOffset":1174,"endOffset":1177,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1269,"endOffset":1880,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":1990,"endOffset":2745,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":2858,"endOffset":3609,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":3680,"endOffset":4449,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":4546,"endOffset":5391,"count":0}],"isBlockCoverage":false}],"startOffset":209},{"scriptId":"317","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/services/shellExecutionService.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":41675,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":41675,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":258,"endOffset":313,"count":0}],"isBlockCoverage":false},{"functionName":"getFullText","ranges":[{"startOffset":1430,"endOffset":1685,"count":0}],"isBlockCoverage":false},{"functionName":"execute","ranges":[{"startOffset":2309,"endOffset":2947,"count":0}],"isBlockCoverage":false},{"functionName":"childProcessFallback","ranges":[{"startOffset":2957,"endOffset":8336,"count":0}],"isBlockCoverage":false},{"functionName":"executeWithPty","ranges":[{"startOffset":8346,"endOffset":12793,"count":0}],"isBlockCoverage":false}],"startOffset":209},{"scriptId":"318","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/getPty.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":2868,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":2868,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":243,"endOffset":283,"count":0}],"isBlockCoverage":false},{"functionName":"getPty","ranges":[{"startOffset":389,"endOffset":779,"count":0}],"isBlockCoverage":false}],"startOffset":209},{"scriptId":"319","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/systemEncoding.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":17087,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":17087,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":255,"endOffset":307,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":364,"endOffset":424,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":472,"endOffset":523,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":579,"endOffset":638,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":694,"endOffset":753,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":808,"endOffset":866,"count":0}],"isBlockCoverage":false},{"functionName":"resetEncodingCache","ranges":[{"startOffset":1289,"endOffset":1355,"count":0}],"isBlockCoverage":false},{"functionName":"getCachedEncodingForBuffer","ranges":[{"startOffset":1357,"endOffset":1756,"count":0}],"isBlockCoverage":false},{"functionName":"getSystemEncoding","ranges":[{"startOffset":1758,"endOffset":2114,"count":0}],"isBlockCoverage":false},{"functionName":"detectSystemEncodingAsync","ranges":[{"startOffset":2116,"endOffset":3845,"count":0}],"isBlockCoverage":false},{"functionName":"windowsCodePageToEncoding","ranges":[{"startOffset":3847,"endOffset":4514,"count":0}],"isBlockCoverage":false},{"functionName":"detectEncodingFromBuffer","ranges":[{"startOffset":4516,"endOffset":4835,"count":0}],"isBlockCoverage":false}],"startOffset":209},{"scriptId":"331","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/textUtils.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":2597,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":2597,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":245,"endOffset":287,"count":0}],"isBlockCoverage":false},{"functionName":"isBinary","ranges":[{"startOffset":378,"endOffset":641,"count":0}],"isBlockCoverage":false}],"startOffset":209}]}
+{
+  "result": [
+    {
+      "scriptId": "315",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/integration-tests/shell-service.test.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 15365, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 15365, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 906, "endOffset": 5395, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 967, "endOffset": 1178, "count": 1 },
+            { "startOffset": 1174, "endOffset": 1177, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1269, "endOffset": 1880, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1990, "endOffset": 2745, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2858, "endOffset": 3609, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3680, "endOffset": 4449, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4546, "endOffset": 5391, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "317",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/services/shellExecutionService.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 41675, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 41675, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 258, "endOffset": 313, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "getFullText",
+          "ranges": [{ "startOffset": 1430, "endOffset": 1685, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "execute",
+          "ranges": [{ "startOffset": 2309, "endOffset": 2947, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "childProcessFallback",
+          "ranges": [{ "startOffset": 2957, "endOffset": 8336, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "executeWithPty",
+          "ranges": [{ "startOffset": 8346, "endOffset": 12793, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "318",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/getPty.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 2868, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 2868, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 243, "endOffset": 283, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "getPty",
+          "ranges": [{ "startOffset": 389, "endOffset": 779, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "319",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/systemEncoding.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 17087, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 17087, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 255, "endOffset": 307, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 364, "endOffset": 424, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 472, "endOffset": 523, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 579, "endOffset": 638, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 694, "endOffset": 753, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 808, "endOffset": 866, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "resetEncodingCache",
+          "ranges": [{ "startOffset": 1289, "endOffset": 1355, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "getCachedEncodingForBuffer",
+          "ranges": [{ "startOffset": 1357, "endOffset": 1756, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "getSystemEncoding",
+          "ranges": [{ "startOffset": 1758, "endOffset": 2114, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "detectSystemEncodingAsync",
+          "ranges": [{ "startOffset": 2116, "endOffset": 3845, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "windowsCodePageToEncoding",
+          "ranges": [{ "startOffset": 3847, "endOffset": 4514, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "detectEncodingFromBuffer",
+          "ranges": [{ "startOffset": 4516, "endOffset": 4835, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "331",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/textUtils.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 2597, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 2597, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 245, "endOffset": 287, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "isBinary",
+          "ranges": [{ "startOffset": 378, "endOffset": 641, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    }
+  ]
+}

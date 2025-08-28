@@ -1,1 +1,58 @@
-{"result":[{"scriptId":"315","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/useConsoleMessages.test.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":14476,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":14476,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":800,"endOffset":5134,"count":0}],"isBlockCoverage":false}],"startOffset":209},{"scriptId":"610","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/useConsoleMessages.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":9213,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":9213,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":255,"endOffset":307,"count":0}],"isBlockCoverage":false},{"functionName":"consoleMessagesReducer","ranges":[{"startOffset":550,"endOffset":1258,"count":0}],"isBlockCoverage":false},{"functionName":"useConsoleMessages","ranges":[{"startOffset":1259,"endOffset":2753,"count":0}],"isBlockCoverage":false}],"startOffset":209}]}
+{
+  "result": [
+    {
+      "scriptId": "315",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/useConsoleMessages.test.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 14476, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 14476, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 800, "endOffset": 5134, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "610",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/ui/hooks/useConsoleMessages.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 9213, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 9213, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 255, "endOffset": 307, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "consoleMessagesReducer",
+          "ranges": [{ "startOffset": 550, "endOffset": 1258, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "useConsoleMessages",
+          "ranges": [{ "startOffset": 1259, "endOffset": 2753, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    }
+  ]
+}

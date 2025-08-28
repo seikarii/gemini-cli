@@ -25,12 +25,16 @@ describe('isGitHubRepository', async () => {
   });
 
   it('returns false if the git command fails', async () => {
-    vi.spyOn(child_process, 'exec').mockImplementation(vi.fn().mockResolvedValue(new Error('oops')));
+    vi.spyOn(child_process, 'exec').mockImplementation(
+      vi.fn().mockResolvedValue(new Error('oops')),
+    );
     await expect(isGitHubRepository()).resolves.toBe(false);
   });
 
   it('returns false if the remote is not github.com', async () => {
-    vi.spyOn(child_process, 'exec').mockImplementationOnce(vi.fn().mockResolvedValue('https://gitlab.com'));
+    vi.spyOn(child_process, 'exec').mockImplementationOnce(
+      vi.fn().mockResolvedValue('https://gitlab.com'),
+    );
     await expect(isGitHubRepository()).resolves.toBe(false);
   });
 
@@ -57,12 +61,16 @@ describe('getGitHubRepoInfo', async () => {
   });
 
   it('throws an error if github repo info cannot be determined', async () => {
-    vi.spyOn(child_process, 'exec').mockImplementation(vi.fn().mockRejectedValue(new Error('oops')));
+    vi.spyOn(child_process, 'exec').mockImplementation(
+      vi.fn().mockRejectedValue(new Error('oops')),
+    );
     await expect(getGitHubRepoInfo()).rejects.toThrowError(/oops/);
   });
 
   it('throws an error if owner/repo could not be determined', async () => {
-    vi.spyOn(child_process, 'exec').mockImplementationOnce(vi.fn().mockResolvedValue(''));
+    vi.spyOn(child_process, 'exec').mockImplementationOnce(
+      vi.fn().mockResolvedValue(''),
+    );
     await expect(getGitHubRepoInfo()).rejects.toThrowError(
       /Owner & repo could not be extracted from remote URL/,
     );
@@ -70,9 +78,11 @@ describe('getGitHubRepoInfo', async () => {
 
   it('returns the owner and repo', async () => {
     vi.spyOn(child_process, 'exec').mockImplementationOnce(
-      vi.fn().mockResolvedValue(
-        'origin  https://github.com/sethvargo/gemini-cli (fetch)',
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(
+          'origin  https://github.com/sethvargo/gemini-cli (fetch)',
+        ),
     );
     await expect(getGitHubRepoInfo()).resolves.toStrictEqual({
       owner: 'sethvargo',
@@ -91,12 +101,16 @@ describe('getGitRepoRoot', async () => {
   });
 
   it('throws an error if git root cannot be determined', async () => {
-    vi.spyOn(child_process, 'exec').mockImplementation(vi.fn().mockRejectedValue(new Error('oops')));
+    vi.spyOn(child_process, 'exec').mockImplementation(
+      vi.fn().mockRejectedValue(new Error('oops')),
+    );
     await expect(getGitRepoRoot()).rejects.toThrowError(/oops/);
   });
 
   it('throws an error if git root is empty', async () => {
-    vi.spyOn(child_process, 'exec').mockImplementationOnce(vi.fn().mockResolvedValue(''));
+    vi.spyOn(child_process, 'exec').mockImplementationOnce(
+      vi.fn().mockResolvedValue(''),
+    );
     await expect(getGitRepoRoot()).rejects.toThrowError(
       /Git repo returned empty value/,
     );
@@ -104,9 +118,7 @@ describe('getGitRepoRoot', async () => {
 
   it('returns the root', async () => {
     vi.spyOn(child_process, 'exec').mockImplementationOnce(
-      vi.fn().mockResolvedValue(
-        '/path/to/git/repo',
-      ),
+      vi.fn().mockResolvedValue('/path/to/git/repo'),
     );
     await expect(getGitRepoRoot()).resolves.toBe('/path/to/git/repo');
   });

@@ -1,1 +1,310 @@
-{"result":[{"scriptId":"315","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/gitIgnoreParser.test.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":24698,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":24698,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":837,"endOffset":9232,"count":1}],"isBlockCoverage":true},{"functionName":"createTestFile","ranges":[{"startOffset":880,"endOffset":1174,"count":16}],"isBlockCoverage":true},{"functionName":"setupGitRepo","ranges":[{"startOffset":1177,"endOffset":1321,"count":16}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1361,"endOffset":1581,"count":18}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1622,"endOffset":1722,"count":18}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1780,"endOffset":4300,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1883,"endOffset":2020,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1964,"endOffset":1998,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2108,"endOffset":2949,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3019,"endOffset":3556,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3635,"endOffset":4082,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":4183,"endOffset":4294,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":4230,"endOffset":4272,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":4353,"endOffset":8773,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":4402,"endOffset":4642,"count":12}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":4717,"endOffset":5064,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":5141,"endOffset":5813,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":5900,"endOffset":6148,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":6219,"endOffset":6354,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":6444,"endOffset":6657,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":6735,"endOffset":6922,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":7023,"endOffset":7216,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":7294,"endOffset":7601,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":7684,"endOffset":7937,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":8027,"endOffset":8198,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":8074,"endOffset":8101,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":8294,"endOffset":8483,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":8341,"endOffset":8377,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":8572,"endOffset":8767,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":8619,"endOffset":8658,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":8835,"endOffset":9228,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":8916,"endOffset":9222,"count":1}],"isBlockCoverage":true}],"startOffset":209},{"scriptId":"317","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/gitIgnoreParser.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":6905,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":6905,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":252,"endOffset":301,"count":18},{"startOffset":291,"endOffset":299,"count":0}],"isBlockCoverage":true},{"functionName":"<instance_members_initializer>","ranges":[{"startOffset":780,"endOffset":2229,"count":18}],"isBlockCoverage":true},{"functionName":"GitIgnoreParser","ranges":[{"startOffset":860,"endOffset":957,"count":18}],"isBlockCoverage":true},{"functionName":"loadGitRepoPatterns","ranges":[{"startOffset":960,"endOffset":1265,"count":16},{"startOffset":1054,"endOffset":1061,"count":0},{"startOffset":1225,"endOffset":1261,"count":32}],"isBlockCoverage":true},{"functionName":"loadPatterns","ranges":[{"startOffset":1268,"endOffset":1696,"count":34},{"startOffset":1506,"endOffset":1542,"count":18},{"startOffset":1542,"endOffset":1574,"count":16},{"startOffset":1574,"endOffset":1579,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1597,"endOffset":1612,"count":109}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1621,"endOffset":1658,"count":109},{"startOffset":1637,"endOffset":1658,"count":83}],"isBlockCoverage":true},{"functionName":"addPatterns","ranges":[{"startOffset":1699,"endOffset":1790,"count":32}],"isBlockCoverage":true},{"functionName":"isIgnored","ranges":[{"startOffset":1793,"endOffset":2179,"count":34},{"startOffset":2042,"endOffset":2069,"count":8},{"startOffset":2069,"endOffset":2178,"count":26}],"isBlockCoverage":true},{"functionName":"getPatterns","ranges":[{"startOffset":2182,"endOffset":2227,"count":4}],"isBlockCoverage":true}],"startOffset":209},{"scriptId":"319","url":"file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/gitUtils.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":5109,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":5109,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":252,"endOffset":301,"count":16},{"startOffset":291,"endOffset":299,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":343,"endOffset":388,"count":0}],"isBlockCoverage":false},{"functionName":"isGitRepository","ranges":[{"startOffset":609,"endOffset":1118,"count":16},{"startOffset":888,"endOffset":1116,"count":0}],"isBlockCoverage":true},{"functionName":"findGitRoot","ranges":[{"startOffset":1120,"endOffset":1629,"count":0}],"isBlockCoverage":false}],"startOffset":209}]}
+{
+  "result": [
+    {
+      "scriptId": "315",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/gitIgnoreParser.test.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 24698, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 24698, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 837, "endOffset": 9232, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "createTestFile",
+          "ranges": [{ "startOffset": 880, "endOffset": 1174, "count": 16 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "setupGitRepo",
+          "ranges": [{ "startOffset": 1177, "endOffset": 1321, "count": 16 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1361, "endOffset": 1581, "count": 18 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1622, "endOffset": 1722, "count": 18 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1780, "endOffset": 4300, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1883, "endOffset": 2020, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1964, "endOffset": 1998, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2108, "endOffset": 2949, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3019, "endOffset": 3556, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3635, "endOffset": 4082, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4183, "endOffset": 4294, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4230, "endOffset": 4272, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4353, "endOffset": 8773, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4402, "endOffset": 4642, "count": 12 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4717, "endOffset": 5064, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 5141, "endOffset": 5813, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 5900, "endOffset": 6148, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 6219, "endOffset": 6354, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 6444, "endOffset": 6657, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 6735, "endOffset": 6922, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 7023, "endOffset": 7216, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 7294, "endOffset": 7601, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 7684, "endOffset": 7937, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 8027, "endOffset": 8198, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 8074, "endOffset": 8101, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 8294, "endOffset": 8483, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 8341, "endOffset": 8377, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 8572, "endOffset": 8767, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 8619, "endOffset": 8658, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 8835, "endOffset": 9228, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 8916, "endOffset": 9222, "count": 1 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "317",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/gitIgnoreParser.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 6905, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 6905, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 252, "endOffset": 301, "count": 18 },
+            { "startOffset": 291, "endOffset": 299, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "<instance_members_initializer>",
+          "ranges": [{ "startOffset": 780, "endOffset": 2229, "count": 18 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "GitIgnoreParser",
+          "ranges": [{ "startOffset": 860, "endOffset": 957, "count": 18 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "loadGitRepoPatterns",
+          "ranges": [
+            { "startOffset": 960, "endOffset": 1265, "count": 16 },
+            { "startOffset": 1054, "endOffset": 1061, "count": 0 },
+            { "startOffset": 1225, "endOffset": 1261, "count": 32 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "loadPatterns",
+          "ranges": [
+            { "startOffset": 1268, "endOffset": 1696, "count": 34 },
+            { "startOffset": 1506, "endOffset": 1542, "count": 18 },
+            { "startOffset": 1542, "endOffset": 1574, "count": 16 },
+            { "startOffset": 1574, "endOffset": 1579, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1597, "endOffset": 1612, "count": 109 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 1621, "endOffset": 1658, "count": 109 },
+            { "startOffset": 1637, "endOffset": 1658, "count": 83 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "addPatterns",
+          "ranges": [{ "startOffset": 1699, "endOffset": 1790, "count": 32 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "isIgnored",
+          "ranges": [
+            { "startOffset": 1793, "endOffset": 2179, "count": 34 },
+            { "startOffset": 2042, "endOffset": 2069, "count": 8 },
+            { "startOffset": 2069, "endOffset": 2178, "count": 26 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "getPatterns",
+          "ranges": [{ "startOffset": 2182, "endOffset": 2227, "count": 4 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "319",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/core/src/utils/gitUtils.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 5109, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 5109, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 252, "endOffset": 301, "count": 16 },
+            { "startOffset": 291, "endOffset": 299, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 343, "endOffset": 388, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "isGitRepository",
+          "ranges": [
+            { "startOffset": 609, "endOffset": 1118, "count": 16 },
+            { "startOffset": 888, "endOffset": 1116, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "findGitRoot",
+          "ranges": [{ "startOffset": 1120, "endOffset": 1629, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    }
+  ]
+}

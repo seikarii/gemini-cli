@@ -35,7 +35,8 @@
     "test",
     "**/test/**",
     "integration-tests",
-    "**/integration-tests/**"
+    "**/integration-tests/**",
+    "**/.gemini_checkpoints/**"
     // packages/mew-upgrade previously excluded; remove to include updated mew-upgrade sources in the build
     // "packages/mew-upgrade"
   ]

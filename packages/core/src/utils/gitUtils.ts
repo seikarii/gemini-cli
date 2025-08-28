@@ -79,7 +79,9 @@ export function findGitRoot(directory: string): string | null {
  * @param directory The directory to check
  * @returns Promise that resolves to true if the directory is in a git repository, false otherwise
  */
-export async function isGitRepositoryAsync(directory: string): Promise<boolean> {
+export async function isGitRepositoryAsync(
+  directory: string,
+): Promise<boolean> {
   try {
     let currentDir = path.resolve(directory);
 
@@ -117,7 +119,9 @@ export async function isGitRepositoryAsync(directory: string): Promise<boolean> 
  * @param directory Starting directory to search from
  * @returns Promise that resolves to the git repository root path, or null if not in a git repository
  */
-export async function findGitRootAsync(directory: string): Promise<string | null> {
+export async function findGitRootAsync(
+  directory: string,
+): Promise<string | null> {
   try {
     let currentDir = path.resolve(directory);
 

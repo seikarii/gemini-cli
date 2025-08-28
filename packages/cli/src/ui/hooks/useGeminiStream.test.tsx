@@ -50,7 +50,7 @@ const mockSendMessageStream = vi
 const mockStartChat = vi.fn();
 
 const MockedGeminiClientClass = vi.hoisted(() =>
-  vi.fn().mockImplementation(function (this: any, _config: any) {
+  vi.fn().mockImplementation(function (this: unknown, _config: unknown) {
     // _config
     this.startChat = mockStartChat;
     this.sendMessageStream = mockSendMessageStream;
@@ -64,7 +64,7 @@ const MockedUserPromptEvent = vi.hoisted(() =>
 const mockParseAndFormatApiError = vi.hoisted(() => vi.fn());
 
 vi.mock('@google/gemini-cli-core', async (importOriginal) => {
-  const actualCoreModule = (await importOriginal()) as any;
+    const actualCoreModule = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actualCoreModule,
     GitService: vi.fn(),
@@ -76,7 +76,10 @@ vi.mock('@google/gemini-cli-core', async (importOriginal) => {
 
 const mockUseReactToolScheduler = useReactToolScheduler as Mock;
 vi.mock('./useReactToolScheduler.js', async (importOriginal) => {
-  const actualSchedulerModule = (await importOriginal()) as any;
+    const actualSchedulerModule = (await importOriginal()) as Record<
+    string,
+    unknown
+  >;
   return {
     ...(actualSchedulerModule || {}),
     useReactToolScheduler: vi.fn(),
@@ -188,7 +191,7 @@ describe('useGeminiStream', () => {
       showMemoryUsage: false,
       contextFileName: undefined,
       getToolRegistry: vi.fn(
-        () => ({ getToolSchemaList: vi.fn(() => []) }) as any,
+        () => ({ getToolSchemaList: vi.fn(() => []) }) as unknown,
       ),
       getProjectRoot: vi.fn(() => '/test/dir'),
       getCheckpointingEnabled: vi.fn(() => false),
@@ -244,7 +247,7 @@ describe('useGeminiStream', () => {
 
   const renderTestHook = (
     initialToolCalls: TrackedToolCall[] = [],
-    geminiClient?: any,
+    geminiClient?: GeminiClient,
   ) => {
     let currentToolCalls = initialToolCalls;
     const setToolCalls = (newToolCalls: TrackedToolCall[]) => {
@@ -262,7 +265,7 @@ describe('useGeminiStream', () => {
 
     const { result, rerender } = renderHook(
       (props: {
-        client: any;
+        client: GeminiClient;
         history: HistoryItem[];
         addItem: UseHistoryManagerReturn['addItem'];
         config: Config;
@@ -345,7 +348,7 @@ describe('useGeminiStream', () => {
           displayName: 'tool1',
           description: 'desc1',
           build: vi.fn(),
-        } as any,
+        } as unknown,
         invocation: {
           getDescription: () => `Mock description`,
         } as unknown as AnyToolInvocation,
@@ -366,7 +369,7 @@ describe('useGeminiStream', () => {
           displayName: 'tool2',
           description: 'desc2',
           build: vi.fn(),
-        } as any,
+        } as unknown,
         invocation: {
           getDescription: () => `Mock description`,
         } as unknown as AnyToolInvocation,
@@ -571,7 +574,7 @@ describe('useGeminiStream', () => {
         displayName: 'toolA',
         description: 'descA',
         build: vi.fn(),
-      } as any,
+      } as unknown,
       invocation: {
         getDescription: () => `Mock description`,
       } as unknown as AnyToolInvocation,
@@ -600,7 +603,7 @@ describe('useGeminiStream', () => {
         displayName: 'toolB',
         description: 'descB',
         build: vi.fn(),
-      } as any,
+      } as unknown,
       invocation: {
         getDescription: () => `Mock description`,
       } as unknown as AnyToolInvocation,
@@ -700,7 +703,7 @@ describe('useGeminiStream', () => {
           displayName: 'tool1',
           description: 'desc',
           build: vi.fn(),
-        } as any,
+        } as unknown,
         invocation: {
           getDescription: () => `Mock description`,
         } as unknown as AnyToolInvocation,
@@ -971,7 +974,7 @@ describe('useGeminiStream', () => {
             build: vi.fn().mockImplementation((_) => ({
               getDescription: () => `Mock description`,
             })),
-          } as any,
+          } as unknown,
           invocation: {
             getDescription: () => `Mock description`,
           },
@@ -1128,7 +1131,7 @@ describe('useGeminiStream', () => {
           displayName: 'save_memory',
           description: 'Saves memory',
           build: vi.fn(),
-        } as any,
+        } as unknown,
         invocation: {
           getDescription: () => `Mock description`,
         } as unknown as AnyToolInvocation,

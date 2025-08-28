@@ -33,7 +33,7 @@ describe('list_directory', () => {
 
     const result = await rig.run(prompt);
 
-    const foundToolCall = await rig.waitForToolCall('list_directory');
+    const foundToolCall = await rig.waitForToolCall('list_directory', 8000); // 8 seconds
 
     // Add debugging information
     if (

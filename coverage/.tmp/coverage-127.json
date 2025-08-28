@@ -1,1 +1,187 @@
-{"result":[{"scriptId":"315","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/commands/mcp/list.test.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":17751,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":17751,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":410,"endOffset":467,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":529,"endOffset":588,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":648,"endOffset":1210,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":884,"endOffset":1104,"count":0}],"isBlockCoverage":false},{"functionName":"getErrorMessage","ranges":[{"startOffset":1158,"endOffset":1207,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":1288,"endOffset":1499,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1356,"endOffset":1495,"count":0}],"isBlockCoverage":false},{"functionName":"","ranges":[{"startOffset":2222,"endOffset":6277,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2326,"endOffset":2825,"count":4}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2463,"endOffset":2476,"count":10}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2866,"endOffset":2907,"count":4}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":2994,"endOffset":3257,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3354,"endOffset":4574,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":4668,"endOffset":5201,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":5289,"endOffset":6273,"count":1}],"isBlockCoverage":true}],"startOffset":209},{"scriptId":"317","url":"file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/commands/mcp/list.ts","functions":[{"functionName":"","ranges":[{"startOffset":0,"endOffset":12430,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":13,"endOffset":12430,"count":1}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":251,"endOffset":299,"count":4},{"startOffset":289,"endOffset":297,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":341,"endOffset":386,"count":0}],"isBlockCoverage":false},{"functionName":"getMcpServersFromConfig","ranges":[{"startOffset":1154,"endOffset":1762,"count":4},{"startOffset":1414,"endOffset":1419,"count":0},{"startOffset":1461,"endOffset":1738,"count":1},{"startOffset":1510,"endOffset":1515,"count":0}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":1532,"endOffset":1727,"count":1},{"startOffset":1582,"endOffset":1611,"count":0}],"isBlockCoverage":true},{"functionName":"testMCPConnection","ranges":[{"startOffset":1763,"endOffset":2450,"count":6},{"startOffset":2047,"endOffset":2156,"count":0},{"startOffset":2220,"endOffset":2336,"count":0}],"isBlockCoverage":true},{"functionName":"getServerStatus","ranges":[{"startOffset":2451,"endOffset":2559,"count":6}],"isBlockCoverage":true},{"functionName":"listMcpServers","ranges":[{"startOffset":2560,"endOffset":4037,"count":4},{"startOffset":2727,"endOffset":2791,"count":1},{"startOffset":2791,"endOffset":2877,"count":3},{"startOffset":2877,"endOffset":4035,"count":6},{"startOffset":3067,"endOffset":3228,"count":0},{"startOffset":3235,"endOffset":3399,"count":0},{"startOffset":3658,"endOffset":3713,"count":1},{"startOffset":3713,"endOffset":3899,"count":5},{"startOffset":3735,"endOffset":3785,"count":1},{"startOffset":3785,"endOffset":3899,"count":4},{"startOffset":3865,"endOffset":3871,"count":1},{"startOffset":3877,"endOffset":3882,"count":3},{"startOffset":4035,"endOffset":4036,"count":3}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":3992,"endOffset":4029,"count":6}],"isBlockCoverage":true},{"functionName":"handler","ranges":[{"startOffset":4138,"endOffset":4183,"count":0}],"isBlockCoverage":false}],"startOffset":209}]}
+{
+  "result": [
+    {
+      "scriptId": "315",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/commands/mcp/list.test.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 17751, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 17751, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 410, "endOffset": 467, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 529, "endOffset": 588, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 648, "endOffset": 1210, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 884, "endOffset": 1104, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "getErrorMessage",
+          "ranges": [{ "startOffset": 1158, "endOffset": 1207, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1288, "endOffset": 1499, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 1356, "endOffset": 1495, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2222, "endOffset": 6277, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2326, "endOffset": 2825, "count": 4 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2463, "endOffset": 2476, "count": 10 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2866, "endOffset": 2907, "count": 4 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 2994, "endOffset": 3257, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3354, "endOffset": 4574, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 4668, "endOffset": 5201, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 5289, "endOffset": 6273, "count": 1 }],
+          "isBlockCoverage": true
+        }
+      ],
+      "startOffset": 209
+    },
+    {
+      "scriptId": "317",
+      "url": "file:///media/seikarii/Nvme/gemini-cli/packages/cli/src/commands/mcp/list.ts",
+      "functions": [
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 0, "endOffset": 12430, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 13, "endOffset": 12430, "count": 1 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 251, "endOffset": 299, "count": 4 },
+            { "startOffset": 289, "endOffset": 297, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 341, "endOffset": 386, "count": 0 }],
+          "isBlockCoverage": false
+        },
+        {
+          "functionName": "getMcpServersFromConfig",
+          "ranges": [
+            { "startOffset": 1154, "endOffset": 1762, "count": 4 },
+            { "startOffset": 1414, "endOffset": 1419, "count": 0 },
+            { "startOffset": 1461, "endOffset": 1738, "count": 1 },
+            { "startOffset": 1510, "endOffset": 1515, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [
+            { "startOffset": 1532, "endOffset": 1727, "count": 1 },
+            { "startOffset": 1582, "endOffset": 1611, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "testMCPConnection",
+          "ranges": [
+            { "startOffset": 1763, "endOffset": 2450, "count": 6 },
+            { "startOffset": 2047, "endOffset": 2156, "count": 0 },
+            { "startOffset": 2220, "endOffset": 2336, "count": 0 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "getServerStatus",
+          "ranges": [{ "startOffset": 2451, "endOffset": 2559, "count": 6 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "listMcpServers",
+          "ranges": [
+            { "startOffset": 2560, "endOffset": 4037, "count": 4 },
+            { "startOffset": 2727, "endOffset": 2791, "count": 1 },
+            { "startOffset": 2791, "endOffset": 2877, "count": 3 },
+            { "startOffset": 2877, "endOffset": 4035, "count": 6 },
+            { "startOffset": 3067, "endOffset": 3228, "count": 0 },
+            { "startOffset": 3235, "endOffset": 3399, "count": 0 },
+            { "startOffset": 3658, "endOffset": 3713, "count": 1 },
+            { "startOffset": 3713, "endOffset": 3899, "count": 5 },
+            { "startOffset": 3735, "endOffset": 3785, "count": 1 },
+            { "startOffset": 3785, "endOffset": 3899, "count": 4 },
+            { "startOffset": 3865, "endOffset": 3871, "count": 1 },
+            { "startOffset": 3877, "endOffset": 3882, "count": 3 },
+            { "startOffset": 4035, "endOffset": 4036, "count": 3 }
+          ],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "",
+          "ranges": [{ "startOffset": 3992, "endOffset": 4029, "count": 6 }],
+          "isBlockCoverage": true
+        },
+        {
+          "functionName": "handler",
+          "ranges": [{ "startOffset": 4138, "endOffset": 4183, "count": 0 }],
+          "isBlockCoverage": false
+        }
+      ],
+      "startOffset": 209
+    }
+  ]
+}
