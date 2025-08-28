@@ -55,7 +55,7 @@ class CodeAnalysisWorker {
     const startTime = Date.now();
     
     try {
-      const language = input.language || this.detectLanguage(input.filePath);
+      const language = input.language || this.detectLanguageFromCode(input.code);
       
       if (!this.supportedLanguages.has(language)) {
         throw new Error(`Unsupported language: ${language}`);
@@ -71,54 +71,51 @@ class CodeAnalysisWorker {
       const processingTime = Date.now() - startTime;
 
       return {
-        success: true,
-        language,
-        complexity,
-        quality: {
-          issues: quality,
-          score: this.calculateQualityScore(quality),
+        syntax: {
+          valid: true,
+          errors: [],
         },
-        structure,
-        dependencies,
+        complexity: {
+          cyclomatic: complexity.cyclomaticComplexity,
+          cognitive: complexity.cognitiveComplexity,
+          maintainabilityIndex: this.calculateMaintainabilityIndex(complexity),
+        },
         security: {
-          issues: security,
-          riskLevel: this.calculateSecurityRisk(security),
+          vulnerabilities: security,
         },
-        metadata: {
-          analysisType: input.analysisType || 'full',
-          processingTime,
-          linesAnalyzed: input.code.split('\n').length,
-          language,
+        metrics: {
+          linesOfCode: complexity.linesOfCode,
+          linesOfComments: Math.floor(complexity.linesOfCode * complexity.commentsRatio),
+          functions: complexity.functionsCount,
+          classes: complexity.classesCount,
+          imports: dependencies.length,
         },
       };
     } catch (error) {
       return {
-        success: false,
-        language: 'unknown',
+        syntax: {
+          valid: false,
+          errors: [{
+            message: error instanceof Error ? error.message : String(error),
+            line: 0,
+            column: 0,
+            severity: 'error' as const,
+          }],
+        },
         complexity: {
-          cyclomaticComplexity: 0,
-          cognitiveComplexity: 0,
-          linesOfCode: 0,
-          functionsCount: 0,
-          classesCount: 0,
-          commentsRatio: 0,
+          cyclomatic: 0,
+          cognitive: 0,
+          maintainabilityIndex: 0,
         },
-        quality: {
-          issues: [],
-          score: 0,
-        },
-        structure: {},
-        dependencies: [],
         security: {
-          issues: [],
-          riskLevel: 'unknown',
+          vulnerabilities: [],
         },
-        metadata: {
-          analysisType: input.analysisType || 'full',
-          processingTime: Date.now() - startTime,
-          linesAnalyzed: 0,
-          language: 'unknown',
-          error: error instanceof Error ? error.message : String(error),
+        metrics: {
+          linesOfCode: 0,
+          linesOfComments: 0,
+          functions: 0,
+          classes: 0,
+          imports: 0,
         },
       };
     }
@@ -148,6 +145,55 @@ class CodeAnalysisWorker {
     };
     
     return languageMap[extension] || 'unknown';
+  }
+
+  /**
+   * Detect programming language from code content
+   */
+  private detectLanguageFromCode(code: string): string {
+    // Simple heuristics to detect language from code patterns
+    if (code.includes('import ') && code.includes('from ')) {
+      if (code.includes('def ') || code.includes('class ') && code.includes(':')) {
+        return 'python';
+      }
+      if (code.includes('function') || code.includes('=>') || code.includes('const ')) {
+        return 'javascript';
+      }
+    }
+    
+    if (code.includes('interface ') || code.includes('type ') || code.includes('<T>')) {
+      return 'typescript';
+    }
+    
+    if (code.includes('public class') || code.includes('private ') || code.includes('public static void main')) {
+      return 'java';
+    }
+    
+    if (code.includes('#include') || code.includes('int main(')) {
+      return 'c';
+    }
+    
+    if (code.includes('std::') || code.includes('namespace ')) {
+      return 'cpp';
+    }
+    
+    return 'javascript'; // Default fallback
+  }
+
+  /**
+   * Calculate maintainability index from complexity metrics
+   */
+  private calculateMaintainabilityIndex(complexity: ComplexityMetrics): number {
+    // Simplified maintainability index calculation
+    // Higher values = better maintainability (0-100 scale)
+    const baseScore = 100;
+    const cyclomaticPenalty = complexity.cyclomaticComplexity * 2;
+    const cognitivePenalty = complexity.cognitiveComplexity * 1.5;
+    const sizePenalty = Math.log(complexity.linesOfCode) * 5;
+    const commentBonus = complexity.commentsRatio * 20;
+    
+    const index = baseScore - cyclomaticPenalty - cognitivePenalty - sizePenalty + commentBonus;
+    return Math.max(0, Math.min(100, Math.round(index)));
   }
 
   /**
