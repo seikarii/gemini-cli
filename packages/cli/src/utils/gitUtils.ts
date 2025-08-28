@@ -4,9 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { exec } from 'child_process';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
 import { ProxyAgent } from 'undici';
 import { logger } from '../config/logger.js';
+
+const execAsync = promisify(exec);
 
 /**
  * Checks if a directory is within a git repository hosted on GitHub.
@@ -14,17 +17,9 @@ import { logger } from '../config/logger.js';
  */
 export const isGitHubRepository = async (): Promise<boolean> => {
   try {
-    const remotes = (
-      (await new Promise<string>((resolve, reject) =>
-        exec('git remote -v', { encoding: 'utf-8' }, (err, stdout) =>
-          err ? reject(err) : resolve(stdout || ''),
-        ),
-      )) || ''
-    ).trim();
-
+    const { stdout: remotes } = await execAsync('git remote -v', { encoding: 'utf-8' });
     const pattern = /github\.com/;
-
-    return pattern.test(remotes);
+    return pattern.test(remotes.trim());
   } catch (error) {
     // If any filesystem error occurs, assume not a git repo
     logger.debug(`Failed to get git remote:`, error);
@@ -38,21 +33,13 @@ export const isGitHubRepository = async (): Promise<boolean> => {
  * @throws error if the exec command fails.
  */
 export const getGitRepoRoot = async (): Promise<string> => {
-  const gitRepoRoot = (
-    (await new Promise<string>((resolve, reject) =>
-      exec(
-        'git rev-parse --show-toplevel',
-        { encoding: 'utf-8' },
-        (err, stdout) => (err ? reject(err) : resolve(stdout || '')),
-      ),
-    )) || ''
-  ).trim();
+  const { stdout: gitRepoRoot } = await execAsync('git rev-parse --show-toplevel', { encoding: 'utf-8' });
 
   if (!gitRepoRoot) {
     throw new Error(`Git repo returned empty value`);
   }
 
-  return gitRepoRoot;
+  return gitRepoRoot.trim();
 };
 
 /**
@@ -106,16 +93,10 @@ export async function getGitHubRepoInfo(): Promise<{
   owner: string;
   repo: string;
 }> {
-  const remoteUrl = (
-    (await new Promise<string>((resolve, reject) =>
-      exec('git remote get-url origin', { encoding: 'utf-8' }, (err, stdout) =>
-        err ? reject(err) : resolve(stdout || ''),
-      ),
-    )) || ''
-  ).trim();
+  const { stdout: remoteUrl } = await execAsync('git remote get-url origin', { encoding: 'utf-8' });
 
   // Matches either https://github.com/owner/repo.git or git@github.com:owner/repo.git
-  const match = remoteUrl.match(
+  const match = remoteUrl.trim().match(
     /(?:https?:\/\/|git@)github\.com(?::|\/)([^/]+)\/([^/]+?)(?:\.git)?$/,
   );
 

@@ -86,7 +86,7 @@ describe('gemini.tsx main function', () => {
 
   const processExitSpy = vi
     .spyOn(process, 'exit')
-    .mockImplementation((() => {}) as (code?: number | undefined) => never);
+    .mockImplementation((() => {}) as (code?: string | number | null | undefined) => never);
 
   beforeEach(() => {
     loadSettingsMock = vi.mocked(loadSettings);

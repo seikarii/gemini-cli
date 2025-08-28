@@ -43,6 +43,37 @@ export class InstallationManager {
     return null;
   }
 
+  /**
+   * Async version of readInstallationIdFromFile that uses fs.promises for non-blocking file operations.
+   * This is the recommended version for new code and performance-critical paths.
+   * @returns Promise that resolves to the installation ID string or null if not found
+   */
+  private async readInstallationIdFromFileAsync(): Promise<string | null> {
+    const installationIdFile = this.getInstallationIdPath();
+    try {
+      if (this.fileSystemService) {
+        // Use FileSystemService for standardized file operations
+        const fileInfo = await this.fileSystemService.getFileInfo(installationIdFile);
+        if (fileInfo.success && fileInfo.data?.exists) {
+          const readResult = await this.fileSystemService.readTextFile(installationIdFile);
+          return readResult.success ? (readResult.data?.trim() || null) : null;
+        }
+      } else {
+        // Fallback to direct fs.promises operations
+        try {
+          const installationid = await fsp.readFile(installationIdFile, 'utf-8');
+          return installationid.trim() || null;
+        } catch {
+          // File doesn't exist or can't be read
+          return null;
+        }
+      }
+    } catch (error) {
+      console.error('Error reading installation ID file:', error);
+    }
+    return null;
+  }
+
   private writeInstallationIdToFile(installationId: string) {
     const installationIdFile = this.getInstallationIdPath();
     const dir = path.dirname(installationIdFile);
@@ -72,6 +103,30 @@ export class InstallationManager {
   getInstallationId(): string {
     try {
       let installationId = this.readInstallationIdFromFile();
+
+      if (!installationId) {
+        installationId = randomUUID();
+        this.writeInstallationIdToFile(installationId);
+      }
+
+      return installationId;
+    } catch (error) {
+      console.error(
+        'Error accessing installation ID file, generating ephemeral ID:',
+        error,
+      );
+      return '123456789';
+    }
+  }
+
+  /**
+   * Async version of getInstallationId that uses fs.promises for non-blocking file operations.
+   * This is the recommended version for new code and performance-critical paths.
+   * @returns Promise that resolves to a UUID string for the user
+   */
+  async getInstallationIdAsync(): Promise<string> {
+    try {
+      let installationId = await this.readInstallationIdFromFileAsync();
 
       if (!installationId) {
         installationId = randomUUID();
