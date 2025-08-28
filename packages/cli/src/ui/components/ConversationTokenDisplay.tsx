@@ -79,12 +79,15 @@ export const ConversationTokenDisplay: React.FC<
   }, [promptCount, loadTokens]);
 
   // Cleanup on unmount
-  useEffect(() => () => {
+  useEffect(
+    () => () => {
       isMountedRef.current = false;
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
-    }, []);
+    },
+    [],
+  );
 
   const maxTokens = tokenLimit(model);
   const usagePercentage = (totalPromptTokens / maxTokens) * 100;

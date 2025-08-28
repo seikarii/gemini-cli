@@ -324,7 +324,7 @@ describe('ReadFileTool', () => {
 
       const result = await invocation.execute(abortSignal);
       expect(result.llmContent).toEqual([
-        { text: 'Cannot display content of binary file: binary.bin' }
+        { text: 'Cannot display content of binary file: binary.bin' },
       ]);
       expect(result.returnDisplay).toBe('Skipped binary file: binary.bin');
     });

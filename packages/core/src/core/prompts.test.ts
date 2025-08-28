@@ -26,7 +26,7 @@ vi.mock('node:fs', () => ({
   },
 }));
 
-const mockedFs = vi.mocked(fs);
+const _mockedFs = vi.mocked(fs);
 
 // Mock tool names if they are dynamically generated or complex
 vi.mock('../tools/ls', () => ({ LSTool: { Name: 'list_directory' } }));
@@ -52,7 +52,7 @@ describe('Core System Prompt (prompts.ts)', () => {
     vi.resetAllMocks();
     vi.stubEnv('GEMINI_SYSTEM_MD', undefined);
     vi.stubEnv('GEMINI_WRITE_SYSTEM_MD', undefined);
-    
+
     // Create spies for fs functions
     vi.spyOn(fs, 'existsSync');
     vi.spyOn(fs, 'readFileSync');

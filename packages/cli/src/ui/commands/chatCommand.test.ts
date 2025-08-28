@@ -156,7 +156,9 @@ describe('chatCommand', () => {
         toISOString: () => 'an-invalid-date-string',
       } as Date;
 
-      mockFs.readdir.mockResolvedValue(fakeFiles as unknown as Array<Dirent<Buffer<ArrayBufferLike>>>);
+      mockFs.readdir.mockResolvedValue(
+        fakeFiles as unknown as Array<Dirent<Buffer<ArrayBufferLike>>>,
+      );
       mockFs.stat.mockResolvedValue({ mtime: badDate } as Stats);
 
       const result = (await listCommand?.action?.(

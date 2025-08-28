@@ -147,7 +147,9 @@ function ensureNewlineSeparation(currentContent: string): string {
 /**
  * Reads the current content of the memory file
  */
-async function readMemoryFileContent(config: Config | undefined): Promise<string> {
+async function readMemoryFileContent(
+  config: Config | undefined,
+): Promise<string> {
   try {
     if (!config) {
       // Fallback to raw fs methods when no config is provided
@@ -286,8 +288,14 @@ class MemoryToolInvocation extends BaseToolInvocation<
           if (!writeRes.success)
             throw new Error(writeRes.error || 'Error writing memory file');
         } else {
-          await fs.mkdir(path.dirname(getGlobalMemoryFilePath()), { recursive: true });
-          await fs.writeFile(getGlobalMemoryFilePath(), modified_content, 'utf-8');
+          await fs.mkdir(path.dirname(getGlobalMemoryFilePath()), {
+            recursive: true,
+          });
+          await fs.writeFile(
+            getGlobalMemoryFilePath(),
+            modified_content,
+            'utf-8',
+          );
         }
         const successMessage = `Okay, I've updated the memory file with your modifications.`;
         return {
@@ -302,23 +310,28 @@ class MemoryToolInvocation extends BaseToolInvocation<
         const fsAdapter = this.config
           ? {
               readFile: async (filePath: string) => {
-                const res = await this.config!
-                  .getFileSystemService()
-                  .readTextFile(filePath);
-                if (res.success && typeof res.data === 'string') return res.data;
+                const res =
+                  await this.config!.getFileSystemService().readTextFile(
+                    filePath,
+                  );
+                if (res.success && typeof res.data === 'string')
+                  return res.data;
                 throw new Error(res.error || 'Error reading file');
               },
               writeFile: async (filePath: string, data: string) => {
-                const res = await this.config!
-                  .getFileSystemService()
-                  .writeTextFile(filePath, data);
+                const res =
+                  await this.config!.getFileSystemService().writeTextFile(
+                    filePath,
+                    data,
+                  );
                 if (!res.success)
                   throw new Error(res.error || 'Error writing file');
               },
               mkdir: async (dirPath: string) => {
-                await this.config!
-                  .getFileSystemService()
-                  .createDirectory(dirPath, { recursive: true });
+                await this.config!.getFileSystemService().createDirectory(
+                  dirPath,
+                  { recursive: true },
+                );
                 return undefined;
               },
             }

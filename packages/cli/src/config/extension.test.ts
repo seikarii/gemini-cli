@@ -8,13 +8,8 @@ import { vi } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import {
-  EXTENSIONS_CONFIG_FILENAME,
-} from './constants.js';
-import {
-  annotateActiveExtensions,
-  loadExtensions,
-} from './extension.js';
+import { EXTENSIONS_CONFIG_FILENAME } from './constants.js';
+import { annotateActiveExtensions, loadExtensions } from './extension.js';
 
 vi.mock('os', async (importOriginal) => {
   const os = await importOriginal<typeof import('os')>();
@@ -116,9 +111,21 @@ describe('loadExtensions', () => {
 
 describe('annotateActiveExtensions', () => {
   const extensions = [
-    { path: '/path/to/ext1', config: { name: 'ext1', version: '1.0.0' }, contextFiles: [] },
-    { path: '/path/to/ext2', config: { name: 'ext2', version: '1.0.0' }, contextFiles: [] },
-    { path: '/path/to/ext3', config: { name: 'ext3', version: '1.0.0' }, contextFiles: [] },
+    {
+      path: '/path/to/ext1',
+      config: { name: 'ext1', version: '1.0.0' },
+      contextFiles: [],
+    },
+    {
+      path: '/path/to/ext2',
+      config: { name: 'ext2', version: '1.0.0' },
+      contextFiles: [],
+    },
+    {
+      path: '/path/to/ext3',
+      config: { name: 'ext3', version: '1.0.0' },
+      contextFiles: [],
+    },
   ];
 
   it('should mark all extensions as active if no enabled extensions are provided', () => {

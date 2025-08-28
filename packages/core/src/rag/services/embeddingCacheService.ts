@@ -41,7 +41,7 @@ export class EmbeddingCacheService {
     hits: 0,
     misses: 0,
     evictions: 0,
-    totalRequests: 0
+    totalRequests: 0,
   };
 
   constructor(logger: RAGLogger, config: Partial<EmbeddingCacheConfig> = {}) {
@@ -51,10 +51,12 @@ export class EmbeddingCacheService {
       ttlMs: 24 * 60 * 60 * 1000, // 24 hours
       enabled: true,
       lruEviction: true,
-      ...config
+      ...config,
     };
 
-    this.logger.info('EmbeddingCacheService initialized', { config: this.config });
+    this.logger.info('EmbeddingCacheService initialized', {
+      config: this.config,
+    });
   }
 
   /**
@@ -98,7 +100,9 @@ export class EmbeddingCacheService {
     }
 
     this.stats.hits++;
-    this.logger.debug('Embedding cache hit', { key: key.substring(0, 16) + '...' });
+    this.logger.debug('Embedding cache hit', {
+      key: key.substring(0, 16) + '...',
+    });
     return entry.embedding;
   }
 
@@ -118,7 +122,7 @@ export class EmbeddingCacheService {
       embedding,
       timestamp: now,
       lastAccessed: now,
-      contentHash
+      contentHash,
     };
 
     // Evict if necessary
@@ -127,9 +131,9 @@ export class EmbeddingCacheService {
     }
 
     this.cache.set(key, entry);
-    this.logger.debug('Stored embedding in cache', { 
+    this.logger.debug('Stored embedding in cache', {
       key: key.substring(0, 16) + '...',
-      size: this.cache.size 
+      size: this.cache.size,
     });
   }
 
@@ -147,15 +151,16 @@ export class EmbeddingCacheService {
    * Get cache statistics
    */
   getStats() {
-    const hitRate = this.stats.totalRequests > 0 
-      ? (this.stats.hits / this.stats.totalRequests) * 100 
-      : 0;
+    const hitRate =
+      this.stats.totalRequests > 0
+        ? (this.stats.hits / this.stats.totalRequests) * 100
+        : 0;
 
     return {
       ...this.stats,
       hitRate: Math.round(hitRate * 100) / 100,
       currentSize: this.cache.size,
-      maxSize: this.config.maxSize
+      maxSize: this.config.maxSize,
     };
   }
 
@@ -187,18 +192,22 @@ export class EmbeddingCacheService {
       return contents.map(() => null);
     }
 
-    return Promise.all(contents.map(content => this.get(content)));
+    return Promise.all(contents.map((content) => this.get(content)));
   }
 
   /**
    * Bulk set embeddings for multiple contents
    */
-  async setMany(pairs: Array<{ content: string; embedding: number[] }>): Promise<void> {
+  async setMany(
+    pairs: Array<{ content: string; embedding: number[] }>,
+  ): Promise<void> {
     if (!this.config.enabled) {
       return;
     }
 
-    await Promise.all(pairs.map(pair => this.set(pair.content, pair.embedding)));
+    await Promise.all(
+      pairs.map((pair) => this.set(pair.content, pair.embedding)),
+    );
   }
 
   private generateKey(content: string): string {

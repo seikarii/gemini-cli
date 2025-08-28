@@ -4,7 +4,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { describe, it, expect, vi, beforeEach, type MockInstance } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  type MockInstance,
+} from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import React from 'react';
 import { useVim } from './vim.js';
@@ -154,7 +161,10 @@ describe('useVim hook', () => {
 
   const renderVimHook = (buffer?: Partial<TextBuffer>) =>
     renderHook(() =>
-      useVim((buffer || mockBuffer) as TextBuffer, mockHandleFinalSubmit as unknown as (value: string) => void),
+      useVim(
+        (buffer || mockBuffer) as TextBuffer,
+        mockHandleFinalSubmit as unknown as (value: string) => void,
+      ),
     );
 
   // Test helper to create initial TextBufferState objects with required viewportWidth
@@ -191,7 +201,14 @@ describe('useVim hook', () => {
     };
   }) => {
     act(() => {
-      result.current.handleInput({ sequence: '\u001b', name: 'escape', ctrl: false, meta: false, shift: false, paste: false });
+      result.current.handleInput({
+        sequence: '\u001b',
+        name: 'escape',
+        ctrl: false,
+        meta: false,
+        shift: false,
+        paste: false,
+      });
     });
   };
 
@@ -1276,7 +1293,14 @@ describe('useVim hook', () => {
       mockVimContext.vimMode = 'INSERT';
       const { result } = renderVimHook();
 
-      const handled = result.current.handleInput({ name: 'r', ctrl: true, meta: false, shift: false, paste: false, sequence: 'r' });
+      const handled = result.current.handleInput({
+        name: 'r',
+        ctrl: true,
+        meta: false,
+        shift: false,
+        paste: false,
+        sequence: 'r',
+      });
 
       expect(handled).toBe(false);
     });
@@ -1295,7 +1319,14 @@ describe('useVim hook', () => {
       mockVimContext.vimMode = 'INSERT';
       const nonEmptyBuffer = createMockBuffer('not empty');
       const { result } = renderVimHook(nonEmptyBuffer);
-      const key = { sequence: '!', name: '!', ctrl: false, meta: false, shift: false, paste: false };
+      const key = {
+        sequence: '!',
+        name: '!',
+        ctrl: false,
+        meta: false,
+        shift: false,
+        paste: false,
+      };
 
       act(() => {
         result.current.handleInput(key);

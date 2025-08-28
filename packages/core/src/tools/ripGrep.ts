@@ -132,7 +132,12 @@ class GrepToolInvocation extends BaseToolInvocation<
     try {
       // In test environments, skip the actual dependency check
       // since the tests mock the ripgrep path and spawn calls
-      if (process.env.NODE_ENV === 'test' || process.env.VITEST || globalThis.process?.env?.NODE_ENV === 'test' || (globalThis as unknown as { vitest?: unknown }).vitest) {
+      if (
+        process.env.NODE_ENV === 'test' ||
+        process.env.VITEST ||
+        globalThis.process?.env?.NODE_ENV === 'test' ||
+        (globalThis as unknown as { vitest?: unknown }).vitest
+      ) {
         return {
           available: true,
           message: 'ripgrep is available (test environment)',
@@ -671,7 +676,10 @@ export class RipGrepTool extends BaseDeclarativeTool<
     // For test compatibility, validate path synchronously if provided
     if (params.path) {
       try {
-        const targetPath = path.resolve(this.config.getTargetDir(), params.path);
+        const targetPath = path.resolve(
+          this.config.getTargetDir(),
+          params.path,
+        );
 
         // Security Check: Ensure the resolved path is within workspace boundaries
         const workspaceContext = this.config.getWorkspaceContext();

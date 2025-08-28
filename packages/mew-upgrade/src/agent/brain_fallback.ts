@@ -190,7 +190,7 @@ export class EmotionalEvaluator {
 }
 export class ExecutivePFC {
   config: AdamConfig;
-  working_memory: Record<string, any>[] = [];
+  working_memory: Array<Record<string, any>> = [];
   max_wm: number = 7;
   inhibition_level: number = 0.2;
 
@@ -359,7 +359,7 @@ export class FrequencyRegulator {
     this.config = config;
     try {
       this.base_hz = _safe_float(this.config['BASE_HZ'], 1.0);
-    } catch (e) {
+    } catch (_e) {
       this.base_hz = 1.0;
     }
   }
@@ -529,15 +529,15 @@ export class BrainFallback {
   actuator: SimpleActuator;
   films: Record<string, Film>;
   current: [string, string] | null;
-  _hooks: ((data: any) => void)[];
-  _trace: Record<string, any>[];
+  _hooks: Array<(data: any) => void>;
+  _trace: Array<Record<string, any>>;
   chaotic_core: ChaoticCognitiveCore | null = null;
   eva_runtime: any;
   eva_memory_store: Record<string, any>;
   eva_experience_store: Record<string, any>;
   eva_phases: Record<string, any>;
   eva_phase: string;
-  _eva_buffer: Record<string, any>[];
+  _eva_buffer: Array<Record<string, any>>;
   _eva_flush_interval: number;
   _last_eva_flush_ts: number;
 
@@ -559,7 +559,7 @@ export class BrainFallback {
     // Callables with safe defaults
     this.recall_fn =
       recall_fn ||
-      ((x: any) => {
+      ((_x: any) => {
         const dim = _safe_float((this.config as any).EMBEDDING_DIM, 16);
         return [new Array(dim).fill(0.0), []];
       });
@@ -582,7 +582,7 @@ export class BrainFallback {
     // Subsystem Instantiation
     this.patterns = new PatternRecognizer(
       get_embedding ||
-        ((x: any) =>
+        ((_x: any) =>
           new Array(_safe_float((this.config as any).EMBEDDING_DIM, 16)).fill(
             0.0,
           )),
@@ -701,7 +701,7 @@ export class BrainFallback {
         this._trace.push({
           mode: 'INHIBIT',
           film: film_id,
-          hz: hz,
+          hz,
           context: structuredClone(context),
         });
         for (const hook of this._hooks) {
@@ -711,7 +711,7 @@ export class BrainFallback {
             console.error('hook failed during inhibition', e);
           }
         }
-        return { mode: 'INHIBIT', film: film_id, hz: hz };
+        return { mode: 'INHIBIT', film: film_id, hz };
       }
     }
 
@@ -745,7 +745,7 @@ export class BrainFallback {
           film: film_id,
           ctx: {
             threat: context['threat'],
-            arousal: arousal,
+            arousal,
             valence: val,
           },
         });
@@ -773,7 +773,7 @@ export class BrainFallback {
       mode: film_id ? 'RUN' : 'IDLE',
       film: film_id,
       node: (this.current && this.current[1]) || null,
-      hz: hz,
+      hz,
       parallel: this.freq.parallel_thoughts,
       affect: [val, arousal, dop],
       pattern: [pat_id, score],
@@ -806,7 +806,7 @@ export class BrainFallback {
     return trace_snapshot;
   }
 
-  _select_film(context: Record<string, any>): string | null {
+  _select_film(_context: Record<string, any>): string | null {
     // Simple implementation - returns the film with highest fitness
     let best_film: string | null = null;
     let best_fitness = -Infinity;
@@ -911,8 +911,8 @@ export class BrainFallback {
     return {
       action: node.action,
       cost: node.cost_energy,
-      node_id: node_id,
-      action_result: action_result,
+      node_id,
+      action_result,
     };
   }
 
@@ -1051,7 +1051,7 @@ export class BrainFallback {
 
   _create_film_from_chaotic_solution(
     solution: Record<string, any>,
-    context: Record<string, any>,
+    _context: Record<string, any>,
   ): void {
     // TODO: Implement lock handling
     try {
@@ -1168,7 +1168,7 @@ export class BrainFallback {
 
   generate_complex_film(
     base_actions: string[],
-    context: Record<string, any>,
+    _context: Record<string, any>,
   ): string {
     const film_id = `complex_${gen_id()}`;
     const nodes: Record<string, FilmNode> = {};
@@ -1179,7 +1179,7 @@ export class BrainFallback {
       const node_id = `${film_id}_n${index}`;
       nodes[node_id] = {
         id: node_id,
-        action: action,
+        action,
         params: {},
         expected_reward: 0.5,
       };
@@ -1198,8 +1198,8 @@ export class BrainFallback {
 
     const film: Film = {
       id: film_id,
-      nodes: nodes,
-      edges: edges,
+      nodes,
+      edges,
       entry: `${film_id}_n0`,
       fitness: 0.3,
       tags: ['complex', `actions_${base_actions.length}`],
@@ -1212,7 +1212,7 @@ export class BrainFallback {
     return film_id;
   }
 
-  get_trace(last_n: number = 20): Record<string, any>[] {
+  get_trace(last_n: number = 20): Array<Record<string, any>> {
     return this._trace.slice(-last_n);
   }
 

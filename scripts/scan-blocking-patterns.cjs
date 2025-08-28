@@ -85,7 +85,7 @@ async function scan() {
           }
         }
       }
-    } catch (err) {
+    } catch {
       // ignore unreadable files
     }
   });

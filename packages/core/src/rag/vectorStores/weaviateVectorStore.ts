@@ -1,9 +1,16 @@
-import { RAGVectorStore, RAGChunk, VectorStoreConfig, ScoredChunk, VectorStoreStats, QueryFilters } from '../types.js';
+import {
+  RAGVectorStore,
+  RAGChunk,
+  VectorStoreConfig,
+  ScoredChunk,
+  VectorStoreStats,
+  QueryFilters,
+} from '../types.js';
 import { RAGLogger } from '../logger.js';
 
 /**
  * Weaviate Vector Store implementation for RAG system
- * 
+ *
  * This is a placeholder implementation for Weaviate integration.
  * To use this in production, you would need to:
  * 1. Install the Weaviate client: npm install weaviate-ts-client
@@ -17,7 +24,7 @@ export class RAGWeaviateVectorStore extends RAGVectorStore {
 
   constructor(
     config: VectorStoreConfig,
-    private logger: RAGLogger
+    private logger: RAGLogger,
   ) {
     super(config);
     this.className = config.collection || 'GeminiRagChunk';
@@ -41,7 +48,7 @@ export class RAGWeaviateVectorStore extends RAGVectorStore {
 
       this.logger.info('WeaviateVectorStore initialized', {
         className: this.className,
-        host: this.config.connectionString
+        host: this.config.connectionString,
       });
 
       this.initialized = true;
@@ -85,7 +92,7 @@ export class RAGWeaviateVectorStore extends RAGVectorStore {
     try {
       // TODO: Implement Weaviate batch import
       // const batcher = this.client.batch.objectsBatcher();
-      // 
+      //
       // for (const chunk of chunks) {
       //   batcher.withObject({
       //     class: this.className,
@@ -99,12 +106,15 @@ export class RAGWeaviateVectorStore extends RAGVectorStore {
       //     vector: chunk.embedding
       //   });
       // }
-      // 
+      //
       // await batcher.do();
 
       this.logger.debug('Added chunks to Weaviate', { count: chunks.length });
     } catch (error) {
-      this.logger.error('Failed to add chunks to WeaviateVectorStore', { error, chunkCount: chunks.length });
+      this.logger.error('Failed to add chunks to WeaviateVectorStore', {
+        error,
+        chunkCount: chunks.length,
+      });
       throw error;
     }
   }
@@ -113,7 +123,7 @@ export class RAGWeaviateVectorStore extends RAGVectorStore {
     _query: string,
     _embedding: number[],
     _filters?: QueryFilters,
-    limit?: number
+    limit?: number,
   ): Promise<ScoredChunk[]> {
     if (!this.initialized) {
       throw new Error('WeaviateVectorStore not initialized');
@@ -181,7 +191,9 @@ export class RAGWeaviateVectorStore extends RAGVectorStore {
 
       this.logger.debug('Updated chunks in Weaviate', { count: chunks.length });
     } catch (error) {
-      this.logger.error('Failed to update chunks in WeaviateVectorStore', { error });
+      this.logger.error('Failed to update chunks in WeaviateVectorStore', {
+        error,
+      });
       throw error;
     }
   }
@@ -200,9 +212,13 @@ export class RAGWeaviateVectorStore extends RAGVectorStore {
       //     .do();
       // }
 
-      this.logger.debug('Deleted chunks from Weaviate', { count: chunkIds.length });
+      this.logger.debug('Deleted chunks from Weaviate', {
+        count: chunkIds.length,
+      });
     } catch (error) {
-      this.logger.error('Failed to delete chunks from WeaviateVectorStore', { error });
+      this.logger.error('Failed to delete chunks from WeaviateVectorStore', {
+        error,
+      });
       throw error;
     }
   }
@@ -218,10 +234,12 @@ export class RAGWeaviateVectorStore extends RAGVectorStore {
       //   .withClassName(this.className)
       //   .withId(id)
       //   .do();
-      
+
       return null; // Placeholder
     } catch (error) {
-      this.logger.error('Failed to get chunk from WeaviateVectorStore', { error });
+      this.logger.error('Failed to get chunk from WeaviateVectorStore', {
+        error,
+      });
       throw error;
     }
   }
@@ -238,10 +256,12 @@ export class RAGWeaviateVectorStore extends RAGVectorStore {
       //   .withFields('_additional { id }')
       //   .withWhere(filters)
       //   .do();
-      
+
       return []; // Placeholder
     } catch (error) {
-      this.logger.error('Failed to list chunks from WeaviateVectorStore', { error });
+      this.logger.error('Failed to list chunks from WeaviateVectorStore', {
+        error,
+      });
       throw error;
     }
   }
@@ -257,13 +277,13 @@ export class RAGWeaviateVectorStore extends RAGVectorStore {
       //   .withClassName(this.className)
       //   .withFields('meta { count }')
       //   .do();
-      
+
       // const count = result.data.Aggregate[this.className][0].meta.count;
-      
+
       return {
         totalChunks: 0, // count
         indexSize: 0, // Calculate from cluster info
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
     } catch (error) {
       this.logger.error('Failed to get WeaviateVectorStore stats', { error });
@@ -280,7 +300,7 @@ export class RAGWeaviateVectorStore extends RAGVectorStore {
       // TODO: Cleanup Weaviate connection
       this.client = null;
       this.initialized = false;
-      
+
       this.logger.info('WeaviateVectorStore shutdown complete');
     } catch (error) {
       this.logger.error('Error during WeaviateVectorStore shutdown', { error });

@@ -400,7 +400,9 @@ export const useSlashCommandProcessor = (
                     ?.getGeminiClient()
                     ?.setHistory(result.clientHistory);
                   fullCommandContext.ui.clear();
-                  fullCommandContext.ui.setHistory(result.history as HistoryItem[] | HistoryItemWithoutId[]);
+                  fullCommandContext.ui.setHistory(
+                    result.history as HistoryItem[] | HistoryItemWithoutId[],
+                  );
                   return { type: 'handled' };
                 }
                 case 'quit':

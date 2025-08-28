@@ -6,9 +6,7 @@
 
 /// <reference types="vitest/globals" />
 
-import {
-  Config,
-} from '@google/gemini-cli-core';
+import { Config } from '@google/gemini-cli-core';
 import { describe, it, beforeEach } from 'vitest';
 import { runNonInteractive } from './nonInteractiveCli.js';
 

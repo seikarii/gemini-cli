@@ -1,9 +1,16 @@
-import { RAGVectorStore, RAGChunk, VectorStoreConfig, ScoredChunk, VectorStoreStats, QueryFilters } from '../types.js';
+import {
+  RAGVectorStore,
+  RAGChunk,
+  VectorStoreConfig,
+  ScoredChunk,
+  VectorStoreStats,
+  QueryFilters,
+} from '../types.js';
 import { RAGLogger } from '../logger.js';
 
 /**
  * Pinecone Vector Store implementation for RAG system
- * 
+ *
  * This is a placeholder implementation for Pinecone integration.
  * To use this in production, you would need to:
  * 1. Install the Pinecone client: npm install @pinecone-database/pinecone
@@ -18,7 +25,7 @@ export class RAGPineconeVectorStore extends RAGVectorStore {
 
   constructor(
     config: VectorStoreConfig,
-    private logger: RAGLogger
+    private logger: RAGLogger,
   ) {
     super(config);
     this.indexName = config.collection || 'gemini-rag-chunks';
@@ -31,13 +38,13 @@ export class RAGPineconeVectorStore extends RAGVectorStore {
       // this.client = new Pinecone({
       //   apiKey: this.config.apiKey!
       // });
-      
+
       // TODO: Get or create index
       // this.index = this.client.index(this.indexName);
 
       this.logger.info('PineconeVectorStore initialized', {
         indexName: this.indexName,
-        environment: this.config.connectionString
+        environment: this.config.connectionString,
       });
 
       this.initialized = true;
@@ -68,7 +75,10 @@ export class RAGPineconeVectorStore extends RAGVectorStore {
 
       this.logger.debug('Added chunks to Pinecone', { count: chunks.length });
     } catch (error) {
-      this.logger.error('Failed to add chunks to PineconeVectorStore', { error, chunkCount: chunks.length });
+      this.logger.error('Failed to add chunks to PineconeVectorStore', {
+        error,
+        chunkCount: chunks.length,
+      });
       throw error;
     }
   }
@@ -77,7 +87,7 @@ export class RAGPineconeVectorStore extends RAGVectorStore {
     _query: string,
     _embedding: number[],
     _filters?: QueryFilters,
-    limit?: number
+    limit?: number,
   ): Promise<ScoredChunk[]> {
     if (!this.initialized) {
       throw new Error('PineconeVectorStore not initialized');
@@ -127,9 +137,13 @@ export class RAGPineconeVectorStore extends RAGVectorStore {
       // TODO: Implement Pinecone delete
       // await this.index.deleteMany(chunkIds);
 
-      this.logger.debug('Deleted chunks from Pinecone', { count: chunkIds.length });
+      this.logger.debug('Deleted chunks from Pinecone', {
+        count: chunkIds.length,
+      });
     } catch (error) {
-      this.logger.error('Failed to delete chunks from PineconeVectorStore', { error });
+      this.logger.error('Failed to delete chunks from PineconeVectorStore', {
+        error,
+      });
       throw error;
     }
   }
@@ -142,10 +156,12 @@ export class RAGPineconeVectorStore extends RAGVectorStore {
     try {
       // TODO: Implement Pinecone get by ID
       // const result = await this.index.fetch([id]);
-      
+
       return null; // Placeholder
     } catch (error) {
-      this.logger.error('Failed to get chunk from PineconeVectorStore', { error });
+      this.logger.error('Failed to get chunk from PineconeVectorStore', {
+        error,
+      });
       throw error;
     }
   }
@@ -159,10 +175,12 @@ export class RAGPineconeVectorStore extends RAGVectorStore {
       // TODO: Implement Pinecone list operation
       // Note: Pinecone doesn't have a direct list operation
       // This would require querying with a dummy vector
-      
+
       return []; // Placeholder
     } catch (error) {
-      this.logger.error('Failed to list chunks from PineconeVectorStore', { error });
+      this.logger.error('Failed to list chunks from PineconeVectorStore', {
+        error,
+      });
       throw error;
     }
   }
@@ -175,11 +193,11 @@ export class RAGPineconeVectorStore extends RAGVectorStore {
     try {
       // TODO: Implement Pinecone stats
       // const stats = await this.index.describeIndexStats();
-      
+
       return {
         totalChunks: 0, // stats.totalVectorCount
         indexSize: 0, // Calculate from index stats
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
     } catch (error) {
       this.logger.error('Failed to get PineconeVectorStore stats', { error });
@@ -197,7 +215,7 @@ export class RAGPineconeVectorStore extends RAGVectorStore {
       this.client = null;
       this.index = null;
       this.initialized = false;
-      
+
       this.logger.info('PineconeVectorStore shutdown complete');
     } catch (error) {
       this.logger.error('Error during PineconeVectorStore shutdown', { error });

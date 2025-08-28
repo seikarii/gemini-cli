@@ -4,14 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  expect,
-  it,
-  describe,
-  vi,
-  beforeEach,
-  afterEach,
-} from 'vitest';
+import { expect, it, describe, vi, beforeEach, afterEach } from 'vitest';
 import { ChatRecordingService } from './chatRecordingService.js';
 import { Config } from '../config/config.js';
 
@@ -51,7 +44,7 @@ describe('ChatRecordingService - Core Functionality', () => {
         return JSON.stringify({
           sessionId: 'test-session-id',
           projectHash: 'test-project-hash',
-          messages: []
+          messages: [],
         });
       },
       async writeFile(filePath: string, data: string) {
@@ -69,7 +62,10 @@ describe('ChatRecordingService - Core Functionality', () => {
       },
     };
 
-    chatRecordingService = new ChatRecordingService(mockConfig, stubFs as StubFileSystemAdapter);
+    chatRecordingService = new ChatRecordingService(
+      mockConfig,
+      stubFs as StubFileSystemAdapter,
+    );
   });
 
   afterEach(() => {
@@ -88,7 +84,10 @@ describe('ChatRecordingService - Core Functionality', () => {
     });
 
     it('should record a new message', async () => {
-      await chatRecordingService.recordMessage({ type: 'user', content: 'Hello' });
+      await chatRecordingService.recordMessage({
+        type: 'user',
+        content: 'Hello',
+      });
       // Verify the message was recorded by checking if writeFile was called
       // This is a basic test - in a real scenario we'd check the file content
       expect(true).toBe(true); // Placeholder assertion
@@ -101,7 +100,10 @@ describe('ChatRecordingService - Core Functionality', () => {
     });
 
     it('should return optimized history with Content[] format', async () => {
-      const result = await chatRecordingService.getOptimizedHistoryForPrompt(2000, true);
+      const result = await chatRecordingService.getOptimizedHistoryForPrompt(
+        2000,
+        true,
+      );
       expect(result).toHaveProperty('history');
       expect(Array.isArray(result.history)).toBe(true);
       expect(result.metaInfo).toHaveProperty('totalTokens');
@@ -111,7 +113,10 @@ describe('ChatRecordingService - Core Functionality', () => {
     });
 
     it('should respect token budget parameter', async () => {
-      const result = await chatRecordingService.getOptimizedHistoryForPrompt(1000, false);
+      const result = await chatRecordingService.getOptimizedHistoryForPrompt(
+        1000,
+        false,
+      );
       expect(result.metaInfo.totalTokens).toBeLessThanOrEqual(1000);
     });
   });

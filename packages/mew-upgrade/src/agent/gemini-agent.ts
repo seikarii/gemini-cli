@@ -21,7 +21,7 @@ import {
 import { startWebServer } from '../server/webServer.js';
 // We import runNonInteractive dynamically in the example block to avoid
 // static type resolution against the monorepo's CLI during package-local builds.
-// @ts-ignore: build/runtime uses ESM paths; keep TS import for types
+// @ts-expect-error: build/runtime uses ESM paths; keep TS import for types
 import type { Config } from '../../cli/src/config/config.js';
 
 // fileURLToPath(import.meta.url) intentionally not used here during builds
@@ -142,7 +142,7 @@ export class GeminiAgent {
    * @param data The data to ingest.
    * @param kind The kind of memory node (e.g., 'semantic', 'procedural', 'episodic').
    */
-  public async whisper(data: any, kind?: MemoryNodeKind): Promise<void> {
+  async whisper(data: any, kind?: MemoryNodeKind): Promise<void> {
     // Make it async
     if (this.brain) {
       // Use MenteOmega's processIncomingData to properly ingest with significance calculation
@@ -156,7 +156,7 @@ export class GeminiAgent {
         dataType: 'user_input', // Assuming whispers are user input
         timestamp: Date.now(),
         // Add other relevant context from kind if available
-        ...(kind && { kind: kind }),
+        ...(kind && { kind }),
       };
 
       await this.brain.processIncomingData(
@@ -178,7 +178,7 @@ export class GeminiAgent {
    * @param filePath The path to the file.
    * @returns A dummy content string for now.
    */
-  public async getFileContent(filePath: string): Promise<string> {
+  async getFileContent(filePath: string): Promise<string> {
     console.log(`Agent: Request to get content for ${filePath}`);
     return `// Content of ${filePath}\n// This is dummy content for MVP.`;
   }

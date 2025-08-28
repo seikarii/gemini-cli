@@ -31,12 +31,12 @@ export class RAGIntegrationExample {
    */
   async initialize(): Promise<void> {
     console.log('🚀 Initializing RAG system...');
-    
+
     // Enable RAG by setting environment variable
     process.env.RAG_ENABLED = 'true';
-    
+
     await this.ragService.initialize();
-    
+
     // Index some example code content
     await this.indexExampleContent();
   }
@@ -142,8 +142,10 @@ export function extractCuratedHistory(
     ];
 
     const result = await this.ragService.indexContent(sources);
-    console.log(`✅ Indexed ${result.totalChunks} chunks from ${result.successfulSources} sources`);
-    
+    console.log(
+      `✅ Indexed ${result.totalChunks} chunks from ${result.successfulSources} sources`,
+    );
+
     if (result.errors.length > 0) {
       console.log('⚠️ Indexing errors:', result.errors);
     }
@@ -177,10 +179,15 @@ export function extractCuratedHistory(
       compressOlder: true,
     });
 
-    console.log(`📄 Retrieved context: ${context.tokenCount} tokens from ${context.sourceChunks.length} chunks`);
+    console.log(
+      `📄 Retrieved context: ${context.tokenCount} tokens from ${context.sourceChunks.length} chunks`,
+    );
 
     // Create enhanced prompt
-    const enhancedPrompt = this.createEnhancedPrompt(userQuery, context.content);
+    const enhancedPrompt = this.createEnhancedPrompt(
+      userQuery,
+      context.content,
+    );
     return enhancedPrompt;
   }
 
@@ -189,30 +196,52 @@ export function extractCuratedHistory(
    */
   private detectQueryType(query: string): QueryType {
     const queryLower = query.toLowerCase();
-    
-    if (queryLower.includes('create') || queryLower.includes('generate') || queryLower.includes('write')) {
+
+    if (
+      queryLower.includes('create') ||
+      queryLower.includes('generate') ||
+      queryLower.includes('write')
+    ) {
       return QueryType.CODE_GENERATION;
     }
-    if (queryLower.includes('explain') || queryLower.includes('what is') || queryLower.includes('how does')) {
+    if (
+      queryLower.includes('explain') ||
+      queryLower.includes('what is') ||
+      queryLower.includes('how does')
+    ) {
       return QueryType.CODE_EXPLANATION;
     }
-    if (queryLower.includes('debug') || queryLower.includes('error') || queryLower.includes('fix')) {
+    if (
+      queryLower.includes('debug') ||
+      queryLower.includes('error') ||
+      queryLower.includes('fix')
+    ) {
       return QueryType.DEBUGGING;
     }
-    if (queryLower.includes('api') || queryLower.includes('usage') || queryLower.includes('how to use')) {
+    if (
+      queryLower.includes('api') ||
+      queryLower.includes('usage') ||
+      queryLower.includes('how to use')
+    ) {
       return QueryType.API_USAGE;
     }
-    if (queryLower.includes('best practice') || queryLower.includes('recommend')) {
+    if (
+      queryLower.includes('best practice') ||
+      queryLower.includes('recommend')
+    ) {
       return QueryType.BEST_PRACTICES;
     }
-    
+
     return QueryType.GENERAL_QUESTION;
   }
 
   /**
    * Create an enhanced prompt with retrieved context.
    */
-  private createEnhancedPrompt(userQuery: string, retrievedContext: string): string {
+  private createEnhancedPrompt(
+    userQuery: string,
+    retrievedContext: string,
+  ): string {
     return `You are an expert programming assistant with access to relevant context from the codebase and previous conversations.
 
 ## Retrieved Context
@@ -266,8 +295,12 @@ Response:`;
     console.log('\n📊 RAG System Metrics:');
     console.log(`- Total queries: ${metrics.totalQueries}`);
     console.log(`- Total chunks indexed: ${metrics.totalChunksIndexed}`);
-    console.log(`- Average retrieval time: ${metrics.averageRetrievalTime.toFixed(2)}ms`);
-    console.log(`- Cache hit rate: ${(metrics.cacheHitRate * 100).toFixed(1)}%`);
+    console.log(
+      `- Average retrieval time: ${metrics.averageRetrievalTime.toFixed(2)}ms`,
+    );
+    console.log(
+      `- Cache hit rate: ${(metrics.cacheHitRate * 100).toFixed(1)}%`,
+    );
 
     await this.ragService.shutdown();
     console.log('\n✅ RAG system demonstration completed!\n');
@@ -282,7 +315,7 @@ if (require.main === module) {
     try {
       // Create a mock config for demonstration
       const config = {} as Config; // In real usage, pass actual Config instance
-      
+
       const example = new RAGIntegrationExample(config);
       await example.demonstrateWorkflow();
     } catch (error) {

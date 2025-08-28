@@ -50,8 +50,13 @@ async function runMentalLabyTests() {
   // --- Test 2: Reinforcement ---
   console.log('\nTest 2: Reinforcement');
   laby1.store({ concept: 'apple', color: 'red' }); // Store again to reinforce
-  const appleNode = Array.from(laby1.exportState().nodes as any[]).find(
-    (n) => n.data.concept === 'apple',
+interface TestNodeData {
+  concept: string;
+  color?: string;
+}
+
+  const appleNode = Array.from((laby1.exportState() as { nodes: MemoryNode[] }).nodes).find(
+    (n) => (n.data as TestNodeData).concept === 'apple',
   );
   console.log(
     'Apple node usage count after reinforcement:',
@@ -80,10 +85,8 @@ async function runMentalLabyTests() {
   );
   // Expected: should recall 'fruit' and 'apple'
 
-  const initialNodeCount = Array.from(
-    laby1.exportState().nodes as any[],
-  ).length;
-  const loadedNodeCount = Array.from(laby2.exportState().nodes as any[]).length;
+  const initialNodeCount = Array.from((laby1.exportState() as { nodes: MemoryNode[] }).nodes).length;
+  const loadedNodeCount = Array.from((laby2.exportState() as { nodes: MemoryNode[] }).nodes).length;
   console.log(
     `Node count: Original=${initialNodeCount}, Loaded=${loadedNodeCount}`,
   );

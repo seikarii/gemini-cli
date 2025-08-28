@@ -7,24 +7,28 @@ This is a sophisticated Retrieval-Augmented Generation (RAG) system designed to 
 ## Features
 
 ### 🧠 Intelligent Code Understanding
+
 - **AST-based chunking**: Parses code into semantically meaningful units (functions, classes, methods)
 - **Multi-language support**: TypeScript, JavaScript, Python, and extensible for more
 - **Smart overlapping**: Preserves context at chunk boundaries
 - **Hierarchical organization**: Functions → Classes → Files → Modules
 
 ### 🔍 Advanced Retrieval
+
 - **Hybrid search**: Combines semantic vector search with keyword-based search (BM25)
 - **Re-ranking**: Uses multiple scoring factors for optimal relevance
 - **Query expansion**: Automatically improves queries for better retrieval
 - **Graph-based relationships**: Understands code dependencies and call graphs
 
 ### 📊 Context Optimization
+
 - **Token budget management**: Optimizes context within model limits
 - **Dependency resolution**: Auto-includes required imports and dependencies
 - **Smart compression**: Intelligently summarizes less relevant context
 - **Documentation integration**: Includes relevant API docs and examples
 
 ### ⚡ Performance & Scalability
+
 - **Pluggable vector stores**: Memory, Chroma, Pinecone, Weaviate, Qdrant
 - **Intelligent caching**: Multi-level caching for embeddings and retrieval
 - **Incremental updates**: Efficient handling of codebase changes
@@ -103,7 +107,7 @@ console.log(`Indexed ${result.totalChunks} chunks`);
 // Enhance a user query with relevant context
 const enhancedContext = await ragService.enhanceQuery(
   {
-    text: "How do I create a React component?",
+    text: 'How do I create a React component?',
     type: QueryType.CODE_GENERATION,
     maxResults: 5,
   },
@@ -111,7 +115,7 @@ const enhancedContext = await ragService.enhanceQuery(
     maxTokens: 4000,
     includeDependencies: true,
     includeDocumentation: true,
-  }
+  },
 );
 
 // Use the enhanced context in your LLM prompt
@@ -123,18 +127,21 @@ const prompt = `Context: ${enhancedContext.content}\\n\\nUser: ${userQuery}`;
 The RAG system can be configured through environment variables:
 
 ### Core Settings
+
 - `RAG_ENABLED`: Enable/disable RAG system (default: false)
 - `RAG_VECTOR_STORE`: Vector store provider (memory, chroma, pinecone, weaviate, qdrant)
 - `RAG_EMBEDDING_MODEL`: Embedding model to use
 - `RAG_MAX_TOKENS`: Maximum tokens for context (default: 8000)
 
 ### Chunking Settings
+
 - `RAG_CHUNKING_STRATEGY`: Chunking strategy (ast, semantic, fixed, hybrid)
 - `RAG_MAX_CHUNK_SIZE`: Maximum chunk size in characters (default: 1000)
 - `RAG_MIN_CHUNK_SIZE`: Minimum chunk size in characters (default: 100)
 - `RAG_OVERLAP_RATIO`: Overlap ratio between chunks (default: 0.1)
 
 ### Retrieval Settings
+
 - `RAG_MAX_RESULTS`: Maximum results to retrieve (default: 10)
 - `RAG_SIMILARITY_THRESHOLD`: Minimum similarity score (default: 0.7)
 - `RAG_SEMANTIC_WEIGHT`: Weight for semantic search (default: 0.7)
@@ -142,6 +149,7 @@ The RAG system can be configured through environment variables:
 - `RAG_RERANKING_ENABLED`: Enable re-ranking (default: true)
 
 ### Performance Settings
+
 - `RAG_ENABLE_CACHING`: Enable caching (default: true)
 - `RAG_CACHE_EXPIRATION`: Cache expiration in seconds (default: 3600)
 - `RAG_BATCH_SIZE`: Batch size for processing (default: 100)
@@ -159,7 +167,7 @@ class EnhancedGeminiChat extends GeminiChat {
   constructor(
     config: Config,
     contentGenerator: ContentGenerator,
-    private ragService: RAGService
+    private ragService: RAGService,
   ) {
     super(config, contentGenerator);
   }
@@ -174,7 +182,7 @@ class EnhancedGeminiChat extends GeminiChat {
       {
         maxTokens: 4000,
         includeDependencies: true,
-      }
+      },
     );
 
     // Modify the message to include context
@@ -191,19 +199,24 @@ class EnhancedGeminiChat extends GeminiChat {
 ## Vector Store Providers
 
 ### Memory (Development)
+
 ```bash
 export RAG_VECTOR_STORE=memory
 ```
+
 Simple in-memory vector store for development and testing.
 
 ### Chroma (Local)
+
 ```bash
 export RAG_VECTOR_STORE=chroma
 export RAG_CONNECTION_STRING=http://localhost:8000
 ```
+
 Local Chroma instance for persistent storage.
 
 ### Pinecone (Cloud)
+
 ```bash
 export RAG_VECTOR_STORE=pinecone
 export RAG_API_KEY=your_pinecone_api_key
@@ -211,6 +224,7 @@ export RAG_CONNECTION_STRING=your_pinecone_environment
 ```
 
 ### Weaviate (Cloud/Local)
+
 ```bash
 export RAG_VECTOR_STORE=weaviate
 export RAG_CONNECTION_STRING=https://your-cluster.weaviate.network
@@ -225,32 +239,38 @@ Main service for RAG operations.
 
 ```typescript
 class RAGService {
-  constructor(config: Config, logger?: RAGLogger)
-  
+  constructor(config: Config, logger?: RAGLogger);
+
   // Initialize the service
-  async initialize(): Promise<void>
-  
+  async initialize(): Promise<void>;
+
   // Index content for retrieval
-  async indexContent(sources: IndexingSource[]): Promise<IndexingResult>
-  
+  async indexContent(sources: IndexingSource[]): Promise<IndexingResult>;
+
   // Retrieve relevant context
-  async retrieveContext(query: RAGQuery): Promise<RAGResult>
-  
+  async retrieveContext(query: RAGQuery): Promise<RAGResult>;
+
   // Assemble context for LLM
-  async assembleContext(result: RAGResult, options: ContextAssemblyOptions): Promise<RAGContext>
-  
+  async assembleContext(
+    result: RAGResult,
+    options: ContextAssemblyOptions,
+  ): Promise<RAGContext>;
+
   // Combined retrieval and assembly
-  async enhanceQuery(query: RAGQuery, options: ContextAssemblyOptions): Promise<RAGContext>
-  
+  async enhanceQuery(
+    query: RAGQuery,
+    options: ContextAssemblyOptions,
+  ): Promise<RAGContext>;
+
   // Update/delete chunks
-  async updateChunks(chunks: RAGChunk[]): Promise<void>
-  async deleteChunks(chunkIds: string[]): Promise<void>
-  
+  async updateChunks(chunks: RAGChunk[]): Promise<void>;
+  async deleteChunks(chunkIds: string[]): Promise<void>;
+
   // Get metrics
-  getMetrics(): RAGServiceMetrics
-  
+  getMetrics(): RAGServiceMetrics;
+
   // Cleanup
-  async shutdown(): Promise<void>
+  async shutdown(): Promise<void>;
 }
 ```
 
@@ -296,16 +316,19 @@ interface RAGChunk {
 ## Performance Optimization
 
 ### Caching Strategy
+
 - **Embedding cache**: Cache embeddings for frequently accessed content
 - **Retrieval cache**: Cache search results for repeated queries
 - **Smart invalidation**: Invalidate cache when content changes
 
 ### Batch Processing
+
 - **Embedding generation**: Process multiple texts in batches
 - **Indexing**: Batch index operations for efficiency
 - **Parallel processing**: Concurrent operations where safe
 
 ### Memory Management
+
 - **Lazy loading**: Load chunks only when needed
 - **Streaming**: Stream large result sets
 - **Garbage collection**: Clean up unused resources
@@ -313,6 +336,7 @@ interface RAGChunk {
 ## Monitoring and Debugging
 
 ### Metrics
+
 The RAG system provides comprehensive metrics:
 
 ```typescript
@@ -326,6 +350,7 @@ interface RAGServiceMetrics {
 ```
 
 ### Debugging
+
 Enable debug logging:
 
 ```bash
@@ -334,6 +359,7 @@ export RAG_LOG_LEVEL=debug
 ```
 
 ### Health Checks
+
 Monitor system health:
 
 ```typescript
@@ -346,21 +372,25 @@ console.log('Vector store stats:', stats);
 ### Common Issues
 
 **1. RAG system not initializing**
+
 - Check `RAG_ENABLED=true` is set
 - Verify vector store configuration
 - Check network connectivity for cloud providers
 
 **2. Poor retrieval quality**
+
 - Adjust similarity threshold: `RAG_SIMILARITY_THRESHOLD`
 - Tune hybrid search weights
 - Check embedding model compatibility
 
 **3. High memory usage**
+
 - Reduce cache size: `RAG_CACHE_SIZE`
 - Enable context compression: `RAG_COMPRESSION_RATIO`
 - Use streaming for large datasets
 
 **4. Slow performance**
+
 - Enable caching: `RAG_ENABLE_CACHING=true`
 - Increase batch size: `RAG_BATCH_SIZE`
 - Use parallel processing: `RAG_PARALLEL_PROCESSING=true`
@@ -386,17 +416,23 @@ console.log('Vector store stats:', stats);
 The RAG system is designed to be extensible. Key extension points:
 
 ### Custom Vector Stores
+
 Implement the `RAGVectorStore` abstract class:
 
 ```typescript
 class CustomVectorStore extends RAGVectorStore {
-  async initialize(): Promise<void> { /* implementation */ }
-  async addChunks(chunks: RAGChunk[]): Promise<void> { /* implementation */ }
+  async initialize(): Promise<void> {
+    /* implementation */
+  }
+  async addChunks(chunks: RAGChunk[]): Promise<void> {
+    /* implementation */
+  }
   // ... other methods
 }
 ```
 
 ### Custom Chunking Strategies
+
 Extend the chunking system:
 
 ```typescript
@@ -408,6 +444,7 @@ class CustomChunkingService {
 ```
 
 ### Custom Embeddings
+
 Implement custom embedding services:
 
 ```typescript
@@ -425,6 +462,7 @@ This RAG system is part of the Gemini CLI project and follows the same Apache 2.
 ## Support
 
 For issues and questions:
+
 1. Check this documentation
 2. Review the example code in `rag/example.ts`
 3. Enable debug logging for troubleshooting

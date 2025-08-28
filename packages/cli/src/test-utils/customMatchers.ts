@@ -18,10 +18,7 @@ import { expect } from 'vitest';
 // eslint-disable-next-line no-control-regex
 const invalidCharsRegex = /[\b\x1b]/;
 
-function toHaveOnlyValidCharacters(
-  this: { isNot?: boolean },
-  buffer: unknown,
-) {
+function toHaveOnlyValidCharacters(this: { isNot?: boolean }, buffer: unknown) {
   const { isNot } = this;
   let pass = true;
   const invalidLines: Array<{ line: number; content: string }> = [];

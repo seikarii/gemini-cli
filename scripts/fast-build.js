@@ -35,7 +35,6 @@ if (process.env.FAST_BUILD === 'true') {
   } catch (error) {
     console.log('❌ Could not start app. Run full build first.');
   }
-
 } else {
   // Full build with all checks
   console.log('🔍 Running full build with checks...');

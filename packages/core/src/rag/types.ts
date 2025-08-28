@@ -80,7 +80,7 @@ export interface ChunkMetadata {
     size: number;
     lastModified: string;
   };
-  
+
   /** Code-specific metadata */
   code?: {
     functionName?: string;
@@ -93,7 +93,7 @@ export interface ChunkMetadata {
     complexity?: number;
     testCoverage?: number;
   };
-  
+
   /** Git-specific metadata */
   git?: {
     author: string;
@@ -102,7 +102,7 @@ export interface ChunkMetadata {
     commitDate: string;
     modificationFrequency: number;
   };
-  
+
   /** Project-specific metadata */
   project?: {
     component: string;
@@ -110,7 +110,7 @@ export interface ChunkMetadata {
     importance: number; // 0-1 relevance score
     usageFrequency: number;
   };
-  
+
   /** Conversation-specific metadata */
   conversation?: {
     speaker: 'user' | 'assistant';
@@ -119,7 +119,7 @@ export interface ChunkMetadata {
     sentiment?: 'positive' | 'negative' | 'neutral';
     intent?: string;
   };
-  
+
   /** Quality metrics */
   quality?: {
     readability: number; // 0-1
@@ -127,7 +127,7 @@ export interface ChunkMetadata {
     completeness: number; // 0-1
     relevance: number; // 0-1
   };
-  
+
   /** Custom tags and annotations */
   tags?: string[];
   annotations?: Record<string, unknown>;
@@ -139,7 +139,7 @@ export interface ChunkMetadata {
 export interface RAGConfig {
   /** Whether RAG is enabled */
   enabled: boolean;
-  
+
   /** Vector store configuration */
   vectorStore: {
     provider: 'chroma' | 'pinecone' | 'weaviate' | 'qdrant' | 'memory';
@@ -148,7 +148,7 @@ export interface RAGConfig {
     collectionName?: string;
     persistenceDirectory?: string;
   };
-  
+
   /** Embedding configuration */
   embedding: {
     model: string;
@@ -157,7 +157,7 @@ export interface RAGConfig {
     cacheSize: number;
     maxRetries: number;
   };
-  
+
   /** Chunking strategy configuration */
   chunking: {
     strategy: 'ast' | 'semantic' | 'fixed' | 'hybrid';
@@ -166,7 +166,7 @@ export interface RAGConfig {
     overlapRatio: number;
     respectBoundaries: boolean;
   };
-  
+
   /** Retrieval configuration */
   retrieval: {
     maxResults: number;
@@ -180,7 +180,7 @@ export interface RAGConfig {
     reRankingEnabled: boolean;
     diversityThreshold: number;
   };
-  
+
   /** Context assembly configuration */
   context: {
     maxTokens: number;
@@ -190,7 +190,7 @@ export interface RAGConfig {
     prioritizeRecent: boolean;
     preserveStructure: boolean;
   };
-  
+
   /** Performance configuration */
   performance: {
     enableCaching: boolean;
@@ -199,7 +199,7 @@ export interface RAGConfig {
     parallelProcessing: boolean;
     maxConcurrentOperations: number;
   };
-  
+
   /** Debug and monitoring */
   debug: {
     enableLogging: boolean;
@@ -410,7 +410,7 @@ export abstract class RAGVectorStore {
     query: string,
     embedding: number[],
     filters?: QueryFilters,
-    limit?: number
+    limit?: number,
   ): Promise<ScoredChunk[]>;
   abstract getChunk(id: string): Promise<RAGChunk | null>;
   abstract listChunks(filters?: QueryFilters): Promise<string[]>;
@@ -532,11 +532,7 @@ export class RAGError extends Error {
   readonly code: string;
   readonly cause?: Error;
 
-  constructor(
-    message: string,
-    code: string,
-    cause?: Error
-  ) {
+  constructor(message: string, code: string, cause?: Error) {
     super(message);
     this.name = 'RAGError';
     this.code = code;

@@ -4,9 +4,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Content, GenerateContentResponse, SendMessageParameters, GenerateContentConfig } from '@google/genai';
+import {
+  Content,
+  GenerateContentResponse,
+  SendMessageParameters,
+  GenerateContentConfig,
+} from '@google/genai';
 import { GeminiChat } from '../core/geminiChat.js';
-import { PromptContextManager, AssembledContext } from './promptContextManager.js';
+import {
+  PromptContextManager,
+  AssembledContext,
+} from './promptContextManager.js';
 import { RAGService } from '../rag/ragService.js';
 import { ChatRecordingService } from './chatRecordingService.js';
 import { Config } from '../config/config.js';
@@ -16,7 +24,7 @@ import { partListUnionToString } from '../core/geminiRequest.js';
 /**
  * Factory service for creating RAG-enhanced chat instances and managing
  * the integration between RAG system and conversational AI.
- * 
+ *
  * This service provides a clean integration point that eliminates the need
  * for the "CRITICAL FIX" manual history reversal in GeminiChat by using
  * intelligent context assembly from RAG + conversation.
@@ -28,7 +36,7 @@ export class RAGChatIntegrationService {
   constructor(
     private readonly ragService: RAGService,
     private readonly chatRecordingService: ChatRecordingService,
-    private readonly config: Config
+    private readonly config: Config,
   ) {
     this.initializeRAGIntegration();
   }
@@ -39,26 +47,27 @@ export class RAGChatIntegrationService {
   private async initializeRAGIntegration(): Promise<void> {
     try {
       await this.ragService.initialize();
-      
+
       this.promptContextManager = new PromptContextManager(
         this.ragService,
         this.chatRecordingService,
         this.config,
         {
           maxTotalTokens: 28000,
-          maxRAGChunks: 6, 
+          maxRAGChunks: 6,
           ragRelevanceThreshold: 0.65,
           ragWeight: 0.35,
           prioritizeRecentConversation: true,
-          useConversationalContext: true
-        }
+          useConversationalContext: true,
+        },
       );
 
       this.isRAGEnabled = true;
       console.log('RAG integration initialized successfully');
-      
     } catch (error) {
-      console.warn('RAG integration failed to initialize, using basic chat', { error });
+      console.warn('RAG integration failed to initialize, using basic chat', {
+        error,
+      });
       this.isRAGEnabled = false;
     }
   }
@@ -70,23 +79,24 @@ export class RAGChatIntegrationService {
   createEnhancedChat(
     contentGenerator: ContentGenerator,
     generationConfig: GenerateContentConfig = {},
-    initialHistory: Content[] = []
+    initialHistory: Content[] = [],
   ): EnhancedGeminiChatProxy {
-    
     return new EnhancedGeminiChatProxy(
       this.config,
       contentGenerator,
       generationConfig,
       initialHistory,
       this.promptContextManager,
-      this.isRAGEnabled
+      this.isRAGEnabled,
     );
   }
 
   /**
    * Updates RAG configuration for all future chats
    */
-  updateRAGConfig(config: Parameters<PromptContextManager['updateConfig']>[0]): void {
+  updateRAGConfig(
+    config: Parameters<PromptContextManager['updateConfig']>[0],
+  ): void {
     if (this.promptContextManager) {
       this.promptContextManager.updateConfig(config);
     }
@@ -101,7 +111,7 @@ export class RAGChatIntegrationService {
   } {
     return {
       enabled: this.isRAGEnabled,
-      config: this.promptContextManager?.getConfig()
+      config: this.promptContextManager?.getConfig(),
     };
   }
 }
@@ -117,7 +127,7 @@ export class EnhancedGeminiChatProxy extends GeminiChat {
     generationConfig: GenerateContentConfig,
     initialHistory: Content[],
     private readonly promptContextManager?: PromptContextManager,
-    private readonly ragEnabled: boolean = false
+    private readonly ragEnabled: boolean = false,
   ) {
     super(config, contentGenerator, generationConfig, initialHistory);
   }
@@ -128,9 +138,8 @@ export class EnhancedGeminiChatProxy extends GeminiChat {
    */
   async sendMessage(
     params: SendMessageParameters,
-    prompt_id: string
+    prompt_id: string,
   ): Promise<GenerateContentResponse> {
-    
     if (!this.ragEnabled || !this.promptContextManager) {
       // Fallback to original behavior
       return super.sendMessage(params, prompt_id);
@@ -146,13 +155,13 @@ export class EnhancedGeminiChatProxy extends GeminiChat {
       const assembledContext = await this.promptContextManager.assembleContext(
         partListUnionToString(params.message),
         conversationHistory,
-        prompt_id
+        prompt_id,
       );
 
       // Step 3: Create enhanced sendMessage parameters with RAG context
       const enhancedParams = this.createEnhancedParameters(
         params,
-        assembledContext
+        assembledContext,
       );
 
       // Step 4: Call original sendMessage with enhanced context
@@ -164,17 +173,16 @@ export class EnhancedGeminiChatProxy extends GeminiChat {
         ragChunks: assembledContext.ragChunksIncluded,
         conversationMessages: assembledContext.conversationMessagesIncluded,
         estimatedTokens: assembledContext.estimatedTokens,
-        promptId: prompt_id
+        promptId: prompt_id,
       });
 
       return response;
-
     } catch (error) {
-      console.error('RAG enhancement failed, falling back to basic chat', { 
-        error, 
-        promptId: prompt_id 
+      console.error('RAG enhancement failed, falling back to basic chat', {
+        error,
+        promptId: prompt_id,
       });
-      
+
       // Fallback to original implementation
       return super.sendMessage(params, prompt_id);
     }
@@ -185,9 +193,8 @@ export class EnhancedGeminiChatProxy extends GeminiChat {
    */
   async sendMessageStream(
     params: SendMessageParameters,
-    prompt_id: string
+    prompt_id: string,
   ): Promise<AsyncGenerator<GenerateContentResponse, void, unknown>> {
-    
     if (!this.ragEnabled || !this.promptContextManager) {
       return super.sendMessageStream(params, prompt_id);
     }
@@ -197,16 +204,15 @@ export class EnhancedGeminiChatProxy extends GeminiChat {
       const assembledContext = await this.promptContextManager.assembleContext(
         partListUnionToString(params.message),
         conversationHistory,
-        prompt_id
+        prompt_id,
       );
 
       const enhancedParams = this.createEnhancedParameters(
         params,
-        assembledContext
+        assembledContext,
       );
 
       return super.sendMessageStream(enhancedParams, prompt_id);
-      
     } catch (error) {
       console.error('RAG-enhanced streaming failed, falling back', { error });
       return super.sendMessageStream(params, prompt_id);
@@ -218,9 +224,12 @@ export class EnhancedGeminiChatProxy extends GeminiChat {
    */
   private createEnhancedParameters(
     originalParams: SendMessageParameters,
-    assembledContext: ReturnType<PromptContextManager['assembleContext']> extends Promise<infer T> ? T : never
+    assembledContext: ReturnType<
+      PromptContextManager['assembleContext']
+    > extends Promise<infer T>
+      ? T
+      : never,
   ): SendMessageParameters {
-    
     // If no RAG context, return original
     if (assembledContext.ragChunksIncluded === 0) {
       return originalParams;
@@ -228,13 +237,13 @@ export class EnhancedGeminiChatProxy extends GeminiChat {
 
     // Create enhanced message that includes RAG context
     const ragContextText = this.extractRAGContextText(assembledContext);
-    const enhancedMessage = ragContextText 
+    const enhancedMessage = ragContextText
       ? `${ragContextText}\n\n---\n\nUser Question: ${originalParams.message}`
       : originalParams.message;
 
     return {
       ...originalParams,
-      message: enhancedMessage
+      message: enhancedMessage,
     };
   }
 
@@ -248,7 +257,11 @@ export class EnhancedGeminiChatProxy extends GeminiChat {
 
     // Look for RAG context in the assembled contents
     for (const content of assembledContext.contents) {
-      if (content.role === 'user' && content.parts && content.parts.length > 0) {
+      if (
+        content.role === 'user' &&
+        content.parts &&
+        content.parts.length > 0
+      ) {
         const text = content.parts[0]?.text || '';
         if (text.includes('## Relevant Knowledge Base Information')) {
           return text;
@@ -272,7 +285,7 @@ export class EnhancedGeminiChatProxy extends GeminiChat {
     // For curated history with RAG enabled, we provide smarter context management
     // by removing the need for manual reversal - the PromptContextManager handles this
     const originalHistory = super.getHistory(false); // Get uncurated
-    
+
     // Apply basic curation without the problematic reversal
     return this.applySafeCuration(originalHistory);
   }
@@ -283,14 +296,14 @@ export class EnhancedGeminiChatProxy extends GeminiChat {
   private applySafeCuration(history: Content[]): Content[] {
     // Extract valid content without reversal - let PromptContextManager handle ordering
     const curated: Content[] = [];
-    
+
     for (let i = 0; i < history.length; i++) {
       const content = history[i];
       if (this.isValidContent(content)) {
         curated.push(content);
       }
     }
-    
+
     return curated;
   }
 
@@ -301,7 +314,7 @@ export class EnhancedGeminiChatProxy extends GeminiChat {
     if (!content.parts || content.parts.length === 0) {
       return false;
     }
-    
+
     for (const part of content.parts) {
       if (!part || Object.keys(part).length === 0) {
         return false;
@@ -310,7 +323,7 @@ export class EnhancedGeminiChatProxy extends GeminiChat {
         return false;
       }
     }
-    
+
     return true;
   }
 

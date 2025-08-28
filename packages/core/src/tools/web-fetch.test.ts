@@ -58,8 +58,12 @@ describe('WebFetchTool', () => {
       const invocation = tool.build(params);
       const result = await invocation.execute(new AbortController().signal);
       // The fallback handles individual URL errors gracefully, so we expect success with error message
-      expect(result.llmContent).toContain('Error processing https://private.ip');
-      expect(result.returnDisplay).toContain('Content processed with some errors');
+      expect(result.llmContent).toContain(
+        'Error processing https://private.ip',
+      );
+      expect(result.returnDisplay).toContain(
+        'Content processed with some errors',
+      );
       expect(result.error).toBeUndefined(); // No general error is thrown
     });
 

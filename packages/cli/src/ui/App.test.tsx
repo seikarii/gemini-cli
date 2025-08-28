@@ -387,7 +387,7 @@ describe('App UI', () => {
 
       const { unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -415,7 +415,7 @@ describe('App UI', () => {
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -447,7 +447,7 @@ describe('App UI', () => {
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -479,7 +479,7 @@ describe('App UI', () => {
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -515,7 +515,7 @@ describe('App UI', () => {
 
       const { unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -545,7 +545,7 @@ describe('App UI', () => {
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -565,7 +565,7 @@ describe('App UI', () => {
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -602,7 +602,7 @@ describe('App UI', () => {
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -631,7 +631,7 @@ describe('App UI', () => {
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -653,7 +653,7 @@ describe('App UI', () => {
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -675,7 +675,7 @@ describe('App UI', () => {
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -697,7 +697,7 @@ describe('App UI', () => {
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -725,7 +725,7 @@ describe('App UI', () => {
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -751,7 +751,7 @@ describe('App UI', () => {
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -773,7 +773,7 @@ describe('App UI', () => {
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -798,7 +798,7 @@ describe('App UI', () => {
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -821,7 +821,7 @@ describe('App UI', () => {
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -835,7 +835,7 @@ describe('App UI', () => {
   it('should display Tips component by default', async () => {
     const { unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -855,7 +855,7 @@ describe('App UI', () => {
 
     const { unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -870,7 +870,7 @@ describe('App UI', () => {
     const { Header } = await import('./components/Header.js');
     const { unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -889,7 +889,7 @@ describe('App UI', () => {
 
     const { unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -903,7 +903,7 @@ describe('App UI', () => {
   it('should display Footer component by default', async () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -922,7 +922,7 @@ describe('App UI', () => {
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -943,7 +943,7 @@ describe('App UI', () => {
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -964,7 +964,7 @@ describe('App UI', () => {
 
     const { unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -995,7 +995,7 @@ describe('App UI', () => {
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1011,7 +1011,7 @@ describe('App UI', () => {
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1027,7 +1027,7 @@ describe('App UI', () => {
   it('should render the initial UI correctly', () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -1049,7 +1049,7 @@ describe('App UI', () => {
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
-      agent={null}
+        agent={null}
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
@@ -1081,7 +1081,7 @@ describe('App UI', () => {
 
       const { unmount, rerender } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1092,7 +1092,7 @@ describe('App UI', () => {
       // Force a re-render to trigger useEffect
       rerender(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1125,7 +1125,7 @@ describe('App UI', () => {
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1152,7 +1152,7 @@ describe('App UI', () => {
 
       const { unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1175,7 +1175,7 @@ describe('App UI', () => {
 
       const { unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1196,7 +1196,7 @@ describe('App UI', () => {
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1223,7 +1223,7 @@ describe('App UI', () => {
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1248,7 +1248,7 @@ describe('App UI', () => {
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1271,7 +1271,7 @@ describe('App UI', () => {
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1294,7 +1294,7 @@ describe('App UI', () => {
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1330,7 +1330,7 @@ describe('App UI', () => {
 
       const { unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1358,7 +1358,7 @@ describe('App UI', () => {
 
       const { unmount, rerender } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1379,7 +1379,7 @@ describe('App UI', () => {
       // Rerender to trigger the useEffect with new state
       rerender(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1409,7 +1409,7 @@ describe('App UI', () => {
 
       const { unmount, lastFrame } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1436,7 +1436,7 @@ describe('App UI', () => {
 
       const { unmount, lastFrame } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1466,7 +1466,7 @@ describe('App UI', () => {
 
       const { unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1496,7 +1496,7 @@ describe('App UI', () => {
 
       const { unmount, lastFrame } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1526,7 +1526,7 @@ describe('App UI', () => {
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1559,7 +1559,7 @@ describe('App UI', () => {
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}
@@ -1599,7 +1599,7 @@ describe('App UI', () => {
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettingsWithDebug}
           version={mockVersion}
@@ -1616,7 +1616,7 @@ describe('App UI', () => {
     it('should use default false value when debugKeystrokeLogging is not set', () => {
       const { lastFrame, unmount } = renderWithProviders(
         <App
-      agent={null}
+          agent={null}
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
           version={mockVersion}

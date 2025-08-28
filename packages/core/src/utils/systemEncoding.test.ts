@@ -290,7 +290,11 @@ describe('Shell Command Processor - Encoding Functions', () => {
 
       const result = await detectSystemEncodingAsync();
       expect(result).toBe('utf-8');
-      expect(mockedExec).toHaveBeenCalledWith('chcp', { encoding: 'utf8' }, expect.any(Function));
+      expect(mockedExec).toHaveBeenCalledWith(
+        'chcp',
+        { encoding: 'utf8' },
+        expect.any(Function),
+      );
     }, 10000);
 
     it('should handle different chcp output formats', async () => {
@@ -318,7 +322,9 @@ describe('Shell Command Processor - Encoding Functions', () => {
       const result = await detectSystemEncodingAsync();
       expect(result).toBe(null);
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Failed to get Windows code page using 'chcp' command"),
+        expect.stringContaining(
+          "Failed to get Windows code page using 'chcp' command",
+        ),
       );
     }, 10000);
 
@@ -327,7 +333,7 @@ describe('Shell Command Processor - Encoding Functions', () => {
       delete process.env['LC_ALL'];
       delete process.env['LC_CTYPE'];
       delete process.env['LANG'];
-      
+
       mockedExec.mockImplementation((command, options, callback) => {
         if (command === 'locale charmap' && typeof callback === 'function') {
           callback(null, 'ISO-8859-1', '');
@@ -344,7 +350,7 @@ describe('Shell Command Processor - Encoding Functions', () => {
       delete process.env['LC_ALL'];
       delete process.env['LC_CTYPE'];
       delete process.env['LANG'];
-      
+
       mockedExec.mockImplementation((command, options, callback) => {
         if (command === 'locale charmap' && typeof callback === 'function') {
           callback(new Error('Command failed'), '', '');
@@ -354,7 +360,9 @@ describe('Shell Command Processor - Encoding Functions', () => {
 
       const result = await detectSystemEncodingAsync();
       expect(result).toBe(null);
-      expect(consoleWarnSpy).toHaveBeenCalledWith('Failed to get locale charmap.');
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Failed to get locale charmap.',
+      );
     });
   });
 
@@ -443,7 +451,7 @@ describe('Shell Command Processor - Encoding Functions', () => {
       const result = getCachedEncodingForBuffer(buffer);
 
       // Wait a bit for the async detection to complete
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(result).toBe('windows-1252');
     });

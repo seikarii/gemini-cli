@@ -6,17 +6,27 @@
 
 // Mock child_process module
 vi.mock('child_process', () => ({
-  exec: vi.fn((command: string, options?: unknown, callback?: (error: Error | null, stdout: string, stderr: string) => void) => {
-    if (typeof options === 'function') {
-      callback = options as (error: Error | null, stdout: string, stderr: string) => void;
-      options = undefined;
-    }
-    if (callback) {
-      // Call callback immediately with error
-      callback(new Error('Command not found'), '', '');
-    }
-    return {};
-  }),
+  exec: vi.fn(
+    (
+      command: string,
+      options?: unknown,
+      callback?: (error: Error | null, stdout: string, stderr: string) => void,
+    ) => {
+      if (typeof options === 'function') {
+        callback = options as (
+          error: Error | null,
+          stdout: string,
+          stderr: string,
+        ) => void;
+        options = undefined;
+      }
+      if (callback) {
+        // Call callback immediately with error
+        callback(new Error('Command not found'), '', '');
+      }
+      return {};
+    },
+  ),
   execSync: vi.fn(() => {
     throw new Error('Command not found');
   }),

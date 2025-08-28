@@ -25,10 +25,10 @@ export class RAGGeminiEmbeddingService extends RAGEmbeddingService {
   constructor(
     private readonly config: Config,
     private readonly ragConfig: RAGConfig,
-    private readonly logger: RAGLogger
+    private readonly logger: RAGLogger,
   ) {
     super();
-    
+
     this.modelInfo = {
       name: this.ragConfig.embedding.model,
       dimension: this.ragConfig.embedding.dimension,
@@ -42,12 +42,12 @@ export class RAGGeminiEmbeddingService extends RAGEmbeddingService {
       enabled: this.ragConfig.performance.enableCaching,
       maxSize: 10000, // Fixed cache size
       ttlMs: 24 * 60 * 60 * 1000, // 24 hours
-      lruEviction: true
+      lruEviction: true,
     });
 
     this.logger.info('Enhanced GeminiEmbeddingService initialized', {
       model: this.modelInfo.name,
-      caching: this.ragConfig.performance.enableCaching
+      caching: this.ragConfig.performance.enableCaching,
     });
   }
 
@@ -86,13 +86,13 @@ export class RAGGeminiEmbeddingService extends RAGEmbeddingService {
     let newEmbeddings: number[][] = [];
     if (uncachedTexts.length > 0) {
       newEmbeddings = await Promise.all(
-        uncachedTexts.map(text => this.generateEmbeddingDirect(text))
+        uncachedTexts.map((text) => this.generateEmbeddingDirect(text)),
       );
-      
+
       // Cache new embeddings
       const cacheEntries = uncachedTexts.map((text, idx) => ({
         content: text,
-        embedding: newEmbeddings[idx]
+        embedding: newEmbeddings[idx],
       }));
       await this.cacheService.setMany(cacheEntries);
     }
@@ -100,7 +100,7 @@ export class RAGGeminiEmbeddingService extends RAGEmbeddingService {
     // Combine cached and new results
     const results: number[][] = new Array(texts.length);
     let newEmbeddingIndex = 0;
-    
+
     for (let i = 0; i < texts.length; i++) {
       if (cachedResults[i] !== null) {
         results[i] = cachedResults[i]!; // Non-null assertion since we checked
@@ -112,7 +112,7 @@ export class RAGGeminiEmbeddingService extends RAGEmbeddingService {
     this.logger.debug('Batch embedding generation completed', {
       total: texts.length,
       cached: texts.length - uncachedTexts.length,
-      generated: uncachedTexts.length
+      generated: uncachedTexts.length,
     });
 
     return results;
@@ -128,23 +128,26 @@ export class RAGGeminiEmbeddingService extends RAGEmbeddingService {
     } catch (error) {
       this.logger.error('Failed to generate embedding:', error);
       throw new RAGEmbeddingError(
-        `Embedding generation failed: ${error instanceof Error ? error.message : String(error)}`
+        `Embedding generation failed: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
 
   private async generateEmbeddingWithRetry(
     text: string,
-    maxRetries: number = 3
+    maxRetries: number = 3,
   ): Promise<number[]> {
     let lastError: Error | undefined;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        this.logger.debug(`Generating embedding (attempt ${attempt}/${maxRetries})`, {
-          textLength: text.length,
-          model: this.modelInfo.name,
-        });
+        this.logger.debug(
+          `Generating embedding (attempt ${attempt}/${maxRetries})`,
+          {
+            textLength: text.length,
+            model: this.modelInfo.name,
+          },
+        );
 
         // Use real Gemini client for embedding generation
         const geminiClient = this.config.getGeminiClient();
@@ -167,7 +170,7 @@ export class RAGGeminiEmbeddingService extends RAGEmbeddingService {
         if (attempt < maxRetries) {
           // Exponential backoff
           const delay = Math.pow(2, attempt - 1) * 1000;
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
     }
@@ -190,7 +193,7 @@ export class RAGGeminiEmbeddingService extends RAGEmbeddingService {
   getStats() {
     return {
       modelInfo: this.modelInfo,
-      cache: this.cacheService.getStats()
+      cache: this.cacheService.getStats(),
     };
   }
 

@@ -1,9 +1,16 @@
-import { RAGVectorStore, RAGChunk, VectorStoreConfig, ScoredChunk, VectorStoreStats, QueryFilters } from '../types.js';
+import {
+  RAGVectorStore,
+  RAGChunk,
+  VectorStoreConfig,
+  ScoredChunk,
+  VectorStoreStats,
+  QueryFilters,
+} from '../types.js';
 import { RAGLogger } from '../logger.js';
 
 /**
  * Qdrant Vector Store implementation for RAG system
- * 
+ *
  * This is a placeholder implementation for Qdrant integration.
  * To use this in production, you would need to:
  * 1. Install the Qdrant client: npm install @qdrant/js-client-rest
@@ -17,7 +24,7 @@ export class RAGQdrantVectorStore extends RAGVectorStore {
 
   constructor(
     config: VectorStoreConfig,
-    private logger: RAGLogger
+    private logger: RAGLogger,
   ) {
     super(config);
     this.collectionName = config.collection || 'gemini_rag_chunks';
@@ -41,7 +48,7 @@ export class RAGQdrantVectorStore extends RAGVectorStore {
 
       this.logger.info('QdrantVectorStore initialized', {
         collectionName: this.collectionName,
-        url: this.config.connectionString
+        url: this.config.connectionString,
       });
 
       this.initialized = true;
@@ -87,7 +94,10 @@ export class RAGQdrantVectorStore extends RAGVectorStore {
 
       this.logger.debug('Added chunks to Qdrant', { count: chunks.length });
     } catch (error) {
-      this.logger.error('Failed to add chunks to QdrantVectorStore', { error, chunkCount: chunks.length });
+      this.logger.error('Failed to add chunks to QdrantVectorStore', {
+        error,
+        chunkCount: chunks.length,
+      });
       throw error;
     }
   }
@@ -96,7 +106,7 @@ export class RAGQdrantVectorStore extends RAGVectorStore {
     _query: string,
     _embedding: number[],
     _filters?: QueryFilters,
-    limit?: number
+    limit?: number,
   ): Promise<ScoredChunk[]> {
     if (!this.initialized) {
       throw new Error('QdrantVectorStore not initialized');
@@ -150,9 +160,13 @@ export class RAGQdrantVectorStore extends RAGVectorStore {
       //   points: chunkIds
       // });
 
-      this.logger.debug('Deleted chunks from Qdrant', { count: chunkIds.length });
+      this.logger.debug('Deleted chunks from Qdrant', {
+        count: chunkIds.length,
+      });
     } catch (error) {
-      this.logger.error('Failed to delete chunks from QdrantVectorStore', { error });
+      this.logger.error('Failed to delete chunks from QdrantVectorStore', {
+        error,
+      });
       throw error;
     }
   }
@@ -168,10 +182,12 @@ export class RAGQdrantVectorStore extends RAGVectorStore {
       //   ids: [id],
       //   with_payload: true
       // });
-      
+
       return null; // Placeholder
     } catch (error) {
-      this.logger.error('Failed to get chunk from QdrantVectorStore', { error });
+      this.logger.error('Failed to get chunk from QdrantVectorStore', {
+        error,
+      });
       throw error;
     }
   }
@@ -187,10 +203,12 @@ export class RAGQdrantVectorStore extends RAGVectorStore {
       //   filter: filters,
       //   with_payload: false
       // });
-      
+
       return []; // Placeholder
     } catch (error) {
-      this.logger.error('Failed to list chunks from QdrantVectorStore', { error });
+      this.logger.error('Failed to list chunks from QdrantVectorStore', {
+        error,
+      });
       throw error;
     }
   }
@@ -203,11 +221,11 @@ export class RAGQdrantVectorStore extends RAGVectorStore {
     try {
       // TODO: Implement Qdrant stats
       // const info = await this.client.getCollection(this.collectionName);
-      
+
       return {
         totalChunks: 0, // info.points_count
         indexSize: 0, // Calculate from collection info
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
     } catch (error) {
       this.logger.error('Failed to get QdrantVectorStore stats', { error });
@@ -224,7 +242,7 @@ export class RAGQdrantVectorStore extends RAGVectorStore {
       // TODO: Cleanup Qdrant connection
       this.client = null;
       this.initialized = false;
-      
+
       this.logger.info('QdrantVectorStore shutdown complete');
     } catch (error) {
       this.logger.error('Error during QdrantVectorStore shutdown', { error });

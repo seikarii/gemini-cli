@@ -134,7 +134,8 @@ describe('aboutCommand', () => {
 
   it('should not show ide client when it is not detected', async () => {
     // Change to oauth type that doesn't use GCP project
-    mockContext.services.settings.merged.selectedAuthType = AuthType.LOGIN_WITH_GOOGLE;
+    mockContext.services.settings.merged.selectedAuthType =
+      AuthType.LOGIN_WITH_GOOGLE;
 
     vi.spyOn(mockContext.services.config!, 'getIdeClient').mockReturnValue({
       getDetectedIdeDisplayName: vi.fn().mockReturnValue(undefined),

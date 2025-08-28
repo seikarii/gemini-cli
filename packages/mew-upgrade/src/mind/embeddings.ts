@@ -114,7 +114,7 @@ export class HashingEmbedder {
         }
         const [idx, s] = this._indexSign(`idx|${i}`);
         v[idx] += s * valf;
-      } catch (e) {
+      } catch (_e) {
         continue;
       }
     }
@@ -189,7 +189,7 @@ export class ARPredictor {
       const y_hat = this._matvec(x);
       const e = y_hat.map((yh, i) => yh - y[i]);
       return e.reduce((sum, ei) => sum + ei * ei, 0) / Math.max(1, e.length);
-    } catch (e) {
+    } catch (_e) {
       return Infinity;
     }
   }
@@ -222,7 +222,7 @@ export class ARPredictor {
       }
       const pu = (before - after) / before;
       return clamp(pu, 0.0, 1.0);
-    } catch (e) {
+    } catch (_e) {
       return 0.0;
     }
   }

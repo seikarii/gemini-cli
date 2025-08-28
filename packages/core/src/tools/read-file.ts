@@ -590,13 +590,21 @@ class ReadFileToolInvocation extends BaseToolInvocation<
 
       // Add AST tree structure if requested and sourceFile is available
       // Skip for large files to prevent API issues
-      if (this.params.show_ast_tree !== false && parseResult.sourceFile && parseResult.fileInfo.sizeBytes < 500 * 1024) {
+      if (
+        this.params.show_ast_tree !== false &&
+        parseResult.sourceFile &&
+        parseResult.fileInfo.sizeBytes < 500 * 1024
+      ) {
         astContent += `🌲 **AST Tree Structure:**\n`;
         const astTree = this.buildASTTree(parseResult.sourceFile);
         astContent += '```\n';
         astContent += this.formatASTTree(astTree);
         astContent += '```\n\n';
-      } else if (this.params.show_ast_tree !== false && parseResult.sourceFile && parseResult.fileInfo.sizeBytes >= 500 * 1024) {
+      } else if (
+        this.params.show_ast_tree !== false &&
+        parseResult.sourceFile &&
+        parseResult.fileInfo.sizeBytes >= 500 * 1024
+      ) {
         astContent += `🌲 **AST Tree Structure:** Skipped for large file (>500KB) to prevent API issues.\n\n`;
       }
 
@@ -664,8 +672,11 @@ class ReadFileToolInvocation extends BaseToolInvocation<
 
       // Limit AST content size to prevent API issues
       if (astContent.length > ReadFileToolInvocation.MAX_AST_CONTENT_SIZE) {
-        const truncatedLength = ReadFileToolInvocation.MAX_AST_CONTENT_SIZE - 100;
-        astContent = astContent.substring(0, truncatedLength) + '\n\n⚠️ **AST content truncated** to prevent API issues.\n\n---\n\n';
+        const truncatedLength =
+          ReadFileToolInvocation.MAX_AST_CONTENT_SIZE - 100;
+        astContent =
+          astContent.substring(0, truncatedLength) +
+          '\n\n⚠️ **AST content truncated** to prevent API issues.\n\n---\n\n';
       }
 
       return { astContent, parseResult };
@@ -735,10 +746,15 @@ ${result.llmContent}`;
     } else {
       // Only add header if there's AST content or for better formatting
       const content = result.llmContent;
-      if (astAnalysis && astAnalysis.astContent && typeof content === 'string') {
+      if (
+        astAnalysis &&
+        astAnalysis.astContent &&
+        typeof content === 'string'
+      ) {
         finalContent = `📄 **FILE CONTENT:**\n\n${content}`;
       } else {
-        finalContent = typeof content === 'string' ? content : JSON.stringify(content);
+        finalContent =
+          typeof content === 'string' ? content : JSON.stringify(content);
       }
     }
 
@@ -766,9 +782,10 @@ ${result.llmContent}`;
       };
     }
 
-    const lines = typeof result.llmContent === 'string'
-      ? result.llmContent.split('\n').length
-      : undefined;
+    const lines =
+      typeof result.llmContent === 'string'
+        ? result.llmContent.split('\n').length
+        : undefined;
     logFileOperation(
       this.config,
       new FileOperationEvent(
@@ -794,13 +811,21 @@ ${result.llmContent}`;
     // For backward compatibility, return string for simple text content
     // and PartListUnion only for complex content like images/PDFs
     let finalLlmContent: string | PartListUnion = llmContent;
-    
+
     // For inlineData objects (images/PDFs), return the object directly for backward compatibility
-    if (result.llmContent && typeof result.llmContent === 'object' && 'inlineData' in result.llmContent) {
+    if (
+      result.llmContent &&
+      typeof result.llmContent === 'object' &&
+      'inlineData' in result.llmContent
+    ) {
       finalLlmContent = result.llmContent as PartUnion;
     }
     // For objects with text property (like error messages), extract the text value
-    else if (result.llmContent && typeof result.llmContent === 'object' && 'text' in result.llmContent) {
+    else if (
+      result.llmContent &&
+      typeof result.llmContent === 'object' &&
+      'text' in result.llmContent
+    ) {
       finalLlmContent = (result.llmContent as { text: string }).text;
     }
     // For other objects, stringify them

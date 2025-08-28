@@ -127,6 +127,7 @@ export default tseslint.config(
             'memfs/lib/volume.js',
             'yargs/**',
             'msw/node',
+            '**/*.js',
           ],
         },
       ],
@@ -177,7 +178,11 @@ export default tseslint.config(
   },
   // extra settings for scripts that we run directly with node
   {
-    files: ['./scripts/**/*.{js,cjs}', 'esbuild.config.js', 'test_pyparser.mjs'],
+    files: [
+      './scripts/**/*.{js,cjs}',
+      'esbuild.config.js',
+      'test_pyparser.mjs',
+    ],
     languageOptions: {
       globals: {
         ...globals.node,

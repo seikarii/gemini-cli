@@ -907,32 +907,36 @@ describe('GeminiChat', () => {
       // Create a conversation with function calls and responses
       const functionCallContent: Content = {
         role: 'model',
-        parts: [{
-          functionCall: {
-            name: 'read_file',
-            args: { absolute_path: '/test/file.txt' }
-          }
-        }]
+        parts: [
+          {
+            functionCall: {
+              name: 'read_file',
+              args: { absolute_path: '/test/file.txt' },
+            },
+          },
+        ],
       };
 
       const functionResponseContent: Content = {
         role: 'user',
-        parts: [{
-          functionResponse: {
-            name: 'read_file',
-            response: { content: 'file content' }
-          }
-        }]
+        parts: [
+          {
+            functionResponse: {
+              name: 'read_file',
+              response: { content: 'file content' },
+            },
+          },
+        ],
       };
 
       const userMessageContent: Content = {
         role: 'user',
-        parts: [{ text: 'Please read this file' }]
+        parts: [{ text: 'Please read this file' }],
       };
 
       const modelResponseContent: Content = {
         role: 'model',
-        parts: [{ text: 'I have read the file content for you.' }]
+        parts: [{ text: 'I have read the file content for you.' }],
       };
 
       // Set up the conversation history
@@ -941,7 +945,7 @@ describe('GeminiChat', () => {
         userMessageContent,
         functionCallContent,
         functionResponseContent,
-        modelResponseContent
+        modelResponseContent,
       ]);
 
       // Test curated history - this is where the reversal happens
@@ -951,11 +955,11 @@ describe('GeminiChat', () => {
       expect(curatedHistory.length).toBeGreaterThan(0);
 
       // Check that function calls and responses are in the correct order
-      const functionCallIndex = curatedHistory.findIndex(content =>
-        content.parts?.some(part => 'functionCall' in part)
+      const functionCallIndex = curatedHistory.findIndex((content) =>
+        content.parts?.some((part) => 'functionCall' in part),
       );
-      const functionResponseIndex = curatedHistory.findIndex(content =>
-        content.parts?.some(part => 'functionResponse' in part)
+      const functionResponseIndex = curatedHistory.findIndex((content) =>
+        content.parts?.some((part) => 'functionResponse' in part),
       );
 
       // Function response should come after function call
@@ -965,8 +969,10 @@ describe('GeminiChat', () => {
 
       // Verify that when we have function calls, the history is NOT reversed
       // This prevents the API error about mismatched function parts
-      const hasFunctionCalls = curatedHistory.some(content =>
-        content.parts?.some(part => 'functionCall' in part || 'functionResponse' in part)
+      const hasFunctionCalls = curatedHistory.some((content) =>
+        content.parts?.some(
+          (part) => 'functionCall' in part || 'functionResponse' in part,
+        ),
       );
 
       if (hasFunctionCalls) {
@@ -999,22 +1005,22 @@ describe('GeminiChat', () => {
       // Create a regular conversation without function calls
       const userMessage1: Content = {
         role: 'user',
-        parts: [{ text: 'First user message' }]
+        parts: [{ text: 'First user message' }],
       };
 
       const modelResponse1: Content = {
         role: 'model',
-        parts: [{ text: 'First model response' }]
+        parts: [{ text: 'First model response' }],
       };
 
       const userMessage2: Content = {
         role: 'user',
-        parts: [{ text: 'Second user message' }]
+        parts: [{ text: 'Second user message' }],
       };
 
       const modelResponse2: Content = {
         role: 'model',
-        parts: [{ text: 'Second model response' }]
+        parts: [{ text: 'Second model response' }],
       };
 
       // Set up the conversation history
@@ -1023,7 +1029,7 @@ describe('GeminiChat', () => {
         userMessage1,
         modelResponse1,
         userMessage2,
-        modelResponse2
+        modelResponse2,
       ]);
 
       // Test curated history - this should be reversed for context optimization

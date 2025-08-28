@@ -38,17 +38,17 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
       keyword: number;
       graph: number;
       recency: number;
-    }
+    },
   ) {
     super(config);
     this.chunks = new Map();
-    
+
     // Use provided weights or sensible defaults
     this.hybridWeights = hybridWeights || {
       semantic: 0.7,
       keyword: 0.2,
       graph: 0.05,
-      recency: 0.05
+      recency: 0.05,
     };
   }
 
@@ -73,7 +73,7 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
       if (!chunk.id) {
         throw new RAGVectorStoreError('Chunk must have an ID');
       }
-      
+
       this.chunks.set(chunk.id, chunk);
       addedCount++;
     }
@@ -92,7 +92,7 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
       if (!chunk.id) {
         throw new RAGVectorStoreError('Chunk must have an ID');
       }
-      
+
       if (this.chunks.has(chunk.id)) {
         this.chunks.set(chunk.id, chunk);
         updatedCount++;
@@ -123,7 +123,7 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
     query: string,
     embedding: number[],
     filters?: QueryFilters,
-    limit?: number
+    limit?: number,
   ): Promise<ScoredChunk[]> {
     this.ensureInitialized();
 
@@ -147,9 +147,9 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
       const keywordScore = this.keywordSimilarity(query, chunk.content);
       const recencyScore = this.calculateRecencyScore(chunk.timestamp);
       const graphScore = this.calculateGraphScore(chunk); // Basic implementation
-      
+
       // Combine scores using configured weights
-      const combinedScore = 
+      const combinedScore =
         semanticScore * this.hybridWeights.semantic +
         keywordScore * this.hybridWeights.keyword +
         graphScore * this.hybridWeights.graph +
@@ -178,7 +178,7 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
 
     const duration = Date.now() - startTime;
     this.logger.debug(
-      `Search completed: ${limitedResults.length}/${results.length} results in ${duration}ms`
+      `Search completed: ${limitedResults.length}/${results.length} results in ${duration}ms`,
     );
 
     return limitedResults;
@@ -191,18 +191,21 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
 
   async listChunks(filters?: QueryFilters): Promise<string[]> {
     this.ensureInitialized();
-    
+
     const chunksArray = Array.from(this.chunks.values());
     const filteredChunks = this.applyFilters(chunksArray, filters);
-    
-    return filteredChunks.map(chunk => chunk.id);
+
+    return filteredChunks.map((chunk) => chunk.id);
   }
 
   async getStats(): Promise<VectorStoreStats> {
     this.ensureInitialized();
 
     const chunks = Array.from(this.chunks.values());
-    const totalSize = chunks.reduce((sum, chunk) => sum + chunk.content.length, 0);
+    const totalSize = chunks.reduce(
+      (sum, chunk) => sum + chunk.content.length,
+      0,
+    );
 
     return {
       totalChunks: chunks.length,
@@ -231,20 +234,24 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
       return chunks;
     }
 
-    return chunks.filter(chunk => {
+    return chunks.filter((chunk) => {
       // Filter by chunk types
       if (filters.chunkTypes && !filters.chunkTypes.includes(chunk.type)) {
         return false;
       }
 
       // Filter by languages
-      if (filters.languages && chunk.language && !filters.languages.includes(chunk.language)) {
+      if (
+        filters.languages &&
+        chunk.language &&
+        !filters.languages.includes(chunk.language)
+      ) {
         return false;
       }
 
       // Filter by file patterns
       if (filters.filePatterns && chunk.source.type === 'file') {
-        const matchesPattern = filters.filePatterns.some(pattern => {
+        const matchesPattern = filters.filePatterns.some((pattern) => {
           const regex = new RegExp(pattern.replace(/\*/g, '.*'));
           return regex.test(chunk.source.id);
         });
@@ -256,10 +263,16 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
       // Filter by time range
       if (filters.timeRange) {
         const chunkTime = new Date(chunk.timestamp);
-        if (filters.timeRange.start && chunkTime < new Date(filters.timeRange.start)) {
+        if (
+          filters.timeRange.start &&
+          chunkTime < new Date(filters.timeRange.start)
+        ) {
           return false;
         }
-        if (filters.timeRange.end && chunkTime > new Date(filters.timeRange.end)) {
+        if (
+          filters.timeRange.end &&
+          chunkTime > new Date(filters.timeRange.end)
+        ) {
           return false;
         }
       }
@@ -297,12 +310,12 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
   private keywordSimilarity(query: string, content: string): number {
     const queryWords = this.tokenize(query.toLowerCase());
     const contentWords = this.tokenize(content.toLowerCase());
-    
+
     if (queryWords.length === 0) {
       return 0;
     }
 
-    const matches = queryWords.filter(word => contentWords.includes(word));
+    const matches = queryWords.filter((word) => contentWords.includes(word));
     return matches.length / queryWords.length;
   }
 
@@ -310,7 +323,7 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
     const chunkTime = new Date(timestamp).getTime();
     const now = Date.now();
     const ageInDays = (now - chunkTime) / (1000 * 60 * 60 * 24);
-    
+
     // Exponential decay: newer chunks get higher scores
     return Math.exp(-ageInDays / 30); // 30-day half-life
   }
@@ -320,13 +333,16 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
     const highlights: string[] = [];
 
     // Find sentences containing query words
-    const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    
+    const sentences = content
+      .split(/[.!?]+/)
+      .filter((s) => s.trim().length > 0);
+
     for (const sentence of sentences) {
       const sentenceLower = sentence.toLowerCase();
-      const hasMatch = queryWords.some(word => sentenceLower.includes(word));
-      
-      if (hasMatch && highlights.length < 3) { // Limit to 3 highlights
+      const hasMatch = queryWords.some((word) => sentenceLower.includes(word));
+
+      if (hasMatch && highlights.length < 3) {
+        // Limit to 3 highlights
         highlights.push(sentence.trim());
       }
     }
@@ -337,8 +353,8 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
   private tokenize(text: string): string[] {
     return text
       .split(/\W+/)
-      .filter(word => word.length > 2) // Filter out short words
-      .map(word => word.toLowerCase());
+      .filter((word) => word.length > 2) // Filter out short words
+      .map((word) => word.toLowerCase());
   }
 
   /**
@@ -348,25 +364,25 @@ export class RAGMemoryVectorStore extends RAGVectorStore {
   private calculateGraphScore(chunk: RAGChunk): number {
     // Basic graph scoring based on metadata relationships
     let score = 0.5; // Base score
-    
+
     // Boost score for chunks with more connections (e.g., imports, dependencies)
     const metadata = chunk.metadata as Record<string, unknown>; // Allow access to extended metadata
     if (metadata?.dependencies && Array.isArray(metadata.dependencies)) {
       const connectionCount = metadata.dependencies.length;
       score += Math.min(connectionCount * 0.1, 0.3); // Cap at 0.3
     }
-    
+
     // Boost score for chunks with quality indicators
     const quality = metadata?.quality as Record<string, unknown>;
     if (quality?.relevance && typeof quality.relevance === 'number') {
       score += quality.relevance * 0.2;
     }
-    
+
     // Boost score for central components (classes, main functions)
     if (chunk.type === 'code_class' || chunk.type === 'code_module') {
       score += 0.1;
     }
-    
+
     return Math.min(score, 1.0); // Cap at 1.0
   }
 }

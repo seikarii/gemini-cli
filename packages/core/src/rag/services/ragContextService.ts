@@ -1,6 +1,12 @@
 import { RAGService } from '../ragService.js';
 import { RAGLogger } from '../logger.js';
-import { ScoredChunk, QueryFilters, ChunkType, RAGChunk, RAGQuery } from '../types.js';
+import {
+  ScoredChunk,
+  QueryFilters,
+  ChunkType,
+  RAGChunk,
+  RAGQuery,
+} from '../types.js';
 
 /**
  * Configuration for RAG context integration
@@ -56,7 +62,7 @@ export class RAGContextService {
   constructor(
     ragService: RAGService,
     logger: RAGLogger,
-    config: Partial<RAGContextConfig> = {}
+    config: Partial<RAGContextConfig> = {},
   ) {
     this.ragService = ragService;
     this.logger = logger;
@@ -69,7 +75,7 @@ export class RAGContextService {
       includeDocumentation: true,
       includeConversations: false,
       summarizationStrategy: 'extractive',
-      ...config
+      ...config,
     };
 
     this.logger.info('RAGContextService initialized', { config: this.config });
@@ -78,7 +84,10 @@ export class RAGContextService {
   /**
    * Enhance a user query with relevant context from the RAG system
    */
-  async enhanceQuery(query: string, _conversationHistory?: string[]): Promise<EnhancedContext> {
+  async enhanceQuery(
+    query: string,
+    _conversationHistory?: string[],
+  ): Promise<EnhancedContext> {
     if (!this.config.enabled) {
       return {
         query,
@@ -89,8 +98,8 @@ export class RAGContextService {
           averageRelevance: 0,
           contextLength: 0,
           sources: [],
-          chunkTypes: []
-        }
+          chunkTypes: [],
+        },
       };
     }
 
@@ -102,12 +111,12 @@ export class RAGContextService {
       const ragQuery: RAGQuery = {
         text: query,
         maxResults: this.config.maxChunks,
-        filters
+        filters,
       };
 
       // Retrieve relevant chunks using RAG service
       const result = await this.ragService.enhanceQuery(ragQuery);
-      const chunks: ScoredChunk[] = result.sourceChunks.map(chunk => ({
+      const chunks: ScoredChunk[] = result.sourceChunks.map((chunk) => ({
         chunk,
         score: 0.8, // Default score since we don't have it from sourceChunks
         scoreBreakdown: {
@@ -115,13 +124,13 @@ export class RAGContextService {
           keyword: 0,
           graph: 0,
           recency: 0,
-          quality: 0.8
-        }
+          quality: 0.8,
+        },
       }));
 
       // Filter by relevance threshold
       const relevantChunks = chunks.filter(
-        (chunk: ScoredChunk) => chunk.score >= this.config.relevanceThreshold
+        (chunk: ScoredChunk) => chunk.score >= this.config.relevanceThreshold,
       );
 
       if (relevantChunks.length === 0) {
@@ -135,8 +144,8 @@ export class RAGContextService {
             averageRelevance: 0,
             contextLength: 0,
             sources: [],
-            chunkTypes: []
-          }
+            chunkTypes: [],
+          },
         };
       }
 
@@ -150,19 +159,21 @@ export class RAGContextService {
         query: query.substring(0, 100),
         chunksFound: relevantChunks.length,
         averageRelevance: metadata.averageRelevance,
-        contextLength: metadata.contextLength
+        contextLength: metadata.contextLength,
       });
 
       return {
         query,
         relevantChunks,
         contextString,
-        metadata
+        metadata,
       };
-
     } catch (error) {
-      this.logger.error('Failed to enhance query with RAG context', { error, query });
-      
+      this.logger.error('Failed to enhance query with RAG context', {
+        error,
+        query,
+      });
+
       // Return empty context on error to not break the conversation
       return {
         query,
@@ -173,8 +184,8 @@ export class RAGContextService {
           averageRelevance: 0,
           contextLength: 0,
           sources: [],
-          chunkTypes: []
-        }
+          chunkTypes: [],
+        },
       };
     }
   }
@@ -209,7 +220,9 @@ Please use the above context to provide a more accurate and helpful response. Re
    */
   updateConfig(newConfig: Partial<RAGContextConfig>): void {
     Object.assign(this.config, newConfig);
-    this.logger.info('RAGContextService configuration updated', { config: this.config });
+    this.logger.info('RAGContextService configuration updated', {
+      config: this.config,
+    });
   }
 
   /**
@@ -218,37 +231,40 @@ Please use the above context to provide a more accurate and helpful response. Re
   getStats() {
     return {
       config: this.config,
-      enabled: this.config.enabled
+      enabled: this.config.enabled,
     };
   }
 
   private buildQueryFilters(): QueryFilters {
     const chunkTypes: ChunkType[] = [];
-    
+
     if (this.config.includeCode) {
       chunkTypes.push(
-        ChunkType.CODE_FUNCTION, 
-        ChunkType.CODE_CLASS, 
-        ChunkType.CODE_MODULE, 
-        ChunkType.CODE_SNIPPET
+        ChunkType.CODE_FUNCTION,
+        ChunkType.CODE_CLASS,
+        ChunkType.CODE_MODULE,
+        ChunkType.CODE_SNIPPET,
       );
     }
-    
+
     if (this.config.includeDocumentation) {
       chunkTypes.push(ChunkType.DOCUMENTATION, ChunkType.COMMENT);
     }
-    
+
     if (this.config.includeConversations) {
       chunkTypes.push(ChunkType.CONVERSATION);
     }
 
     return {
       chunkTypes,
-      minQuality: this.config.relevanceThreshold
+      minQuality: this.config.relevanceThreshold,
     };
   }
 
-  private async formatContext(chunks: ScoredChunk[], query: string): Promise<string> {
+  private async formatContext(
+    chunks: ScoredChunk[],
+    query: string,
+  ): Promise<string> {
     let context = '';
     let currentLength = 0;
 
@@ -257,10 +273,10 @@ Please use the above context to provide a more accurate and helpful response. Re
 
     for (const scoredChunk of sortedChunks) {
       const chunk = scoredChunk.chunk;
-      
+
       // Estimate token count (rough approximation: 1 token ≈ 4 characters)
       const chunkTokens = Math.ceil(chunk.content.length / 4);
-      
+
       if (currentLength + chunkTokens > this.config.maxContextTokens) {
         break;
       }
@@ -282,12 +298,12 @@ Please use the above context to provide a more accurate and helpful response. Re
   private formatChunk(chunk: RAGChunk, score: number): string {
     const relevancePercent = Math.round(score * 100);
     const source = chunk.source?.id || 'Unknown source';
-    
+
     let formattedContent = '';
-    
+
     // Add source information
     formattedContent += `**Source**: ${source} (Relevance: ${relevancePercent}%)\n`;
-    
+
     // Add type-specific formatting
     if (chunk.type.toString().startsWith('code_')) {
       formattedContent += `**Type**: ${chunk.type}\n`;
@@ -307,41 +323,48 @@ Please use the above context to provide a more accurate and helpful response. Re
 
   private extractiveSummarization(context: string, query: string): string {
     // Simple extractive summarization - could be enhanced with NLP techniques
-    const sentences = context.split(/[.!?]+/).filter(s => s.trim().length > 10);
+    const sentences = context
+      .split(/[.!?]+/)
+      .filter((s) => s.trim().length > 10);
     const queryWords = query.toLowerCase().split(/\s+/);
-    
+
     // Score sentences based on query word overlap
-    const scoredSentences = sentences.map(sentence => {
+    const scoredSentences = sentences.map((sentence) => {
       const sentenceWords = sentence.toLowerCase().split(/\s+/);
-      const overlap = queryWords.filter(word => 
-        sentenceWords.some(sw => sw.includes(word))
+      const overlap = queryWords.filter((word) =>
+        sentenceWords.some((sw) => sw.includes(word)),
       ).length;
-      
+
       return {
         sentence: sentence.trim(),
-        score: overlap / queryWords.length
+        score: overlap / queryWords.length,
       };
     });
 
     // Return top sentences
-    return scoredSentences
-      .sort((a, b) => b.score - a.score)
-      .slice(0, Math.min(10, Math.ceil(scoredSentences.length * 0.3)))
-      .map(item => item.sentence)
-      .join('. ') + '.';
+    return (
+      scoredSentences
+        .sort((a, b) => b.score - a.score)
+        .slice(0, Math.min(10, Math.ceil(scoredSentences.length * 0.3)))
+        .map((item) => item.sentence)
+        .join('. ') + '.'
+    );
   }
 
   private calculateMetadata(chunks: ScoredChunk[], contextString: string) {
-    const sources = [...new Set(chunks.map(c => c.chunk.source?.id || 'Unknown'))];
-    const chunkTypes = [...new Set(chunks.map(c => c.chunk.type))];
-    const averageRelevance = chunks.reduce((sum, c) => sum + c.score, 0) / chunks.length;
+    const sources = [
+      ...new Set(chunks.map((c) => c.chunk.source?.id || 'Unknown')),
+    ];
+    const chunkTypes = [...new Set(chunks.map((c) => c.chunk.type))];
+    const averageRelevance =
+      chunks.reduce((sum, c) => sum + c.score, 0) / chunks.length;
 
     return {
       totalChunks: chunks.length,
       averageRelevance: Math.round(averageRelevance * 10000) / 10000,
       contextLength: contextString.length,
       sources,
-      chunkTypes
+      chunkTypes,
     };
   }
 }

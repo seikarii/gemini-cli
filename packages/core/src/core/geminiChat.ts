@@ -588,7 +588,7 @@ export class GeminiChat {
     }
 
     // REMOVED: Previous "CRITICAL FIX" logic that reversed history for token management.
-    // Context optimization and intelligent ordering is now handled by 
+    // Context optimization and intelligent ordering is now handled by
     // PromptContextManager and EnhancedGeminiChatProxy for more sophisticated
     // RAG-enhanced context assembly.
     // This method now returns the raw chronological history as requested.
@@ -632,7 +632,7 @@ export class GeminiChat {
    * Sets the entire history and invalidates cache.
    * Public to allow external access for context management.
    */
-  public setHistory(history: Content[]): void {
+  setHistory(history: Content[]): void {
     validateHistory(history);
     this.history = history;
     // Invalidate cache when history is replaced

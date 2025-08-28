@@ -8,12 +8,12 @@ import { Content } from '@google/genai';
 import { RAGService } from '../rag/ragService.js';
 import { ChatRecordingService } from './chatRecordingService.js';
 import { Config } from '../config/config.js';
-import { 
-  RAGQuery, 
-  EnhancedQueryResult, 
+import {
+  RAGQuery,
+  EnhancedQueryResult,
   RAGChunk,
   QueryEnhancementOptions,
-  QueryType 
+  QueryType,
 } from '../rag/types.js';
 
 /**
@@ -49,13 +49,18 @@ export interface AssembledContext {
   /** RAG context summary for debugging */
   ragContextSummary?: string;
   /** Conversation compression applied */
-  compressionLevel?: 'none' | 'minimal' | 'moderate' | 'aggressive' | 'intelligent';
+  compressionLevel?:
+    | 'none'
+    | 'minimal'
+    | 'moderate'
+    | 'aggressive'
+    | 'intelligent';
 }
 
 /**
  * Central orchestrator for building optimized prompts that combine
  * RAG-retrieved knowledge with conversational history.
- * 
+ *
  * This service addresses the integration gap between the RAG system
  * and chat components by intelligently combining external knowledge
  * with conversation context while respecting token limits.
@@ -67,7 +72,7 @@ export class PromptContextManager {
     private readonly ragService: RAGService,
     private readonly chatRecordingService: ChatRecordingService,
     private readonly systemConfig: Config,
-    config?: Partial<PromptContextConfig>
+    config?: Partial<PromptContextConfig>,
   ) {
     // Default configuration with smart defaults
     this.config = {
@@ -77,11 +82,11 @@ export class PromptContextManager {
       ragWeight: 0.4, // 40% RAG, 60% conversation
       prioritizeRecentConversation: true,
       useConversationalContext: true,
-      ...config
+      ...config,
     };
 
     console.log('PromptContextManager initialized', {
-      config: this.config
+      config: this.config,
     });
   }
 
@@ -92,10 +97,10 @@ export class PromptContextManager {
   async assembleContext(
     userMessage: string,
     conversationHistory: Content[],
-    _promptId?: string
+    _promptId?: string,
   ): Promise<AssembledContext> {
     const startTime = performance.now();
-    
+
     try {
       // Step 1: Extract conversational context for RAG query enhancement
       const conversationalContext = this.config.useConversationalContext
@@ -109,32 +114,32 @@ export class PromptContextManager {
           : userMessage,
         type: QueryType.GENERAL_QUESTION,
         maxResults: this.config.maxRAGChunks,
-        filters: {}
+        filters: {},
       };
 
       // Step 3: Create enhancement options
       const enhancementOptions: QueryEnhancementOptions = {
         maxTokens: this.config.maxTotalTokens,
-        includeDocumentation: true
+        includeDocumentation: true,
       };
 
       // Step 4: Retrieve relevant RAG chunks
       const ragResults = await this.ragService.enhanceQuery(
         ragQuery,
-        enhancementOptions
+        enhancementOptions,
       );
 
       // Step 5: Get compressed conversation history
       const compressedHistory = await this.getOptimizedConversationHistory(
         conversationHistory,
-        ragResults.sourceChunks.length
+        ragResults.sourceChunks.length,
       );
 
       // Step 6: Combine and optimize final context
       const assembledContext = this.combineContexts(
         userMessage,
         ragResults,
-        compressedHistory
+        compressedHistory,
       );
 
       const duration = performance.now() - startTime;
@@ -142,14 +147,13 @@ export class PromptContextManager {
         duration: `${duration.toFixed(2)}ms`,
         ragChunks: assembledContext.ragChunksIncluded,
         conversationMessages: assembledContext.conversationMessagesIncluded,
-        estimatedTokens: assembledContext.estimatedTokens
+        estimatedTokens: assembledContext.estimatedTokens,
       });
 
       return assembledContext;
-
     } catch (error) {
       console.error('Context assembly failed', { error });
-      
+
       // Fallback to conversation-only context
       return this.createFallbackContext(userMessage, conversationHistory);
     }
@@ -179,7 +183,7 @@ export class PromptContextManager {
       }
     }
 
-    return contextParts.length > 0 
+    return contextParts.length > 0
       ? `Recent conversation context:\n${contextParts.join('\n')}`
       : '';
   }
@@ -189,10 +193,10 @@ export class PromptContextManager {
    */
   private extractTextFromContent(content: Content): string {
     if (!content.parts) return '';
-    
+
     return content.parts
-      .filter(part => part.text)
-      .map(part => part.text)
+      .filter((part) => part.text)
+      .map((part) => part.text)
       .join(' ')
       .trim();
   }
@@ -202,27 +206,30 @@ export class PromptContextManager {
    */
   private async getOptimizedConversationHistory(
     history: Content[],
-    ragChunksCount: number
+    ragChunksCount: number,
   ): Promise<{ content: Content[]; compressionLevel: string }> {
-    
     // Calculate token budget for conversation
     const ragTokenBudget = ragChunksCount * 500; // Estimate 500 tokens per chunk
     const conversationTokenBudget = Math.max(
       this.config.maxTotalTokens - ragTokenBudget - 1000, // Reserve for system prompt
-      5000 // Minimum conversation budget
+      5000, // Minimum conversation budget
     );
 
     // Use ChatRecordingService's advanced compression with flexible token budget
     try {
-      const optimizedResult = await this.chatRecordingService.getOptimizedHistoryForPrompt(
-        conversationTokenBudget,
-        false // Don't include system info for performance
-      );
+      const optimizedResult =
+        await this.chatRecordingService.getOptimizedHistoryForPrompt(
+          conversationTokenBudget,
+          false, // Don't include system info for performance
+        );
 
       // Determine compression level based on metadata
       let compressionLevel = 'none';
       if (optimizedResult.metaInfo.compressionApplied) {
-        const reductionRatio = 1 - (optimizedResult.metaInfo.finalMessageCount / optimizedResult.metaInfo.originalMessageCount);
+        const reductionRatio =
+          1 -
+          optimizedResult.metaInfo.finalMessageCount /
+            optimizedResult.metaInfo.originalMessageCount;
         if (reductionRatio < 0.3) {
           compressionLevel = 'minimal';
         } else if (reductionRatio < 0.6) {
@@ -232,14 +239,17 @@ export class PromptContextManager {
         }
       }
 
-      return { 
-        content: optimizedResult.history, 
-        compressionLevel 
+      return {
+        content: optimizedResult.history,
+        compressionLevel,
       };
     } catch (error) {
       // Fallback to basic compression if ChatRecordingService fails
-      console.warn('Failed to get optimized history from ChatRecordingService, using fallback:', error);
-      
+      console.warn(
+        'Failed to get optimized history from ChatRecordingService, using fallback:',
+        error,
+      );
+
       if (history.length <= 10) {
         return { content: history, compressionLevel: 'none' };
       }
@@ -263,9 +273,8 @@ export class PromptContextManager {
   private combineContexts(
     userMessage: string,
     ragResults: EnhancedQueryResult,
-    conversationData: { content: Content[]; compressionLevel: string }
+    conversationData: { content: Content[]; compressionLevel: string },
   ): AssembledContext {
-    
     const contents: Content[] = [];
     let estimatedTokens = 0;
 
@@ -274,7 +283,7 @@ export class PromptContextManager {
       const ragContext = this.formatRAGContext(ragResults);
       contents.push({
         role: 'user',
-        parts: [{ text: ragContext }]
+        parts: [{ text: ragContext }],
       });
       estimatedTokens += this.estimateTokens(ragContext);
     }
@@ -282,7 +291,9 @@ export class PromptContextManager {
     // Add conversation history
     for (const content of conversationData.content) {
       contents.push(content);
-      estimatedTokens += this.estimateTokens(this.extractTextFromContent(content));
+      estimatedTokens += this.estimateTokens(
+        this.extractTextFromContent(content),
+      );
     }
 
     // Current user message will be added by the calling code
@@ -293,7 +304,12 @@ export class PromptContextManager {
       ragChunksIncluded: ragResults.sourceChunks?.length || 0,
       conversationMessagesIncluded: conversationData.content.length,
       ragContextSummary: ragResults.content,
-      compressionLevel: conversationData.compressionLevel as 'none' | 'minimal' | 'moderate' | 'aggressive' | 'intelligent'
+      compressionLevel: conversationData.compressionLevel as
+        | 'none'
+        | 'minimal'
+        | 'moderate'
+        | 'aggressive'
+        | 'intelligent',
     };
   }
 
@@ -309,13 +325,19 @@ export class PromptContextManager {
       '## Relevant Knowledge Base Information',
       '',
       'The following information has been retrieved from the codebase and documentation to help answer your question:',
-      ''
+      '',
     ];
 
     ragResults.sourceChunks.forEach((chunk: RAGChunk, index: number) => {
-      contextParts.push(`### Context ${index + 1}: ${chunk.metadata?.file?.path || 'Code Snippet'}`);
-      contextParts.push(`**Source:** ${chunk.metadata?.file?.path || 'Unknown'}`);
-      contextParts.push(`**Relevance:** ${((chunk as RAGChunk & { score?: number }).score || 0.8 * 100).toFixed(1)}%`);
+      contextParts.push(
+        `### Context ${index + 1}: ${chunk.metadata?.file?.path || 'Code Snippet'}`,
+      );
+      contextParts.push(
+        `**Source:** ${chunk.metadata?.file?.path || 'Unknown'}`,
+      );
+      contextParts.push(
+        `**Relevance:** ${((chunk as RAGChunk & { score?: number }).score || 0.8 * 100).toFixed(1)}%`,
+      );
       contextParts.push('');
       contextParts.push('```');
       contextParts.push(chunk.content);
@@ -342,20 +364,21 @@ export class PromptContextManager {
    */
   private createFallbackContext(
     userMessage: string,
-    conversationHistory: Content[]
+    conversationHistory: Content[],
   ): AssembledContext {
     console.warn('Using fallback context due to RAG failure');
-    
+
     return {
       contents: conversationHistory.slice(-10), // Last 10 messages
       estimatedTokens: this.estimateTokens(
-        conversationHistory.slice(-10)
-          .map(c => this.extractTextFromContent(c))
-          .join(' ')
+        conversationHistory
+          .slice(-10)
+          .map((c) => this.extractTextFromContent(c))
+          .join(' '),
       ),
       ragChunksIncluded: 0,
       conversationMessagesIncluded: Math.min(conversationHistory.length, 10),
-      compressionLevel: 'moderate'
+      compressionLevel: 'moderate',
     };
   }
 

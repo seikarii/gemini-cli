@@ -47,16 +47,16 @@ export class EmbeddingBatchService {
   private readonly logger: RAGLogger;
   private readonly embeddingGenerator: EmbeddingGenerator;
   private readonly config: EmbeddingBatchConfig;
-  
+
   private currentBatch: BatchRequest[] = [];
   private batchTimer: NodeJS.Timeout | null = null;
   private activeBatches = 0;
   private requestQueue: BatchRequest[] = [];
-  
+
   // Adaptive batching metrics
   private recentLatencies: number[] = [];
   private currentOptimalBatchSize: number;
-  
+
   // Performance metrics
   private stats = {
     totalRequests: 0,
@@ -64,13 +64,13 @@ export class EmbeddingBatchService {
     avgBatchSize: 0,
     avgLatency: 0,
     queueDrops: 0,
-    adaptiveBatchChanges: 0
+    adaptiveBatchChanges: 0,
   };
 
   constructor(
     embeddingGenerator: EmbeddingGenerator,
     logger: RAGLogger,
-    config: Partial<EmbeddingBatchConfig> = {}
+    config: Partial<EmbeddingBatchConfig> = {},
   ) {
     this.embeddingGenerator = embeddingGenerator;
     this.logger = logger;
@@ -80,11 +80,13 @@ export class EmbeddingBatchService {
       maxConcurrentBatches: 3,
       adaptiveBatching: true,
       targetLatencyMs: 500,
-      ...config
+      ...config,
     };
-    
+
     this.currentOptimalBatchSize = this.config.maxBatchSize;
-    this.logger.info('EmbeddingBatchService initialized', { config: this.config });
+    this.logger.info('EmbeddingBatchService initialized', {
+      config: this.config,
+    });
   }
 
   /**
@@ -97,7 +99,7 @@ export class EmbeddingBatchService {
         content,
         resolve,
         reject,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       this.stats.totalRequests++;
@@ -111,7 +113,9 @@ export class EmbeddingBatchService {
   async generateEmbeddings(contents: string[]): Promise<number[][]> {
     // For large batches, split into optimal sizes
     if (contents.length <= this.currentOptimalBatchSize) {
-      return Promise.all(contents.map(content => this.generateEmbedding(content)));
+      return Promise.all(
+        contents.map((content) => this.generateEmbedding(content)),
+      );
     }
 
     // Process in chunks
@@ -119,7 +123,7 @@ export class EmbeddingBatchService {
     for (let i = 0; i < contents.length; i += this.currentOptimalBatchSize) {
       const chunk = contents.slice(i, i + this.currentOptimalBatchSize);
       const chunkResults = await Promise.all(
-        chunk.map(content => this.generateEmbedding(content))
+        chunk.map((content) => this.generateEmbedding(content)),
       );
       results.push(...chunkResults);
     }
@@ -137,9 +141,11 @@ export class EmbeddingBatchService {
       queueSize: this.requestQueue.length,
       activeBatches: this.activeBatches,
       optimalBatchSize: this.currentOptimalBatchSize,
-      avgLatency: this.recentLatencies.length > 0 
-        ? this.recentLatencies.reduce((a, b) => a + b, 0) / this.recentLatencies.length 
-        : 0
+      avgLatency:
+        this.recentLatencies.length > 0
+          ? this.recentLatencies.reduce((a, b) => a + b, 0) /
+            this.recentLatencies.length
+          : 0,
     };
   }
 
@@ -150,9 +156,12 @@ export class EmbeddingBatchService {
     if (this.currentBatch.length > 0) {
       await this.processBatch();
     }
-    
+
     // Process any remaining queued requests
-    while (this.requestQueue.length > 0 && this.activeBatches < this.config.maxConcurrentBatches) {
+    while (
+      this.requestQueue.length > 0 &&
+      this.activeBatches < this.config.maxConcurrentBatches
+    ) {
       this.fillCurrentBatch();
       if (this.currentBatch.length > 0) {
         await this.processBatch();
@@ -165,7 +174,7 @@ export class EmbeddingBatchService {
     if (this.activeBatches >= this.config.maxConcurrentBatches) {
       this.requestQueue.push(request);
       this.logger.debug('Request queued due to batch concurrency limit', {
-        queueSize: this.requestQueue.length
+        queueSize: this.requestQueue.length,
       });
       return;
     }
@@ -174,7 +183,10 @@ export class EmbeddingBatchService {
 
     // Start batch timer if this is the first request
     if (this.currentBatch.length === 1 && !this.batchTimer) {
-      this.batchTimer = setTimeout(() => this.processBatch(), this.config.batchTimeoutMs);
+      this.batchTimer = setTimeout(
+        () => this.processBatch(),
+        this.config.batchTimeoutMs,
+      );
     }
 
     // Process immediately if batch is full
@@ -197,16 +209,18 @@ export class EmbeddingBatchService {
     this.activeBatches++;
 
     const startTime = Date.now();
-    
+
     try {
-      this.logger.debug('Processing embedding batch', { 
+      this.logger.debug('Processing embedding batch', {
         size: batch.length,
-        activeBatches: this.activeBatches 
+        activeBatches: this.activeBatches,
       });
 
       // Process all embeddings in the batch
       const embeddings = await Promise.all(
-        batch.map(request => this.embeddingGenerator.generateEmbedding(request.content))
+        batch.map((request) =>
+          this.embeddingGenerator.generateEmbedding(request.content),
+        ),
       );
 
       // Resolve all promises
@@ -221,21 +235,26 @@ export class EmbeddingBatchService {
       this.logger.debug('Batch processed successfully', {
         size: batch.length,
         latency,
-        avgLatency: this.stats.avgLatency
+        avgLatency: this.stats.avgLatency,
+      });
+    } catch (error) {
+      this.logger.error('Batch processing failed', {
+        error,
+        batchSize: batch.length,
       });
 
-    } catch (error) {
-      this.logger.error('Batch processing failed', { error, batchSize: batch.length });
-      
       // Reject all promises in the batch
-      batch.forEach(request => {
+      batch.forEach((request) => {
         request.reject(error as Error);
       });
     } finally {
       this.activeBatches--;
-      
+
       // Process next batch from queue
-      if (this.requestQueue.length > 0 && this.activeBatches < this.config.maxConcurrentBatches) {
+      if (
+        this.requestQueue.length > 0 &&
+        this.activeBatches < this.config.maxConcurrentBatches
+      ) {
         this.fillCurrentBatch();
         if (this.currentBatch.length > 0) {
           // Process after a small delay to allow more requests to accumulate
@@ -248,7 +267,7 @@ export class EmbeddingBatchService {
   private fillCurrentBatch(): void {
     const availableSlots = this.currentOptimalBatchSize;
     const requestsToMove = Math.min(availableSlots, this.requestQueue.length);
-    
+
     for (let i = 0; i < requestsToMove; i++) {
       const request = this.requestQueue.shift();
       if (request) {
@@ -259,14 +278,12 @@ export class EmbeddingBatchService {
 
   private updateStats(batchSize: number, latency: number): void {
     this.stats.totalBatches++;
-    this.stats.avgBatchSize = (
-      (this.stats.avgBatchSize * (this.stats.totalBatches - 1) + batchSize) / 
-      this.stats.totalBatches
-    );
-    this.stats.avgLatency = (
-      (this.stats.avgLatency * (this.stats.totalBatches - 1) + latency) / 
-      this.stats.totalBatches
-    );
+    this.stats.avgBatchSize =
+      (this.stats.avgBatchSize * (this.stats.totalBatches - 1) + batchSize) /
+      this.stats.totalBatches;
+    this.stats.avgLatency =
+      (this.stats.avgLatency * (this.stats.totalBatches - 1) + latency) /
+      this.stats.totalBatches;
 
     // Update adaptive batching metrics
     this.recentLatencies.push(latency);
@@ -284,29 +301,37 @@ export class EmbeddingBatchService {
     const targetLatency = this.config.targetLatencyMs;
     const tolerance = 0.2; // 20% tolerance
 
-    if (latency > targetLatency * (1 + tolerance) && this.currentOptimalBatchSize > 1) {
+    if (
+      latency > targetLatency * (1 + tolerance) &&
+      this.currentOptimalBatchSize > 1
+    ) {
       // Latency too high, reduce batch size
-      this.currentOptimalBatchSize = Math.max(1, Math.floor(this.currentOptimalBatchSize * 0.8));
+      this.currentOptimalBatchSize = Math.max(
+        1,
+        Math.floor(this.currentOptimalBatchSize * 0.8),
+      );
       this.stats.adaptiveBatchChanges++;
-      
+
       this.logger.debug('Reduced optimal batch size due to high latency', {
         newSize: this.currentOptimalBatchSize,
         latency,
-        targetLatency
+        targetLatency,
       });
-    } else if (latency < targetLatency * (1 - tolerance) && 
-               this.currentOptimalBatchSize < this.config.maxBatchSize) {
+    } else if (
+      latency < targetLatency * (1 - tolerance) &&
+      this.currentOptimalBatchSize < this.config.maxBatchSize
+    ) {
       // Latency acceptable, try increasing batch size
       this.currentOptimalBatchSize = Math.min(
-        this.config.maxBatchSize, 
-        Math.floor(this.currentOptimalBatchSize * 1.2)
+        this.config.maxBatchSize,
+        Math.floor(this.currentOptimalBatchSize * 1.2),
       );
       this.stats.adaptiveBatchChanges++;
-      
+
       this.logger.debug('Increased optimal batch size due to low latency', {
         newSize: this.currentOptimalBatchSize,
         latency,
-        targetLatency
+        targetLatency,
       });
     }
   }

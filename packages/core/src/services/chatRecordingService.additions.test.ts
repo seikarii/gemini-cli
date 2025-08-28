@@ -4,14 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  expect,
-  it,
-  describe,
-  vi,
-  beforeEach,
-  afterEach,
-} from 'vitest';
+import { expect, it, describe, vi, beforeEach, afterEach } from 'vitest';
 import { ChatRecordingService } from './chatRecordingService.js';
 import { Config } from '../config/config.js';
 
@@ -52,9 +45,19 @@ describe('ChatRecordingService additions', () => {
           sessionId: 'test-session-id',
           projectHash: 'test-project-hash',
           messages: [
-            { id: '1', type: 'user', content: 'Hello', timestamp: new Date().toISOString() },
-            { id: '2', type: 'gemini', content: 'Response', timestamp: new Date().toISOString() }
-          ]
+            {
+              id: '1',
+              type: 'user',
+              content: 'Hello',
+              timestamp: new Date().toISOString(),
+            },
+            {
+              id: '2',
+              type: 'gemini',
+              content: 'Response',
+              timestamp: new Date().toISOString(),
+            },
+          ],
         });
       },
       async writeFile(filePath: string, data: string) {

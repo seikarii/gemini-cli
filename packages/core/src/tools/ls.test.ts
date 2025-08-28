@@ -22,7 +22,7 @@ describe('LSTool', () => {
   let mockFileSystemService: any;
   const mockPrimaryDir = '/home/user/project';
   const mockSecondaryDir = '/home/user/other-project';
-  
+
   // Spies
   let statSyncSpy: any;
   let readdirSyncSpy: any;
@@ -85,7 +85,7 @@ describe('LSTool', () => {
     } as unknown as Config;
 
     lsTool = new LSTool(mockConfig);
-    
+
     // Create spies for fs functions
     vi.spyOn(fs, 'statSync');
     vi.spyOn(fs, 'readdirSync');
@@ -138,7 +138,7 @@ describe('LSTool', () => {
   describe('execute', () => {
     it('should list files in a directory', async () => {
       const testPath = '/home/user/project/src';
-      const mockFiles = ['file1.ts', 'file2.ts', 'subdir'];
+      const _mockFiles = ['file1.ts', 'file2.ts', 'subdir'];
       const mockStats = {
         isDirectory: vi.fn(),
         mtime: new Date(),
@@ -157,7 +157,7 @@ describe('LSTool', () => {
         return { ...mockStats, isDirectory: () => false } as fs.Stats;
       });
 
-      readdirSyncSpy.mockReturnValuemockFiles;
+      readdirSyncSpy.mockReturnValue(_mockFiles);
 
       const invocation = lsTool.build({ path: testPath });
       const result = await invocation.execute(new AbortController().signal);
@@ -319,8 +319,8 @@ describe('LSTool', () => {
       });
 
       // Mock gitignore to ignore 'ignored.js'
-      vi.mocked(mockFileService).shouldGitIgnoreFile.mockImplementation((filePath: string) =>
-        filePath.includes('ignored.js')
+      vi.mocked(mockFileService).shouldGitIgnoreFile.mockImplementation(
+        (filePath: string) => filePath.includes('ignored.js'),
       );
 
       const invocation = lsTool.build({ path: testPath });
@@ -370,8 +370,8 @@ describe('LSTool', () => {
       });
 
       // Mock geminiignore to ignore 'private.js'
-      vi.mocked(mockFileService).shouldGeminiIgnoreFile.mockImplementation((filePath: string) =>
-        filePath.includes('private.js')
+      vi.mocked(mockFileService).shouldGeminiIgnoreFile.mockImplementation(
+        (filePath: string) => filePath.includes('private.js'),
       );
 
       const invocation = lsTool.build({ path: testPath });
@@ -422,8 +422,12 @@ describe('LSTool', () => {
       const invocation = lsTool.build({ path: testPath });
       const result = await invocation.execute(new AbortController().signal);
 
-      expect(result.llmContent).toContain('Directory not found or inaccessible');
-      expect(result.returnDisplay).toBe('Error: Directory not found or inaccessible.');
+      expect(result.llmContent).toContain(
+        'Directory not found or inaccessible',
+      );
+      expect(result.returnDisplay).toBe(
+        'Error: Directory not found or inaccessible.',
+      );
       expect(result.error?.type).toBe(ToolErrorType.FILE_NOT_FOUND);
     });
 
@@ -492,7 +496,7 @@ describe('LSTool', () => {
 
       // Mock listDirectory to throw permission error
       mockFileSystemService.listDirectory.mockRejectedValueOnce(
-        new Error('EACCES: permission denied')
+        new Error('EACCES: permission denied'),
       );
 
       const invocation = lsTool.build({ path: testPath });

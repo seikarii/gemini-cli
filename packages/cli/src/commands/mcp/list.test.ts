@@ -4,7 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { vi, describe, it, expect, beforeEach, afterEach, type MockInstance } from 'vitest';
+import {
+  vi,
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  type MockInstance,
+} from 'vitest';
 import { listMcpServers } from './list.js';
 import { loadSettings } from '../../config/settings.js';
 import { loadExtensions } from '../../config/extension.js';
@@ -39,9 +47,15 @@ vi.mock('@modelcontextprotocol/sdk/client/index.js', () => ({
   })),
 }));
 
-const mockedLoadSettings = loadSettings as unknown as MockInstance<() => Promise<unknown>>;
-const mockedLoadExtensions = loadExtensions as unknown as MockInstance<() => Promise<unknown>>;
-const mockedCreateTransport = createTransport as unknown as MockInstance<() => Promise<unknown>>;
+const mockedLoadSettings = loadSettings as unknown as MockInstance<
+  () => Promise<unknown>
+>;
+const mockedLoadExtensions = loadExtensions as unknown as MockInstance<
+  () => Promise<unknown>
+>;
+const mockedCreateTransport = createTransport as unknown as MockInstance<
+  () => Promise<unknown>
+>;
 
 interface MockClient {
   connect: MockInstance;
@@ -80,7 +94,9 @@ describe('mcp list command', () => {
   });
 
   it('should display message when no servers configured', async () => {
-    mockedLoadSettings.mockReturnValue(Promise.resolve({ merged: { mcpServers: {} } }));
+    mockedLoadSettings.mockReturnValue(
+      Promise.resolve({ merged: { mcpServers: {} } }),
+    );
 
     await listMcpServers();
 
@@ -88,15 +104,17 @@ describe('mcp list command', () => {
   });
 
   it('should display different server types with connected status', async () => {
-    mockedLoadSettings.mockReturnValue(Promise.resolve({
-      merged: {
-        mcpServers: {
-          'stdio-server': { command: '/path/to/server', args: ['arg1'] },
-          'sse-server': { url: 'https://example.com/sse' },
-          'http-server': { httpUrl: 'https://example.com/http' },
+    mockedLoadSettings.mockReturnValue(
+      Promise.resolve({
+        merged: {
+          mcpServers: {
+            'stdio-server': { command: '/path/to/server', args: ['arg1'] },
+            'sse-server': { url: 'https://example.com/sse' },
+            'http-server': { httpUrl: 'https://example.com/http' },
+          },
         },
-      },
-    }));
+      }),
+    );
 
     mockClient.connect.mockResolvedValue(undefined);
     mockClient.ping.mockResolvedValue(undefined);
@@ -122,13 +140,15 @@ describe('mcp list command', () => {
   });
 
   it('should display disconnected status when connection fails', async () => {
-    mockedLoadSettings.mockReturnValue(Promise.resolve({
-      merged: {
-        mcpServers: {
-          'test-server': { command: '/test/server' },
+    mockedLoadSettings.mockReturnValue(
+      Promise.resolve({
+        merged: {
+          mcpServers: {
+            'test-server': { command: '/test/server' },
+          },
         },
-      },
-    }));
+      }),
+    );
 
     mockClient.connect.mockRejectedValue(new Error('Connection failed'));
 
@@ -142,20 +162,24 @@ describe('mcp list command', () => {
   });
 
   it('should merge extension servers with config servers', async () => {
-    mockedLoadSettings.mockReturnValue(Promise.resolve({
-      merged: {
-        mcpServers: { 'config-server': { command: '/config/server' } },
-      },
-    }));
-
-    mockedLoadExtensions.mockReturnValue(Promise.resolve([
-      {
-        config: {
-          name: 'test-extension',
-          mcpServers: { 'extension-server': { command: '/ext/server' } },
+    mockedLoadSettings.mockReturnValue(
+      Promise.resolve({
+        merged: {
+          mcpServers: { 'config-server': { command: '/config/server' } },
         },
-      },
-    ]));
+      }),
+    );
+
+    mockedLoadExtensions.mockReturnValue(
+      Promise.resolve([
+        {
+          config: {
+            name: 'test-extension',
+            mcpServers: { 'extension-server': { command: '/ext/server' } },
+          },
+        },
+      ]),
+    );
 
     mockClient.connect.mockResolvedValue(undefined);
     mockClient.ping.mockResolvedValue(undefined);

@@ -69,7 +69,10 @@ describe('EditTool', () => {
             const content = fs.readFileSync(filePath, 'utf8');
             return { success: true, data: content };
           } catch (error) {
-            return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+            return {
+              success: false,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            };
           }
         },
         writeTextFile: async (filePath: string, content: string) => {
@@ -77,7 +80,10 @@ describe('EditTool', () => {
             fs.writeFileSync(filePath, content);
             return { success: true };
           } catch (error) {
-            return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+            return {
+              success: false,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            };
           }
         },
         getFileInfo: async (filePath: string) => {

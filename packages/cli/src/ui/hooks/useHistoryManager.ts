@@ -40,17 +40,20 @@ export function useHistory(): UseHistoryManagerReturn {
     return baseTimestamp + messageIdCounterRef.current;
   }, []);
 
-  const loadHistory = useCallback((newHistory: HistoryItem[] | HistoryItemWithoutId[]) => {
-    // Convert HistoryItemWithoutId[] to HistoryItem[] by assigning IDs
-    const historyWithIds: HistoryItem[] = newHistory.map((item, index) => {
-      if ('id' in item) {
-        return item as HistoryItem;
-      } else {
-        return { ...item, id: index + 1 } as HistoryItem;
-      }
-    });
-    setHistory(historyWithIds);
-  }, []);
+  const loadHistory = useCallback(
+    (newHistory: HistoryItem[] | HistoryItemWithoutId[]) => {
+      // Convert HistoryItemWithoutId[] to HistoryItem[] by assigning IDs
+      const historyWithIds: HistoryItem[] = newHistory.map((item, index) => {
+        if ('id' in item) {
+          return item as HistoryItem;
+        } else {
+          return { ...item, id: index + 1 } as HistoryItem;
+        }
+      });
+      setHistory(historyWithIds);
+    },
+    [],
+  );
 
   // Adds a new item to the history state with a unique ID.
   const addItem = useCallback(

@@ -78,35 +78,40 @@ describe('RipGrepTool', () => {
   let grepTool: RipGrepTool;
   const abortSignal = new AbortController().signal;
 
-// Helper function to create complete mock config
-function createMockConfig(tempRootDir: string, additionalDirs: string[] = []) {
-  return {
-    getTargetDir: () => tempRootDir,
-    getWorkspaceContext: () => createMockWorkspaceContext(tempRootDir, additionalDirs),
-    getDebugMode: () => false,
-    getFileSystemService: () => ({
-      getFileInfo: async (filePath: string) => {
-        try {
-          const stats = await fs.stat(filePath);
-          return {
-            success: true,
-            data: {
-              isDirectory: stats.isDirectory(),
-              isFile: stats.isFile(),
-              size: stats.size,
-              mtime: stats.mtime,
-            },
-          };
-        } catch (error) {
-          return {
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown error',
-          };
-        }
-      },
-    }),
-  } as unknown as Config;
-}  beforeEach(async () => {
+  // Helper function to create complete mock config
+  function createMockConfig(
+    tempRootDir: string,
+    additionalDirs: string[] = [],
+  ) {
+    return {
+      getTargetDir: () => tempRootDir,
+      getWorkspaceContext: () =>
+        createMockWorkspaceContext(tempRootDir, additionalDirs),
+      getDebugMode: () => false,
+      getFileSystemService: () => ({
+        getFileInfo: async (filePath: string) => {
+          try {
+            const stats = await fs.stat(filePath);
+            return {
+              success: true,
+              data: {
+                isDirectory: stats.isDirectory(),
+                isFile: stats.isFile(),
+                size: stats.size,
+                mtime: stats.mtime,
+              },
+            };
+          } catch (error) {
+            return {
+              success: false,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            };
+          }
+        },
+      }),
+    } as unknown as Config;
+  }
+  beforeEach(async () => {
     vi.clearAllMocks();
     mockSpawn.mockClear();
     tempRootDir = await fs.mkdtemp(path.join(os.tmpdir(), 'grep-tool-root-'));

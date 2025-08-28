@@ -137,23 +137,22 @@ export class AdvancedTokenEstimator implements TokenEstimator {
       // Check for common patterns that affect tokenization
 
       // Numbers (often 1-2 tokens regardless of length)
-      // eslint-disable-next-line no-useless-escape
+       
       if (/^\d+$/.test(word)) {
         tokens += word.length > 6 ? 2 : 1;
         continue;
       }
 
       // URLs and email addresses (typically 3-5 tokens)
-      // eslint-disable-next-line no-useless-escape
-// eslint-disable-next-line no-useless-escape
+       
+       
       if (/^(https?:\/\/|www\.|\S+@\S+\.\S+)$/.test(word)) {
         tokens += this.estimateUrlTokens(word);
         continue;
       }
 
       // Code patterns (underscores, dots, slashes)
-      // eslint-disable-next-line no-useless-escape
-      if (/[_\.\/\\]/.test(word)) {
+      if (/[_.//\\]/.test(word)) {
         tokens += this.estimateCodeTokens(word);
         continue;
       }
@@ -192,7 +191,7 @@ export class AdvancedTokenEstimator implements TokenEstimator {
     // Longer words - may be split into multiple tokens
     // English words: ~4 chars per token on average
     // Technical terms: ~3 chars per token
-    const isTechnical = /[A-Z]{2,}|[_\./\\]/.test(word);
+    const isTechnical = /[A-Z]{2,}|[_.//\\]/.test(word);
     const avgCharsPerToken = isTechnical ? 3 : 4;
 
     return Math.ceil(length / avgCharsPerToken);
@@ -200,13 +199,13 @@ export class AdvancedTokenEstimator implements TokenEstimator {
 
   private estimateCodeTokens(word: string): number {
     // Code identifiers with dots, underscores, slashes
-    const parts = word.split(/([_\./\\])/);
+    const parts = word.split(/([_.//\\])/);
     let tokens = 0;
 
     for (const part of parts) {
       if (part.length === 0) continue;
 
-      if (/[_./\\]/.test(part)) {
+      if (/[_.//\\]/.test(part)) {
         tokens += 1; // Separators are usually 1 token
       } else {
         tokens += this.estimateWordTokens(part);
@@ -2236,7 +2235,7 @@ export class ChatRecordingService {
    */
   async getOptimizedHistoryForPrompt(
     tokenBudget: number = 8000,
-    includeSystemInfo: boolean = false
+    includeSystemInfo: boolean = false,
   ): Promise<{
     history: Content[];
     metaInfo: {
@@ -2269,12 +2268,12 @@ export class ChatRecordingService {
     // Apply compression with custom token budget
     const originalConfig = { ...this.compressionConfig };
     this.compressionConfig.maxContextTokens = tokenBudget;
-    
+
     const optimized = await this.compressContextIfNeeded(conversation);
-    
+
     // Restore original config
     this.compressionConfig = originalConfig;
-    
+
     // Convert messages to Content[] format
     const history: Content[] = optimized.messages.map((msg: MessageRecord) => ({
       role: msg.type === 'user' ? 'user' : 'model',
@@ -2286,24 +2285,28 @@ export class ChatRecordingService {
     for (const msg of optimized.messages) {
       totalTokens += await this.estimateTokenCount(msg.content);
     }
-    
+
     if (optimized.compressedContext) {
       totalTokens += optimized.compressedContext.compressedTokens;
     }
-    
-    const originalMessageCount = optimized.compressedContext 
-      ? optimized.compressedContext.messageCount + optimized.messages.length 
+
+    const originalMessageCount = optimized.compressedContext
+      ? optimized.compressedContext.messageCount + optimized.messages.length
       : optimized.messages.length;
-    
+
     const compressionApplied = !!optimized.compressedContext;
-    
+
     let compressionStats;
     if (compressionApplied && includeSystemInfo) {
       compressionStats = {
         originalMessages: originalMessageCount,
         compressedMessages: optimized.messages.length,
-        tokenReduction: optimized.compressedContext!.originalTokens - optimized.compressedContext!.compressedTokens,
-        compressionRatio: optimized.compressedContext!.compressedTokens / optimized.compressedContext!.originalTokens,
+        tokenReduction:
+          optimized.compressedContext!.originalTokens -
+          optimized.compressedContext!.compressedTokens,
+        compressionRatio:
+          optimized.compressedContext!.compressedTokens /
+          optimized.compressedContext!.originalTokens,
       };
     }
 

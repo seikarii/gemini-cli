@@ -6,10 +6,10 @@
 
 import { Config } from '../config/config.js';
 import { RAGLogger } from './logger.js';
-import { 
-  RAGConfig, 
-  RAGQuery, 
-  RAGChunk, 
+import {
+  RAGConfig,
+  RAGQuery,
+  RAGChunk,
   RAGVectorStore,
   RAGEmbeddingService,
   IndexingSource,
@@ -17,7 +17,7 @@ import {
   QueryEnhancementOptions,
   EnhancedQueryResult,
   RAGMetrics,
-  VectorStoreConfig
+  VectorStoreConfig,
 } from './types.js';
 import { RAGMemoryVectorStore } from './vectorStores/memoryVectorStore.js';
 import { RAGGeminiEmbeddingService } from './embeddingServices/geminiEmbeddingService.js';
@@ -37,13 +37,13 @@ export class RAGService {
 
   constructor(
     private readonly userConfig: Config,
-    private readonly logger: RAGLogger
+    private readonly logger: RAGLogger,
   ) {
     this.metrics = {
       totalQueries: 0,
       totalChunksIndexed: 0,
       averageRetrievalTime: 0,
-      cacheHitRate: 0
+      cacheHitRate: 0,
     };
   }
 
@@ -61,29 +61,29 @@ export class RAGService {
     try {
       // Load configuration
       this.config = this.loadRAGConfig();
-      
+
       // Initialize services
       this.embeddingService = new RAGGeminiEmbeddingService(
         this.userConfig,
         this.config,
-        this.logger
+        this.logger,
       );
-      
+
       this.chunkingService = new RAGASTChunkingService(
         this.config,
-        this.logger
+        this.logger,
       );
-      
+
       // Use memory vector store as default
       const memoryConfig: VectorStoreConfig = {
         provider: 'memory',
-        collection: 'default'
+        collection: 'default',
       };
-      
+
       this.vectorStore = new RAGMemoryVectorStore(
         memoryConfig,
         this.logger,
-        this.config.retrieval.hybridWeights
+        this.config.retrieval.hybridWeights,
       );
 
       await this.vectorStore.initialize();
@@ -101,13 +101,13 @@ export class RAGService {
    */
   async indexContent(sources: IndexingSource[]): Promise<IndexingResult> {
     this.ensureInitialized();
-    
+
     this.logger.info(`Starting to index ${sources.length} sources`);
-    
+
     const result: IndexingResult = {
       totalChunks: 0,
       successfulSources: 0,
-      errors: []
+      errors: [],
     };
 
     for (const source of sources) {
@@ -119,16 +119,18 @@ export class RAGService {
         this.logger.error(`Failed to index source ${source.id}`, error);
         result.errors.push({
           sourceId: source.id,
-          error: error instanceof Error ? error.message : String(error)
+          error: error instanceof Error ? error.message : String(error),
         });
       }
     }
 
     // Update metrics
     this.metrics.totalChunksIndexed += result.totalChunks;
-    
-    this.logger.info(`Indexing completed: ${result.successfulSources}/${sources.length} sources, ${result.totalChunks} chunks`);
-    
+
+    this.logger.info(
+      `Indexing completed: ${result.successfulSources}/${sources.length} sources, ${result.totalChunks} chunks`,
+    );
+
     return result;
   }
 
@@ -145,30 +147,37 @@ export class RAGService {
       source.type,
       {
         sourceId: source.id,
-        ...source.metadata
-      }
+        ...source.metadata,
+      },
     );
 
     // Generate embeddings for chunks
     const chunksWithEmbeddings: RAGChunk[] = [];
-    
+
     for (const chunk of chunks) {
       try {
-        const embedding = await this.embeddingService.generateEmbedding(chunk.content);
+        const embedding = await this.embeddingService.generateEmbedding(
+          chunk.content,
+        );
         chunksWithEmbeddings.push({
           ...chunk,
-          embedding
+          embedding,
         });
       } catch (error) {
-        this.logger.error(`Failed to generate embedding for chunk ${chunk.id}`, error);
+        this.logger.error(
+          `Failed to generate embedding for chunk ${chunk.id}`,
+          error,
+        );
         // Continue with other chunks
       }
     }
 
     // Store chunks in vector store
     await this.vectorStore.addChunks(chunksWithEmbeddings);
-    
-    this.logger.debug(`Successfully indexed ${chunksWithEmbeddings.length} chunks from source ${source.id}`);
+
+    this.logger.debug(
+      `Successfully indexed ${chunksWithEmbeddings.length} chunks from source ${source.id}`,
+    );
     return chunksWithEmbeddings.length;
   }
 
@@ -176,42 +185,44 @@ export class RAGService {
    * Enhance a query by retrieving relevant context.
    */
   async enhanceQuery(
-    ragQuery: RAGQuery, 
-    options: QueryEnhancementOptions = {}
+    ragQuery: RAGQuery,
+    options: QueryEnhancementOptions = {},
   ): Promise<EnhancedQueryResult> {
     this.ensureInitialized();
-    
+
     const startTime = Date.now();
     this.metrics.totalQueries++;
-    
+
     this.logger.debug(`Enhancing query: ${ragQuery.text}`);
 
     try {
       // Generate embedding for the query
-      const queryEmbedding = await this.embeddingService.generateEmbedding(ragQuery.text);
-      
+      const queryEmbedding = await this.embeddingService.generateEmbedding(
+        ragQuery.text,
+      );
+
       // Search for relevant chunks
       const scoredChunks = await this.vectorStore.search(
         ragQuery.text,
         queryEmbedding,
         ragQuery.filters,
-        ragQuery.maxResults
+        ragQuery.maxResults,
       );
-      
+
       // Extract chunks from scored results
-      const chunks = scoredChunks.map(scored => ({
+      const chunks = scoredChunks.map((scored) => ({
         ...scored.chunk,
-        score: scored.score
+        score: scored.score,
       }));
-      
+
       // Apply re-ranking if enabled
-      const rerankedChunks = this.config.retrieval.reRankingEnabled 
+      const rerankedChunks = this.config.retrieval.reRankingEnabled
         ? this.reRankChunks(chunks, ragQuery.text)
         : chunks;
-      
+
       // Assemble context from retrieved chunks
       const context = this.assembleContext(rerankedChunks, options);
-      
+
       const result: EnhancedQueryResult = {
         content: context.content,
         tokenCount: context.tokenCount,
@@ -219,16 +230,18 @@ export class RAGService {
         metadata: {
           retrievalTime: Date.now() - startTime,
           totalResults: scoredChunks.length,
-          queryType: ragQuery.type
-        }
+          queryType: ragQuery.type,
+        },
       };
-      
+
       // Update metrics
       const retrievalTime = Date.now() - startTime;
       this.updateAverageRetrievalTime(retrievalTime);
-      
-      this.logger.debug(`Query enhanced: ${result.tokenCount} tokens from ${result.sourceChunks.length} chunks`);
-      
+
+      this.logger.debug(
+        `Query enhanced: ${result.tokenCount} tokens from ${result.sourceChunks.length} chunks`,
+      );
+
       return result;
     } catch (error) {
       this.logger.error('Failed to enhance query', error);
@@ -241,58 +254,63 @@ export class RAGService {
    */
   private reRankChunks(
     chunks: Array<RAGChunk & { score?: number }>,
-    query: string
+    query: string,
   ): Array<RAGChunk & { score?: number }> {
     const queryWords = query.toLowerCase().split(/\s+/);
-    
+
     // Enhanced scoring with query-specific factors
-    const enhancedChunks = chunks.map(chunk => {
+    const enhancedChunks = chunks.map((chunk) => {
       let enhancedScore = chunk.score || 0;
-      
+
       // Boost exact phrase matches
       if (chunk.content.toLowerCase().includes(query.toLowerCase())) {
         enhancedScore += 0.2;
       }
-      
+
       // Boost chunks with multiple query word matches
       const contentLower = chunk.content.toLowerCase();
-      const matchCount = queryWords.filter(word => 
-        contentLower.includes(word) && word.length > 2
+      const matchCount = queryWords.filter(
+        (word) => contentLower.includes(word) && word.length > 2,
       ).length;
       enhancedScore += (matchCount / queryWords.length) * 0.15;
-      
+
       // Boost chunks with title/header matches
       const filePath = chunk.metadata?.file?.path;
-      if (filePath && queryWords.some(word => filePath.toLowerCase().includes(word))) {
+      if (
+        filePath &&
+        queryWords.some((word) => filePath.toLowerCase().includes(word))
+      ) {
         enhancedScore += 0.1;
       }
-      
+
       return { ...chunk, score: enhancedScore };
     });
-    
+
     // Sort by enhanced score and apply diversity filtering
-    const sorted = enhancedChunks.sort((a, b) => (b.score || 0) - (a.score || 0));
-    
+    const sorted = enhancedChunks.sort(
+      (a, b) => (b.score || 0) - (a.score || 0),
+    );
+
     // Simple diversity: avoid too many chunks from the same source
     const diversified: Array<RAGChunk & { score?: number }> = [];
     const sourceCount = new Map<string, number>();
-    
+
     for (const chunk of sorted) {
       const sourcePath = chunk.metadata?.file?.path || 'unknown';
       const currentCount = sourceCount.get(sourcePath) || 0;
-      
+
       // Allow max 2 chunks per source file in top results
       if (currentCount < 2 || diversified.length < 3) {
         diversified.push(chunk);
         sourceCount.set(sourcePath, currentCount + 1);
       }
-      
+
       // Stop when we have enough diverse results
       if (diversified.length >= this.config.retrieval.maxResults) {
         break;
       }
     }
-    
+
     return diversified;
   }
 
@@ -300,28 +318,28 @@ export class RAGService {
    * Assemble context from retrieved chunks.
    */
   private assembleContext(
-    chunks: Array<RAGChunk & { score?: number }>, 
-    options: QueryEnhancementOptions
+    chunks: Array<RAGChunk & { score?: number }>,
+    options: QueryEnhancementOptions,
   ): { content: string; tokenCount: number } {
     const maxTokens = options.maxTokens || this.config.context.maxTokens;
     let content = '';
     let tokenCount = 0;
-    
+
     // Sort chunks by relevance (score)
     const sortedChunks = chunks.sort((a, b) => (b.score || 0) - (a.score || 0));
-    
+
     for (const chunk of sortedChunks) {
       const chunkContent = this.formatChunkForContext(chunk, options);
       const chunkTokens = this.estimateTokenCount(chunkContent);
-      
+
       if (tokenCount + chunkTokens > maxTokens) {
         break;
       }
-      
+
       content += chunkContent + '\n\n';
       tokenCount += chunkTokens;
     }
-    
+
     return { content: content.trim(), tokenCount };
   }
 
@@ -329,21 +347,21 @@ export class RAGService {
    * Format a chunk for inclusion in context.
    */
   private formatChunkForContext(
-    chunk: RAGChunk, 
-    _options: QueryEnhancementOptions
+    chunk: RAGChunk,
+    _options: QueryEnhancementOptions,
   ): string {
     let formatted = `## ${chunk.type} - ${chunk.id}\n`;
-    
+
     if (chunk.metadata?.file?.path) {
       formatted += `**Source:** ${chunk.metadata.file.path}\n`;
     }
-    
+
     if (chunk.language) {
       formatted += `**Language:** ${chunk.language}\n`;
     }
-    
+
     formatted += `\n${chunk.content}`;
-    
+
     return formatted;
   }
 
@@ -361,8 +379,8 @@ export class RAGService {
   private updateAverageRetrievalTime(newTime: number): void {
     const totalQueries = this.metrics.totalQueries;
     const currentAverage = this.metrics.averageRetrievalTime;
-    
-    this.metrics.averageRetrievalTime = 
+
+    this.metrics.averageRetrievalTime =
       (currentAverage * (totalQueries - 1) + newTime) / totalQueries;
   }
 
@@ -372,7 +390,7 @@ export class RAGService {
   getMetrics(): RAGMetrics {
     return {
       ...this.metrics,
-      memoryUsage: process.memoryUsage()
+      memoryUsage: process.memoryUsage(),
     };
   }
 
@@ -408,21 +426,21 @@ export class RAGService {
         connectionString: '',
         apiKey: '',
         collectionName: 'default',
-        persistenceDirectory: ''
+        persistenceDirectory: '',
       },
       embedding: {
         model: 'text-embedding-004',
         dimension: 768,
         batchSize: 10,
         cacheSize: 1000,
-        maxRetries: 3
+        maxRetries: 3,
       },
       chunking: {
         strategy: 'ast',
         maxChunkSize: 1000,
         minChunkSize: 100,
         overlapRatio: 0.1,
-        respectBoundaries: true
+        respectBoundaries: true,
       },
       retrieval: {
         maxResults: 10,
@@ -431,10 +449,10 @@ export class RAGService {
           semantic: 0.7,
           keyword: 0.2,
           graph: 0.05,
-          recency: 0.05
+          recency: 0.05,
         },
         reRankingEnabled: true,
-        diversityThreshold: 0.8
+        diversityThreshold: 0.8,
       },
       context: {
         maxTokens: 4000,
@@ -442,21 +460,21 @@ export class RAGService {
         includeDependencies: true,
         includeDocumentation: true,
         prioritizeRecent: true,
-        preserveStructure: true
+        preserveStructure: true,
       },
       performance: {
         enableCaching: true,
         cacheExpiration: 3600,
         batchProcessing: true,
         parallelProcessing: true,
-        maxConcurrentOperations: 5
+        maxConcurrentOperations: 5,
       },
       debug: {
         enableLogging: true,
         logLevel: 'info',
         enableMetrics: true,
-        enableTracing: false
-      }
+        enableTracing: false,
+      },
     };
   }
 

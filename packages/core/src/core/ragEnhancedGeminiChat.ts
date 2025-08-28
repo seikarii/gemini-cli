@@ -4,7 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Content, GenerateContentResponse, SendMessageParameters } from '@google/genai';
+import {
+  Content,
+  GenerateContentResponse,
+  SendMessageParameters,
+} from '@google/genai';
 import { GeminiChat } from './geminiChat.js';
 import { PromptContextManager } from '../services/promptContextManager.js';
 import { RAGService } from '../rag/ragService.js';
@@ -15,7 +19,7 @@ import { Config } from '../config/config.js';
 
 /**
  * Enhanced GeminiChat with RAG integration capabilities.
- * 
+ *
  * This service wraps the original GeminiChat and enhances it with
  * RAG-powered context assembly, eliminating the need for manual
  * history management and providing intelligent external knowledge integration.
@@ -27,7 +31,7 @@ export class RAGEnhancedGeminiChat {
     private readonly geminiChat: GeminiChat,
     private readonly ragService: RAGService,
     private readonly chatRecordingService: ChatRecordingService,
-    private readonly config: Config
+    private readonly config: Config,
   ) {
     // Initialize the PromptContextManager with smart defaults
     this.promptContextManager = new PromptContextManager(
@@ -40,11 +44,13 @@ export class RAGEnhancedGeminiChat {
         ragRelevanceThreshold: 0.65,
         ragWeight: 0.35, // 35% RAG, 65% conversation
         prioritizeRecentConversation: true,
-        useConversationalContext: true
-      }
+        useConversationalContext: true,
+      },
     );
 
-    console.log('RAGEnhancedGeminiChat initialized with intelligent context management');
+    console.log(
+      'RAGEnhancedGeminiChat initialized with intelligent context management',
+    );
   }
 
   /**
@@ -53,7 +59,7 @@ export class RAGEnhancedGeminiChat {
    */
   async sendMessage(
     params: SendMessageParameters,
-    prompt_id: string
+    prompt_id: string,
   ): Promise<GenerateContentResponse> {
     const startTime = performance.now();
 
@@ -65,13 +71,13 @@ export class RAGEnhancedGeminiChat {
       const assembledContext = await this.promptContextManager.assembleContext(
         partListUnionToString(params.message),
         conversationHistory,
-        prompt_id
+        prompt_id,
       );
 
       // Step 3: Replace the naive history concatenation with smart context
       // Instead of: this.getHistory(true).concat(userContent)
       // We use: assembledContext.contents.concat(userContent)
-      
+
       // Create a temporary enhanced history
       const enhancedHistory = [...assembledContext.contents];
 
@@ -84,7 +90,11 @@ export class RAGEnhancedGeminiChat {
       const response = await this.geminiChat.sendMessage(params, prompt_id);
 
       // Step 6: Restore original history and add the new exchange
-      this.restoreHistory(originalHistory, partListUnionToString(params.message), response);
+      this.restoreHistory(
+        originalHistory,
+        partListUnionToString(params.message),
+        response,
+      );
 
       const duration = performance.now() - startTime;
       console.log('RAG-enhanced message sent successfully', {
@@ -93,17 +103,16 @@ export class RAGEnhancedGeminiChat {
         conversationMessages: assembledContext.conversationMessagesIncluded,
         estimatedTokens: assembledContext.estimatedTokens,
         compressionLevel: assembledContext.compressionLevel,
-        promptId: prompt_id
+        promptId: prompt_id,
       });
 
       return response;
-
     } catch (error) {
-      console.error('RAG-enhanced message failed, falling back to basic chat', { 
-        error, 
-        promptId: prompt_id 
+      console.error('RAG-enhanced message failed, falling back to basic chat', {
+        error,
+        promptId: prompt_id,
       });
-      
+
       // Fallback to original behavior
       return this.geminiChat.sendMessage(params, prompt_id);
     }
@@ -114,16 +123,15 @@ export class RAGEnhancedGeminiChat {
    */
   async sendMessageStream(
     params: SendMessageParameters,
-    prompt_id: string
+    prompt_id: string,
   ): Promise<AsyncGenerator<GenerateContentResponse, void, unknown>> {
-    
     try {
       // Apply same RAG enhancement for streaming
       const conversationHistory = this.geminiChat.getHistory(true);
       const assembledContext = await this.promptContextManager.assembleContext(
         partListUnionToString(params.message),
         conversationHistory,
-        prompt_id
+        prompt_id,
       );
 
       // Temporarily enhance history
@@ -131,17 +139,19 @@ export class RAGEnhancedGeminiChat {
       this.setTemporaryHistory([...assembledContext.contents]);
 
       // Stream with enhanced context
-      const streamGenerator = await this.geminiChat.sendMessageStream(params, prompt_id);
+      const streamGenerator = await this.geminiChat.sendMessageStream(
+        params,
+        prompt_id,
+      );
 
       // Note: We'll restore history after streaming completes
       // This is handled by the async generator wrapper
 
       return this.wrapStreamWithHistoryRestore(
-        streamGenerator, 
-        originalHistory, 
-        partListUnionToString(params.message)
+        streamGenerator,
+        originalHistory,
+        partListUnionToString(params.message),
       );
-
     } catch (error) {
       console.error('RAG-enhanced streaming failed, falling back', { error });
       return this.geminiChat.sendMessageStream(params, prompt_id);
@@ -151,14 +161,13 @@ export class RAGEnhancedGeminiChat {
   /**
    * Wraps the stream generator to restore history after completion
    */
-  private async* wrapStreamWithHistoryRestore(
+  private async *wrapStreamWithHistoryRestore(
     streamGenerator: AsyncGenerator<GenerateContentResponse, void, unknown>,
     originalHistory: Content[],
-    userMessage: string
+    userMessage: string,
   ): AsyncGenerator<GenerateContentResponse, void, unknown> {
-    
     let lastResponse: GenerateContentResponse | undefined;
-    
+
     try {
       for await (const response of streamGenerator) {
         lastResponse = response;
@@ -185,30 +194,35 @@ export class RAGEnhancedGeminiChat {
   private setTemporaryHistory(enhancedHistory: Content[]): void {
     // Access the private history property - this is a POC approach
     // In production, we would modify GeminiChat to accept context directly
-    (this.geminiChat as unknown as { history: Content[] }).history = [...enhancedHistory];
+    (this.geminiChat as unknown as { history: Content[] }).history = [
+      ...enhancedHistory,
+    ];
   }
 
   /**
    * Restores the original history and properly adds the new exchange
    */
   private restoreHistory(
-    originalHistory: Content[], 
-    userMessage: string, 
-    response: GenerateContentResponse
+    originalHistory: Content[],
+    userMessage: string,
+    response: GenerateContentResponse,
   ): void {
-    
     // Restore original history
-    (this.geminiChat as unknown as { history: Content[] }).history = [...originalHistory];
+    (this.geminiChat as unknown as { history: Content[] }).history = [
+      ...originalHistory,
+    ];
 
     // Add the user message to history
     (this.geminiChat as unknown as { history: Content[] }).history.push({
       role: 'user',
-      parts: [{ text: userMessage }]
+      parts: [{ text: userMessage }],
     });
 
     // Add the assistant response to history if valid
     if (response.candidates && response.candidates[0]?.content) {
-      (this.geminiChat as unknown as { history: Content[] }).history.push(response.candidates[0].content);
+      (this.geminiChat as unknown as { history: Content[] }).history.push(
+        response.candidates[0].content,
+      );
     }
   }
 
@@ -229,7 +243,9 @@ export class RAGEnhancedGeminiChat {
   /**
    * Updates the RAG context configuration
    */
-  updateRAGConfig(config: Parameters<PromptContextManager['updateConfig']>[0]): void {
+  updateRAGConfig(
+    config: Parameters<PromptContextManager['updateConfig']>[0],
+  ): void {
     this.promptContextManager.updateConfig(config);
   }
 
@@ -246,22 +262,25 @@ export class RAGEnhancedGeminiChat {
   async indexCurrentConversation(): Promise<void> {
     try {
       const history = this.getHistory(false);
-      
+
       // Extract meaningful exchanges for indexing
       const conversationChunks = this.extractConversationChunks(history);
-      
+
       // Index each meaningful chunk
       for (const chunk of conversationChunks) {
-        await this.ragService.indexContent([{
-          id: `conversation_${Date.now()}_${Math.random()}`,
-          content: chunk.content,
-          type: ChunkType.CONVERSATION,
-          metadata: chunk.metadata
-        }]);
+        await this.ragService.indexContent([
+          {
+            id: `conversation_${Date.now()}_${Math.random()}`,
+            content: chunk.content,
+            type: ChunkType.CONVERSATION,
+            metadata: chunk.metadata,
+          },
+        ]);
       }
 
-      console.log(`Indexed ${conversationChunks.length} conversation chunks for future retrieval`);
-      
+      console.log(
+        `Indexed ${conversationChunks.length} conversation chunks for future retrieval`,
+      );
     } catch (error) {
       console.error('Failed to index conversation', { error });
     }
@@ -274,17 +293,19 @@ export class RAGEnhancedGeminiChat {
     content: string;
     metadata: Record<string, unknown>;
   }> {
-    
-    const chunks: Array<{ content: string; metadata: Record<string, unknown> }> = [];
-    
+    const chunks: Array<{
+      content: string;
+      metadata: Record<string, unknown>;
+    }> = [];
+
     for (let i = 0; i < history.length - 1; i += 2) {
       const userMsg = history[i];
       const assistantMsg = history[i + 1];
-      
+
       if (userMsg?.role === 'user' && assistantMsg?.role === 'model') {
         const userText = this.extractTextFromContent(userMsg);
         const assistantText = this.extractTextFromContent(assistantMsg);
-        
+
         if (userText.length > 20 && assistantText.length > 50) {
           chunks.push({
             content: `User Question: ${userText}\n\nAssistant Response: ${assistantText}`,
@@ -292,13 +313,13 @@ export class RAGEnhancedGeminiChat {
               type: 'conversation_exchange',
               timestamp: new Date().toISOString(),
               userQueryLength: userText.length,
-              responseLength: assistantText.length
-            }
+              responseLength: assistantText.length,
+            },
           });
         }
       }
     }
-    
+
     return chunks;
   }
 
@@ -307,10 +328,10 @@ export class RAGEnhancedGeminiChat {
    */
   private extractTextFromContent(content: Content): string {
     if (!content.parts) return '';
-    
+
     return content.parts
-      .filter(part => part.text)
-      .map(part => part.text)
+      .filter((part) => part.text)
+      .map((part) => part.text)
       .join(' ')
       .trim();
   }

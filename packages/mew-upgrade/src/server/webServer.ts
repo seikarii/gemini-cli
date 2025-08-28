@@ -25,15 +25,15 @@ const MAX_ALLOWED_FILE_BYTES = 200 * 1024; // 200 KiB
 async function getDirContents(
   dirPath: string,
   projectRoot: string,
-): Promise<Omit<DirEntry, 'children'>[]> {
+): Promise<Array<Omit<DirEntry, 'children'>>> {
   let dirents;
   try {
     dirents = await fs.readdir(dirPath, { withFileTypes: true });
-  } catch (e: any) {
+  } catch (_e: any) {
     return [];
   }
 
-  const children: Omit<DirEntry, 'children'>[] = [];
+  const children: Array<Omit<DirEntry, 'children'>> = [];
   for (const dirent of dirents) {
     try {
       const candidate = path.resolve(dirPath, dirent.name);
@@ -45,7 +45,7 @@ async function getDirContents(
         name: dirent.name,
         type: dirent.isDirectory() ? 'directory' : 'file',
       });
-    } catch (err) {
+    } catch (_err) {
       continue;
     }
   }
@@ -196,7 +196,7 @@ export async function startWebServer(agent: GeminiAgent) {
       status: 'Agent is running',
       lastUpdated: new Date().toISOString(),
       thoughts: 'Thinking about the project...',
-      activeFilePath: activeFilePath,
+      activeFilePath,
     });
   });
 

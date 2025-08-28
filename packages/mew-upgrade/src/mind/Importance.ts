@@ -161,6 +161,8 @@ function calculateCriticality(data: any, context?: DataContext): number {
       case 'tool_output':
         score += 0.2;
         break;
+      default:
+        break;
     }
   }
 
