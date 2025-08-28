@@ -50,6 +50,7 @@ export const useSlashCommandProcessor = (
   openEditorDialog: () => void,
   toggleCorgiMode: () => void,
   setQuittingMessages: (message: HistoryItem[]) => void,
+  setHistory: UseHistoryManagerReturn['setHistory'],
   openPrivacyNotice: () => void,
   openSettingsDialog: () => void,
   toggleVimEnabled: () => Promise<boolean>,
@@ -183,6 +184,7 @@ export const useSlashCommandProcessor = (
         toggleVimEnabled,
         setGeminiMdFileCount,
         reloadCommands,
+        setHistory,
       },
       session: {
         stats: session.stats,
@@ -207,6 +209,7 @@ export const useSlashCommandProcessor = (
       sessionShellAllowlist,
       setGeminiMdFileCount,
       reloadCommands,
+      setHistory,
     ],
   );
 
@@ -397,9 +400,7 @@ export const useSlashCommandProcessor = (
                     ?.getGeminiClient()
                     ?.setHistory(result.clientHistory);
                   fullCommandContext.ui.clear();
-                  result.history.forEach((item, index) => {
-                    fullCommandContext.ui.addItem(item, index);
-                  });
+                  fullCommandContext.ui.setHistory(result.history as HistoryItem[] | HistoryItemWithoutId[]);
                   return { type: 'handled' };
                 }
                 case 'quit':
@@ -561,6 +562,7 @@ export const useSlashCommandProcessor = (
       setSessionShellAllowlist,
       setIsProcessing,
       setConfirmationRequest,
+      setHistory,
     ],
   );
 

@@ -78,16 +78,39 @@ describe('RipGrepTool', () => {
   let grepTool: RipGrepTool;
   const abortSignal = new AbortController().signal;
 
-  const mockConfig = {
+// Helper function to create complete mock config
+function createMockConfig(tempRootDir: string, additionalDirs: string[] = []) {
+  return {
     getTargetDir: () => tempRootDir,
-    getWorkspaceContext: () => createMockWorkspaceContext(tempRootDir),
+    getWorkspaceContext: () => createMockWorkspaceContext(tempRootDir, additionalDirs),
     getDebugMode: () => false,
+    getFileSystemService: () => ({
+      getFileInfo: async (filePath: string) => {
+        try {
+          const stats = await fs.stat(filePath);
+          return {
+            success: true,
+            data: {
+              isDirectory: stats.isDirectory(),
+              isFile: stats.isFile(),
+              size: stats.size,
+              mtime: stats.mtime,
+            },
+          };
+        } catch (error) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          };
+        }
+      },
+    }),
   } as unknown as Config;
-
-  beforeEach(async () => {
+}  beforeEach(async () => {
     vi.clearAllMocks();
     mockSpawn.mockClear();
     tempRootDir = await fs.mkdtemp(path.join(os.tmpdir(), 'grep-tool-root-'));
+    const mockConfig = createMockConfig(tempRootDir);
     grepTool = new RipGrepTool(mockConfig);
 
     // Create some test files and directories
@@ -169,6 +192,7 @@ describe('RipGrepTool', () => {
 
   describe('execute', () => {
     it('should find matches for a simple pattern in all files', async () => {
+      // In test environment, skip dependency check - only mock the search call
       mockSpawn.mockImplementationOnce(
         createMockSpawn({
           outputData: `fileA.txt:1:hello world${EOL}fileA.txt:2:second line with world${EOL}sub/fileC.txt:1:another world in sub dir${EOL}`,
@@ -450,12 +474,7 @@ describe('RipGrepTool', () => {
       );
 
       // Create a mock config with multiple directories
-      const multiDirConfig = {
-        getTargetDir: () => tempRootDir,
-        getWorkspaceContext: () =>
-          createMockWorkspaceContext(tempRootDir, [secondDir]),
-        getDebugMode: () => false,
-      } as unknown as Config;
+      const multiDirConfig = createMockConfig(tempRootDir, [secondDir]);
 
       // Setup specific mock for this test - multi-directory search for 'world'
       // Mock will be called twice - once for each directory
@@ -555,12 +574,7 @@ describe('RipGrepTool', () => {
       );
 
       // Create a mock config with multiple directories
-      const multiDirConfig = {
-        getTargetDir: () => tempRootDir,
-        getWorkspaceContext: () =>
-          createMockWorkspaceContext(tempRootDir, [secondDir]),
-        getDebugMode: () => false,
-      } as unknown as Config;
+      const multiDirConfig = createMockConfig(tempRootDir, [secondDir]);
 
       // Setup specific mock for this test - searching in 'sub' should only return matches from that directory
       mockSpawn.mockImplementationOnce(() => {
@@ -1185,12 +1199,7 @@ describe('RipGrepTool', () => {
 
     it('should indicate searching across all workspace directories when no path specified', () => {
       // Create a mock config with multiple directories
-      const multiDirConfig = {
-        getTargetDir: () => tempRootDir,
-        getWorkspaceContext: () =>
-          createMockWorkspaceContext(tempRootDir, ['/another/dir']),
-        getDebugMode: () => false,
-      } as unknown as Config;
+      const multiDirConfig = createMockConfig(tempRootDir, ['/another/dir']);
 
       const multiDirGrepTool = new RipGrepTool(multiDirConfig);
       const params: RipGrepToolParams = { pattern: 'testPattern' };

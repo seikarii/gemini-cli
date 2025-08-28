@@ -9,11 +9,90 @@ const { logSlashCommand } = vi.hoisted(() => ({
 }));
 
 vi.mock('@google/gemini-cli-core', async (importOriginal) => {
-  const original =
+  const actualCore =
     await importOriginal<typeof import('@google/gemini-cli-core')>();
+  const ConfigClassMock = vi
+    .fn()
+    .mockImplementation((optionsPassedToConstructor) => {
+      const opts = { ...optionsPassedToConstructor }; // Clone
+      // Basic mock structure, will be extended by the instance in tests
+      return {
+        apiKey: opts.apiKey || 'test-key',
+        model: opts.model || 'test-model-in-mock-factory',
+        sandbox: opts.sandbox,
+        targetDir: opts.targetDir || '/test/dir',
+        debugMode: opts.debugMode || false,
+        question: opts.question,
+        fullContext: opts.fullContext ?? false,
+        coreTools: opts.coreTools,
+        toolDiscoveryCommand: opts.toolDiscoveryCommand,
+        toolCallCommand: opts.toolCallCommand,
+        mcpServerCommand: opts.mcpServerCommand,
+        mcpServers: opts.mcpServers,
+        userAgent: opts.userAgent || 'test-agent',
+        userMemory: opts.userMemory || '',
+        geminiMdFileCount: opts.geminiMdFileCount || 0,
+        approvalMode: opts.approvalMode ?? ApprovalMode.DEFAULT,
+        vertexai: opts.vertexai,
+        showMemoryUsage: opts.showMemoryUsage ?? false,
+        accessibility: opts.accessibility ?? {},
+        embeddingModel: opts.embeddingModel || 'test-embedding-model',
+
+        getApiKey: vi.fn(() => opts.apiKey || 'test-key'),
+        getModel: vi.fn(() => opts.model || 'test-model-in-mock-factory'),
+        getSandbox: vi.fn(() => opts.sandbox),
+        getTargetDir: vi.fn(() => opts.targetDir || '/test/dir'),
+        getToolRegistry: vi.fn(() => ({}) as ToolRegistry), // Simple mock
+        getDebugMode: vi.fn(() => opts.debugMode || false),
+        getQuestion: vi.fn(() => opts.question),
+        getFullContext: vi.fn(() => opts.fullContext ?? false),
+        getCoreTools: vi.fn(() => opts.coreTools),
+        getToolDiscoveryCommand: vi.fn(() => opts.toolDiscoveryCommand),
+        getToolCallCommand: vi.fn(() => opts.toolCallCommand),
+        getMcpServerCommand: vi.fn(() => opts.mcpServerCommand),
+        getMcpServers: vi.fn(() => opts.mcpServers),
+        getPromptRegistry: vi.fn(),
+        getExtensions: vi.fn(() => []),
+        getBlockedMcpServers: vi.fn(() => []),
+        getUserAgent: vi.fn(() => opts.userAgent || 'test-agent'),
+        getUserMemory: vi.fn(() => opts.userMemory || ''),
+        setUserMemory: vi.fn(),
+        getGeminiMdFileCount: vi.fn(() => opts.geminiMdFileCount || 0),
+        setGeminiMdFileCount: vi.fn(),
+        getApprovalMode: vi.fn(() => opts.approvalMode ?? ApprovalMode.DEFAULT),
+        setApprovalMode: vi.fn(),
+        getVertexAI: vi.fn(() => opts.vertexai),
+        getShowMemoryUsage: vi.fn(() => opts.showMemoryUsage ?? false),
+        getAccessibility: vi.fn(() => opts.accessibility ?? {}),
+        getProjectRoot: vi.fn(() => opts.targetDir),
+        getEnablePromptCompletion: vi.fn(() => false),
+        getGeminiClient: vi.fn(() => ({
+          getUserTier: vi.fn(),
+        })),
+        getCheckpointingEnabled: vi.fn(() => opts.checkpointing ?? true),
+        getAllGeminiMdFilenames: vi.fn(() => ['GEMINI.md']),
+        setFlashFallbackHandler: vi.fn(),
+        getSessionId: vi.fn(() => 'test-session-id'),
+        getUserTier: vi.fn().mockResolvedValue(undefined),
+        getIdeMode: vi.fn(() => true),
+        getWorkspaceContext: vi.fn(() => ({
+          getDirectories: vi.fn(() => []),
+        })),
+        getIdeClient: vi.fn(() => ({
+          getCurrentIde: vi.fn(() => 'vscode'),
+          getDetectedIdeDisplayName: vi.fn(() => 'VSCode'),
+          addStatusChangeListener: vi.fn(),
+          removeStatusChangeListener: vi.fn(),
+          getConnectionStatus: vi.fn(() => 'connected'),
+        })),
+        isTrustedFolder: vi.fn(() => true),
+        getScreenReader: vi.fn(() => false),
+      };
+    });
 
   return {
-    ...original,
+    ...actualCore,
+    Config: ConfigClassMock,
     logSlashCommand,
     getIdeInstaller: vi.fn().mockReturnValue(null),
   };
@@ -77,16 +156,18 @@ import {
   ConfirmShellCommandsActionReturn,
   SlashCommand,
 } from '../commands/types.js';
-import { ToolConfirmationOutcome } from '@google/gemini-cli-core';
+import {
+  ToolConfirmationOutcome,
+  ToolRegistry,
+  ApprovalMode,
+  SlashCommandStatus,
+  Config,
+} from '@google/gemini-cli-core';
 import { LoadedSettings } from '../../config/settings.js';
 import { MessageType } from '../types.js';
 import { BuiltinCommandLoader } from '../../services/BuiltinCommandLoader.js';
 import { FileCommandLoader } from '../../services/FileCommandLoader.js';
 import { McpPromptLoader } from '../../services/McpPromptLoader.js';
-import {
-  SlashCommandStatus,
-  Config,
-} from '@google/gemini-cli-core';
 
 function createTestCommand(
   overrides: Partial<SlashCommand>,
@@ -104,12 +185,12 @@ describe('useSlashCommandProcessor', () => {
   const mockAddItem = vi.fn();
   const mockClearItems = vi.fn();
   const mockLoadHistory = vi.fn();
+  const mockSetHistory = vi.fn();
   const mockOpenThemeDialog = vi.fn();
   const mockOpenAuthDialog = vi.fn();
   const mockSetQuittingMessages = vi.fn();
 
-  const mockConfig = {} as Config;
-
+  let mockConfig: Config;
   const mockSettings = {} as LoadedSettings;
 
   beforeEach(() => {
@@ -118,6 +199,14 @@ describe('useSlashCommandProcessor', () => {
     mockBuiltinLoadCommands.mockResolvedValue([]);
     mockFileLoadCommands.mockResolvedValue([]);
     mockMcpLoadCommands.mockResolvedValue([]);
+    const ServerConfigMocked = vi.mocked(Config, true);
+    mockConfig = new ServerConfigMocked({
+      sessionId: 'test-session-id',
+      targetDir: '/test/dir',
+      debugMode: false,
+      cwd: '/test/dir',
+      model: 'test-model',
+    }) as unknown as Config;
   });
 
   const setupProcessorHook = (
@@ -144,6 +233,7 @@ describe('useSlashCommandProcessor', () => {
         vi.fn(), // openEditorDialog
         vi.fn(), // toggleCorgiMode
         mockSetQuittingMessages,
+        mockSetHistory, // setHistory
         vi.fn(), // openPrivacyNotice
         vi.fn(), // openSettingsDialog
         vi.fn(), // toggleVimEnabled
@@ -406,10 +496,9 @@ describe('useSlashCommandProcessor', () => {
       });
 
       expect(mockClearItems).toHaveBeenCalledTimes(1);
-      expect(mockAddItem).toHaveBeenCalledWith(
+      expect(mockSetHistory).toHaveBeenCalledWith([
         { type: 'user', text: 'old prompt' },
-        expect.any(Number),
-      );
+      ]);
     });
 
     describe('with fake timers', () => {
@@ -896,6 +985,7 @@ describe('useSlashCommandProcessor', () => {
           vi.fn(), // openEditorDialog
           vi.fn(), // toggleCorgiMode
           mockSetQuittingMessages,
+          mockSetHistory, // setHistory
           vi.fn(), // openPrivacyNotice
 
           vi.fn(), // openSettingsDialog

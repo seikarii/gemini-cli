@@ -4,20 +4,49 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getIdeInstaller, IdeInstaller } from './ide-installer.js';
-import * as child_process from 'child_process';
-import * as fs from 'fs';
-import * as os from 'os';
-import { DetectedIde } from './detect-ide.js';
+// Mock child_process module
+vi.mock('child_process', () => ({
+  exec: vi.fn((command: string, options?: unknown, callback?: (error: Error | null, stdout: string, stderr: string) => void) => {
+    if (typeof options === 'function') {
+      callback = options as (error: Error | null, stdout: string, stderr: string) => void;
+      options = undefined;
+    }
+    if (callback) {
+      // Call callback immediately with error
+      callback(new Error('Command not found'), '', '');
+    }
+    return {};
+  }),
+  execSync: vi.fn(() => {
+    throw new Error('Command not found');
+  }),
+}));
 
-vi.mock('child_process');
-vi.mock('fs');
-vi.mock('os');
+// Mock fs module
+vi.mock('fs', () => ({
+  existsSync: vi.fn(() => false),
+  promises: {
+    access: vi.fn(() => Promise.reject(new Error('File not accessible'))),
+  },
+}));
+
+// Mock os module
+vi.mock('os', () => ({
+  homedir: vi.fn(() => '/home/user'),
+}));
+
+// Mock process module
+vi.mock('process', () => ({
+  platform: 'linux',
+}));
+
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { getIdeInstaller } from './ide-installer.js';
+import { DetectedIde } from './detect-ide.js';
 
 describe('ide-installer', () => {
   beforeEach(() => {
-    vi.spyOn(os, 'homedir').mockReturnValue('/home/user');
+    vi.resetAllMocks();
   });
 
   afterEach(() => {
@@ -28,29 +57,14 @@ describe('ide-installer', () => {
     it('should return a VsCodeInstaller for "vscode"', () => {
       const installer = getIdeInstaller(DetectedIde.VSCode);
       expect(installer).not.toBeNull();
-      // A more specific check might be needed if we export the class
       expect(installer).toBeInstanceOf(Object);
     });
   });
 
   describe('VsCodeInstaller', () => {
-    let installer: IdeInstaller;
-
-    beforeEach(() => {
-      // We get a new installer for each test to reset the find command logic
-      installer = getIdeInstaller(DetectedIde.VSCode)!;
-      vi.spyOn(child_process, 'execSync').mockImplementation(() => '');
-      vi.spyOn(fs, 'existsSync').mockReturnValue(false);
-    });
-
     describe('install', () => {
       it('should return a failure message if VS Code is not installed', async () => {
-        vi.spyOn(child_process, 'execSync').mockImplementation(() => {
-          throw new Error('Command not found');
-        });
-        vi.spyOn(fs, 'existsSync').mockReturnValue(false);
-        // Re-create the installer so it re-runs findVsCodeCommand
-        installer = getIdeInstaller(DetectedIde.VSCode)!;
+        const installer = getIdeInstaller(DetectedIde.VSCode)!;
         const result = await installer.install();
         expect(result.success).toBe(false);
         expect(result.message).toContain('VS Code CLI not found');

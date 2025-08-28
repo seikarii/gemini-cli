@@ -5,7 +5,7 @@
  */
 
 import { useState, useRef, useCallback } from 'react';
-import { HistoryItem } from '../types.js';
+import { HistoryItem, HistoryItemWithoutId } from '../types.js';
 
 // Type for the updater function passed to updateHistoryItem
 type HistoryItemUpdater = (
@@ -20,7 +20,8 @@ export interface UseHistoryManagerReturn {
     updates: Partial<Omit<HistoryItem, 'id'>> | HistoryItemUpdater,
   ) => void;
   clearItems: () => void;
-  loadHistory: (newHistory: HistoryItem[]) => void;
+  loadHistory: (newHistory: HistoryItem[] | HistoryItemWithoutId[]) => void;
+  setHistory: (newHistory: HistoryItem[] | HistoryItemWithoutId[]) => void;
 }
 
 /**
@@ -39,8 +40,16 @@ export function useHistory(): UseHistoryManagerReturn {
     return baseTimestamp + messageIdCounterRef.current;
   }, []);
 
-  const loadHistory = useCallback((newHistory: HistoryItem[]) => {
-    setHistory(newHistory);
+  const loadHistory = useCallback((newHistory: HistoryItem[] | HistoryItemWithoutId[]) => {
+    // Convert HistoryItemWithoutId[] to HistoryItem[] by assigning IDs
+    const historyWithIds: HistoryItem[] = newHistory.map((item, index) => {
+      if ('id' in item) {
+        return item as HistoryItem;
+      } else {
+        return { ...item, id: index + 1 } as HistoryItem;
+      }
+    });
+    setHistory(historyWithIds);
   }, []);
 
   // Adds a new item to the history state with a unique ID.
@@ -107,5 +116,6 @@ export function useHistory(): UseHistoryManagerReturn {
     updateItem,
     clearItems,
     loadHistory,
+    setHistory: loadHistory,
   };
 }

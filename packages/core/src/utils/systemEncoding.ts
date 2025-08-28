@@ -76,7 +76,7 @@ export function getSystemEncoding(): string | null {
   return null;
 }
 
-async function detectSystemEncodingAsync(): Promise<string | null> {
+export async function detectSystemEncodingAsync(): Promise<string | null> {
   // Windows
   if (os.platform() === 'win32') {
     try {

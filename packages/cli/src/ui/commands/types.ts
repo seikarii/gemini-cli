@@ -57,6 +57,12 @@ export interface CommandContext {
      * @param history The array of history items to load.
      */
     loadHistory: UseHistoryManagerReturn['loadHistory'];
+    /**
+     * Sets the history, replacing the current history.
+     *
+     * @param history The array of history items to set.
+     */
+    setHistory: UseHistoryManagerReturn['setHistory'];
     /** Toggles a special display mode. */
     toggleCorgiMode: () => void;
     toggleVimEnabled: () => Promise<boolean>;

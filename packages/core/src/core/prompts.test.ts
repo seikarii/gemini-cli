@@ -8,9 +8,25 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getCoreSystemPrompt } from './prompts.js';
 import { isGitRepository } from '../utils/gitUtils.js';
 import fs from 'node:fs';
+import { promises as fsp } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { GEMINI_CONFIG_DIR } from '../tools/memoryTool.js';
+
+// Mock fs
+vi.mock('node:fs', () => ({
+  default: {
+    existsSync: vi.fn(),
+    readFileSync: vi.fn(),
+  },
+  existsSync: vi.fn(),
+  readFileSync: vi.fn(),
+  promises: {
+    readFile: vi.fn(),
+  },
+}));
+
+const mockedFs = vi.mocked(fs);
 
 // Mock tool names if they are dynamically generated or complex
 vi.mock('../tools/ls', () => ({ LSTool: { Name: 'list_directory' } }));
@@ -30,20 +46,25 @@ vi.mock('../tools/write-file', () => ({
 vi.mock('../utils/gitUtils', () => ({
   isGitRepository: vi.fn(),
 }));
-vi.mock('node:fs');
 
 describe('Core System Prompt (prompts.ts)', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.stubEnv('GEMINI_SYSTEM_MD', undefined);
     vi.stubEnv('GEMINI_WRITE_SYSTEM_MD', undefined);
+    
+    // Create spies for fs functions
+    vi.spyOn(fs, 'existsSync');
+    vi.spyOn(fs, 'readFileSync');
+    vi.spyOn(fsp, 'mkdir');
+    vi.spyOn(fsp, 'writeFile');
   });
 
   it('should return the base prompt when no userMemory is provided', () => {
     vi.stubEnv('SANDBOX', undefined);
     const prompt = getCoreSystemPrompt();
     expect(prompt).not.toContain('---\n\n'); // Separator should not be present
-    expect(prompt).toContain('You are an interactive CLI agent'); // Check for core content
+    expect(prompt).toContain('You are an Architect/Engineer software agent'); // Check for core content
     expect(prompt).toMatchSnapshot(); // Use snapshot for base prompt structure
   });
 
@@ -51,7 +72,7 @@ describe('Core System Prompt (prompts.ts)', () => {
     vi.stubEnv('SANDBOX', undefined);
     const prompt = getCoreSystemPrompt('');
     expect(prompt).not.toContain('---\n\n');
-    expect(prompt).toContain('You are an interactive CLI agent');
+    expect(prompt).toContain('You are an Architect/Engineer software agent');
     expect(prompt).toMatchSnapshot();
   });
 
@@ -59,7 +80,7 @@ describe('Core System Prompt (prompts.ts)', () => {
     vi.stubEnv('SANDBOX', undefined);
     const prompt = getCoreSystemPrompt('   \n  \t ');
     expect(prompt).not.toContain('---\n\n');
-    expect(prompt).toContain('You are an interactive CLI agent');
+    expect(prompt).toContain('You are an Architect/Engineer software agent');
     expect(prompt).toMatchSnapshot();
   });
 
@@ -70,7 +91,7 @@ describe('Core System Prompt (prompts.ts)', () => {
     const prompt = getCoreSystemPrompt(memory);
 
     expect(prompt.endsWith(expectedSuffix)).toBe(true);
-    expect(prompt).toContain('You are an interactive CLI agent'); // Ensure base prompt follows
+    expect(prompt).toContain('You are an Architect/Engineer software agent'); // Ensure base prompt follows
     expect(prompt).toMatchSnapshot(); // Snapshot the combined prompt
   });
 
@@ -78,26 +99,23 @@ describe('Core System Prompt (prompts.ts)', () => {
     vi.stubEnv('SANDBOX', 'true'); // Generic sandbox value
     const prompt = getCoreSystemPrompt();
     expect(prompt).toContain('# Sandbox');
-    expect(prompt).not.toContain('# macOS Seatbelt');
-    expect(prompt).not.toContain('# Outside of Sandbox');
+    expect(prompt).not.toContain('# Outside Sandbox');
     expect(prompt).toMatchSnapshot();
   });
 
-  it('should include seatbelt-specific instructions when SANDBOX env var is "sandbox-exec"', () => {
+  it('should include sandbox-specific instructions when SANDBOX env var is "sandbox-exec"', () => {
     vi.stubEnv('SANDBOX', 'sandbox-exec');
     const prompt = getCoreSystemPrompt();
-    expect(prompt).toContain('# macOS Seatbelt');
-    expect(prompt).not.toContain('# Sandbox');
-    expect(prompt).not.toContain('# Outside of Sandbox');
+    expect(prompt).toContain('# Sandbox');
+    expect(prompt).not.toContain('# Outside Sandbox');
     expect(prompt).toMatchSnapshot();
   });
 
   it('should include non-sandbox instructions when SANDBOX env var is not set', () => {
     vi.stubEnv('SANDBOX', undefined); // Ensure it's not set
     const prompt = getCoreSystemPrompt();
-    expect(prompt).toContain('# Outside of Sandbox');
+    expect(prompt).toContain('# Outside Sandbox');
     expect(prompt).not.toContain('# Sandbox');
-    expect(prompt).not.toContain('# macOS Seatbelt');
     expect(prompt).toMatchSnapshot();
   });
 
@@ -135,7 +153,7 @@ describe('Core System Prompt (prompts.ts)', () => {
     it('should throw error if GEMINI_SYSTEM_MD points to a non-existent file', () => {
       const customPath = '/non/existent/path/system.md';
       vi.stubEnv('GEMINI_SYSTEM_MD', customPath);
-      vi.mocked(fs.existsSync).mockReturnValue(false);
+      vi.mocked(fs).existsSync.mockReturnValue(false);
       expect(() => getCoreSystemPrompt()).toThrow(
         `missing system prompt file '${path.resolve(customPath)}'`,
       );
@@ -146,8 +164,8 @@ describe('Core System Prompt (prompts.ts)', () => {
         path.join(GEMINI_CONFIG_DIR, 'system.md'),
       );
       vi.stubEnv('GEMINI_SYSTEM_MD', 'true');
-      vi.mocked(fs.existsSync).mockReturnValue(true);
-      vi.mocked(fs.readFileSync).mockReturnValue('custom system prompt');
+      vi.mocked(fs).existsSync.mockReturnValue(true);
+      vi.mocked(fs).readFileSync.mockReturnValue('custom system prompt');
 
       const prompt = getCoreSystemPrompt();
       expect(fs.readFileSync).toHaveBeenCalledWith(defaultPath, 'utf8');
@@ -159,8 +177,8 @@ describe('Core System Prompt (prompts.ts)', () => {
         path.join(GEMINI_CONFIG_DIR, 'system.md'),
       );
       vi.stubEnv('GEMINI_SYSTEM_MD', '1');
-      vi.mocked(fs.existsSync).mockReturnValue(true);
-      vi.mocked(fs.readFileSync).mockReturnValue('custom system prompt');
+      vi.mocked(fs).existsSync.mockReturnValue(true);
+      vi.mocked(fs).readFileSync.mockReturnValue('custom system prompt');
 
       const prompt = getCoreSystemPrompt();
       expect(fs.readFileSync).toHaveBeenCalledWith(defaultPath, 'utf8');
@@ -170,8 +188,8 @@ describe('Core System Prompt (prompts.ts)', () => {
     it('should read from custom path when GEMINI_SYSTEM_MD provides one, preserving case', () => {
       const customPath = path.resolve('/custom/path/SyStEm.Md');
       vi.stubEnv('GEMINI_SYSTEM_MD', customPath);
-      vi.mocked(fs.existsSync).mockReturnValue(true);
-      vi.mocked(fs.readFileSync).mockReturnValue('custom system prompt');
+      vi.mocked(fs).existsSync.mockReturnValue(true);
+      vi.mocked(fs).readFileSync.mockReturnValue('custom system prompt');
 
       const prompt = getCoreSystemPrompt();
       expect(fs.readFileSync).toHaveBeenCalledWith(customPath, 'utf8');
@@ -184,8 +202,8 @@ describe('Core System Prompt (prompts.ts)', () => {
       const customPath = '~/custom/system.md';
       const expectedPath = path.join(homeDir, 'custom/system.md');
       vi.stubEnv('GEMINI_SYSTEM_MD', customPath);
-      vi.mocked(fs.existsSync).mockReturnValue(true);
-      vi.mocked(fs.readFileSync).mockReturnValue('custom system prompt');
+      vi.mocked(fs).existsSync.mockReturnValue(true);
+      vi.mocked(fs).readFileSync.mockReturnValue('custom system prompt');
 
       const prompt = getCoreSystemPrompt();
       expect(fs.readFileSync).toHaveBeenCalledWith(
@@ -200,13 +218,13 @@ describe('Core System Prompt (prompts.ts)', () => {
     it('should not write to file when GEMINI_WRITE_SYSTEM_MD is "false"', () => {
       vi.stubEnv('GEMINI_WRITE_SYSTEM_MD', 'false');
       getCoreSystemPrompt();
-      expect(fs.writeFileSync).not.toHaveBeenCalled();
+      expect(fsp.writeFile).not.toHaveBeenCalled();
     });
 
     it('should not write to file when GEMINI_WRITE_SYSTEM_MD is "0"', () => {
       vi.stubEnv('GEMINI_WRITE_SYSTEM_MD', '0');
       getCoreSystemPrompt();
-      expect(fs.writeFileSync).not.toHaveBeenCalled();
+      expect(fsp.writeFile).not.toHaveBeenCalled();
     });
 
     it('should write to default path when GEMINI_WRITE_SYSTEM_MD is "true"', () => {
@@ -215,7 +233,7 @@ describe('Core System Prompt (prompts.ts)', () => {
       );
       vi.stubEnv('GEMINI_WRITE_SYSTEM_MD', 'true');
       getCoreSystemPrompt();
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
+      expect(fsp.writeFile).toHaveBeenCalledWith(
         defaultPath,
         expect.any(String),
       );
@@ -227,7 +245,7 @@ describe('Core System Prompt (prompts.ts)', () => {
       );
       vi.stubEnv('GEMINI_WRITE_SYSTEM_MD', '1');
       getCoreSystemPrompt();
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
+      expect(fsp.writeFile).toHaveBeenCalledWith(
         defaultPath,
         expect.any(String),
       );
@@ -237,7 +255,7 @@ describe('Core System Prompt (prompts.ts)', () => {
       const customPath = path.resolve('/custom/path/system.md');
       vi.stubEnv('GEMINI_WRITE_SYSTEM_MD', customPath);
       getCoreSystemPrompt();
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
+      expect(fsp.writeFile).toHaveBeenCalledWith(
         customPath,
         expect.any(String),
       );
@@ -250,7 +268,7 @@ describe('Core System Prompt (prompts.ts)', () => {
       const expectedPath = path.join(homeDir, 'custom/system.md');
       vi.stubEnv('GEMINI_WRITE_SYSTEM_MD', customPath);
       getCoreSystemPrompt();
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
+      expect(fsp.writeFile).toHaveBeenCalledWith(
         path.resolve(expectedPath),
         expect.any(String),
       );
@@ -263,7 +281,7 @@ describe('Core System Prompt (prompts.ts)', () => {
       const expectedPath = homeDir;
       vi.stubEnv('GEMINI_WRITE_SYSTEM_MD', customPath);
       getCoreSystemPrompt();
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
+      expect(fsp.writeFile).toHaveBeenCalledWith(
         path.resolve(expectedPath),
         expect.any(String),
       );

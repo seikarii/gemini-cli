@@ -630,9 +630,9 @@ export class GeminiChat {
 
   /**
    * Sets the entire history and invalidates cache.
-   * Protected to allow RAG-enhanced wrappers clean access for context management.
+   * Public to allow external access for context management.
    */
-  protected setHistory(history: Content[]): void {
+  public setHistory(history: Content[]): void {
     validateHistory(history);
     this.history = history;
     // Invalidate cache when history is replaced

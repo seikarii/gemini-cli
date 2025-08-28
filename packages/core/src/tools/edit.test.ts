@@ -39,7 +39,6 @@ import os from 'os';
 import { ApprovalMode, Config } from '../config/config.js';
 import { Content, Part, SchemaUnion } from '@google/genai';
 import { createMockWorkspaceContext } from '../test-utils/mockWorkspaceContext.js';
-import { StandardFileSystemService } from '../services/fileSystemService.js';
 
 describe('EditTool', () => {
   let tool: EditTool;
@@ -64,7 +63,43 @@ describe('EditTool', () => {
       getApprovalMode: vi.fn(),
       setApprovalMode: vi.fn(),
       getWorkspaceContext: () => createMockWorkspaceContext(rootDir),
-      getFileSystemService: () => new StandardFileSystemService(),
+      getFileSystemService: () => ({
+        readTextFile: async (filePath: string) => {
+          try {
+            const content = fs.readFileSync(filePath, 'utf8');
+            return { success: true, data: content };
+          } catch (error) {
+            return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+          }
+        },
+        writeTextFile: async (filePath: string, content: string) => {
+          try {
+            fs.writeFileSync(filePath, content);
+            return { success: true };
+          } catch (error) {
+            return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+          }
+        },
+        getFileInfo: async (filePath: string) => {
+          try {
+            const stats = fs.statSync(filePath);
+            return {
+              success: true,
+              data: {
+                isDirectory: stats.isDirectory(),
+                isFile: stats.isFile(),
+                size: stats.size,
+                mtime: stats.mtime,
+              },
+            };
+          } catch (error) {
+            return {
+              success: false,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            };
+          }
+        },
+      }),
       getIdeClient: () => undefined,
       getIdeMode: () => false,
       // getGeminiConfig: () => ({ apiKey: 'test-api-key' }), // This was not a real Config method

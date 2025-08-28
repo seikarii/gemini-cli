@@ -1,3 +1,24 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ const memoryToolSchemaData: FunctionDeclaration = {
+  name: 'save_memory',
+  description:
+    'Saves a specific piece of information or fact to your long-term memory. Use this when the user explicitly asks you to remember something, or when they state a clear, concise fact that seems important to retain for future interactions.',
+  parameters: {
+    type: 'object',
+    properties: {
+      fact: {
+        type: 'string',
+        description:
+          'The specific fact or piece of information to remember. Should be a clear, self-contained statement.',
+      },
+    },
+    required: ['fact'],
+  },
+};dentifier: Apache-2.0
+ */
+
 interface Config {
   getFileSystemService(): {
     readTextFile: (
@@ -19,11 +40,6 @@ export interface SaveMemoryParams {
   modified_by_user?: boolean;
   modified_content?: string;
 }
-/**
- * @license
- * Copyright 2025 Google LLC
- * SPDX-License-Identifier: Apache-2.0
- */
 
 import {
   BaseDeclarativeTool,
@@ -33,8 +49,9 @@ import {
   ToolConfirmationOutcome,
   ToolResult,
 } from './tools.js';
-import { FunctionDeclaration, Type } from '@google/genai';
+import { FunctionDeclaration } from '@google/genai';
 // import * as fs from 'fs/promises';
+import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Storage } from '../config/storage.js';
 import * as Diff from 'diff';
@@ -48,16 +65,16 @@ const memoryToolSchemaData: FunctionDeclaration = {
   description:
     'Saves a specific piece of information or fact to your long-term memory. Use this when the user explicitly asks you to remember something, or when they state a clear, concise fact that seems important to retain for future interactions.',
   parameters: {
-    type: Type.OBJECT,
+    type: 'object',
     properties: {
       fact: {
-        type: Type.STRING,
+        type: 'string',
         description:
           'The specific fact or piece of information to remember. Should be a clear, self-contained statement.',
       },
     },
     required: ['fact'],
-  },
+  } as Record<string, unknown>,
 };
 
 const memoryToolDescription = `
@@ -130,8 +147,12 @@ function ensureNewlineSeparation(currentContent: string): string {
 /**
  * Reads the current content of the memory file
  */
-async function readMemoryFileContent(config: Config): Promise<string> {
+async function readMemoryFileContent(config: Config | undefined): Promise<string> {
   try {
+    if (!config) {
+      // Fallback to raw fs methods when no config is provided
+      return await fs.readFile(getGlobalMemoryFilePath(), 'utf-8');
+    }
     const result = await config
       .getFileSystemService()
       .readTextFile(getGlobalMemoryFilePath());
@@ -193,11 +214,11 @@ class MemoryToolInvocation extends BaseToolInvocation<
   ToolResult
 > {
   private static readonly allowlist: Set<string> = new Set();
-  private config: Config;
+  private config: Config | undefined;
 
   constructor(params: SaveMemoryParams, config: unknown) {
     super(params);
-    this.config = config as Config;
+    this.config = config as Config | undefined;
   }
 
   getDescription(): string {
@@ -253,16 +274,21 @@ class MemoryToolInvocation extends BaseToolInvocation<
     try {
       if (modified_by_user && modified_content !== undefined) {
         // User modified the content in external editor, write it directly
-        await this.config
-          .getFileSystemService()
-          .createDirectory(path.dirname(getGlobalMemoryFilePath()), {
-            recursive: true,
-          });
-        const writeRes = await this.config
-          .getFileSystemService()
-          .writeTextFile(getGlobalMemoryFilePath(), modified_content);
-        if (!writeRes.success)
-          throw new Error(writeRes.error || 'Error writing memory file');
+        if (this.config) {
+          await this.config
+            .getFileSystemService()
+            .createDirectory(path.dirname(getGlobalMemoryFilePath()), {
+              recursive: true,
+            });
+          const writeRes = await this.config
+            .getFileSystemService()
+            .writeTextFile(getGlobalMemoryFilePath(), modified_content);
+          if (!writeRes.success)
+            throw new Error(writeRes.error || 'Error writing memory file');
+        } else {
+          await fs.mkdir(path.dirname(getGlobalMemoryFilePath()), { recursive: true });
+          await fs.writeFile(getGlobalMemoryFilePath(), modified_content, 'utf-8');
+        }
         const successMessage = `Okay, I've updated the memory file with your modifications.`;
         return {
           llmContent: JSON.stringify({
@@ -273,31 +299,39 @@ class MemoryToolInvocation extends BaseToolInvocation<
         };
       } else {
         // Use the normal memory entry logic
+        const fsAdapter = this.config
+          ? {
+              readFile: async (filePath: string) => {
+                const res = await this.config!
+                  .getFileSystemService()
+                  .readTextFile(filePath);
+                if (res.success && typeof res.data === 'string') return res.data;
+                throw new Error(res.error || 'Error reading file');
+              },
+              writeFile: async (filePath: string, data: string) => {
+                const res = await this.config!
+                  .getFileSystemService()
+                  .writeTextFile(filePath, data);
+                if (!res.success)
+                  throw new Error(res.error || 'Error writing file');
+              },
+              mkdir: async (dirPath: string) => {
+                await this.config!
+                  .getFileSystemService()
+                  .createDirectory(dirPath, { recursive: true });
+                return undefined;
+              },
+            }
+          : {
+              readFile: fs.readFile,
+              writeFile: fs.writeFile,
+              mkdir: fs.mkdir,
+            };
+
         await MemoryTool.performAddMemoryEntry(
           fact,
           getGlobalMemoryFilePath(),
-          {
-            readFile: async (filePath: string) => {
-              const res = await this.config
-                .getFileSystemService()
-                .readTextFile(filePath);
-              if (res.success && typeof res.data === 'string') return res.data;
-              throw new Error(res.error || 'Error reading file');
-            },
-            writeFile: async (filePath: string, data: string) => {
-              const res = await this.config
-                .getFileSystemService()
-                .writeTextFile(filePath, data);
-              if (!res.success)
-                throw new Error(res.error || 'Error writing file');
-            },
-            mkdir: async (dirPath: string) => {
-              await this.config
-                .getFileSystemService()
-                .createDirectory(dirPath, { recursive: true });
-              return undefined;
-            },
-          },
+          fsAdapter,
         );
         const successMessage = `Okay, I've remembered that: "${fact}"`;
         return {

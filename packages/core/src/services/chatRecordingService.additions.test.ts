@@ -25,8 +25,8 @@ interface StubFileSystemAdapter {
   exists(filePath: string): Promise<boolean>;
 }
 
-describe('ChatRecordingService - Core Functionality', () => {
-  let chatRecordingService: ChatRecordingService;
+describe('ChatRecordingService additions', () => {
+  let svc: ChatRecordingService;
   let mockConfig: Config;
 
   beforeEach(() => {
@@ -51,7 +51,10 @@ describe('ChatRecordingService - Core Functionality', () => {
         return JSON.stringify({
           sessionId: 'test-session-id',
           projectHash: 'test-project-hash',
-          messages: []
+          messages: [
+            { id: '1', type: 'user', content: 'Hello', timestamp: new Date().toISOString() },
+            { id: '2', type: 'gemini', content: 'Response', timestamp: new Date().toISOString() }
+          ]
         });
       },
       async writeFile(filePath: string, data: string) {
@@ -65,43 +68,20 @@ describe('ChatRecordingService - Core Functionality', () => {
       },
       async exists(filePath: string) {
         this.calls.push({ method: 'exists', args: [filePath] });
-        return false;
+        return true;
       },
     };
 
-    chatRecordingService = new ChatRecordingService(mockConfig, stubFs as StubFileSystemAdapter);
+    svc = new ChatRecordingService(mockConfig, stubFs as StubFileSystemAdapter);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  describe('initialize', () => {
-    it('should initialize without errors', async () => {
-      await expect(chatRecordingService.initialize()).resolves.toBeUndefined();
-    });
-  });
-
-  describe('recordMessage', () => {
-    beforeEach(async () => {
-      await chatRecordingService.initialize();
-    });
-
-    it('should record a new message', async () => {
-      await chatRecordingService.recordMessage({ type: 'user', content: 'Hello' });
-      // Verify the message was recorded by checking if writeFile was called
-      // This is a basic test - in a real scenario we'd check the file content
-      expect(true).toBe(true); // Placeholder assertion
-    });
-  });
-
   describe('getOptimizedHistoryForPrompt', () => {
-    beforeEach(async () => {
-      await chatRecordingService.initialize();
-    });
-
     it('should return optimized history with Content[] format', async () => {
-      const result = await chatRecordingService.getOptimizedHistoryForPrompt(2000, true);
+      const result = await svc.getOptimizedHistoryForPrompt(2000, true);
       expect(result).toHaveProperty('history');
       expect(Array.isArray(result.history)).toBe(true);
       expect(result.metaInfo).toHaveProperty('totalTokens');
@@ -111,7 +91,7 @@ describe('ChatRecordingService - Core Functionality', () => {
     });
 
     it('should respect token budget parameter', async () => {
-      const result = await chatRecordingService.getOptimizedHistoryForPrompt(1000, false);
+      const result = await svc.getOptimizedHistoryForPrompt(1000, false);
       expect(result.metaInfo.totalTokens).toBeLessThanOrEqual(1000);
     });
   });

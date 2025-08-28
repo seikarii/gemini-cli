@@ -8,15 +8,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 
-vi.mock('fs', () => ({
-  default: {
-    statSync: vi.fn(),
-    readdirSync: vi.fn(),
-  },
-  statSync: vi.fn(),
-  readdirSync: vi.fn(),
-  mkdirSync: vi.fn(),
-}));
 import { LSTool } from './ls.js';
 import { Config } from '../config/config.js';
 import { WorkspaceContext } from '../utils/workspaceContext.js';
@@ -28,11 +19,20 @@ describe('LSTool', () => {
   let mockConfig: Config;
   let mockWorkspaceContext: WorkspaceContext;
   let mockFileService: FileDiscoveryService;
+  let mockFileSystemService: any;
   const mockPrimaryDir = '/home/user/project';
   const mockSecondaryDir = '/home/user/other-project';
+  
+  // Spies
+  let statSyncSpy: any;
+  let readdirSyncSpy: any;
 
   beforeEach(() => {
     vi.resetAllMocks();
+
+    // Create spies
+    statSyncSpy = vi.spyOn(fs, 'statSync');
+    readdirSyncSpy = vi.spyOn(fs, 'readdirSync');
 
     // Mock WorkspaceContext
     mockWorkspaceContext = {
@@ -55,6 +55,23 @@ describe('LSTool', () => {
       shouldGeminiIgnoreFile: vi.fn().mockReturnValue(false),
     } as unknown as FileDiscoveryService;
 
+    // Mock FileSystemService
+    mockFileSystemService = {
+      getFileInfo: vi.fn().mockResolvedValue({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: true,
+          size: 0,
+          modified: new Date(),
+        },
+      }),
+      listDirectory: vi.fn().mockResolvedValue({
+        success: true,
+        data: ['file1.ts', 'file2.ts', 'subdir'],
+      }),
+    };
+
     // Mock Config
     mockConfig = {
       getTargetDir: vi.fn().mockReturnValue(mockPrimaryDir),
@@ -64,9 +81,14 @@ describe('LSTool', () => {
         respectGitIgnore: true,
         respectGeminiIgnore: true,
       }),
+      getFileSystemService: vi.fn().mockReturnValue(mockFileSystemService),
     } as unknown as Config;
 
     lsTool = new LSTool(mockConfig);
+    
+    // Create spies for fs functions
+    vi.spyOn(fs, 'statSync');
+    vi.spyOn(fs, 'readdirSync');
   });
 
   describe('parameter validation', () => {
@@ -74,7 +96,7 @@ describe('LSTool', () => {
       const params = {
         path: '/home/user/project/src',
       };
-      vi.mocked(fs.statSync).mockReturnValue({
+      statSyncSpy.mockReturnValue({
         isDirectory: () => true,
       } as fs.Stats);
       const invocation = lsTool.build(params);
@@ -105,7 +127,7 @@ describe('LSTool', () => {
       const params = {
         path: '/home/user/other-project/lib',
       };
-      vi.mocked(fs.statSync).mockReturnValue({
+      statSyncSpy.mockReturnValue({
         isDirectory: () => true,
       } as fs.Stats);
       const invocation = lsTool.build(params);
@@ -123,7 +145,7 @@ describe('LSTool', () => {
         size: 1024,
       };
 
-      vi.mocked(fs.statSync).mockImplementation((path: any) => {
+      statSyncSpy.mockImplementation((path: string) => {
         const pathStr = path.toString();
         if (pathStr === testPath) {
           return { isDirectory: () => true } as fs.Stats;
@@ -135,7 +157,7 @@ describe('LSTool', () => {
         return { ...mockStats, isDirectory: () => false } as fs.Stats;
       });
 
-      vi.mocked(fs.readdirSync).mockReturnValue(mockFiles as any);
+      readdirSyncSpy.mockReturnValuemockFiles;
 
       const invocation = lsTool.build({ path: testPath });
       const result = await invocation.execute(new AbortController().signal);
@@ -150,18 +172,33 @@ describe('LSTool', () => {
       const testPath = '/home/user/other-project/lib';
       const mockFiles = ['module1.js', 'module2.js'];
 
-      vi.mocked(fs.statSync).mockImplementation((path: any) => {
-        if (path.toString() === testPath) {
-          return { isDirectory: () => true } as fs.Stats;
-        }
-        return {
-          isDirectory: () => false,
-          mtime: new Date(),
-          size: 2048,
-        } as fs.Stats;
+      // Mock getFileInfo for the directory
+      mockFileSystemService.getFileInfo.mockResolvedValueOnce({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: true,
+          size: 0,
+          modified: new Date(),
+        },
       });
 
-      vi.mocked(fs.readdirSync).mockReturnValue(mockFiles as any);
+      // Mock listDirectory for the specific files
+      mockFileSystemService.listDirectory.mockResolvedValueOnce({
+        success: true,
+        data: mockFiles,
+      });
+
+      // Mock getFileInfo for individual files
+      mockFileSystemService.getFileInfo.mockResolvedValue({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: false,
+          size: 1024,
+          modified: new Date(),
+        },
+      });
 
       const invocation = lsTool.build({ path: testPath });
       const result = await invocation.execute(new AbortController().signal);
@@ -174,10 +211,22 @@ describe('LSTool', () => {
     it('should handle empty directories', async () => {
       const testPath = '/home/user/project/empty';
 
-      vi.mocked(fs.statSync).mockReturnValue({
-        isDirectory: () => true,
-      } as fs.Stats);
-      vi.mocked(fs.readdirSync).mockReturnValue([]);
+      // Mock getFileInfo for the directory
+      mockFileSystemService.getFileInfo.mockResolvedValueOnce({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: true,
+          size: 0,
+          modified: new Date(),
+        },
+      });
+
+      // Mock listDirectory to return empty array
+      mockFileSystemService.listDirectory.mockResolvedValueOnce({
+        success: true,
+        data: [],
+      });
 
       const invocation = lsTool.build({ path: testPath });
       const result = await invocation.execute(new AbortController().signal);
@@ -192,18 +241,33 @@ describe('LSTool', () => {
       const testPath = '/home/user/project/src';
       const mockFiles = ['test.js', 'test.spec.js', 'index.js'];
 
-      vi.mocked(fs.statSync).mockImplementation((path: any) => {
-        const pathStr = path.toString();
-        if (pathStr === testPath) {
-          return { isDirectory: () => true } as fs.Stats;
-        }
-        return {
-          isDirectory: () => false,
-          mtime: new Date(),
-          size: 1024,
-        } as fs.Stats;
+      // Mock getFileInfo for the directory
+      mockFileSystemService.getFileInfo.mockResolvedValueOnce({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: true,
+          size: 0,
+          modified: new Date(),
+        },
       });
-      vi.mocked(fs.readdirSync).mockReturnValue(mockFiles as any);
+
+      // Mock listDirectory for the specific files
+      mockFileSystemService.listDirectory.mockResolvedValueOnce({
+        success: true,
+        data: mockFiles,
+      });
+
+      // Mock getFileInfo for individual files
+      mockFileSystemService.getFileInfo.mockResolvedValue({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: false,
+          size: 1024,
+          modified: new Date(),
+        },
+      });
 
       const invocation = lsTool.build({
         path: testPath,
@@ -221,20 +285,42 @@ describe('LSTool', () => {
       const testPath = '/home/user/project/src';
       const mockFiles = ['file1.js', 'file2.js', 'ignored.js'];
 
-      vi.mocked(fs.statSync).mockImplementation((path: any) => {
-        const pathStr = path.toString();
-        if (pathStr === testPath) {
-          return { isDirectory: () => true } as fs.Stats;
-        }
-        return {
-          isDirectory: () => false,
-          mtime: new Date(),
-          size: 1024,
-        } as fs.Stats;
+      // Reset only the mocks we need to change
+      mockFileSystemService.getFileInfo.mockReset();
+      mockFileSystemService.listDirectory.mockReset();
+      vi.mocked(mockFileService).shouldGitIgnoreFile.mockReset();
+
+      // Mock getFileInfo for the directory
+      mockFileSystemService.getFileInfo.mockResolvedValueOnce({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: true,
+          size: 0,
+          modified: new Date(),
+        },
       });
-      vi.mocked(fs.readdirSync).mockReturnValue(mockFiles as any);
-      (mockFileService.shouldGitIgnoreFile as any).mockImplementation(
-        (path: string) => path.includes('ignored.js'),
+
+      // Mock listDirectory for the specific files
+      mockFileSystemService.listDirectory.mockResolvedValueOnce({
+        success: true,
+        data: mockFiles,
+      });
+
+      // Mock getFileInfo for individual files
+      mockFileSystemService.getFileInfo.mockResolvedValue({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: false,
+          size: 1024,
+          modified: new Date(),
+        },
+      });
+
+      // Mock gitignore to ignore 'ignored.js'
+      vi.mocked(mockFileService).shouldGitIgnoreFile.mockImplementation((filePath: string) =>
+        filePath.includes('ignored.js')
       );
 
       const invocation = lsTool.build({ path: testPath });
@@ -250,20 +336,42 @@ describe('LSTool', () => {
       const testPath = '/home/user/project/src';
       const mockFiles = ['file1.js', 'file2.js', 'private.js'];
 
-      vi.mocked(fs.statSync).mockImplementation((path: any) => {
-        const pathStr = path.toString();
-        if (pathStr === testPath) {
-          return { isDirectory: () => true } as fs.Stats;
-        }
-        return {
-          isDirectory: () => false,
-          mtime: new Date(),
-          size: 1024,
-        } as fs.Stats;
+      // Reset only the mocks we need to change
+      mockFileSystemService.getFileInfo.mockReset();
+      mockFileSystemService.listDirectory.mockReset();
+      vi.mocked(mockFileService).shouldGeminiIgnoreFile.mockReset();
+
+      // Mock getFileInfo for the directory
+      mockFileSystemService.getFileInfo.mockResolvedValueOnce({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: true,
+          size: 0,
+          modified: new Date(),
+        },
       });
-      vi.mocked(fs.readdirSync).mockReturnValue(mockFiles as any);
-      (mockFileService.shouldGeminiIgnoreFile as any).mockImplementation(
-        (path: string) => path.includes('private.js'),
+
+      // Mock listDirectory for the specific files
+      mockFileSystemService.listDirectory.mockResolvedValueOnce({
+        success: true,
+        data: mockFiles,
+      });
+
+      // Mock getFileInfo for individual files
+      mockFileSystemService.getFileInfo.mockResolvedValue({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: false,
+          size: 1024,
+          modified: new Date(),
+        },
+      });
+
+      // Mock geminiignore to ignore 'private.js'
+      vi.mocked(mockFileService).shouldGeminiIgnoreFile.mockImplementation((filePath: string) =>
+        filePath.includes('private.js')
       );
 
       const invocation = lsTool.build({ path: testPath });
@@ -278,9 +386,16 @@ describe('LSTool', () => {
     it('should handle non-directory paths', async () => {
       const testPath = '/home/user/project/file.txt';
 
-      vi.mocked(fs.statSync).mockReturnValue({
-        isDirectory: () => false,
-      } as fs.Stats);
+      // Mock getFileInfo to return that path exists but is not a directory
+      mockFileSystemService.getFileInfo.mockResolvedValueOnce({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: false,
+          size: 1024,
+          modified: new Date(),
+        },
+      });
 
       const invocation = lsTool.build({ path: testPath });
       const result = await invocation.execute(new AbortController().signal);
@@ -293,41 +408,60 @@ describe('LSTool', () => {
     it('should handle non-existent paths', async () => {
       const testPath = '/home/user/project/does-not-exist';
 
-      vi.mocked(fs.statSync).mockImplementation(() => {
-        throw new Error('ENOENT: no such file or directory');
+      // Mock getFileInfo to return that path does not exist
+      mockFileSystemService.getFileInfo.mockResolvedValueOnce({
+        success: true,
+        data: {
+          exists: false,
+          isDirectory: false,
+          size: 0,
+          modified: new Date(),
+        },
       });
 
       const invocation = lsTool.build({ path: testPath });
       const result = await invocation.execute(new AbortController().signal);
 
-      expect(result.llmContent).toContain('Error listing directory');
-      expect(result.returnDisplay).toBe('Error: Failed to list directory.');
-      expect(result.error?.type).toBe(ToolErrorType.LS_EXECUTION_ERROR);
+      expect(result.llmContent).toContain('Directory not found or inaccessible');
+      expect(result.returnDisplay).toBe('Error: Directory not found or inaccessible.');
+      expect(result.error?.type).toBe(ToolErrorType.FILE_NOT_FOUND);
     });
 
     it('should sort directories first, then files alphabetically', async () => {
       const testPath = '/home/user/project/src';
       const mockFiles = ['z-file.ts', 'a-dir', 'b-file.ts', 'c-dir'];
 
-      vi.mocked(fs.statSync).mockImplementation((path: any) => {
-        if (path.toString() === testPath) {
-          return { isDirectory: () => true } as fs.Stats;
-        }
-        if (path.toString().endsWith('-dir')) {
-          return {
-            isDirectory: () => true,
-            mtime: new Date(),
-            size: 0,
-          } as fs.Stats;
-        }
-        return {
-          isDirectory: () => false,
-          mtime: new Date(),
-          size: 1024,
-        } as fs.Stats;
+      // Mock getFileInfo for the directory
+      mockFileSystemService.getFileInfo.mockResolvedValueOnce({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: true,
+          size: 0,
+          modified: new Date(),
+        },
       });
 
-      vi.mocked(fs.readdirSync).mockReturnValue(mockFiles as any);
+      // Mock listDirectory for the specific files
+      mockFileSystemService.listDirectory.mockResolvedValueOnce({
+        success: true,
+        data: mockFiles,
+      });
+
+      // Mock getFileInfo for individual files/directories
+      mockFileSystemService.getFileInfo.mockImplementation((path: string) => {
+        const fileName = path.split('/').pop() || '';
+        const isDir = fileName.endsWith('-dir');
+        return Promise.resolve({
+          success: true,
+          data: {
+            exists: true,
+            isDirectory: isDir,
+            size: isDir ? 0 : 1024,
+            modified: new Date(),
+          },
+        });
+      });
 
       const invocation = lsTool.build({ path: testPath });
       const result = await invocation.execute(new AbortController().signal);
@@ -345,12 +479,21 @@ describe('LSTool', () => {
     it('should handle permission errors gracefully', async () => {
       const testPath = '/home/user/project/restricted';
 
-      vi.mocked(fs.statSync).mockReturnValue({
-        isDirectory: () => true,
-      } as fs.Stats);
-      vi.mocked(fs.readdirSync).mockImplementation(() => {
-        throw new Error('EACCES: permission denied');
+      // Mock getFileInfo for the directory
+      mockFileSystemService.getFileInfo.mockResolvedValueOnce({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: true,
+          size: 0,
+          modified: new Date(),
+        },
       });
+
+      // Mock listDirectory to throw permission error
+      mockFileSystemService.listDirectory.mockRejectedValueOnce(
+        new Error('EACCES: permission denied')
+      );
 
       const invocation = lsTool.build({ path: testPath });
       const result = await invocation.execute(new AbortController().signal);
@@ -371,21 +514,38 @@ describe('LSTool', () => {
       const testPath = '/home/user/project/src';
       const mockFiles = ['accessible.ts', 'inaccessible.ts'];
 
-      vi.mocked(fs.statSync).mockImplementation((path: any) => {
-        if (path.toString() === testPath) {
-          return { isDirectory: () => true } as fs.Stats;
-        }
-        if (path.toString().endsWith('inaccessible.ts')) {
-          throw new Error('EACCES: permission denied');
-        }
-        return {
-          isDirectory: () => false,
-          mtime: new Date(),
-          size: 1024,
-        } as fs.Stats;
+      // Mock getFileInfo for the directory
+      mockFileSystemService.getFileInfo.mockResolvedValueOnce({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: true,
+          size: 0,
+          modified: new Date(),
+        },
       });
 
-      vi.mocked(fs.readdirSync).mockReturnValue(mockFiles as any);
+      // Mock listDirectory for the specific files
+      mockFileSystemService.listDirectory.mockResolvedValueOnce({
+        success: true,
+        data: mockFiles,
+      });
+
+      // Mock getFileInfo for individual files - fail for inaccessible.ts
+      mockFileSystemService.getFileInfo.mockImplementation((path: string) => {
+        if (path.includes('inaccessible.ts')) {
+          return Promise.reject(new Error('EACCES: permission denied'));
+        }
+        return Promise.resolve({
+          success: true,
+          data: {
+            exists: true,
+            isDirectory: false,
+            size: 1024,
+            modified: new Date(),
+          },
+        });
+      });
 
       // Spy on console.error to verify it's called
       const consoleErrorSpy = vi
@@ -414,7 +574,7 @@ describe('LSTool', () => {
       const params = {
         path: `${mockPrimaryDir}/deeply/nested/directory`,
       };
-      vi.mocked(fs.statSync).mockReturnValue({
+      statSyncSpy.mockReturnValue({
         isDirectory: () => true,
       } as fs.Stats);
       const invocation = lsTool.build(params);
@@ -426,7 +586,7 @@ describe('LSTool', () => {
       const params = {
         path: `${mockSecondaryDir}/lib`,
       };
-      vi.mocked(fs.statSync).mockReturnValue({
+      statSyncSpy.mockReturnValue({
         isDirectory: () => true,
       } as fs.Stats);
       const invocation = lsTool.build(params);
@@ -438,7 +598,7 @@ describe('LSTool', () => {
   describe('workspace boundary validation', () => {
     it('should accept paths in primary workspace directory', () => {
       const params = { path: `${mockPrimaryDir}/src` };
-      vi.mocked(fs.statSync).mockReturnValue({
+      statSyncSpy.mockReturnValue({
         isDirectory: () => true,
       } as fs.Stats);
       expect(lsTool.build(params)).toBeDefined();
@@ -446,7 +606,7 @@ describe('LSTool', () => {
 
     it('should accept paths in secondary workspace directory', () => {
       const params = { path: `${mockSecondaryDir}/lib` };
-      vi.mocked(fs.statSync).mockReturnValue({
+      statSyncSpy.mockReturnValue({
         isDirectory: () => true,
       } as fs.Stats);
       expect(lsTool.build(params)).toBeDefined();
@@ -463,18 +623,33 @@ describe('LSTool', () => {
       const testPath = `${mockSecondaryDir}/tests`;
       const mockFiles = ['test1.spec.ts', 'test2.spec.ts'];
 
-      vi.mocked(fs.statSync).mockImplementation((path: any) => {
-        if (path.toString() === testPath) {
-          return { isDirectory: () => true } as fs.Stats;
-        }
-        return {
-          isDirectory: () => false,
-          mtime: new Date(),
-          size: 512,
-        } as fs.Stats;
+      // Mock getFileInfo for the directory
+      mockFileSystemService.getFileInfo.mockResolvedValueOnce({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: true,
+          size: 0,
+          modified: new Date(),
+        },
       });
 
-      vi.mocked(fs.readdirSync).mockReturnValue(mockFiles as any);
+      // Mock listDirectory for the specific files
+      mockFileSystemService.listDirectory.mockResolvedValueOnce({
+        success: true,
+        data: mockFiles,
+      });
+
+      // Mock getFileInfo for individual files
+      mockFileSystemService.getFileInfo.mockResolvedValue({
+        success: true,
+        data: {
+          exists: true,
+          isDirectory: false,
+          size: 512,
+          modified: new Date(),
+        },
+      });
 
       const invocation = lsTool.build({ path: testPath });
       const result = await invocation.execute(new AbortController().signal);

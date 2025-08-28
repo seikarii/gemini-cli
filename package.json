@@ -112,6 +112,7 @@
     "ps-tree": "^1.2.0",
     "string-similarity": "^4.0.4",
     "strip-ansi": "^7.1.0",
+    "typescript": "^5.9.2",
     "uuid": "^11.1.0"
   },
   "optionalDependencies": {

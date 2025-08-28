@@ -56,6 +56,7 @@ export const createMockCommandContext = (
       pendingItem: null,
       setPendingItem: vi.fn(),
       loadHistory: vi.fn(),
+      setHistory: vi.fn(),
       toggleCorgiMode: vi.fn(),
       toggleVimEnabled: (async () =>
         false) as CommandContext['ui']['toggleVimEnabled'],

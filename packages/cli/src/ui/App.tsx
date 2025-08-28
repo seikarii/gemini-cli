@@ -239,7 +239,7 @@ const App = ({
   const [updateInfo, setUpdateInfo] = useState<UpdateObject | null>(null);
   const { stdout } = useStdout();
   const nightly = version.includes('nightly');
-  const { history, addItem, clearItems, loadHistory } = useHistory();
+  const { history, addItem, clearItems, loadHistory, setHistory } = useHistory();
 
   const [idePromptAnswered, setIdePromptAnswered] = useState(false);
   const currentIDE = config.getIdeClient().getCurrentIde();
@@ -662,6 +662,7 @@ const App = ({
     openEditorDialog,
     toggleCorgiMode,
     setQuittingMessages,
+    setHistory,
     openPrivacyNotice,
     openSettingsDialog,
     toggleVimEnabled,

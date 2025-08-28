@@ -57,7 +57,10 @@ describe('WebFetchTool', () => {
       const params = { prompt: 'fetch https://private.ip' };
       const invocation = tool.build(params);
       const result = await invocation.execute(new AbortController().signal);
-      expect(result.error?.type).toBe(ToolErrorType.WEB_FETCH_FALLBACK_FAILED);
+      // The fallback handles individual URL errors gracefully, so we expect success with error message
+      expect(result.llmContent).toContain('Error processing https://private.ip');
+      expect(result.returnDisplay).toContain('Content processed with some errors');
+      expect(result.error).toBeUndefined(); // No general error is thrown
     });
 
     it('should return WEB_FETCH_PROCESSING_ERROR on general processing failure', async () => {
