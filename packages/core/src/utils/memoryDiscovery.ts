@@ -20,7 +20,7 @@ import {
   FileFilteringOptions,
 } from '../config/config.js';
 import { FileSystemService } from '../services/fileSystemService.js';
-import { OptimizedFileOperations } from './performance/index.js';
+import { OptimizedFileOperations } from './fileOperations/OptimizedFileOperations.js';
 
 // Simple console logger, similar to the one previously in CLI's config.ts
 // TODO: Integrate with a more robust server-side logger if available/appropriate.

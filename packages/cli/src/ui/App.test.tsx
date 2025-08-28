@@ -1314,10 +1314,22 @@ describe('App UI', () => {
   });
 
   describe('Message Queuing', () => {
-    let mockSubmitQuery: typeof vi.fn;
+    let mockSubmitQuery: Mock<
+      (
+        query: PartListUnion,
+        options?: { isContinuation: boolean },
+        prompt_id?: string,
+      ) => Promise<void>
+    >;
 
     beforeEach(() => {
-      mockSubmitQuery = vi.fn();
+      mockSubmitQuery = vi.fn() as Mock<
+        (
+          query: PartListUnion,
+          options?: { isContinuation: boolean },
+          prompt_id?: string,
+        ) => Promise<void>
+      >;
       vi.useFakeTimers();
     });
 

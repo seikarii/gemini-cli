@@ -5,10 +5,11 @@
  */
 
 import { performance } from 'perf_hooks';
-import { 
-  OptimizedFileOperations, 
-  FileOperationPool, 
-  BufferPool, 
+import {
+  OptimizedFileOperations,
+  Semaphore,
+  FileOperationPool,
+  BufferPool,
   EnhancedLruCache,
   LruCache
 } from './index.js';

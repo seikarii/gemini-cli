@@ -69,9 +69,9 @@ const MockedGeminiClientClass = vi.hoisted(() =>
     _config: unknown,
   ) {
     // _config
-    this.startChat = mockStartChat;
-    this.sendMessageStream = mockSendMessageStream;
-    this.addHistory = vi.fn();
+    (this as MockGeminiClient).startChat = mockStartChat;
+    (this as MockGeminiClient).sendMessageStream = mockSendMessageStream;
+    (this as MockGeminiClient).addHistory = vi.fn();
     return this;
   }),
 );
@@ -443,8 +443,12 @@ describe('useGeminiStream', () => {
           name: 'tool1',
           displayName: 'tool1',
           description: 'desc1',
+          kind: Kind.Read,
+          parameterSchema: {},
+          isOutputMarkdown: true,
+          canUpdateOutput: false,
           build: vi.fn(),
-        } as unknown,
+        } as unknown as AnyDeclarativeTool,
         invocation: {
           getDescription: () => `Mock description`,
         } as unknown as AnyToolInvocation,
@@ -464,8 +468,12 @@ describe('useGeminiStream', () => {
           name: 'tool2',
           displayName: 'tool2',
           description: 'desc2',
+          kind: Kind.Read,
+          parameterSchema: {},
+          isOutputMarkdown: true,
+          canUpdateOutput: false,
           build: vi.fn(),
-        } as unknown,
+        } as unknown as AnyDeclarativeTool,
         invocation: {
           getDescription: () => `Mock description`,
         } as unknown as AnyToolInvocation,
@@ -504,8 +512,15 @@ describe('useGeminiStream', () => {
           errorType: undefined, // FIX: Added missing property
         },
         tool: {
+          name: 'mocktool',
           displayName: 'MockTool',
-        },
+          description: 'Mock tool description',
+          kind: Kind.Read,
+          parameterSchema: {},
+          isOutputMarkdown: true,
+          canUpdateOutput: false,
+          build: vi.fn(),
+        } as unknown as AnyDeclarativeTool,
         invocation: {
           getDescription: () => `Mock description`,
         } as unknown as AnyToolInvocation,
@@ -599,8 +614,15 @@ describe('useGeminiStream', () => {
         },
         responseSubmittedToGemini: false,
         tool: {
+          name: 'mocktool',
           displayName: 'mock tool',
-        },
+          description: 'Mock tool description',
+          kind: Kind.Read,
+          parameterSchema: {},
+          isOutputMarkdown: true,
+          canUpdateOutput: false,
+          build: vi.fn(),
+        } as unknown as AnyDeclarativeTool,
         invocation: {
           getDescription: () => `Mock description`,
         } as unknown as AnyToolInvocation,
@@ -793,8 +815,12 @@ describe('useGeminiStream', () => {
           name: 'tool1',
           displayName: 'tool1',
           description: 'desc',
+          kind: Kind.Read,
+          parameterSchema: {},
+          isOutputMarkdown: true,
+          canUpdateOutput: false,
           build: vi.fn(),
-        } as unknown,
+        } as unknown as AnyDeclarativeTool,
         invocation: {
           getDescription: () => `Mock description`,
         } as unknown as AnyToolInvocation,
@@ -1068,11 +1094,16 @@ describe('useGeminiStream', () => {
           responseSubmittedToGemini: false,
           tool: {
             name: 'tool1',
+            displayName: 'tool1',
             description: 'desc1',
+            kind: Kind.Read,
+            parameterSchema: {},
+            isOutputMarkdown: true,
+            canUpdateOutput: false,
             build: vi.fn().mockImplementation((_) => ({
               getDescription: () => `Mock description`,
             })),
-          } as unknown,
+          } as unknown as AnyDeclarativeTool,
           invocation: {
             getDescription: () => `Mock description`,
           },

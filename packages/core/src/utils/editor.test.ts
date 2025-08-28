@@ -24,50 +24,55 @@ import {
 import { exec, execSync, spawn } from 'child_process';
 
 vi.mock('child_process', () => {
-  const exec = vi.fn(
+  const exec: Mock<
     (
       command: string,
-      _options: unknown,
-      callback?: (error: Error | null, stdout: string, stderr: string) => void,
-    ) => {
-      if (callback) {
-        const mockError =
-          exec.mock.results[exec.mock.calls.length - 1]?.value?.error;
-        const mockStdout =
-          exec.mock.results[exec.mock.calls.length - 1]?.value?.stdout || '';
-        const mockStderr =
-          exec.mock.results[exec.mock.calls.length - 1]?.value?.stderr || '';
-        if (mockError) {
-          callback(new Error(mockError), '', '');
-        } else {
-          callback(null, mockStdout, mockStderr);
-        }
+      options?: unknown,
+    ) => Promise<{ stdout: string; stderr: string }>
+  > = vi.fn();
+
+  const execSync: Mock<(command: string) => Buffer> = vi.fn();
+
+  const spawn: Mock<() => {
+    on: Mock<(event: string, cb: (code?: number, signal?: string) => void) => unknown>;
+    stdout: { on: Mock<() => void> };
+    stderr: { on: Mock<() => void> };
+  }> = vi.fn();
+
+  exec.mockImplementation(
+    async (
+      _command: string,
+      _options?: unknown,
+    ): Promise<{ stdout: string; stderr: string }> => {
+      const lastCallIndex = exec.mock.calls.length - 1;
+      const mockError = exec.mock.results[lastCallIndex]?.value?.error;
+      const mockStdout = exec.mock.results[lastCallIndex]?.value?.stdout || '';
+      const mockStderr = exec.mock.results[lastCallIndex]?.value?.stderr || '';
+
+      if (mockError) {
+        throw new Error(mockError);
       }
-      return {
-        on: vi.fn(),
-      };
+
+      return { stdout: mockStdout, stderr: mockStderr };
     },
   );
 
-  const execSync = vi.fn((_command: string) => {
-    const mockError =
-      execSync.mock.results[execSync.mock.calls.length - 1]?.value?.error;
-    const mockStdout =
-      execSync.mock.results[execSync.mock.calls.length - 1]?.value?.stdout ||
-      '';
+  execSync.mockImplementation((_command: string) => {
+    const lastCallIndex = execSync.mock.calls.length - 1;
+    const mockError = execSync.mock.results[lastCallIndex]?.value?.error;
+    const mockStdout = execSync.mock.results[lastCallIndex]?.value?.stdout || '';
     if (mockError) {
       throw new Error(mockError);
     }
     return Buffer.from(mockStdout);
   });
 
-  const spawn = vi.fn(() => {
+  spawn.mockImplementation(() => {
     const mock = {
       on: vi.fn((event, cb) => {
-        const mockError =
-          spawn.mock.results[spawn.mock.calls.length - 1]?.value?.error;
-        const mockExitCode =
-          spawn.mock.results[spawn.mock.calls.length - 1]?.value?.exitCode ?? 0;
+        const lastCallIndex = spawn.mock.calls.length - 1;
+        const mockError = spawn.mock.results[lastCallIndex]?.value?.error;
+        const mockExitCode = spawn.mock.results[lastCallIndex]?.value?.exitCode ?? 0;
         if (event === 'error' && mockError) {
           cb(new Error(mockError));
         } else if (event === 'close') {
@@ -87,6 +92,11 @@ vi.mock('child_process', () => {
 
   return { exec, execSync, spawn };
 });
+
+// Mock the promisify function to return our mocked exec
+vi.mock('util', () => ({
+  promisify: vi.fn((fn) => fn),
+}));
 
 const originalPlatform = process.platform;
 
@@ -138,7 +148,7 @@ describe('editor utils', () => {
         // Non-windows tests
         it(`should return true if first command "${commands[0]}" exists on non-windows`, async () => {
           Object.defineProperty(process, 'platform', { value: 'linux' });
-          (exec as Mock).mockResolvedValue({
+          (exec as unknown as Mock).mockResolvedValue({
             stdout: `/usr/bin/${commands[0]}`,
           });
           expect(await checkHasEditorType(editor)).toBe(true);
@@ -151,7 +161,7 @@ describe('editor utils', () => {
         if (commands.length > 1) {
           it(`should return true if first command doesn't exist but second command "${commands[1]}" exists on non-windows`, async () => {
             Object.defineProperty(process, 'platform', { value: 'linux' });
-            (exec as Mock)
+            (exec as unknown as Mock)
               .mockRejectedValueOnce(new Error('not found')) // first command not found
               .mockResolvedValueOnce({ stdout: `/usr/bin/${commands[1]}` }); // second command found
             expect(await checkHasEditorType(editor)).toBe(true);
@@ -161,7 +171,7 @@ describe('editor utils', () => {
 
         it(`should return false if none of the commands exist on non-windows`, async () => {
           Object.defineProperty(process, 'platform', { value: 'linux' });
-          (exec as Mock).mockRejectedValue(new Error('not found')); // all commands not found
+          (exec as unknown as Mock).mockRejectedValue(new Error('not found')); // all commands not found
           expect(await checkHasEditorType(editor)).toBe(false);
           expect(exec).toHaveBeenCalledTimes(commands.length);
         });
@@ -169,7 +179,7 @@ describe('editor utils', () => {
         // Windows tests
         it(`should return true if first command "${win32Commands[0]}" exists on windows`, async () => {
           Object.defineProperty(process, 'platform', { value: 'win32' });
-          (exec as Mock).mockResolvedValue({
+          (exec as unknown as Mock).mockResolvedValue({
             stdout: `C:\\Windows\\System32\\${win32Commands[0]}`,
           });
           expect(await checkHasEditorType(editor)).toBe(true);
@@ -182,7 +192,7 @@ describe('editor utils', () => {
         if (win32Commands.length > 1) {
           it(`should return true if first command doesn't exist but second command "${win32Commands[1]}" exists on windows`, async () => {
             Object.defineProperty(process, 'platform', { value: 'win32' });
-            (exec as Mock)
+            (exec as unknown as Mock)
               .mockRejectedValueOnce(new Error('not found')) // first command not found
               .mockResolvedValueOnce({
                 stdout: `C:\\Windows\\System32\\${win32Commands[1]}`,
@@ -194,7 +204,7 @@ describe('editor utils', () => {
 
         it(`should return false if none of the commands exist on windows`, async () => {
           Object.defineProperty(process, 'platform', { value: 'win32' });
-          (exec as Mock).mockRejectedValue(new Error('not found')); // all commands not found
+          (exec as unknown as Mock).mockRejectedValue(new Error('not found')); // all commands not found
           expect(await checkHasEditorType(editor)).toBe(false);
           expect(exec).toHaveBeenCalledTimes(win32Commands.length);
         });
@@ -378,10 +388,7 @@ describe('editor utils', () => {
         };
         (spawn as Mock).mockReturnValue(mockSpawn);
         await openDiff('old.txt', 'new.txt', editor, () => {});
-        const diffCommand = getDiffCommand('old.txt', 'new.txt', editor) as {
-          command: string;
-          args: string[];
-        } | null;
+        const diffCommand = await getDiffCommand('old.txt', 'new.txt', editor);
         expect(spawn).toHaveBeenCalledWith(
           diffCommand!.command,
           diffCommand!.args,
@@ -436,10 +443,7 @@ describe('editor utils', () => {
         Object.defineProperty(process, 'platform', { value: 'linux' });
         await openDiff('old.txt', 'new.txt', editor, () => {});
         expect(execSync).toHaveBeenCalledTimes(1);
-        const diffCommand = getDiffCommand('old.txt', 'new.txt', editor) as {
-          command: string;
-          args: string[];
-        } | null;
+        const diffCommand = await getDiffCommand('old.txt', 'new.txt', editor);
         const expectedCommand = `${diffCommand!.command} ${diffCommand!.args.map((arg) => `"${arg}"`).join(' ')}`;
         expect(execSync).toHaveBeenCalledWith(expectedCommand, {
           stdio: 'inherit',
@@ -451,10 +455,7 @@ describe('editor utils', () => {
         Object.defineProperty(process, 'platform', { value: 'win32' });
         await openDiff('old.txt', 'new.txt', editor, () => {});
         expect(execSync).toHaveBeenCalledTimes(1);
-        const diffCommand = getDiffCommand('old.txt', 'new.txt', editor) as {
-          command: string;
-          args: string[];
-        } | null;
+        const diffCommand = await getDiffCommand('old.txt', 'new.txt', editor);
         const expectedCommand = `${diffCommand!.command} ${diffCommand!.args.join(' ')}`;
         expect(execSync).toHaveBeenCalledWith(expectedCommand, {
           stdio: 'inherit',

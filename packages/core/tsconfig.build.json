@@ -6,7 +6,7 @@
     "declarationMap": false,
     "outDir": "dist",
     "target": "ES2019",
-    "lib": ["ES2019", "DOM"],
+    "lib": ["ES2022", "DOM"],
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "esModuleInterop": true,
@@ -17,5 +17,6 @@
     "types": [],
     "typeRoots": ["../../types", "node_modules/@types"]
   },
-  "include": ["src/**/*", "types/**/*", "index.ts"]
+  "include": ["src/**/*", "types/**/*", "index.ts"],
+  "exclude": ["src/utils/performance/PerformanceBenchmark.ts", "**/*.test.ts"]
 }
