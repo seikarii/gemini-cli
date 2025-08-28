@@ -20,6 +20,7 @@ import {
   FileFilteringOptions,
 } from '../config/config.js';
 import { FileSystemService } from '../services/fileSystemService.js';
+import { OptimizedFileOperations } from './performance/index.js';
 
 // Simple console logger, similar to the one previously in CLI's config.ts
 // TODO: Integrate with a more robust server-side logger if available/appropriate.
@@ -37,69 +38,20 @@ interface GeminiFileContent {
   content: string | null;
 }
 
-const projectRootCache = new Map<string, string | null>();
+// Use optimized file operations instead of simple Map cache
+const optimizedFileOps = OptimizedFileOperations.getInstance({
+  enableCache: true,
+  cacheTTL: 10 * 60 * 1000, // 10 minutes for project roots
+  maxCacheSize: 1000,
+});
 
 async function findProjectRoot(
   startDir: string,
   fileSystemService?: FileSystemService,
 ): Promise<string | null> {
-  if (projectRootCache.has(startDir)) {
-    return projectRootCache.get(startDir)!;
-  }
-
-  let currentDir = path.resolve(startDir);
-  while (true) {
-    const gitPath = path.join(currentDir, '.git');
-    try {
-      if (fileSystemService) {
-        // Use FileSystemService for standardized file operations
-        const fileInfo = await fileSystemService.getFileInfo(gitPath);
-        if (fileInfo.success && fileInfo.data?.isDirectory) {
-          projectRootCache.set(startDir, currentDir);
-          return currentDir;
-        }
-      } else {
-        // Fallback to direct fs.lstat for backward compatibility
-        const stats = await fs.lstat(gitPath);
-        if (stats.isDirectory()) {
-          projectRootCache.set(startDir, currentDir);
-          return currentDir;
-        }
-      }
-    } catch (error: unknown) {
-      // Don't log ENOENT errors as they're expected when .git doesn't exist
-      // Also don't log errors in test environments, which often have mocked fs
-      const isENOENT =
-        typeof error === 'object' &&
-        error !== null &&
-        'code' in error &&
-        (error as { code: string }).code === 'ENOENT';
-
-      // Only log unexpected errors in non-test environments
-      // process.env['NODE_ENV'] === 'test' or VITEST are common test indicators
-      const isTestEnv =
-        process.env['NODE_ENV'] === 'test' || process.env['VITEST'];
-
-      if (!isENOENT && !isTestEnv) {
-        if (typeof error === 'object' && error !== null && 'code' in error) {
-          const fsError = error as { code: string; message: string };
-          logger.warn(
-            `Error checking for .git directory at ${gitPath}: ${fsError.message}`,
-          );
-        } else {
-          logger.warn(
-            `Non-standard error checking for .git directory at ${gitPath}: ${String(error)}`,
-          );
-        }
-      }
-    }
-    const parentDir = path.dirname(currentDir);
-    if (parentDir === currentDir) {
-      projectRootCache.set(startDir, null);
-      return null;
-    }
-    currentDir = parentDir;
-  }
+  // Use optimized file operations for caching
+  const result = await optimizedFileOps.findProjectRoot(startDir, fileSystemService);
+  return result;
 }
 
 async function getGeminiMdFilePathsInternal(
@@ -290,76 +242,58 @@ async function readGeminiMdFiles(
   importFormat: 'flat' | 'tree' = 'tree',
   fileSystemService?: FileSystemService,
 ): Promise<GeminiFileContent[]> {
-  // Process files in parallel with concurrency limit to prevent EMFILE errors
-  const CONCURRENT_LIMIT = 20; // Higher limit for file reads as they're typically faster
+  // Use optimized file operations for batch reading
+  const fileResults = await optimizedFileOps.readManyFiles(filePaths);
   const results: GeminiFileContent[] = [];
 
-  for (let i = 0; i < filePaths.length; i += CONCURRENT_LIMIT) {
-    const batch = filePaths.slice(i, i + CONCURRENT_LIMIT);
-    const batchPromises = batch.map(
-      async (filePath): Promise<GeminiFileContent> => {
-        try {
-          let content: string;
-
-          if (fileSystemService) {
-            // Use FileSystemService for standardized file operations
-            const readResult = await fileSystemService.readTextFile(filePath);
-            if (!readResult.success) {
-              logger.warn(
-                `Failed to read file ${filePath}: ${readResult.error}`,
-              );
-              return { filePath, content: null };
-            }
-            content = readResult.data || '';
-          } else {
-            // Fallback to direct fs.readFile for backward compatibility
-            content = await fs.readFile(filePath, 'utf-8');
-          }
-
-          // Process imports in the content
-          const processedResult = await processImports(
-            content,
-            path.dirname(filePath),
-            debugMode,
-            undefined,
-            undefined,
-            importFormat,
-            fileSystemService,
+  for (const [filePath, result] of fileResults.entries()) {
+    if (result.success && result.data) {
+      try {
+        // Process imports in the content
+        const processedResult = await processImports(
+          result.data,
+          path.dirname(filePath),
+          debugMode,
+          undefined,
+          undefined,
+          importFormat,
+          fileSystemService,
+        );
+        
+        if (debugMode && result.fromCache) {
+          logger.debug(
+            `Successfully read from cache and processed imports: ${filePath} (Length: ${processedResult.content.length})`,
           );
-          if (debugMode)
-            logger.debug(
-              `Successfully read and processed imports: ${filePath} (Length: ${processedResult.content.length})`,
-            );
-
-          return { filePath, content: processedResult.content };
-        } catch (error: unknown) {
-          const isTestEnv =
-            process.env['NODE_ENV'] === 'test' || process.env['VITEST'];
-          if (!isTestEnv) {
-            const message =
-              error instanceof Error ? error.message : String(error);
-            logger.warn(
-              `Warning: Could not read ${getAllGeminiMdFilenames()} file at ${filePath}. Error: ${message}`,
-            );
-          }
-          if (debugMode) logger.debug(`Failed to read: ${filePath}`);
-          return { filePath, content: null }; // Still include it with null content
+        } else if (debugMode) {
+          logger.debug(
+            `Successfully read and processed imports: ${filePath} (Length: ${processedResult.content.length})`,
+          );
         }
-      },
-    );
 
-    const batchResults = await Promise.allSettled(batchPromises);
-
-    for (const result of batchResults) {
-      if (result.status === 'fulfilled') {
-        results.push(result.value);
-      } else {
-        // This case shouldn't happen since we catch all errors above,
-        // but handle it for completeness
-        const error = result.reason;
-        const message = error instanceof Error ? error.message : String(error);
-        logger.error(`Unexpected error processing file: ${message}`);
+        results.push({ filePath, content: processedResult.content });
+      } catch (error: unknown) {
+        const isTestEnv =
+          process.env['NODE_ENV'] === 'test' || process.env['VITEST'];
+        if (!isTestEnv) {
+          const message =
+            error instanceof Error ? error.message : String(error);
+          logger.warn(
+            `Warning: Could not process imports for ${getAllGeminiMdFilenames()} file at ${filePath}. Error: ${message}`,
+          );
+        }
+        if (debugMode) logger.debug(`Failed to process: ${filePath}`);
+        results.push({ filePath, content: result.data }); // Include raw content
       }
+    } else {
+      const isTestEnv =
+        process.env['NODE_ENV'] === 'test' || process.env['VITEST'];
+      if (!isTestEnv) {
+        logger.warn(
+          `Warning: Could not read ${getAllGeminiMdFilenames()} file at ${filePath}. Error: ${result.error}`,
+        );
+      }
+      if (debugMode) logger.debug(`Failed to read: ${filePath}`);
+      results.push({ filePath, content: null }); // Still include it with null content
     }
   }
 
