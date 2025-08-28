@@ -4,7 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { DualContextManager, ContextType } from '../config/dualContextExample.js';
+import {
+  DualContextManager,
+  ContextType,
+} from '../config/dualContextExample.js';
 import { getDualContextConfig } from '../config/dualContextEnvironmentConfig.js';
 import { PromptContextManager } from './promptContextManager.js';
 import { RAGChatIntegrationService } from './ragChatIntegrationService.js';
@@ -14,7 +17,7 @@ import { Config } from '../config/config.js';
 /**
  * Service that integrates the dual-context token management strategy
  * with existing prompt management and RAG services.
- * 
+ *
  * This service implements the urgent strategy to leverage Gemini's full 1M token capacity
  * by intelligently separating long-term memory (knowledge base, conversations)
  * from short-term memory (immediate tool execution context).
@@ -33,14 +36,17 @@ export class DualContextIntegrationService {
 
     this.dualContextManager = new DualContextManager(dualContextConfig);
 
-    console.log('DualContextIntegrationService initialized with environment-based configuration', {
-      enableDualContext: dualContextConfig.enableDualContext,
-      longTermModel: dualContextConfig.longTermMemory.model,
-      longTermTokens: dualContextConfig.longTermMemory.maxTokens,
-      shortTermModel: dualContextConfig.shortTermMemory.model,
-      shortTermTokens: dualContextConfig.shortTermMemory.maxTokens,
-      smartSwitching: dualContextConfig.compression.enableSmartSwitching,
-    });
+    console.log(
+      'DualContextIntegrationService initialized with environment-based configuration',
+      {
+        enableDualContext: dualContextConfig.enableDualContext,
+        longTermModel: dualContextConfig.longTermMemory.model,
+        longTermTokens: dualContextConfig.longTermMemory.maxTokens,
+        shortTermModel: dualContextConfig.shortTermMemory.model,
+        shortTermTokens: dualContextConfig.shortTermMemory.maxTokens,
+        smartSwitching: dualContextConfig.compression.enableSmartSwitching,
+      },
+    );
   }
 
   /**
@@ -49,16 +55,21 @@ export class DualContextIntegrationService {
   async selectOptimalContext(
     operation: string,
     userMessage: string,
-    requiresTools: boolean = false
+    requiresTools: boolean = false,
   ): Promise<ContextType> {
     // Use dual-context manager's intelligent detection
-    return this.dualContextManager.determineContextType(operation, requiresTools);
+    return this.dualContextManager.determineContextType(
+      operation,
+      requiresTools,
+    );
   }
 
   /**
    * Gets the appropriate prompt context manager for the determined context type
    */
-  async getContextManager(contextType: ContextType): Promise<PromptContextManager> {
+  async getContextManager(
+    contextType: ContextType,
+  ): Promise<PromptContextManager> {
     if (contextType === ContextType.SHORT_TERM_MEMORY) {
       if (!this.shortTermContextManager) {
         // Create short-term context manager with tool execution limits
@@ -73,7 +84,7 @@ export class DualContextIntegrationService {
             ragWeight: 0.2, // Lower RAG weight for immediate tool needs
             prioritizeRecentConversation: true,
             useConversationalContext: true,
-          }
+          },
         );
       }
       return this.shortTermContextManager;
@@ -91,7 +102,7 @@ export class DualContextIntegrationService {
             ragWeight: 0.6, // Higher RAG weight for knowledge-based tasks
             prioritizeRecentConversation: false, // Consider full conversation history
             useConversationalContext: true,
-          }
+          },
         );
       }
       return this.longTermContextManager;
@@ -101,7 +112,9 @@ export class DualContextIntegrationService {
   /**
    * Gets the optimal generation configuration for the context type
    */
-  getGenerationConfig(contextType: ContextType): Partial<GenerateContentConfig> {
+  getGenerationConfig(
+    contextType: ContextType,
+  ): Partial<GenerateContentConfig> {
     return this.dualContextManager.getGenerationConfig(contextType);
   }
 
@@ -112,7 +125,7 @@ export class DualContextIntegrationService {
   async processWithOptimalContext(
     operation: string,
     userMessage: string,
-    requiresTools: boolean = false
+    requiresTools: boolean = false,
   ): Promise<{
     contextType: ContextType;
     contextManager: PromptContextManager;
@@ -120,14 +133,18 @@ export class DualContextIntegrationService {
     maxTokens: number;
   }> {
     // Determine optimal context type
-    const contextType = await this.selectOptimalContext(operation, userMessage, requiresTools);
-    
+    const contextType = await this.selectOptimalContext(
+      operation,
+      userMessage,
+      requiresTools,
+    );
+
     // Get appropriate context manager
     const contextManager = await this.getContextManager(contextType);
-    
+
     // Get generation configuration
     const generationConfig = this.getGenerationConfig(contextType);
-    
+
     // Get token limit for this context
     const contextConfig = this.dualContextManager.getContextConfig(contextType);
     const maxTokens = contextConfig.maxTokens;
@@ -136,14 +153,14 @@ export class DualContextIntegrationService {
       operation,
       requiresTools,
       maxTokens,
-      messageLength: userMessage.length
+      messageLength: userMessage.length,
     });
 
     return {
       contextType,
       contextManager,
       generationConfig,
-      maxTokens
+      maxTokens,
     };
   }
 
@@ -159,7 +176,8 @@ export class DualContextIntegrationService {
     return {
       currentContextType: currentType,
       isCompressionNeeded: false, // TODO: Implement compression detection
-      smartSwitchingEnabled: this.dualContextManager['config'].compression.enableSmartSwitching
+      smartSwitchingEnabled:
+        this.dualContextManager['config'].compression.enableSmartSwitching,
     };
   }
 

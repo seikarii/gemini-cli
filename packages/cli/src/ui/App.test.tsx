@@ -1070,7 +1070,11 @@ describe('App UI', () => {
 
       vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Idle,
-        submitQuery: mockSubmitQuery as unknown as (query: PartListUnion, options?: { isContinuation: boolean }, prompt_id?: string) => Promise<void>,
+        submitQuery: mockSubmitQuery as unknown as (
+          query: PartListUnion,
+          options?: { isContinuation: boolean },
+          prompt_id?: string,
+        ) => Promise<void>,
         initError: null,
         pendingHistoryItems: [],
         thought: null,
@@ -1324,7 +1328,11 @@ describe('App UI', () => {
     it('should queue messages when handleFinalSubmit is called during streaming', () => {
       vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Responding,
-        submitQuery: mockSubmitQuery as unknown as (query: PartListUnion, options?: { isContinuation: boolean }, prompt_id?: string) => Promise<void>,
+        submitQuery: mockSubmitQuery as unknown as (
+          query: PartListUnion,
+          options?: { isContinuation: boolean },
+          prompt_id?: string,
+        ) => Promise<void>,
         initError: null,
         pendingHistoryItems: [],
         thought: null,
@@ -1403,7 +1411,11 @@ describe('App UI', () => {
 
       vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Responding,
-        submitQuery: mockSubmitQuery as unknown as (query: PartListUnion, options?: { isContinuation: boolean }, prompt_id?: string) => Promise<void>,
+        submitQuery: mockSubmitQuery as unknown as (
+          query: PartListUnion,
+          options?: { isContinuation: boolean },
+          prompt_id?: string,
+        ) => Promise<void>,
         initError: null,
         pendingHistoryItems: [],
         thought: { subject: 'Processing', description: '...' },
@@ -1430,7 +1442,11 @@ describe('App UI', () => {
       // Start with idle to allow message queue to process
       vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Idle,
-        submitQuery: (async () => {}) as unknown as (query: PartListUnion, options?: { isContinuation: boolean }, prompt_id?: string) => Promise<void>,
+        submitQuery: (async () => {}) as unknown as (
+          query: PartListUnion,
+          options?: { isContinuation: boolean },
+          prompt_id?: string,
+        ) => Promise<void>,
         initError: null,
         pendingHistoryItems: [],
         thought: null,
@@ -1461,7 +1477,11 @@ describe('App UI', () => {
 
       vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Idle,
-        submitQuery: mockSubmitQuery as unknown as (query: PartListUnion, options?: { isContinuation: boolean }, prompt_id?: string) => Promise<void>,
+        submitQuery: mockSubmitQuery as unknown as (
+          query: PartListUnion,
+          options?: { isContinuation: boolean },
+          prompt_id?: string,
+        ) => Promise<void>,
         initError: null,
         pendingHistoryItems: [],
         thought: null,
@@ -1521,7 +1541,11 @@ describe('App UI', () => {
 
       vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Responding,
-        submitQuery: mockSubmitQuery as unknown as (query: PartListUnion, options?: { isContinuation: boolean }, prompt_id?: string) => Promise<void>,
+        submitQuery: mockSubmitQuery as unknown as (
+          query: PartListUnion,
+          options?: { isContinuation: boolean },
+          prompt_id?: string,
+        ) => Promise<void>,
         initError: null,
         pendingHistoryItems: [],
         thought: { subject: 'Processing', description: '...' },
@@ -1554,7 +1578,11 @@ describe('App UI', () => {
 
       vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Responding,
-        submitQuery: mockSubmitQuery as unknown as (query: PartListUnion, options?: { isContinuation: boolean }, prompt_id?: string) => Promise<void>,
+        submitQuery: mockSubmitQuery as unknown as (
+          query: PartListUnion,
+          options?: { isContinuation: boolean },
+          prompt_id?: string,
+        ) => Promise<void>,
         initError: null,
         pendingHistoryItems: [],
         thought: { subject: 'Processing', description: '...' },

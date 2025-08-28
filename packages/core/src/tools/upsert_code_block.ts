@@ -90,12 +90,14 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
     if (!this.config) {
       throw new Error('Configuration is not available');
     }
-    
+
     const fileSystemService = this.config.getFileSystemService?.();
     if (!fileSystemService) {
-      throw new Error('FileSystemService is not available - check configuration');
+      throw new Error(
+        'FileSystemService is not available - check configuration',
+      );
     }
-    
+
     return fileSystemService;
   }
 

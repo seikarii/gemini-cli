@@ -44,10 +44,7 @@ export class ContextManager {
   private tokenEstimator: TokenEstimator;
   private usageStats: Map<ContextType, ContextUsageStats>;
 
-  constructor(
-    config: DualContextConfig,
-    tokenEstimator: TokenEstimator
-  ) {
+  constructor(config: DualContextConfig, tokenEstimator: TokenEstimator) {
     this.config = config;
     this.tokenEstimator = tokenEstimator;
     this.usageStats = new Map();
@@ -96,7 +93,7 @@ export class ContextManager {
     ];
 
     // If content matches tool patterns, use tool execution context
-    if (toolPatterns.some(pattern => pattern.test(content))) {
+    if (toolPatterns.some((pattern) => pattern.test(content))) {
       return ContextType.TOOL_EXECUTION;
     }
 
@@ -123,7 +120,7 @@ export class ContextManager {
    */
   async canFitInContext(
     content: string,
-    contextType: ContextType
+    contextType: ContextType,
   ): Promise<boolean> {
     const tokens = await this.tokenEstimator.estimateTokens(content);
     const maxTokens = this.getMaxTokensForContext(contextType);
@@ -150,7 +147,7 @@ export class ContextManager {
   async updateUsageStats(
     contextType: ContextType,
     content: string,
-    messageCount: number
+    messageCount: number,
   ): Promise<void> {
     const tokens = await this.tokenEstimator.estimateTokens(content);
     const stats = this.usageStats.get(contextType)!;

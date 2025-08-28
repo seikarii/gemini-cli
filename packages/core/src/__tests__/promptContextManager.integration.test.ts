@@ -40,29 +40,29 @@ describe('PromptContextManager Integration with Tool Guidance', () => {
       sourceChunks: [
         {
           content: 'function example() { return "test"; }',
-          metadata: { file: { path: 'src/example.ts' } }
-        }
-      ]
+          metadata: { file: { path: 'src/example.ts' } },
+        },
+      ],
     });
 
     mockChatRecordingService.getOptimizedHistoryForPrompt.mockResolvedValue({
       contents: [
         {
           role: 'user',
-          parts: [{ text: 'Previous user message' }]
-        }
+          parts: [{ text: 'Previous user message' }],
+        },
       ],
       metaInfo: {
         compressionApplied: false,
         originalMessageCount: 1,
-        finalMessageCount: 1
-      }
+        finalMessageCount: 1,
+      },
     });
 
     promptContextManager = new PromptContextManager(
       mockRAGService,
       mockChatRecordingService,
-      mockConfig
+      mockConfig,
     );
   });
 
@@ -71,18 +71,18 @@ describe('PromptContextManager Integration with Tool Guidance', () => {
     const conversationHistory: Content[] = [
       {
         role: 'user',
-        parts: [{ text: 'I need to modify a React component' }]
-      }
+        parts: [{ text: 'I need to modify a React component' }],
+      },
     ];
 
     const result = await promptContextManager.assembleContext(
       userMessage,
-      conversationHistory
+      conversationHistory,
     );
 
     expect(result.contents).toBeDefined();
     expect(result.contents.length).toBeGreaterThan(0);
-    
+
     // Check that the first content item contains tool guidance
     const firstContent = result.contents[0];
     expect(firstContent.role).toBe('user');
@@ -93,24 +93,26 @@ describe('PromptContextManager Integration with Tool Guidance', () => {
 
   it('should include tool guidance even when RAG fails (fallback)', async () => {
     // Make RAG service throw an error
-    mockRAGService.enhanceQuery.mockRejectedValue(new Error('RAG service failed'));
+    mockRAGService.enhanceQuery.mockRejectedValue(
+      new Error('RAG service failed'),
+    );
 
     const userMessage = 'Fix the API call in userService.js';
     const conversationHistory: Content[] = [
       {
         role: 'user',
-        parts: [{ text: 'There is a bug in the user service' }]
-      }
+        parts: [{ text: 'There is a bug in the user service' }],
+      },
     ];
 
     const result = await promptContextManager.assembleContext(
       userMessage,
-      conversationHistory
+      conversationHistory,
     );
 
     expect(result.contents).toBeDefined();
     expect(result.ragChunksIncluded).toBe(0); // RAG failed
-    
+
     // Tool guidance should still be present
     const firstContent = result.contents[0];
     expect(firstContent.role).toBe('user');
@@ -123,17 +125,17 @@ describe('PromptContextManager Integration with Tool Guidance', () => {
     const conversationHistory: Content[] = [
       {
         role: 'user',
-        parts: [{ text: 'I need to update package.json settings' }]
+        parts: [{ text: 'I need to update package.json settings' }],
       },
       {
         role: 'model',
-        parts: [{ text: 'Sure, I can help with configuration changes.' }]
-      }
+        parts: [{ text: 'Sure, I can help with configuration changes.' }],
+      },
     ];
 
     const result = await promptContextManager.assembleContext(
       userMessage,
-      conversationHistory
+      conversationHistory,
     );
 
     const toolGuidanceText = result.contents[0].parts?.[0]?.text || '';
@@ -146,12 +148,14 @@ describe('PromptContextManager Integration with Tool Guidance', () => {
     const conversationHistory: Content[] = [
       {
         role: 'user',
-        parts: [{ text: 'Use replace to update the validation function' }]
+        parts: [{ text: 'Use replace to update the validation function' }],
       },
       {
         role: 'model',
-        parts: [{ text: 'Error: replace tool failed due to multiple matches found' }]
-      }
+        parts: [
+          { text: 'Error: replace tool failed due to multiple matches found' },
+        ],
+      },
     ];
 
     // Mock the chat recording service to return the conversation history that includes the error
@@ -160,13 +164,13 @@ describe('PromptContextManager Integration with Tool Guidance', () => {
       metaInfo: {
         compressionApplied: false,
         originalMessageCount: 2,
-        finalMessageCount: 2
-      }
+        finalMessageCount: 2,
+      },
     });
 
     const result = await promptContextManager.assembleContext(
       userMessage,
-      conversationHistory
+      conversationHistory,
     );
 
     const toolGuidanceText = result.contents[0].parts?.[0]?.text || '';
@@ -181,7 +185,7 @@ describe('PromptContextManager Integration with Tool Guidance', () => {
 
     const result = await promptContextManager.assembleContext(
       userMessage,
-      conversationHistory
+      conversationHistory,
     );
 
     const toolGuidanceText = result.contents[0].parts?.[0]?.text || '';
@@ -196,23 +200,27 @@ describe('PromptContextManager Integration with Tool Guidance', () => {
     const conversationHistory: Content[] = [
       {
         role: 'user',
-        parts: [{ text: 'I want to improve the auth system' }]
-      }
+        parts: [{ text: 'I want to improve the auth system' }],
+      },
     ];
 
     const result = await promptContextManager.assembleContext(
       userMessage,
-      conversationHistory
+      conversationHistory,
     );
 
     expect(result.contents.length).toBeGreaterThanOrEqual(3);
-    
+
     // First: Tool guidance
-    expect(result.contents[0].parts?.[0]?.text).toContain('CONTEXTUAL TOOL GUIDANCE');
-    
+    expect(result.contents[0].parts?.[0]?.text).toContain(
+      'CONTEXTUAL TOOL GUIDANCE',
+    );
+
     // Second: RAG content
-    expect(result.contents[1].parts?.[0]?.text).toContain('Relevant Knowledge Base Information');
-    
+    expect(result.contents[1].parts?.[0]?.text).toContain(
+      'Relevant Knowledge Base Information',
+    );
+
     // Third: Conversation history
     expect(result.contents[2].parts?.[0]?.text).toBe('Previous user message');
   });

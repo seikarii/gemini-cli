@@ -1495,7 +1495,10 @@ describe('loadCliConfig folderTrust', () => {
   it('should be false if folderTrustFeature is true and folderTrust is false', async () => {
     process.argv = ['node', 'script.js'];
     const argv = await parseArguments();
-    const settings = { folderTrustFeature: true, folderTrust: false } as Settings;
+    const settings = {
+      folderTrustFeature: true,
+      folderTrust: false,
+    } as Settings;
     const config = await loadCliConfig(settings, [], 'test-session', argv);
     expect(config.getFolderTrust()).toBe(false);
   });
@@ -1503,7 +1506,10 @@ describe('loadCliConfig folderTrust', () => {
   it('should be false if folderTrustFeature is false and folderTrust is true', async () => {
     process.argv = ['node', 'script.js'];
     const argv = await parseArguments();
-    const settings = { folderTrustFeature: false, folderTrust: true } as Settings;
+    const settings = {
+      folderTrustFeature: false,
+      folderTrust: true,
+    } as Settings;
     const config = await loadCliConfig(settings, [], 'test-session', argv);
     expect(config.getFolderTrust()).toBe(false);
   });
@@ -1511,7 +1517,10 @@ describe('loadCliConfig folderTrust', () => {
   it('should be true when folderTrustFeature is true and folderTrust is true', async () => {
     process.argv = ['node', 'script.js'];
     const argv = await parseArguments();
-    const settings = { folderTrustFeature: true, folderTrust: true } as Settings;
+    const settings = {
+      folderTrustFeature: true,
+      folderTrust: true,
+    } as Settings;
     const config = await loadCliConfig(settings, [], 'test-session', argv);
     expect(config.getFolderTrust()).toBe(true);
   });

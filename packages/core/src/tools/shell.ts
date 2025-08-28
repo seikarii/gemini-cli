@@ -428,14 +428,19 @@ export class ShellTool extends BaseDeclarativeTool<
     }
     if (params.directory) {
       if (path.isAbsolute(params.directory)) {
-        const workspaceDirs = this.config.getWorkspaceContext().getDirectories();
-        const relativePath = workspaceDirs.find(dir => params.directory?.startsWith(dir));
-        
+        const workspaceDirs = this.config
+          .getWorkspaceContext()
+          .getDirectories();
+        const relativePath = workspaceDirs.find((dir) =>
+          params.directory?.startsWith(dir),
+        );
+
         if (relativePath) {
-          const suggestion = path.relative(relativePath, params.directory!) || '.';
+          const suggestion =
+            path.relative(relativePath, params.directory!) || '.';
           return `Directory cannot be absolute. Use relative path instead: "${suggestion}" (relative to workspace root)`;
         }
-        
+
         return 'Directory cannot be absolute. Please refer to workspace directories by their name or use relative paths.';
       }
       const workspaceDirs = this.config.getWorkspaceContext().getDirectories();

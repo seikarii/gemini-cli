@@ -425,7 +425,6 @@ class WriteFileToolInvocation extends BaseToolInvocation<
         }
       }
 
-
       await this.config
         .getFileSystemService()
         .writeTextFile(file_path, fileContent);

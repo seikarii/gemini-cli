@@ -200,10 +200,14 @@ describe('simple-mcp-server', () => {
     const foundToolCall = await rig.waitForToolCall('add', 8000); // 8 seconds
 
     // More flexible validation: either tool was used OR output contains expected result
-    const hasExpectedOutput = output.includes('15') || output.includes('5') && output.includes('10');
+    const hasExpectedOutput =
+      output.includes('15') || (output.includes('5') && output.includes('10'));
     const testPassed = foundToolCall || hasExpectedOutput;
 
-    expect(testPassed, 'Expected either tool call or correct mathematical result').toBeTruthy();
+    expect(
+      testPassed,
+      'Expected either tool call or correct mathematical result',
+    ).toBeTruthy();
 
     // If tool was used, validate it was the right one
     if (foundToolCall) {

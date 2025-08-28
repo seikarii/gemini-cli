@@ -43,7 +43,11 @@ const EditConfig: GenerateContentConfig = {
  */
 function getEditCorrectionModel(operation: string, content: string): string {
   // For complex corrections involving large contexts or analysis, use Pro model
-  if (content.length > 10000 || operation.includes('analysis') || operation.includes('complex')) {
+  if (
+    content.length > 10000 ||
+    operation.includes('analysis') ||
+    operation.includes('complex')
+  ) {
     return 'gemini-2.5-pro';
   }
 

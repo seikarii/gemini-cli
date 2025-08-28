@@ -289,14 +289,15 @@ export class PromptContextManager {
     // Determine context type and generate enhanced context
     const contextType = this.enhancedContextService.determineContextType(
       userMessage,
-      conversationData.content
-    );
-    
-    const enhancedContext = await this.enhancedContextService.generateEnhancedContext(
-      userMessage,
       conversationData.content,
-      contextType
     );
+
+    const enhancedContext =
+      await this.enhancedContextService.generateEnhancedContext(
+        userMessage,
+        conversationData.content,
+        contextType,
+      );
 
     // Add enhanced context first (highest priority)
     contents.push({
@@ -308,9 +309,9 @@ export class PromptContextManager {
     // Add dynamic tool selection guidance
     const toolGuidance = ToolSelectionGuidance.generateGuidance(
       userMessage,
-      conversationData.content
+      conversationData.content,
     );
-    
+
     contents.push({
       role: 'user',
       parts: [{ text: toolGuidance }],
@@ -412,14 +413,15 @@ export class PromptContextManager {
     // Generate enhanced context even in fallback
     const contextType = this.enhancedContextService.determineContextType(
       userMessage,
-      conversationHistory
-    );
-    
-    const enhancedContext = await this.enhancedContextService.generateEnhancedContext(
-      userMessage,
       conversationHistory,
-      contextType
     );
+
+    const enhancedContext =
+      await this.enhancedContextService.generateEnhancedContext(
+        userMessage,
+        conversationHistory,
+        contextType,
+      );
 
     contents.push({
       role: 'user',
@@ -429,9 +431,9 @@ export class PromptContextManager {
     // Always include tool guidance even in fallback
     const toolGuidance = ToolSelectionGuidance.generateGuidance(
       userMessage,
-      conversationHistory
+      conversationHistory,
     );
-    
+
     contents.push({
       role: 'user',
       parts: [{ text: toolGuidance }],
@@ -441,12 +443,11 @@ export class PromptContextManager {
     const recentHistory = conversationHistory.slice(-10);
     contents.push(...recentHistory);
 
-    const totalTokens = this.estimateTokens(enhancedContext.formattedContext) +
-      this.estimateTokens(toolGuidance) + 
+    const totalTokens =
+      this.estimateTokens(enhancedContext.formattedContext) +
+      this.estimateTokens(toolGuidance) +
       this.estimateTokens(
-        recentHistory
-          .map((c) => this.extractTextFromContent(c))
-          .join(' ')
+        recentHistory.map((c) => this.extractTextFromContent(c)).join(' '),
       );
 
     return {

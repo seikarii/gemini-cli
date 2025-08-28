@@ -52,9 +52,11 @@ function defaultShouldRetry(error: Error | unknown): boolean {
     if (error.message.includes('429')) return true;
     if (error.message.match(/5\d{2}/)) return true;
     // Check for model not supported errors
-    if (error.message.includes('not supported by this model') ||
-        error.message.includes('model not supported') ||
-        error.message.includes('unsupported model')) {
+    if (
+      error.message.includes('not supported by this model') ||
+      error.message.includes('model not supported') ||
+      error.message.includes('unsupported model')
+    ) {
       return true;
     }
   }
@@ -195,8 +197,8 @@ export async function retryWithBackoff<T>(
         onModelNotSupported &&
         error instanceof Error &&
         (error.message.includes('not supported by this model') ||
-         error.message.includes('model not supported') ||
-         error.message.includes('unsupported model'))
+          error.message.includes('model not supported') ||
+          error.message.includes('unsupported model'))
       ) {
         try {
           const fallbackModel = await onModelNotSupported(error);

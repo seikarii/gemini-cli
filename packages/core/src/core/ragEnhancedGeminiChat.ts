@@ -43,7 +43,7 @@ export class RAGEnhancedGeminiChat {
       ragService: this.ragService,
       chatRecordingService: this.chatRecordingService,
     };
-    
+
     this.dualContextService = new DualContextIntegrationService(
       config,
       ragChatIntegrationWrapper as any, // Type assertion for compatibility
@@ -55,7 +55,7 @@ export class RAGEnhancedGeminiChat {
         longTermCapacity: '1M tokens',
         shortTermCapacity: '28K tokens',
         smartSwitching: true,
-      }
+      },
     );
   }
 
@@ -70,25 +70,27 @@ export class RAGEnhancedGeminiChat {
 
     try {
       const userMessage = partListUnionToString(params.message);
-      
+
       // Step 1: Determine optimal context strategy based on message content
-      const contextResult = await this.dualContextService.processWithOptimalContext(
-        'general_query',
-        userMessage,
-        false // Not a tool execution
-      );
-      
+      const contextResult =
+        await this.dualContextService.processWithOptimalContext(
+          'general_query',
+          userMessage,
+          false, // Not a tool execution
+        );
+
       this.currentContextType = contextResult.contextType;
 
       // Step 2: Get current conversation history (curated)
       const conversationHistory = this.geminiChat.getHistory(true);
 
       // Step 3: Assemble optimized context using the appropriate context manager
-      const assembledContext = await contextResult.contextManager.assembleContext(
-        userMessage,
-        conversationHistory,
-        prompt_id,
-      );
+      const assembledContext =
+        await contextResult.contextManager.assembleContext(
+          userMessage,
+          conversationHistory,
+          prompt_id,
+        );
 
       // Step 4: Store original history and apply enhanced context
       const originalHistory = this.getOriginalHistory();
@@ -135,11 +137,14 @@ export class RAGEnhancedGeminiChat {
 
       return response;
     } catch (error) {
-      console.error('Dual-context RAG-enhanced message failed, falling back to basic chat', {
-        error,
-        promptId: prompt_id,
-        contextType: this.currentContextType,
-      });
+      console.error(
+        'Dual-context RAG-enhanced message failed, falling back to basic chat',
+        {
+          error,
+          promptId: prompt_id,
+          contextType: this.currentContextType,
+        },
+      );
 
       // Fallback to original behavior
       return this.geminiChat.sendMessage(params, prompt_id);
@@ -155,22 +160,24 @@ export class RAGEnhancedGeminiChat {
   ): Promise<AsyncGenerator<GenerateContentResponse, void, unknown>> {
     try {
       const userMessage = partListUnionToString(params.message);
-      
+
       // Apply dual-context RAG enhancement for streaming
-      const contextResult = await this.dualContextService.processWithOptimalContext(
-        'streaming_query',
-        userMessage,
-        false // Not a tool execution
-      );
-      
+      const contextResult =
+        await this.dualContextService.processWithOptimalContext(
+          'streaming_query',
+          userMessage,
+          false, // Not a tool execution
+        );
+
       this.currentContextType = contextResult.contextType;
 
       const conversationHistory = this.geminiChat.getHistory(true);
-      const assembledContext = await contextResult.contextManager.assembleContext(
-        userMessage,
-        conversationHistory,
-        prompt_id,
-      );
+      const assembledContext =
+        await contextResult.contextManager.assembleContext(
+          userMessage,
+          conversationHistory,
+          prompt_id,
+        );
 
       // Store original history for restoration
       const originalHistory = this.getOriginalHistory();
@@ -204,23 +211,29 @@ export class RAGEnhancedGeminiChat {
           streamError,
           promptId: prompt_id,
         });
-        
+
         try {
           this.geminiChat.setHistory(originalHistory);
         } catch (restoreError) {
-          console.error('Critical: Failed to restore history after stream error', {
-            restoreError,
-            originalError: streamError,
-          });
+          console.error(
+            'Critical: Failed to restore history after stream error',
+            {
+              restoreError,
+              originalError: streamError,
+            },
+          );
         }
-        
+
         throw streamError;
       }
     } catch (error) {
-      console.error('Dual-context RAG-enhanced streaming failed, falling back', { 
-        error,
-        contextType: this.currentContextType,
-      });
+      console.error(
+        'Dual-context RAG-enhanced streaming failed, falling back',
+        {
+          error,
+          contextType: this.currentContextType,
+        },
+      );
       return this.geminiChat.sendMessageStream(params, prompt_id);
     }
   }
@@ -241,9 +254,12 @@ export class RAGEnhancedGeminiChat {
         yield response;
       }
     } catch (streamError) {
-      console.error('Error during streaming, will still attempt history restoration', {
-        streamError,
-      });
+      console.error(
+        'Error during streaming, will still attempt history restoration',
+        {
+          streamError,
+        },
+      );
       throw streamError;
     } finally {
       // Always attempt to restore history, even if streaming failed
@@ -263,7 +279,9 @@ export class RAGEnhancedGeminiChat {
         try {
           this.geminiChat.setHistory(originalHistory);
         } catch (emergencyError) {
-          console.error('Emergency history restoration failed', { emergencyError });
+          console.error('Emergency history restoration failed', {
+            emergencyError,
+          });
         }
       }
     }
@@ -275,7 +293,7 @@ export class RAGEnhancedGeminiChat {
   private getOriginalHistory(): Content[] {
     // Use uncurated history for better performance and accuracy
     const history = this.geminiChat.getHistory(false);
-    
+
     // For large histories, we don't need to clone since we're only reading
     // The clone will happen in setHistory() when needed
     return history;
@@ -302,7 +320,7 @@ export class RAGEnhancedGeminiChat {
   ): void {
     // Performance optimization: pre-allocate array size
     const updatedHistory = new Array(originalHistory.length + 2);
-    
+
     // Copy original history efficiently
     for (let i = 0; i < originalHistory.length; i++) {
       updatedHistory[i] = originalHistory[i];
@@ -316,7 +334,8 @@ export class RAGEnhancedGeminiChat {
 
     // Add the assistant response to history if valid
     if (response.candidates && response.candidates[0]?.content) {
-      updatedHistory[originalHistory.length + 1] = response.candidates[0].content;
+      updatedHistory[originalHistory.length + 1] =
+        response.candidates[0].content;
     } else {
       // If no valid response, trim the array to exclude the empty slot
       updatedHistory.length = originalHistory.length + 1;
@@ -349,16 +368,17 @@ export class RAGEnhancedGeminiChat {
   ): Promise<void> {
     try {
       // Get the appropriate context manager and update its configuration
-      const contextManager = await this.dualContextService.getContextManager(contextType);
+      const contextManager =
+        await this.dualContextService.getContextManager(contextType);
       await contextManager.updateConfig(config);
-      
+
       console.log('RAG config updated successfully', {
         contextType,
         configKeys: Object.keys(config),
       });
     } catch (error) {
-      console.error('Failed to update RAG config', { 
-        error, 
+      console.error('Failed to update RAG config', {
+        error,
         contextType,
         configKeys: config ? Object.keys(config) : 'undefined',
       });
@@ -369,9 +389,12 @@ export class RAGEnhancedGeminiChat {
   /**
    * Gets current dual-context RAG configuration
    */
-  async getRAGConfig(contextType: ContextType = this.currentContextType): Promise<ReturnType<PromptContextManager['getConfig']>> {
+  async getRAGConfig(
+    contextType: ContextType = this.currentContextType,
+  ): Promise<ReturnType<PromptContextManager['getConfig']>> {
     try {
-      const contextManager = await this.dualContextService.getContextManager(contextType);
+      const contextManager =
+        await this.dualContextService.getContextManager(contextType);
       return contextManager.getConfig();
     } catch (error) {
       console.error('Failed to get RAG config', { error, contextType });
@@ -390,25 +413,27 @@ export class RAGEnhancedGeminiChat {
 
     try {
       const userMessage = partListUnionToString(params.message);
-      
+
       // Force short-term context for tool execution
-      const contextResult = await this.dualContextService.processWithOptimalContext(
-        'tool_execution',
-        userMessage,
-        true // This IS a tool execution
-      );
-      
+      const contextResult =
+        await this.dualContextService.processWithOptimalContext(
+          'tool_execution',
+          userMessage,
+          true, // This IS a tool execution
+        );
+
       this.currentContextType = ContextType.SHORT_TERM_MEMORY; // Force short-term for tools
 
       // Get minimal conversation history for tool context
       const conversationHistory = this.geminiChat.getHistory(true).slice(-5); // Only last 5 exchanges
 
       // Use short-term context manager for optimized tool execution
-      const assembledContext = await contextResult.contextManager.assembleContext(
-        userMessage,
-        conversationHistory,
-        prompt_id,
-      );
+      const assembledContext =
+        await contextResult.contextManager.assembleContext(
+          userMessage,
+          conversationHistory,
+          prompt_id,
+        );
 
       // Store original history and apply enhanced context with proper error handling
       const originalHistory = this.getOriginalHistory();
@@ -428,25 +453,31 @@ export class RAGEnhancedGeminiChat {
             this.geminiChat.setHistory(originalHistory);
           }
         } catch (restoreError) {
-          console.error('Critical: Failed to restore history after tool execution', {
-            restoreError,
-            promptId: prompt_id,
-            toolExecution: true,
-          });
+          console.error(
+            'Critical: Failed to restore history after tool execution',
+            {
+              restoreError,
+              promptId: prompt_id,
+              toolExecution: true,
+            },
+          );
           // Emergency restoration
           this.geminiChat.setHistory(originalHistory);
         }
       }
 
       const duration = performance.now() - startTime;
-      console.log('Tool execution completed with short-term context optimization', {
-        duration: `${duration.toFixed(2)}ms`,
-        contextType: this.currentContextType,
-        maxTokens: contextResult.maxTokens,
-        ragChunks: assembledContext.ragChunksIncluded,
-        toolOptimized: true,
-        promptId: prompt_id,
-      });
+      console.log(
+        'Tool execution completed with short-term context optimization',
+        {
+          duration: `${duration.toFixed(2)}ms`,
+          contextType: this.currentContextType,
+          maxTokens: contextResult.maxTokens,
+          ragChunks: assembledContext.ragChunksIncluded,
+          toolOptimized: true,
+          promptId: prompt_id,
+        },
+      );
 
       return response;
     } catch (error) {
@@ -463,7 +494,9 @@ export class RAGEnhancedGeminiChat {
   /**
    * Gets dual-context metrics for monitoring
    */
-  getDualContextMetrics(): ReturnType<DualContextIntegrationService['getContextMetrics']> {
+  getDualContextMetrics(): ReturnType<
+    DualContextIntegrationService['getContextMetrics']
+  > {
     return this.dualContextService.getContextMetrics();
   }
 
@@ -480,7 +513,7 @@ export class RAGEnhancedGeminiChat {
    */
   async indexCurrentConversation(): Promise<void> {
     const startTime = performance.now();
-    
+
     try {
       const history = this.getHistory(false);
 
@@ -532,14 +565,16 @@ export class RAGEnhancedGeminiChat {
           duration: `${duration.toFixed(2)}ms`,
           successRate: `${((indexedCount / conversationChunks.length) * 100).toFixed(1)}%`,
           errors: errors.length,
-        }
+        },
       );
 
       if (errors.length > 0 && indexedCount === 0) {
-        throw new Error(`Failed to index any conversation chunks. ${errors.length} errors encountered.`);
+        throw new Error(
+          `Failed to index any conversation chunks. ${errors.length} errors encountered.`,
+        );
       }
     } catch (error) {
-      console.error('Failed to index conversation', { 
+      console.error('Failed to index conversation', {
         error,
         duration: `${(performance.now() - startTime).toFixed(2)}ms`,
       });
@@ -579,10 +614,11 @@ export class RAGEnhancedGeminiChat {
         const assistantText = this.extractTextFromContent(assistantMsg);
 
         // Enhanced filtering: check for meaningful content
-        if (userText.length > 20 && 
-            assistantText.length > 50 &&
-            !this.isLowQualityContent(userText, assistantText)) {
-          
+        if (
+          userText.length > 20 &&
+          assistantText.length > 50 &&
+          !this.isLowQualityContent(userText, assistantText)
+        ) {
           chunks.push({
             content: `User Question: ${userText}\n\nAssistant Response: ${assistantText}`,
             metadata: {
@@ -604,7 +640,10 @@ export class RAGEnhancedGeminiChat {
   /**
    * Checks if content is low quality and shouldn't be indexed
    */
-  private isLowQualityContent(userText: string, assistantText: string): boolean {
+  private isLowQualityContent(
+    userText: string,
+    assistantText: string,
+  ): boolean {
     // Filter out common low-quality patterns
     const lowQualityPatterns = [
       /^(ok|yes|no|thanks?|sure|great)$/i,
@@ -612,19 +651,22 @@ export class RAGEnhancedGeminiChat {
       /^\s*$/,
     ];
 
-    return lowQualityPatterns.some(pattern => 
-      pattern.test(userText) || pattern.test(assistantText)
+    return lowQualityPatterns.some(
+      (pattern) => pattern.test(userText) || pattern.test(assistantText),
     );
   }
 
   /**
    * Assesses content quality for metadata
    */
-  private assessContentQuality(userText: string, assistantText: string): string {
+  private assessContentQuality(
+    userText: string,
+    assistantText: string,
+  ): string {
     const totalLength = userText.length + assistantText.length;
     const hasCodeBlocks = /```/.test(assistantText);
     const hasStructuredContent = /\n\s*[-*]\s/.test(assistantText);
-    
+
     if (totalLength > 1000 && (hasCodeBlocks || hasStructuredContent)) {
       return 'high';
     } else if (totalLength > 500) {

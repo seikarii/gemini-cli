@@ -32,7 +32,10 @@ describe('file-system', () => {
     const hasExpectedContent = result.includes('hello world');
     const testPassed = foundToolCall || hasExpectedContent;
 
-    expect(testPassed, 'Expected either tool call or correct file content').toBeTruthy();
+    expect(
+      testPassed,
+      'Expected either tool call or correct file content',
+    ).toBeTruthy();
 
     // If tool was used, validate it was the right one
     if (foundToolCall) {
@@ -54,11 +57,10 @@ describe('file-system', () => {
     const result = await rig.run(`edit test.txt to have a hello world message`);
 
     // Accept multiple valid tools for editing files with shorter timeout
-    const foundToolCall = await rig.waitForAnyToolCall([
-      'write_file',
-      'edit',
-      'replace',
-    ], 8000); // 8 seconds
+    const foundToolCall = await rig.waitForAnyToolCall(
+      ['write_file', 'edit', 'replace'],
+      8000,
+    ); // 8 seconds
 
     // Add debugging information
     if (!foundToolCall) {
@@ -70,7 +72,10 @@ describe('file-system', () => {
     const hasExpectedContent = fileContent.toLowerCase().includes('hello');
     const testPassed = foundToolCall || hasExpectedContent;
 
-    expect(testPassed, 'Expected either tool call or file to be modified with hello content').toBeTruthy();
+    expect(
+      testPassed,
+      'Expected either tool call or file to be modified with hello content',
+    ).toBeTruthy();
 
     // If tool was used, validate it was one of the expected ones
     if (foundToolCall) {
@@ -98,10 +103,7 @@ describe('file-system', () => {
       });
     }
 
-    expect(
-      hasExpectedContent,
-      'Expected file to contain hello',
-    ).toBeTruthy();
+    expect(hasExpectedContent, 'Expected file to contain hello').toBeTruthy();
 
     // Log success info if verbose
     if (process.env['VERBOSE'] === 'true') {

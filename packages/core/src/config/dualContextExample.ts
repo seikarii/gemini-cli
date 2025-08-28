@@ -8,12 +8,12 @@ import { GenerateContentConfig } from '@google/genai';
 
 /**
  * URGENT: Dual Context Token Management Strategy
- * 
+ *
  * This module implements the revised token management approach for Gemini CLI:
- * 
+ *
  * 1. **Long-Term Memory (Main Prompts)**: Up to 1M tokens with RAG processing
  * 2. **Short-Term Memory (Tool Execution)**: ~28K tokens, highly focused
- * 
+ *
  * The key distinction is between:
  * - PROMPT = Long-term memory (large context, RAG-processed)
  * - EXECUTION/TOOL_INTERACTION = Short-term memory (small context, current and focused)
@@ -23,7 +23,7 @@ export enum ContextType {
   /** Long-term memory for reasoning, analysis, and general understanding */
   LONG_TERM_MEMORY = 'long_term_memory',
   /** Short-term memory for tool execution and immediate tasks */
-  SHORT_TERM_MEMORY = 'short_term_memory'
+  SHORT_TERM_MEMORY = 'short_term_memory',
 }
 
 export interface DualContextConfig {
@@ -110,7 +110,10 @@ export class DualContextManager {
   /**
    * Determines which context type to use based on the operation
    */
-  determineContextType(operation: string, isToolExecution: boolean = false): ContextType {
+  determineContextType(
+    operation: string,
+    isToolExecution: boolean = false,
+  ): ContextType {
     // Tool execution always uses short-term memory
     if (isToolExecution) {
       return ContextType.SHORT_TERM_MEMORY;
@@ -118,11 +121,20 @@ export class DualContextManager {
 
     // Analysis and reasoning operations use long-term memory
     const longTermOperations = [
-      'analyze', 'understand', 'explain', 'reason', 'plan', 'design',
-      'review', 'evaluate', 'compare', 'summarize', 'research'
+      'analyze',
+      'understand',
+      'explain',
+      'reason',
+      'plan',
+      'design',
+      'review',
+      'evaluate',
+      'compare',
+      'summarize',
+      'research',
     ];
 
-    if (longTermOperations.some(op => operation.toLowerCase().includes(op))) {
+    if (longTermOperations.some((op) => operation.toLowerCase().includes(op))) {
       return ContextType.LONG_TERM_MEMORY;
     }
 
@@ -133,7 +145,11 @@ export class DualContextManager {
   /**
    * Gets the appropriate configuration for the given context type
    */
-  getContextConfig(contextType: ContextType): DualContextConfig['longTermMemory'] | DualContextConfig['shortTermMemory'] {
+  getContextConfig(
+    contextType: ContextType,
+  ):
+    | DualContextConfig['longTermMemory']
+    | DualContextConfig['shortTermMemory'] {
     return contextType === ContextType.LONG_TERM_MEMORY
       ? this.config.longTermMemory
       : this.config.shortTermMemory;
@@ -142,22 +158,32 @@ export class DualContextManager {
   /**
    * Gets the appropriate GenerateContentConfig for the context type
    */
-  getGenerationConfig(contextType: ContextType): Partial<GenerateContentConfig> {
+  getGenerationConfig(
+    contextType: ContextType,
+  ): Partial<GenerateContentConfig> {
     const isShortTerm = contextType === ContextType.SHORT_TERM_MEMORY;
-    
+
     return {
       // Note: model selection will be handled by the calling code
       // maxTokens property might not be directly supported in GenerateContentConfig
-      ...(isShortTerm 
-        ? { /* short-term specific config */ }
-        : { /* long-term specific config */ })
+      ...(isShortTerm
+        ? {
+            /* short-term specific config */
+          }
+        : {
+            /* long-term specific config */
+          }),
     };
   }
 
   /**
    * Switches context type and returns the new configuration
    */
-  switchContext(newType: ContextType): DualContextConfig['longTermMemory'] | DualContextConfig['shortTermMemory'] {
+  switchContext(
+    newType: ContextType,
+  ):
+    | DualContextConfig['longTermMemory']
+    | DualContextConfig['shortTermMemory'] {
     this.currentContextType = newType;
     return this.getContextConfig(newType);
   }
@@ -167,10 +193,11 @@ export class DualContextManager {
    */
   needsCompression(currentTokens: number, contextType: ContextType): boolean {
     const config = this.getContextConfig(contextType);
-    const threshold = contextType === ContextType.LONG_TERM_MEMORY
-      ? this.config.compression.longTermThreshold
-      : this.config.compression.shortTermThreshold;
-    
+    const threshold =
+      contextType === ContextType.LONG_TERM_MEMORY
+        ? this.config.compression.longTermThreshold
+        : this.config.compression.shortTermThreshold;
+
     return (currentTokens / config.maxTokens) * 100 >= threshold;
   }
 

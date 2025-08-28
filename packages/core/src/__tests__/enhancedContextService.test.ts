@@ -5,22 +5,29 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { EnhancedContextService, ContextType } from '../services/enhancedContextService.js';
+import {
+  EnhancedContextService,
+  ContextType,
+} from '../services/enhancedContextService.js';
 import { Content } from '@google/genai';
 
 // Mock process.cwd and fs operations
 vi.mock('node:fs', () => ({
   promises: {
-    readdir: vi.fn().mockResolvedValue(['package.json', 'src', 'dist', 'README.md']),
-    stat: vi.fn().mockResolvedValue({ mtime: new Date('2025-01-01') })
-  }
+    readdir: vi
+      .fn()
+      .mockResolvedValue(['package.json', 'src', 'dist', 'README.md']),
+    stat: vi.fn().mockResolvedValue({ mtime: new Date('2025-01-01') }),
+  },
 }));
 
 vi.mock('fs', () => ({
   promises: {
-    readdir: vi.fn().mockResolvedValue(['package.json', 'src', 'dist', 'README.md']),
-    stat: vi.fn().mockResolvedValue({ mtime: new Date('2025-01-01') })
-  }
+    readdir: vi
+      .fn()
+      .mockResolvedValue(['package.json', 'src', 'dist', 'README.md']),
+    stat: vi.fn().mockResolvedValue({ mtime: new Date('2025-01-01') }),
+  },
 }));
 
 vi.mock('child_process', () => ({
@@ -28,7 +35,7 @@ vi.mock('child_process', () => ({
     if (cmd.includes('branch --show-current')) return 'main\n';
     if (cmd.includes('status --porcelain')) return '';
     return '';
-  })
+  }),
 }));
 
 describe('EnhancedContextService', () => {
@@ -47,7 +54,7 @@ describe('EnhancedContextService', () => {
     // Restore original cwd
     Object.defineProperty(process, 'cwd', {
       value: () => originalCwd,
-      writable: true
+      writable: true,
     });
   });
 
@@ -56,8 +63,11 @@ describe('EnhancedContextService', () => {
       const userMessage = 'Create a new React component';
       const conversationHistory: Content[] = [];
 
-      const contextType = service.determineContextType(userMessage, conversationHistory);
-      
+      const contextType = service.determineContextType(
+        userMessage,
+        conversationHistory,
+      );
+
       expect(contextType).toBe(ContextType.USER_PROMPT);
     });
 
@@ -66,38 +76,44 @@ describe('EnhancedContextService', () => {
       const conversationHistory: Content[] = [
         {
           role: 'user',
-          parts: [{ text: 'Create a new file' }]
+          parts: [{ text: 'Create a new file' }],
         },
         {
           role: 'model',
-          parts: [{ text: 'I\'ll use the write_file tool to create the file.' }]
+          parts: [{ text: "I'll use the write_file tool to create the file." }],
         },
         {
           role: 'function',
-          parts: [{ text: 'File created successfully' }]
-        }
+          parts: [{ text: 'File created successfully' }],
+        },
       ];
 
-      const contextType = service.determineContextType(userMessage, conversationHistory);
-      
+      const contextType = service.determineContextType(
+        userMessage,
+        conversationHistory,
+      );
+
       expect(contextType).toBe(ContextType.TOOL_CALL);
     });
 
     it('should detect BLOCKED when LLM seems confused', () => {
-      const userMessage = 'I\'m not sure what to do next';
+      const userMessage = "I'm not sure what to do next";
       const conversationHistory: Content[] = [
         {
           role: 'model',
-          parts: [{ text: 'I\'m having trouble understanding the requirement' }]
+          parts: [{ text: "I'm having trouble understanding the requirement" }],
         },
         {
           role: 'model',
-          parts: [{ text: 'I\'m not sure how to proceed with this task' }]
-        }
+          parts: [{ text: "I'm not sure how to proceed with this task" }],
+        },
       ];
 
-      const contextType = service.determineContextType(userMessage, conversationHistory);
-      
+      const contextType = service.determineContextType(
+        userMessage,
+        conversationHistory,
+      );
+
       expect(contextType).toBe(ContextType.BLOCKED);
     });
 
@@ -105,8 +121,11 @@ describe('EnhancedContextService', () => {
       const userMessage = 'How should I approach this problem?';
       const conversationHistory: Content[] = [];
 
-      const contextType = service.determineContextType(userMessage, conversationHistory);
-      
+      const contextType = service.determineContextType(
+        userMessage,
+        conversationHistory,
+      );
+
       expect(contextType).toBe(ContextType.PLANNING);
     });
   });
@@ -119,7 +138,7 @@ describe('EnhancedContextService', () => {
       const context = await service.generateEnhancedContext(
         userMessage,
         conversationHistory,
-        ContextType.USER_PROMPT
+        ContextType.USER_PROMPT,
       );
 
       expect(context.contextType).toBe(ContextType.USER_PROMPT);
@@ -137,18 +156,18 @@ describe('EnhancedContextService', () => {
       const conversationHistory: Content[] = [
         {
           role: 'user',
-          parts: [{ text: 'I need to update the code' }]
+          parts: [{ text: 'I need to update the code' }],
         },
         {
           role: 'model',
-          parts: [{ text: 'I\'ll use the read_file tool first' }]
-        }
+          parts: [{ text: "I'll use the read_file tool first" }],
+        },
       ];
 
       const context = await service.generateEnhancedContext(
         userMessage,
         conversationHistory,
-        ContextType.TOOL_CALL
+        ContextType.TOOL_CALL,
       );
 
       expect(context.contextType).toBe(ContextType.TOOL_CALL);
@@ -157,23 +176,25 @@ describe('EnhancedContextService', () => {
     });
 
     it('should generate self-reflection prompts for BLOCKED context', async () => {
-      const userMessage = 'I\'m stuck on this problem';
+      const userMessage = "I'm stuck on this problem";
       const conversationHistory: Content[] = [
         {
           role: 'model',
-          parts: [{ text: 'I\'m not sure how to proceed' }]
-        }
+          parts: [{ text: "I'm not sure how to proceed" }],
+        },
       ];
 
       const context = await service.generateEnhancedContext(
         userMessage,
         conversationHistory,
-        ContextType.BLOCKED
+        ContextType.BLOCKED,
       );
 
       expect(context.contextType).toBe(ContextType.BLOCKED);
       expect(context.selfReflectionPrompts).toBeDefined();
-      expect(context.selfReflectionPrompts).toContain('SELF-REFLECTION PROMPTS');
+      expect(context.selfReflectionPrompts).toContain(
+        'SELF-REFLECTION PROMPTS',
+      );
       expect(context.selfReflectionPrompts).toContain('sequential thinking');
       expect(context.formattedContext).toContain('Use Sequential Thinking');
     });
@@ -182,13 +203,19 @@ describe('EnhancedContextService', () => {
       // Clear cache first
       const service = new EnhancedContextService();
       service.clearWorkspaceCache();
-      
+
       // Mock fs for this test specifically
       const fs = await import('fs');
-      const mockReaddir = vi.fn().mockResolvedValue(['package.json', 'src', 'dist', 'README.md']);
+      const mockReaddir = vi
+        .fn()
+        .mockResolvedValue(['package.json', 'src', 'dist', 'README.md']);
       vi.mocked(fs.promises.readdir).mockImplementation(mockReaddir);
-      
-      const context = await service.generateEnhancedContext('Show me my workspace files', [], ContextType.USER_PROMPT);
+
+      const context = await service.generateEnhancedContext(
+        'Show me my workspace files',
+        [],
+        ContextType.USER_PROMPT,
+      );
 
       expect(context.workspaceInfo.currentDirectory).toBe('/test/workspace');
       // Since the mock might not be working as expected, let's be more flexible
@@ -205,7 +232,7 @@ describe('EnhancedContextService', () => {
       const context1 = await service.generateEnhancedContext(
         userMessage,
         conversationHistory,
-        ContextType.USER_PROMPT
+        ContextType.USER_PROMPT,
       );
 
       expect(context1.turnPlan).toBeDefined();
@@ -217,14 +244,14 @@ describe('EnhancedContextService', () => {
         ...conversationHistory,
         {
           role: 'model',
-          parts: [{ text: 'I\'ll use read_file to check existing code' }]
-        }
+          parts: [{ text: "I'll use read_file to check existing code" }],
+        },
       ];
 
       const context2 = await service.generateEnhancedContext(
         'Continue implementation',
         updatedHistory,
-        ContextType.TOOL_CALL
+        ContextType.TOOL_CALL,
       );
 
       expect(context2.turnPlan).toBeDefined();
@@ -241,18 +268,22 @@ describe('EnhancedContextService', () => {
       const context1 = await service.generateEnhancedContext(
         userMessage,
         conversationHistory,
-        ContextType.USER_PROMPT
+        ContextType.USER_PROMPT,
       );
 
       // Second call - should use cached data
       const context2 = await service.generateEnhancedContext(
         userMessage,
         conversationHistory,
-        ContextType.USER_PROMPT
+        ContextType.USER_PROMPT,
       );
 
-      expect(context1.workspaceInfo.currentDirectory).toBe(context2.workspaceInfo.currentDirectory);
-      expect(context1.workspaceInfo.directoryContents).toEqual(context2.workspaceInfo.directoryContents);
+      expect(context1.workspaceInfo.currentDirectory).toBe(
+        context2.workspaceInfo.currentDirectory,
+      );
+      expect(context1.workspaceInfo.directoryContents).toEqual(
+        context2.workspaceInfo.directoryContents,
+      );
     });
 
     it('should clear cache when requested', async () => {
@@ -262,7 +293,7 @@ describe('EnhancedContextService', () => {
       await service.generateEnhancedContext(
         userMessage,
         conversationHistory,
-        ContextType.USER_PROMPT
+        ContextType.USER_PROMPT,
       );
 
       // Clear cache
@@ -272,7 +303,7 @@ describe('EnhancedContextService', () => {
       const context = await service.generateEnhancedContext(
         userMessage,
         conversationHistory,
-        ContextType.USER_PROMPT
+        ContextType.USER_PROMPT,
       );
 
       expect(context.workspaceInfo).toBeDefined();
@@ -287,7 +318,7 @@ describe('EnhancedContextService', () => {
       const context = await service.generateEnhancedContext(
         userMessage,
         conversationHistory,
-        ContextType.USER_PROMPT
+        ContextType.USER_PROMPT,
       );
 
       expect(context.toolGuidance).toContain('ESSENTIAL TOOL USAGE REMINDERS');
@@ -300,21 +331,23 @@ describe('EnhancedContextService', () => {
       const conversationHistory: Content[] = [
         {
           role: 'model',
-          parts: [{ text: 'Using read_file to examine the code' }]
+          parts: [{ text: 'Using read_file to examine the code' }],
         },
         {
           role: 'function',
-          parts: [{ text: 'File content retrieved' }]
-        }
+          parts: [{ text: 'File content retrieved' }],
+        },
       ];
 
       const context = await service.generateEnhancedContext(
         userMessage,
         conversationHistory,
-        ContextType.TOOL_CALL
+        ContextType.TOOL_CALL,
       );
 
-      expect(context.toolGuidance).toContain('TOOL USAGE GUIDANCE FOR CURRENT CONTEXT');
+      expect(context.toolGuidance).toContain(
+        'TOOL USAGE GUIDANCE FOR CURRENT CONTEXT',
+      );
       expect(context.toolGuidance).toContain('Recently used tools');
     });
   });
@@ -328,7 +361,7 @@ describe('EnhancedContextService', () => {
       await service.generateEnhancedContext(
         userMessage,
         conversationHistory,
-        ContextType.USER_PROMPT
+        ContextType.USER_PROMPT,
       );
 
       // Reset turn plan
@@ -338,7 +371,7 @@ describe('EnhancedContextService', () => {
       const context = await service.generateEnhancedContext(
         'New task',
         [],
-        ContextType.USER_PROMPT
+        ContextType.USER_PROMPT,
       );
 
       expect(context.turnPlan?.objective).toBe('New task');

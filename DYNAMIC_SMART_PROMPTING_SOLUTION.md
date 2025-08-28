@@ -9,6 +9,7 @@ The user correctly identified that **static prompt-based solutions are insuffici
 ### **Dynamic Tool Selection Guidance System**
 
 A revolutionary **smart prompting system** that provides contextual tool guidance for each LLM interaction, analyzing:
+
 - **Current task context** (files, operation type, modification type)
 - **Conversation history** (previous failures, error patterns)
 - **Tool failure recovery** (adaptive recommendations after failures)
@@ -31,29 +32,32 @@ A revolutionary **smart prompting system** that provides contextual tool guidanc
 ### **Key Features**
 
 #### 🧠 **Intelligent Context Analysis**
+
 ```typescript
 interface TaskContext {
-  referencedFiles: string[];           // Auto-detected from conversation
+  referencedFiles: string[]; // Auto-detected from conversation
   operationType: 'modify' | 'create' | 'read' | 'search' | 'analyze';
   modificationType?: 'function' | 'class' | 'variable' | 'config';
-  hasRecentFailures: boolean;          // Detects tool failures
-  lastFailedTool?: string;             // Identifies which tool failed
-  recentErrors: string[];              // Error pattern analysis
+  hasRecentFailures: boolean; // Detects tool failures
+  lastFailedTool?: string; // Identifies which tool failed
+  recentErrors: string[]; // Error pattern analysis
 }
 ```
 
 #### 🎯 **Smart Tool Recommendations**
+
 ```typescript
 interface ToolRecommendation {
-  primaryTool: string;                 // Best tool for this context
-  alternatives: string[];              // Fallback options
-  reasoning: string;                   // Why this recommendation
-  usage: string;                       // How to use the tool
-  warnings?: string[];                 // Potential issues to avoid
+  primaryTool: string; // Best tool for this context
+  alternatives: string[]; // Fallback options
+  reasoning: string; // Why this recommendation
+  usage: string; // How to use the tool
+  warnings?: string[]; // Potential issues to avoid
 }
 ```
 
 #### 🔄 **Failure Recovery Logic**
+
 - **Replace Tool Failures** → Automatically recommends `upsert_code_block` or `ast_edit`
 - **Error Pattern Detection** → Learns from conversation history
 - **Context-Aware Switching** → Different strategies for code vs config files
@@ -61,6 +65,7 @@ interface ToolRecommendation {
 ## 📋 **Dynamic Guidance Examples**
 
 ### **Code File Modification**
+
 ```
 ## CONTEXTUAL TOOL GUIDANCE FOR THIS INTERACTION
 
@@ -83,6 +88,7 @@ Use upsert_code_block to replace/insert complete functions or classes
 ```
 
 ### **After Replace Tool Failure**
+
 ```
 ## CONTEXTUAL TOOL GUIDANCE FOR THIS INTERACTION
 
@@ -107,32 +113,37 @@ Use upsert_code_block to replace/insert complete functions or classes
 ## 🧪 **Testing & Validation**
 
 ### **Comprehensive Test Suite**
+
 - ✅ **Unit Tests**: `toolSelectionGuidance.test.ts` (8 test cases)
 - ✅ **Integration Tests**: `promptContextManager.integration.test.ts` (6 test cases)
 - ✅ **Edge Cases**: File type detection, error recovery, complex scenarios
 
 ### **Test Coverage**
+
 ```bash
 # All tests passing
  ✓ ToolSelectionGuidance (8 tests)
  ✓ PromptContextManager Integration (6 tests)
- 
+
 Total: 14 tests passed
 ```
 
 ## 🔧 **Implementation Details**
 
 ### **File Pattern Detection**
+
 - **Regex Patterns**: Automatically extracts file references from quotes, backticks, paths
 - **File Type Classification**: Distinguishes code files (.ts, .js, .py) from config files (.json, .yml)
 - **Context Enrichment**: Uses file types to influence tool recommendations
 
 ### **Error Pattern Matching**
+
 - **Failure Keywords**: "Error:", "Failed:", "could not", "multiple matches", "not found"
 - **Tool Attribution**: Links errors to specific tools (replace, ast_edit, etc.)
 - **Historical Analysis**: Examines last 6 messages for failure patterns
 
 ### **Smart Defaults**
+
 - **Code Files** → `upsert_code_block` (structural changes) or `ast_edit` (precise modifications)
 - **Config Files** → `replace` (with sufficient context warnings)
 - **New Files** → `write_file`
@@ -141,16 +152,19 @@ Total: 14 tests passed
 ## 🚀 **Production Ready**
 
 ### **Performance Optimized**
+
 - **Minimal Overhead**: Lightweight analysis, no external API calls
 - **Token Efficient**: Compact guidance format to preserve context budget
 - **Memory Safe**: Stateless design, no persistent state
 
 ### **Error Resilient**
+
 - **Graceful Degradation**: Works even if RAG service fails
 - **Fallback Guidance**: Always provides tool recommendations
 - **Safe Defaults**: Conservative recommendations when uncertain
 
 ### **Maintainable**
+
 - **Modular Design**: Separate service for easy testing and updates
 - **Type Safety**: Full TypeScript with comprehensive interfaces
 - **Documentation**: Inline comments and comprehensive README
@@ -165,6 +179,7 @@ This solution **revolutionizes** the tool selection process by:
 4. **Zero User Intervention**: Completely autonomous operation
 
 The LLM now receives **intelligent, contextual guidance** for every interaction, ensuring it selects the most appropriate tool based on:
+
 - Current task requirements
 - File types involved
 - Previous success/failure history
@@ -175,6 +190,7 @@ The LLM now receives **intelligent, contextual guidance** for every interaction,
 ## 🔄 **Next Steps**
 
 The system is **production-ready** and will automatically improve tool selection for all LLM interactions. Future enhancements could include:
+
 - Machine learning-based tool preference learning
 - Integration with code complexity metrics
 - User preference customization

@@ -60,19 +60,20 @@ export const ConversationTokenDisplay: React.FC<
         const tokenPromises = [
           Promise.race([
             getCurrentTokenCount(),
-            new Promise<number>((_, reject) => 
-              setTimeout(() => reject(new Error('Timeout')), 2000)
-            )
+            new Promise<number>((_, reject) =>
+              setTimeout(() => reject(new Error('Timeout')), 2000),
+            ),
           ]),
           Promise.race([
             getLastMessageTokenCount(),
-            new Promise<number>((_, reject) => 
-              setTimeout(() => reject(new Error('Timeout')), 2000)
-            )
-          ])
+            new Promise<number>((_, reject) =>
+              setTimeout(() => reject(new Error('Timeout')), 2000),
+            ),
+          ]),
         ];
 
-        const [currentTokens, lastMessageTokens] = await Promise.all(tokenPromises);
+        const [currentTokens, lastMessageTokens] =
+          await Promise.all(tokenPromises);
 
         if (isMountedRef.current) {
           setCurrentTokenCount(currentTokens);
@@ -87,7 +88,12 @@ export const ConversationTokenDisplay: React.FC<
         }
       }
     }, 200); // Reduced debounce delay for better responsiveness
-  }, [getCurrentTokenCount, getLastMessageTokenCount, totalPromptTokens, lastPromptTokenCount]);
+  }, [
+    getCurrentTokenCount,
+    getLastMessageTokenCount,
+    totalPromptTokens,
+    lastPromptTokenCount,
+  ]);
 
   // Load tokens on mount
   useEffect(() => {

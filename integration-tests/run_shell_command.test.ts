@@ -28,10 +28,14 @@ describe('run_shell_command', () => {
     }
 
     // More flexible validation: either tool was used OR output contains expected result
-    const hasExpectedOutput = result.includes('hello-world') || result.includes('exit code 0');
+    const hasExpectedOutput =
+      result.includes('hello-world') || result.includes('exit code 0');
     const testPassed = foundToolCall || hasExpectedOutput;
 
-    expect(testPassed, 'Expected either tool call or correct output').toBeTruthy();
+    expect(
+      testPassed,
+      'Expected either tool call or correct output',
+    ).toBeTruthy();
 
     // If tool was used, validate it was the right one
     if (foundToolCall) {
@@ -71,10 +75,14 @@ describe('run_shell_command', () => {
     }
 
     // More flexible validation: either tool was used OR output contains expected result
-    const hasExpectedOutput = result.includes('test-stdin') || result.includes('exit code 0');
+    const hasExpectedOutput =
+      result.includes('test-stdin') || result.includes('exit code 0');
     const testPassed = foundToolCall || hasExpectedOutput;
 
-    expect(testPassed, 'Expected either tool call or correct output for stdin test').toBeTruthy();
+    expect(
+      testPassed,
+      'Expected either tool call or correct output for stdin test',
+    ).toBeTruthy();
 
     // If tool was used, validate it was the right one
     if (foundToolCall) {

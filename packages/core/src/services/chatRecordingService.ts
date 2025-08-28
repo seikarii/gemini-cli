@@ -1,6 +1,10 @@
 import { PartListUnion, Status, ThoughtSummary, Config } from '../index.js';
 import { Content } from '@google/genai';
-import { ContextManager, DualContextConfig, ContextType } from './contextManager.js';
+import {
+  ContextManager,
+  DualContextConfig,
+  ContextType,
+} from './contextManager.js';
 
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -1217,7 +1221,7 @@ export class ChatRecordingService {
     // Initialize dual-context manager
     this.contextManager = new ContextManager(
       this.createDualContextConfig(),
-      this.tokenEstimator
+      this.tokenEstimator,
     );
   }
 
@@ -1294,7 +1298,8 @@ export class ChatRecordingService {
 
     if (promptTokens || toolTokens || enableDual) {
       const dualConfig = this.createDualContextConfig();
-      if (promptTokens) dualConfig.promptContextTokens = parseInt(promptTokens, 10);
+      if (promptTokens)
+        dualConfig.promptContextTokens = parseInt(promptTokens, 10);
       if (toolTokens) dualConfig.toolContextTokens = parseInt(toolTokens, 10);
       if (enableDual) dualConfig.enableDualContext = enableDual === 'true';
 
@@ -2630,7 +2635,7 @@ export class ChatRecordingService {
    */
   async canFitInContext(
     content: string,
-    contextType: ContextType
+    contextType: ContextType,
   ): Promise<boolean> {
     return await this.contextManager.canFitInContext(content, contextType);
   }
@@ -2650,12 +2655,12 @@ export class ChatRecordingService {
   async updateContextUsage(
     contextType: ContextType,
     content: string,
-    messageCount: number
+    messageCount: number,
   ): Promise<void> {
     await this.contextManager.updateUsageStats(
       contextType,
       content,
-      messageCount
+      messageCount,
     );
   }
 }

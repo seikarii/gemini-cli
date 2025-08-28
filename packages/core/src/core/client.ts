@@ -844,7 +844,10 @@ export class GeminiClient {
       return null;
     }
 
-    console.warn(`Model ${currentModel} not supported, falling back to ${fallbackModel}:`, error);
+    console.warn(
+      `Model ${currentModel} not supported, falling back to ${fallbackModel}:`,
+      error,
+    );
 
     // Update the model in config
     this.config.setModel(fallbackModel);

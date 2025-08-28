@@ -24,30 +24,58 @@ export class DualContextEnvironmentConfig {
     }
 
     // Load from environment variables with intelligent defaults
-    const enableDualContext = process.env.GEMINI_ENABLE_DUAL_CONTEXT === 'true' || true; // Default enabled
-    
+    const enableDualContext =
+      process.env.GEMINI_ENABLE_DUAL_CONTEXT === 'true' || true; // Default enabled
+
     // Long-term memory configuration (for analysis, reasoning, comprehensive understanding)
-    const longTermModel = process.env.GEMINI_LONG_TERM_MODEL || 'gemini-2.5-pro';
-    const longTermMaxTokens = parseInt(process.env.GEMINI_LONG_TERM_TOKENS || '1000000', 10);
-    const longTermRAGChunks = parseInt(process.env.GEMINI_LONG_TERM_RAG_CHUNKS || '20', 10);
-    
+    const longTermModel =
+      process.env.GEMINI_LONG_TERM_MODEL || 'gemini-2.5-pro';
+    const longTermMaxTokens = parseInt(
+      process.env.GEMINI_LONG_TERM_TOKENS || '1000000',
+      10,
+    );
+    const longTermRAGChunks = parseInt(
+      process.env.GEMINI_LONG_TERM_RAG_CHUNKS || '20',
+      10,
+    );
+
     // Short-term memory configuration (for tool execution, immediate responses)
-    const shortTermModel = process.env.GEMINI_SHORT_TERM_MODEL || 'gemini-2.5-flash';
-    const shortTermMaxTokens = parseInt(process.env.GEMINI_SHORT_TERM_TOKENS || '28000', 10);
-    const shortTermMessages = parseInt(process.env.GEMINI_SHORT_TERM_MESSAGES || '10', 10);
-    
+    const shortTermModel =
+      process.env.GEMINI_SHORT_TERM_MODEL || 'gemini-2.5-flash';
+    const shortTermMaxTokens = parseInt(
+      process.env.GEMINI_SHORT_TERM_TOKENS || '28000',
+      10,
+    );
+    const shortTermMessages = parseInt(
+      process.env.GEMINI_SHORT_TERM_MESSAGES || '10',
+      10,
+    );
+
     // Compression and switching configuration
-    const longTermThreshold = parseInt(process.env.GEMINI_LONG_TERM_THRESHOLD || '80', 10);
-    const shortTermThreshold = parseInt(process.env.GEMINI_SHORT_TERM_THRESHOLD || '70', 10);
-    const enableSmartSwitching = process.env.GEMINI_ENABLE_SMART_SWITCHING !== 'false'; // Default enabled
+    const longTermThreshold = parseInt(
+      process.env.GEMINI_LONG_TERM_THRESHOLD || '80',
+      10,
+    );
+    const shortTermThreshold = parseInt(
+      process.env.GEMINI_SHORT_TERM_THRESHOLD || '70',
+      10,
+    );
+    const enableSmartSwitching =
+      process.env.GEMINI_ENABLE_SMART_SWITCHING !== 'false'; // Default enabled
 
     // Validate token limits against model capabilities
     const longTermModelLimit = tokenLimit(longTermModel);
     const shortTermModelLimit = tokenLimit(shortTermModel);
 
     // Ensure token limits don't exceed model capabilities
-    const validatedLongTermTokens = Math.min(longTermMaxTokens, longTermModelLimit);
-    const validatedShortTermTokens = Math.min(shortTermMaxTokens, shortTermModelLimit);
+    const validatedLongTermTokens = Math.min(
+      longTermMaxTokens,
+      longTermModelLimit,
+    );
+    const validatedShortTermTokens = Math.min(
+      shortTermMaxTokens,
+      shortTermModelLimit,
+    );
 
     this.config = {
       enableDualContext,
@@ -164,26 +192,36 @@ export class DualContextEnvironmentConfig {
     // Check long-term memory configuration
     const longTermLimit = tokenLimit(config.longTermMemory.model);
     if (config.longTermMemory.maxTokens > longTermLimit) {
-      warnings.push(`Long-term memory tokens (${config.longTermMemory.maxTokens}) exceed model limit (${longTermLimit})`);
+      warnings.push(
+        `Long-term memory tokens (${config.longTermMemory.maxTokens}) exceed model limit (${longTermLimit})`,
+      );
     }
 
     if (config.longTermMemory.maxTokens < 500_000) {
-      recommendations.push('Consider increasing long-term memory tokens to at least 500K for better analysis capability');
+      recommendations.push(
+        'Consider increasing long-term memory tokens to at least 500K for better analysis capability',
+      );
     }
 
     // Check short-term memory configuration
     const shortTermLimit = tokenLimit(config.shortTermMemory.model);
     if (config.shortTermMemory.maxTokens > shortTermLimit) {
-      warnings.push(`Short-term memory tokens (${config.shortTermMemory.maxTokens}) exceed model limit (${shortTermLimit})`);
+      warnings.push(
+        `Short-term memory tokens (${config.shortTermMemory.maxTokens}) exceed model limit (${shortTermLimit})`,
+      );
     }
 
     if (config.shortTermMemory.maxTokens > 50_000) {
-      recommendations.push('Consider reducing short-term memory tokens for faster tool execution');
+      recommendations.push(
+        'Consider reducing short-term memory tokens for faster tool execution',
+      );
     }
 
     // Check model selection
     if (config.longTermMemory.model === config.shortTermMemory.model) {
-      recommendations.push('Consider using different models for long-term (Pro) and short-term (Flash) memory for optimal performance');
+      recommendations.push(
+        'Consider using different models for long-term (Pro) and short-term (Flash) memory for optimal performance',
+      );
     }
 
     return {
@@ -203,7 +241,7 @@ export function getDualContextConfig(): DualContextConfig {
 
 /**
  * Environment variables documentation:
- * 
+ *
  * GEMINI_ENABLE_DUAL_CONTEXT=true          # Enable dual-context strategy
  * GEMINI_LONG_TERM_MODEL=gemini-2.5-pro    # Model for analysis and reasoning
  * GEMINI_LONG_TERM_TOKENS=1000000          # Max tokens for long-term memory

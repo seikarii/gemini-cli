@@ -12,10 +12,10 @@ import * as fs from 'fs';
  * Context type for different interaction scenarios
  */
 export enum ContextType {
-  USER_PROMPT = 'user_prompt',           // Initial user request
-  TOOL_CALL = 'tool_call',              // After tool usage
-  PLANNING = 'planning',                 // When LLM needs to plan
-  BLOCKED = 'blocked'                    // When LLM seems stuck
+  USER_PROMPT = 'user_prompt', // Initial user request
+  TOOL_CALL = 'tool_call', // After tool usage
+  PLANNING = 'planning', // When LLM needs to plan
+  BLOCKED = 'blocked', // When LLM seems stuck
 }
 
 /**
@@ -88,7 +88,7 @@ export class EnhancedContextService {
    */
   determineContextType(
     userMessage: string,
-    conversationHistory: Content[]
+    conversationHistory: Content[],
   ): ContextType {
     // Check if this needs planning first (before other checks)
     if (this.needsPlanning(userMessage, conversationHistory)) {
@@ -121,13 +121,16 @@ export class EnhancedContextService {
   async generateEnhancedContext(
     userMessage: string,
     conversationHistory: Content[],
-    contextType: ContextType
+    contextType: ContextType,
   ): Promise<EnhancedContext> {
     const workspaceInfo = await this.getWorkspaceInfo();
-    const toolGuidance = this.generateToolGuidance(conversationHistory, contextType);
-    
+    const toolGuidance = this.generateToolGuidance(
+      conversationHistory,
+      contextType,
+    );
+
     let turnPlan = this.getCurrentTurnPlan();
-    
+
     // Update or create turn plan based on context type
     if (contextType === ContextType.USER_PROMPT && !turnPlan) {
       turnPlan = this.createNewTurnPlan(userMessage, workspaceInfo);
@@ -135,9 +138,10 @@ export class EnhancedContextService {
       turnPlan = this.updateTurnPlan(turnPlan, conversationHistory);
     }
 
-    const selfReflectionPrompts = contextType === ContextType.BLOCKED 
-      ? this.generateSelfReflectionPrompts() 
-      : undefined;
+    const selfReflectionPrompts =
+      contextType === ContextType.BLOCKED
+        ? this.generateSelfReflectionPrompts()
+        : undefined;
 
     const formattedContext = this.formatEnhancedContext({
       contextType,
@@ -146,7 +150,7 @@ export class EnhancedContextService {
       toolGuidance,
       selfReflectionPrompts,
       userMessage,
-      conversationHistory
+      conversationHistory,
     });
 
     return {
@@ -155,7 +159,7 @@ export class EnhancedContextService {
       workspaceInfo,
       toolGuidance,
       selfReflectionPrompts,
-      formattedContext
+      formattedContext,
     };
   }
 
@@ -163,13 +167,15 @@ export class EnhancedContextService {
    * Checks if there are recent tool calls in conversation
    */
   private hasRecentToolCalls(recentHistory: Content[]): boolean {
-    return recentHistory.some(content => {
+    return recentHistory.some((content) => {
       const text = this.extractTextFromContent(content);
-      return text.includes('function_call') || 
-             text.includes('tool_call') ||
-             text.match(/\[.*Tool.*\]/i) ||
-             text.includes('```') || // Often indicates tool output
-             content.role === 'function';
+      return (
+        text.includes('function_call') ||
+        text.includes('tool_call') ||
+        text.match(/\[.*Tool.*\]/i) ||
+        text.includes('```') || // Often indicates tool output
+        content.role === 'function'
+      );
     });
   }
 
@@ -178,26 +184,34 @@ export class EnhancedContextService {
    */
   private detectIfBlocked(recentHistory: Content[]): boolean {
     const modelMessages = recentHistory
-      .filter(c => c.role === 'model')
-      .map(c => this.extractTextFromContent(c))
+      .filter((c) => c.role === 'model')
+      .map((c) => this.extractTextFromContent(c))
       .slice(-3);
 
     if (modelMessages.length < 2) return false;
 
     // Check for repetitive patterns
-    const hasRepetition = modelMessages.some((msg, i) => 
-      i > 0 && this.calculateSimilarity(msg, modelMessages[i-1]) > 0.7
+    const hasRepetition = modelMessages.some(
+      (msg, i) =>
+        i > 0 && this.calculateSimilarity(msg, modelMessages[i - 1]) > 0.7,
     );
 
     // Check for confusion indicators
     const confusionMarkers = [
-      'not sure', 'unclear', 'confused', 'don\'t understand',
-      'could you clarify', 'i\'m having trouble', 'not working',
-      'error', 'failed', 'unable to'
+      'not sure',
+      'unclear',
+      'confused',
+      "don't understand",
+      'could you clarify',
+      "i'm having trouble",
+      'not working',
+      'error',
+      'failed',
+      'unable to',
     ];
 
-    const hasConfusion = modelMessages.some(msg =>
-      confusionMarkers.some(marker => msg.toLowerCase().includes(marker))
+    const hasConfusion = modelMessages.some((msg) =>
+      confusionMarkers.some((marker) => msg.toLowerCase().includes(marker)),
     );
 
     return hasRepetition || hasConfusion;
@@ -208,26 +222,40 @@ export class EnhancedContextService {
    */
   private isUserInitiatedMessage(userMessage: string): boolean {
     const continuationPatterns = [
-      'continue', 'next', 'go on', 'proceed', 'keep going',
-      'what\'s next', 'then what', 'after that'
+      'continue',
+      'next',
+      'go on',
+      'proceed',
+      'keep going',
+      "what's next",
+      'then what',
+      'after that',
     ];
 
-    return !continuationPatterns.some(pattern => 
-      userMessage.toLowerCase().includes(pattern)
+    return !continuationPatterns.some((pattern) =>
+      userMessage.toLowerCase().includes(pattern),
     );
   }
 
   /**
    * Checks if LLM needs planning help
    */
-  private needsPlanning(userMessage: string, _recentHistory: Content[]): boolean {
+  private needsPlanning(
+    userMessage: string,
+    _recentHistory: Content[],
+  ): boolean {
     const planningKeywords = [
-      'how should i', 'what should i do', 'plan', 'approach',
-      'strategy', 'next steps', 'how to proceed'
+      'how should i',
+      'what should i do',
+      'plan',
+      'approach',
+      'strategy',
+      'next steps',
+      'how to proceed',
     ];
 
-    return planningKeywords.some(keyword => 
-      userMessage.toLowerCase().includes(keyword)
+    return planningKeywords.some((keyword) =>
+      userMessage.toLowerCase().includes(keyword),
     );
   }
 
@@ -236,14 +264,14 @@ export class EnhancedContextService {
    */
   private async getWorkspaceInfo(): Promise<WorkspaceInfo> {
     const now = Date.now();
-    if (this.workspaceCache && (now - this.lastCacheTime) < this.cacheTimeout) {
+    if (this.workspaceCache && now - this.lastCacheTime < this.cacheTimeout) {
       return this.workspaceCache;
     }
 
     const currentDirectory = process.cwd();
     let directoryContents: string[] = [];
     let gitInfo;
-    
+
     try {
       directoryContents = await fs.promises.readdir(currentDirectory);
       directoryContents = directoryContents.slice(0, 20); // Limit to avoid clutter
@@ -255,20 +283,20 @@ export class EnhancedContextService {
     // Try to get git info
     try {
       const { execSync } = await import('child_process');
-      const branch = execSync('git branch --show-current', { 
-        cwd: currentDirectory, 
-        encoding: 'utf8' 
+      const branch = execSync('git branch --show-current', {
+        cwd: currentDirectory,
+        encoding: 'utf8',
       }).trim();
-      
-      const status = execSync('git status --porcelain', { 
-        cwd: currentDirectory, 
-        encoding: 'utf8' 
+
+      const status = execSync('git status --porcelain', {
+        cwd: currentDirectory,
+        encoding: 'utf8',
       }).trim();
 
       gitInfo = {
         branch,
         status: status || 'clean',
-        hasChanges: status.length > 0
+        hasChanges: status.length > 0,
       };
     } catch (_error) {
       // Not a git repo or git not available
@@ -279,32 +307,36 @@ export class EnhancedContextService {
     try {
       const files = await fs.promises.readdir(currentDirectory);
       const fileStats = await Promise.all(
-        files.slice(0, 50).map(async file => {
+        files.slice(0, 50).map(async (file) => {
           try {
-            const stat = await fs.promises.stat(path.join(currentDirectory, file));
+            const stat = await fs.promises.stat(
+              path.join(currentDirectory, file),
+            );
             return { file, mtime: stat.mtime };
           } catch {
             return null;
           }
-        })
+        }),
       );
 
       recentFiles = fileStats
-        .filter(item => item !== null && !item.file.startsWith('.'))
+        .filter((item) => item !== null && !item.file.startsWith('.'))
         .sort((a, b) => b!.mtime.getTime() - a!.mtime.getTime())
         .slice(0, 10)
-        .map(item => item!.file);
+        .map((item) => item!.file);
     } catch (_error) {
       console.warn('Could not get recent files:', _error);
     }
 
     this.workspaceCache = {
       currentDirectory,
-      directoryContents: directoryContents.filter(item => !item.startsWith('.')),
+      directoryContents: directoryContents.filter(
+        (item) => !item.startsWith('.'),
+      ),
       gitInfo,
-      recentFiles
+      recentFiles,
     };
-    
+
     this.lastCacheTime = now;
     return this.workspaceCache;
   }
@@ -314,11 +346,11 @@ export class EnhancedContextService {
    */
   private generateToolGuidance(
     conversationHistory: Content[],
-    contextType: ContextType
+    contextType: ContextType,
   ): string {
     const recentHistory = conversationHistory.slice(-5);
     const usedTools = this.extractUsedTools(recentHistory);
-    
+
     if (contextType === ContextType.USER_PROMPT) {
       return this.getGeneralToolGuidance();
     }
@@ -331,11 +363,11 @@ export class EnhancedContextService {
       '## TOOL USAGE GUIDANCE FOR CURRENT CONTEXT',
       '',
       `Recently used tools: ${usedTools.join(', ')}`,
-      ''
+      '',
     ];
 
     // Add specific guidance for each used tool
-    usedTools.forEach(tool => {
+    usedTools.forEach((tool) => {
       const guidance = this.getSpecificToolGuidance(tool);
       if (guidance) {
         guidanceParts.push(`### ${tool}:`);
@@ -361,14 +393,16 @@ export class EnhancedContextService {
       /ls|list/gi,
       /upsert[_-]code/gi,
       /ast[_-]edit/gi,
-      /sequential[_-]thinking/gi
+      /sequential[_-]thinking/gi,
     ];
 
-    recentHistory.forEach(content => {
+    recentHistory.forEach((content) => {
       const text = this.extractTextFromContent(content);
-      toolPatterns.forEach(pattern => {
+      toolPatterns.forEach((pattern) => {
         if (pattern.test(text)) {
-          const match = pattern.source.replace(/[gi]/g, '').replace(/[_-]/g, '_');
+          const match = pattern.source
+            .replace(/[gi]/g, '')
+            .replace(/[_-]/g, '_');
           tools.add(match);
         }
       });
@@ -409,14 +443,20 @@ export class EnhancedContextService {
    */
   private getSpecificToolGuidance(tool: string): string | null {
     const guides: Record<string, string> = {
-      'read_file': '- Always use absolute paths\n- Check file exists with ls first',
-      'write_file': '- Use absolute paths\n- Provide complete file content\n- Create directories if needed',
-      'edit': '- Include 3-5 lines of context before/after\n- Exact text matching required\n- Use absolute paths',
-      'replace': '- Same as edit - exact matching with context\n- If failing, try upsert_code_block instead',
-      'shell': '- Use absolute paths in commands\n- Check current directory with pwd\n- Use && for command chaining',
-      'grep': '- Use absolute paths or relative from current dir\n- Include file patterns for better results',
-      'upsert_code': '- Best for code structure changes\n- Automatically handles context\n- Use for functions/classes',
-      'sequential_thinking': '- Use when stuck or need to plan\n- Break down complex problems\n- Reflect on progress'
+      read_file:
+        '- Always use absolute paths\n- Check file exists with ls first',
+      write_file:
+        '- Use absolute paths\n- Provide complete file content\n- Create directories if needed',
+      edit: '- Include 3-5 lines of context before/after\n- Exact text matching required\n- Use absolute paths',
+      replace:
+        '- Same as edit - exact matching with context\n- If failing, try upsert_code_block instead',
+      shell:
+        '- Use absolute paths in commands\n- Check current directory with pwd\n- Use && for command chaining',
+      grep: '- Use absolute paths or relative from current dir\n- Include file patterns for better results',
+      upsert_code:
+        '- Best for code structure changes\n- Automatically handles context\n- Use for functions/classes',
+      sequential_thinking:
+        '- Use when stuck or need to plan\n- Break down complex problems\n- Reflect on progress',
     };
 
     return guides[tool] || null;
@@ -425,9 +465,12 @@ export class EnhancedContextService {
   /**
    * Creates a new turn plan for fresh user requests
    */
-  private createNewTurnPlan(userMessage: string, workspaceInfo: WorkspaceInfo): TurnPlan {
+  private createNewTurnPlan(
+    userMessage: string,
+    workspaceInfo: WorkspaceInfo,
+  ): TurnPlan {
     const steps = this.parseStepsFromMessage(userMessage);
-    
+
     this.currentTurnPlan = {
       objective: userMessage,
       currentStep: 0,
@@ -435,7 +478,7 @@ export class EnhancedContextService {
       toolsUsed: [],
       workingDirectory: workspaceInfo.currentDirectory,
       activeFiles: [],
-      status: 'Starting'
+      status: 'Starting',
     };
 
     return this.currentTurnPlan;
@@ -444,15 +487,26 @@ export class EnhancedContextService {
   /**
    * Updates existing turn plan based on recent actions
    */
-  private updateTurnPlan(turnPlan: TurnPlan, conversationHistory: Content[]): TurnPlan {
-    const recentActions = this.extractRecentActions(conversationHistory.slice(-5));
+  private updateTurnPlan(
+    turnPlan: TurnPlan,
+    conversationHistory: Content[],
+  ): TurnPlan {
+    const recentActions = this.extractRecentActions(
+      conversationHistory.slice(-5),
+    );
     const newToolsUsed = this.extractUsedTools(conversationHistory.slice(-3));
-    
+
     return {
       ...turnPlan,
       toolsUsed: [...new Set([...turnPlan.toolsUsed, ...newToolsUsed])],
-      currentStep: Math.min(turnPlan.currentStep + 1, turnPlan.steps.length - 1),
-      status: recentActions.length > 0 ? `Executed: ${recentActions.join(', ')}` : turnPlan.status
+      currentStep: Math.min(
+        turnPlan.currentStep + 1,
+        turnPlan.steps.length - 1,
+      ),
+      status:
+        recentActions.length > 0
+          ? `Executed: ${recentActions.join(', ')}`
+          : turnPlan.status,
     };
   }
 
@@ -504,22 +558,30 @@ If you're uncertain about the next steps, use the \`mcp_sequentialthi_sequential
       '',
       `**Context Type**: ${params.contextType.toUpperCase()}`,
       `**Working Directory**: \`${params.workspaceInfo.currentDirectory}\``,
-      ''
+      '',
     ];
 
     // Add turn plan if available
     if (params.turnPlan) {
       sections.push('## 📋 CURRENT TURN PLAN');
       sections.push(`**Objective**: ${params.turnPlan.objective}`);
-      sections.push(`**Progress**: Step ${params.turnPlan.currentStep + 1}/${params.turnPlan.steps.length}`);
+      sections.push(
+        `**Progress**: Step ${params.turnPlan.currentStep + 1}/${params.turnPlan.steps.length}`,
+      );
       sections.push(`**Status**: ${params.turnPlan.status}`);
-      sections.push(`**Tools Used**: ${params.turnPlan.toolsUsed.join(', ') || 'None yet'}`);
+      sections.push(
+        `**Tools Used**: ${params.turnPlan.toolsUsed.join(', ') || 'None yet'}`,
+      );
       sections.push('');
-      
+
       sections.push('**Planned Steps**:');
       params.turnPlan.steps.forEach((step, i) => {
-        const marker = i === params.turnPlan!.currentStep ? '👉' : 
-                     i < params.turnPlan!.currentStep ? '✅' : '⏸️';
+        const marker =
+          i === params.turnPlan!.currentStep
+            ? '👉'
+            : i < params.turnPlan!.currentStep
+              ? '✅'
+              : '⏸️';
         sections.push(`${marker} ${i + 1}. ${step}`);
       });
       sections.push('');
@@ -527,16 +589,25 @@ If you're uncertain about the next steps, use the \`mcp_sequentialthi_sequential
 
     // Add workspace info
     sections.push('## 📁 WORKSPACE CONTEXT');
-    sections.push(`**Current Directory**: \`${params.workspaceInfo.currentDirectory}\``);
-    
+    sections.push(
+      `**Current Directory**: \`${params.workspaceInfo.currentDirectory}\``,
+    );
+
     if (params.workspaceInfo.directoryContents.length > 0) {
       sections.push('**Directory Contents**:');
-      sections.push(params.workspaceInfo.directoryContents.slice(0, 15).map(item => `- ${item}`).join('\n'));
+      sections.push(
+        params.workspaceInfo.directoryContents
+          .slice(0, 15)
+          .map((item) => `- ${item}`)
+          .join('\n'),
+      );
       sections.push('');
     }
 
     if (params.workspaceInfo.gitInfo) {
-      sections.push(`**Git Info**: Branch \`${params.workspaceInfo.gitInfo.branch}\`, ${params.workspaceInfo.gitInfo.hasChanges ? 'Has changes' : 'Clean'}`);
+      sections.push(
+        `**Git Info**: Branch \`${params.workspaceInfo.gitInfo.branch}\`, ${params.workspaceInfo.gitInfo.hasChanges ? 'Has changes' : 'Clean'}`,
+      );
       sections.push('');
     }
 
@@ -551,7 +622,9 @@ If you're uncertain about the next steps, use the \`mcp_sequentialthi_sequential
     }
 
     sections.push('---');
-    sections.push('**Use this context to stay focused and make informed decisions!**');
+    sections.push(
+      '**Use this context to stay focused and make informed decisions!**',
+    );
     sections.push('');
 
     return sections.join('\n');
@@ -566,30 +639,42 @@ If you're uncertain about the next steps, use the \`mcp_sequentialthi_sequential
 
   private parseStepsFromMessage(message: string): string[] {
     // Simple step extraction - could be enhanced with NLP
-    if (message.includes('step') || message.includes('1.') || message.includes('first')) {
+    if (
+      message.includes('step') ||
+      message.includes('1.') ||
+      message.includes('first')
+    ) {
       // Try to extract numbered steps
       const stepMatches = message.match(/\d+\.\s*([^.]+)/g);
       if (stepMatches) {
-        return stepMatches.map(match => match.replace(/^\d+\.\s*/, '').trim());
+        return stepMatches.map((match) =>
+          match.replace(/^\d+\.\s*/, '').trim(),
+        );
       }
     }
 
     // Default breakdown for common requests
-    if (message.toLowerCase().includes('fix') || message.toLowerCase().includes('debug')) {
+    if (
+      message.toLowerCase().includes('fix') ||
+      message.toLowerCase().includes('debug')
+    ) {
       return [
         'Analyze the issue and identify root cause',
         'Implement the fix',
         'Test the solution',
-        'Verify everything works correctly'
+        'Verify everything works correctly',
       ];
     }
 
-    if (message.toLowerCase().includes('create') || message.toLowerCase().includes('build')) {
+    if (
+      message.toLowerCase().includes('create') ||
+      message.toLowerCase().includes('build')
+    ) {
       return [
         'Plan the structure and requirements',
-        'Implement the core functionality', 
+        'Implement the core functionality',
         'Add tests and documentation',
-        'Verify the implementation'
+        'Verify the implementation',
       ];
     }
 
@@ -598,20 +683,23 @@ If you're uncertain about the next steps, use the \`mcp_sequentialthi_sequential
       'Understand the requirement',
       'Plan the approach',
       'Implement the solution',
-      'Test and verify'
+      'Test and verify',
     ];
   }
 
   private extractRecentActions(recentHistory: Content[]): string[] {
     const actions: string[] = [];
-    
-    recentHistory.forEach(content => {
+
+    recentHistory.forEach((content) => {
       const text = this.extractTextFromContent(content);
       if (text.includes('read_file')) actions.push('file reading');
       if (text.includes('write_file')) actions.push('file creation');
-      if (text.includes('edit') || text.includes('replace')) actions.push('file editing');
-      if (text.includes('shell') || text.includes('terminal')) actions.push('shell commands');
-      if (text.includes('grep') || text.includes('search')) actions.push('searching');
+      if (text.includes('edit') || text.includes('replace'))
+        actions.push('file editing');
+      if (text.includes('shell') || text.includes('terminal'))
+        actions.push('shell commands');
+      if (text.includes('grep') || text.includes('search'))
+        actions.push('searching');
     });
 
     return [...new Set(actions)];
@@ -620,8 +708,8 @@ If you're uncertain about the next steps, use the \`mcp_sequentialthi_sequential
   private extractTextFromContent(content: Content): string {
     if (!content.parts) return '';
     return content.parts
-      .filter(part => part.text)
-      .map(part => part.text)
+      .filter((part) => part.text)
+      .map((part) => part.text)
       .join(' ')
       .trim();
   }
@@ -629,10 +717,10 @@ If you're uncertain about the next steps, use the \`mcp_sequentialthi_sequential
   private calculateSimilarity(str1: string, str2: string): number {
     const words1 = str1.toLowerCase().split(/\s+/);
     const words2 = str2.toLowerCase().split(/\s+/);
-    
-    const intersection = words1.filter(word => words2.includes(word));
+
+    const intersection = words1.filter((word) => words2.includes(word));
     const union = [...new Set([...words1, ...words2])];
-    
+
     return intersection.length / union.length;
   }
 

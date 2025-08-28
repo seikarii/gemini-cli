@@ -64,7 +64,10 @@ interface MockGeminiClient {
 }
 
 const MockedGeminiClientClass = vi.hoisted(() =>
-  vi.fn().mockImplementation(function (this: MockGeminiClient, _config: unknown) {
+  vi.fn().mockImplementation(function (
+    this: MockGeminiClient,
+    _config: unknown,
+  ) {
     // _config
     this.startChat = mockStartChat;
     this.sendMessageStream = mockSendMessageStream;
@@ -79,7 +82,7 @@ const MockedUserPromptEvent = vi.hoisted(() =>
 const mockParseAndFormatApiError = vi.hoisted(() => vi.fn());
 
 vi.mock('@google/gemini-cli-core', async (importOriginal) => {
-    const actualCoreModule = (await importOriginal()) as Record<string, unknown>;
+  const actualCoreModule = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actualCoreModule,
     GitService: vi.fn(),
@@ -91,7 +94,7 @@ vi.mock('@google/gemini-cli-core', async (importOriginal) => {
 
 const mockUseReactToolScheduler = useReactToolScheduler as Mock;
 vi.mock('./useReactToolScheduler.js', async (importOriginal) => {
-    const actualSchedulerModule = (await importOriginal()) as Record<
+  const actualSchedulerModule = (await importOriginal()) as Record<
     string,
     unknown
   >;
@@ -908,7 +911,14 @@ describe('useGeminiStream', () => {
 
     const simulateEscapeKeyPress = () => {
       act(() => {
-        keypressCallback({ name: 'escape', ctrl: false, meta: false, shift: false, paste: false, sequence: '\u001b' });
+        keypressCallback({
+          name: 'escape',
+          ctrl: false,
+          meta: false,
+          shift: false,
+          paste: false,
+          sequence: '\u001b',
+        });
       });
     };
 
