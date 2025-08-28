@@ -249,7 +249,7 @@ interface CoreToolSchedulerOptions {
   outputUpdateHandler?: OutputUpdateHandler;
   onAllToolCallsComplete?: AllToolCallsCompleteHandler;
   onToolCallsUpdate?: ToolCallsUpdateHandler;
-  getPreferredEditor: () => EditorType | undefined;
+  getPreferredEditor: () => Promise<EditorType | undefined>;
   onEditorClose: () => void;
   // Optional - if not provided a default LoopDetectionService will be constructed
   loopDetectionService?: LoopDetectionService;
@@ -261,7 +261,7 @@ export class CoreToolScheduler {
   private outputUpdateHandler?: OutputUpdateHandler;
   private onAllToolCallsComplete?: AllToolCallsCompleteHandler;
   private onToolCallsUpdate?: ToolCallsUpdateHandler;
-  private getPreferredEditor: () => EditorType | undefined;
+  private getPreferredEditor: () => Promise<EditorType | undefined>;
   private config: Config;
   private onEditorClose: () => void;
   private isFinalizingToolCalls = false;
@@ -879,7 +879,7 @@ export class CoreToolScheduler {
       const waitingToolCall = toolCall as WaitingToolCall;
       if (isModifiableDeclarativeTool(waitingToolCall.tool)) {
         const modifyContext = waitingToolCall.tool.getModifyContext(signal);
-        const editorType = this.getPreferredEditor();
+        const editorType = await this.getPreferredEditor();
         if (!editorType) {
           return;
         }

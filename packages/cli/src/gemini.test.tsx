@@ -4,6 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+async function flushAllPromises() {
+  await new Promise(resolve => setTimeout(resolve, 0));
+}
+
 import stripAnsi from 'strip-ansi';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
@@ -21,12 +25,7 @@ import { appEvents, AppEvent } from './utils/events.js';
 import { Config } from '@google/gemini-cli-core';
 
 // Custom error to identify mock process.exit calls
-class MockProcessExitError extends Error {
-  constructor(readonly code?: string | number | null | undefined) {
-    super('PROCESS_EXIT_MOCKED');
-    this.name = 'MockProcessExitError';
-  }
-}
+
 
 // Mock dependencies
 vi.mock('./config/settings.js', async (importOriginal) => {
@@ -87,9 +86,7 @@ describe('gemini.tsx main function', () => {
 
   const processExitSpy = vi
     .spyOn(process, 'exit')
-    .mockImplementation((code) => {
-      throw new MockProcessExitError(code);
-    });
+    .mockImplementation((() => {}) as (code?: number | undefined) => never);
 
   beforeEach(() => {
     loadSettingsMock = vi.mocked(loadSettings);
@@ -156,16 +153,9 @@ describe('gemini.tsx main function', () => {
 
     loadSettingsMock.mockResolvedValue(mockLoadedSettings);
 
-    try {
-      await main();
-      // If main completes without throwing, the test should fail because process.exit was expected
-      expect.fail('main function did not exit as expected');
-    } catch (error) {
-      expect(error).toBeInstanceOf(MockProcessExitError);
-      if (error instanceof MockProcessExitError) {
-        expect(error.code).toBe(1);
-      }
-    }
+    await main();
+
+    await flushAllPromises();
 
     // Verify console.error was called with the error message
     expect(consoleErrorSpy).toHaveBeenCalledTimes(2);

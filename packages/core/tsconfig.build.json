@@ -4,7 +4,7 @@
     "composite": true,
     "declaration": true,
     "declarationMap": false,
-    "noEmit": true,
+    "outDir": "dist",
     "target": "ES2019",
     "lib": ["ES2019", "DOM"],
     "module": "nodenext",

@@ -18,7 +18,7 @@
 // limitations under the License.
 
 import { execSync } from 'child_process';
-import { writeFileSync } from 'fs';
+import { writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 if (!process.cwd().includes('packages')) {
@@ -28,7 +28,10 @@ if (!process.cwd().includes('packages')) {
 
 // build typescript files
 execSync('find . -name "*.tsbuildinfo" -delete', { stdio: 'inherit' });
-execSync('npx tsc --build', { stdio: 'inherit' });
+// Use tsconfig.build.json if it exists, otherwise fallback to default tsconfig.json
+const buildConfig = existsSync('tsconfig.build.json') ? 'tsconfig.build.json' : 'tsconfig.json';
+const tscCommand = `npx tsc --project ${buildConfig}`;
+execSync(tscCommand, { stdio: 'inherit' });
 
 // copy .{md,json} files
 execSync('node ../../scripts/copy_files.js', { stdio: 'inherit' });

@@ -54,7 +54,7 @@ describe('useEditorSettings', () => {
     mockAddItem = vi.fn();
 
     // Reset mock implementations to default
-    mockCheckHasEditorType.mockReturnValue(true);
+    mockCheckHasEditorType.mockReturnValue(Promise.resolve(true));
     mockAllowEditorTypeInSandbox.mockReturnValue(true);
   });
 
@@ -217,7 +217,7 @@ describe('useEditorSettings', () => {
       useEditorSettings(mockLoadedSettings, mockSetEditorError, mockAddItem),
     );
 
-    mockCheckHasEditorType.mockReturnValue(false);
+    mockCheckHasEditorType.mockReturnValue(Promise.resolve(false));
 
     const editorType: EditorType = 'vscode';
     const scope = SettingScope.User;

@@ -182,7 +182,7 @@ describe('useReactToolScheduler in YOLO Mode', () => {
         onComplete,
         mockConfig as unknown as Config,
         setPendingHistoryItem,
-        () => undefined,
+        async () => undefined,
         () => {},
       ),
     );
@@ -337,7 +337,7 @@ describe('useReactToolScheduler', () => {
         onComplete,
         mockConfig as unknown as Config,
         setPendingHistoryItem,
-        () => undefined,
+        async () => undefined,
         () => {},
       ),
     );

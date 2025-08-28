@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto';
  * Base error class for chat recording errors.
  */
 export class ChatRecordingError extends Error {
-  override cause?: Error;
+  cause?: Error;
   constructor(message: string, cause?: Error) {
     super(message);
     this.name = 'ChatRecordingError';
@@ -1856,7 +1856,7 @@ export class ChatRecordingService {
   private getLastMessage(
     conversation: ConversationRecord,
   ): MessageRecord | undefined {
-    return conversation.messages.at(-1);
+    return conversation.messages[conversation.messages.length - 1];
   }
 
   private newMessage(
@@ -2455,7 +2455,7 @@ export class ChatRecordingService {
     }
 
     const conversation = await this.readConversation();
-    const lastMessage = conversation.messages.at(-1);
+    const lastMessage = conversation.messages[conversation.messages.length - 1];
 
     if (!lastMessage) {
       return 0;
