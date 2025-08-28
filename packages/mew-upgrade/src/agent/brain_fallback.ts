@@ -8,15 +8,42 @@
  * @file Data structures for BrainFallback, translated from Python.
  */
 
+// Context type for various operations
+export type ContextData = Record<string, unknown>;
+
+// Specific context for emotional evaluation
+export interface EmotionalContext extends ContextData {
+  threat?: number;
+  opportunity?: number;
+  progress?: number;
+  detailed_physiological_state?: {
+    feedback_modifiers?: {
+      valence?: number;
+      arousal?: number;
+      dopamine?: number;
+    };
+    stress_level?: number;
+    fatigue_level?: number;
+    energy_level?: number;
+  };
+}
+
+// Working memory item type
+export type WorkingMemoryItem = ContextData;
+
+// Tool execution types
+export type ToolParams = ContextData;
+export type ToolResult = ContextData;
+
 export interface FilmNode {
   id: string;
   action: string;
-  params?: Record<string, any>;
+  params?: ContextData;
   cost_energy?: number;
   expected_reward?: number;
   last_outcome?: number;
   ts_last?: number; // Timestamp in seconds (Python time.time())
-  meta?: Record<string, any>;
+  meta?: ContextData;
   usage_count?: number;
 }
 
@@ -24,20 +51,20 @@ export interface CognitiveAlarm {
   name: string;
   trigger_after_s?: number;
   last_reset_ts?: number; // Timestamp in seconds
-  condition?: (ctx: Record<string, any>) => boolean;
-  on_fire?: (ctx: Record<any, any>) => void; // Changed to any for now, will refine later
+  condition?: (ctx: ContextData) => boolean;
+  on_fire?: (ctx: ContextData) => void;
   priority?: number;
-  meta?: Record<string, any>;
-  should_fire?: (ctx: Record<string, any>) => boolean;
-  fire?: (ctx: Record<string, any>) => void;
+  meta?: ContextData;
+  should_fire?: (ctx: ContextData) => boolean;
+  fire?: (ctx: ContextData) => void;
 }
 
 export interface FilmEdge {
   src: string;
   dst: string;
-  condition: (ctx: Record<string, any>) => boolean;
+  condition: (ctx: ContextData) => boolean;
   priority?: number;
-  meta?: Record<string, any>;
+  meta?: ContextData;
 }
 
 export interface Film {
@@ -53,6 +80,39 @@ export interface Film {
   last_run_ts?: number; // Timestamp in seconds
 }
 
+// Current state type for get_current_state method
+export interface CurrentState {
+  entity_id: string;
+  current: [string, string] | null;
+  films_count: number;
+  working_memory_size: number;
+  pattern_templates: number;
+  habit_scores: Record<string, number>;
+  eva_buffer_size: number;
+}
+
+// Learning statistics type for get_learning_statistics method
+export interface LearningStatistics {
+  total_films: number;
+  average_fitness: number;
+  one_shot_films: number;
+  complex_films: number;
+  fitness_distribution: {
+    excellent: number;
+    good: number;
+    average: number;
+    poor: number;
+    terrible: number;
+  };
+}
+// Film statistics type for get_film_stats method
+export interface FilmStats {
+  film_usage: Record<string, number>;
+  epic_scores: Record<string, number>;
+  fitness: Record<string, number>;
+  tags: Record<string, string[]>;
+}
+
 import { v4 as uuidv4 } from 'uuid';
 
 // --- Utils ---
@@ -65,7 +125,7 @@ export function gen_id(prefix: string = 'node'): string {
 const _EPS = 1e-8;
 
 // --- Utility functions ---
-export function _safe_float(val: any, fallback: number = 0.0): number {
+export function _safe_float(val: unknown, fallback: number = 0.0): number {
   try {
     if (val === null || val === undefined) {
       return fallback;
@@ -102,28 +162,25 @@ export function cos_sim(a: number[], b: number[]): number {
 }
 
 // TODO: Define AdamConfig interface
-interface AdamConfig {
-  [key: string]: any;
-}
+type AdamConfig = ContextData;
 
 // TODO: Define ToolRegistry and ChaoticCognitiveCore properly. Keep only
 // the types we currently use to avoid unused-declaration TypeScript errors.
-type ToolRegistry = { [key: string]: any };
-type ChaoticCognitiveCore = { [key: string]: any };
+type ToolRegistry = ContextData;
 
 // Subsystems placeholder types
 export class EmotionalEvaluator {
-  affect_fn: ((ctx: Record<string, any>) => [number, number, number]) | null;
+  affect_fn: ((ctx: EmotionalContext) => [number, number, number]) | null;
 
   constructor(
     affect_fn:
-      | ((ctx: Record<string, any>) => [number, number, number])
+      | ((ctx: EmotionalContext) => [number, number, number])
       | null = null,
   ) {
     this.affect_fn = affect_fn;
   }
 
-  evaluate(ctx: Record<string, any>): [number, number, number] {
+  evaluate(ctx: EmotionalContext): [number, number, number] {
     if (this.affect_fn) {
       try {
         return this.affect_fn(ctx);
@@ -188,9 +245,10 @@ export class EmotionalEvaluator {
     );
   }
 }
+
 export class ExecutivePFC {
   config: AdamConfig;
-  working_memory: Array<Record<string, any>> = [];
+  working_memory: WorkingMemoryItem[] = [];
   max_wm: number = 7;
   inhibition_level: number = 0.2;
 
@@ -198,7 +256,7 @@ export class ExecutivePFC {
     this.config = config;
   }
 
-  push_wm(item: Record<string, any>): void {
+  push_wm(item: WorkingMemoryItem): void {
     this.working_memory.push(item);
     const limit = _safe_float(
       this.config['PFC_MAX_WORKING_MEMORY'],
@@ -212,7 +270,7 @@ export class ExecutivePFC {
   allow_action(
     urge_score: number,
     long_term_gain: number,
-    context: Record<string, any> | null = null,
+    context: EmotionalContext | null = null,
   ): boolean {
     let base_inhibition = _safe_float(
       this.config['PFC_INHIBITION_LEVEL'],
@@ -275,7 +333,7 @@ export class BasalGanglia {
   }
 }
 export class Cerebellum {
-  micro_adjust(node: FilmNode, ctx: Record<string, any>): void {
+  micro_adjust(node: FilmNode, ctx: EmotionalContext): void {
     const err = _safe_float(ctx['error'], 0.0);
     node.cost_energy = clamp(
       (node.cost_energy || 0.0) + 0.05 * err,
@@ -286,20 +344,20 @@ export class Cerebellum {
   }
 }
 export class PatternRecognizer {
-  get_embedding: (x: any) => number[];
+  get_embedding: (x: unknown) => number[];
   config: AdamConfig;
   templates: Record<string, number[]> = {};
   threshold_new: number = 0.75;
 
   constructor(
-    get_embedding: (x: any) => number[],
+    get_embedding: (x: unknown) => number[],
     config: AdamConfig = DEFAULT_ADAM_CONFIG,
   ) {
     this.get_embedding = get_embedding;
     this.config = config;
   }
 
-  match(datum: any): [string, number] {
+  match(datum: unknown): [string, number] {
     const emb = this.get_embedding(datum);
     if (!emb || emb.length === 0) {
       const pid = `pat_${Object.keys(this.templates).length}`;
@@ -408,13 +466,13 @@ export class SimpleActuator {
 
   async execute_action(
     action: string,
-    params: Record<string, any>,
-    context: Record<string, any>,
-  ): Promise<Record<string, any>> {
+    params: ToolParams,
+    context: EmotionalContext,
+  ): Promise<ToolResult> {
     console.info(`Executing act: ${action}`);
     try {
       if (['epiphany', 'miracle', 'transcend'].includes(action)) {
-        const res: Record<string, any> = {
+        const res: ToolResult = {
           progress: 1.0,
           valence: 1.0,
           opportunity: 1.0,
@@ -441,15 +499,18 @@ export class SimpleActuator {
         };
       }
 
-      // Assuming tool_registry.execute_tool is an async method
-      const tool_result: ToolCallResult = await (
-        this.tool_registry as any
-      ).execute_tool(action, params); // Pass params as a single object
+      // TODO: Implement proper tool execution using tool_registry
+      const tool_result: ToolCallResult = {
+        success: false,
+        output: 'Tool execution not implemented',
+        command: action,
+        execution_time: 0.0,
+      };
 
       if (tool_result.success) {
         const exec_time_val = _safe_float(tool_result.execution_time, 0.0);
         const progress_val = clamp(0.2 + exec_time_val / 8.0, 0.0, 1.0);
-        const mapped: Record<string, any> = {
+        const mapped: ContextData = {
           progress: progress_val,
           valence: 0.2,
           opportunity:
@@ -495,7 +556,7 @@ export class SimpleActuator {
           info: 'Tool failed.',
         };
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(`Unexpected error executing '${action}'`, e);
       return {
         progress: -0.1,
@@ -513,12 +574,33 @@ export class SimpleActuator {
 // Default config (placeholder)
 const DEFAULT_ADAM_CONFIG: AdamConfig = {};
 
+// Brain function types
+export type EmbeddingFunction = (x: unknown) => number[];
+export type RecallFunction = (cue: unknown) => [number[], string[]];
+export type IngestFunction = (...args: unknown[]) => unknown;
+export type EmitEventFunction = (eventType: string, data: ContextData) => void;
+
+// EVA specific types
+export type EVARuntime = unknown;
+export type EVAMemoryStore = ContextData;
+export type EVAExperienceStore = ContextData;
+export type EVAPhases = ContextData;
+export type EVABufferItem = ContextData;
+
+// Chaotic core types
+export type ChaoticCoreThinkInput = { problem_spec: EmotionalContext };
+export type ChaoticCoreResult = { solution?: unknown };
+
+export interface ChaoticCore {
+  think(input: ChaoticCoreThinkInput): Promise<ChaoticCoreResult>;
+}
+
 export class BrainFallback {
   entity_id: string;
   config: AdamConfig;
-  recall_fn: (cue: any) => [any, string[]];
-  ingest_fn: (...args: any[]) => any;
-  emit_event: (eventType: string, data: Record<string, any>) => void;
+  recall_fn: RecallFunction;
+  ingest_fn: IngestFunction;
+  emit_event: EmitEventFunction;
   tool_registry: ToolRegistry | null;
   patterns: PatternRecognizer;
   exec: ExecutivePFC;
@@ -529,26 +611,24 @@ export class BrainFallback {
   actuator: SimpleActuator;
   films: Record<string, Film>;
   current: [string, string] | null;
-  _hooks: Array<(data: any) => void>;
-  _trace: Array<Record<string, any>>;
-  chaotic_core: ChaoticCognitiveCore | null = null;
-  eva_runtime: any;
-  eva_memory_store: Record<string, any>;
-  eva_experience_store: Record<string, any>;
-  eva_phases: Record<string, any>;
+  _hooks: Array<(data: unknown) => void>;
+  _trace: EVABufferItem[];
+  chaotic_core: ChaoticCore | null = null;
+  eva_runtime: EVARuntime;
+  eva_memory_store: EVAMemoryStore;
+  eva_experience_store: EVAExperienceStore;
+  eva_phases: EVAPhases;
   eva_phase: string;
-  _eva_buffer: Array<Record<string, any>>;
+  _eva_buffer: EVABufferItem[];
   _eva_flush_interval: number;
   _last_eva_flush_ts: number;
 
   constructor(
     entity_id: string,
-    get_embedding: ((x: any) => number[]) | null = null,
-    recall_fn: ((cue: any) => [any, string[]]) | null = null,
-    ingest_fn: ((...args: any[]) => any) | null = null,
-    emit_event:
-      | ((eventType: string, data: Record<string, any>) => void)
-      | null = null,
+    get_embedding: EmbeddingFunction | null = null,
+    recall_fn: RecallFunction | null = null,
+    ingest_fn: IngestFunction | null = null,
+    emit_event: EmitEventFunction | null = null,
     tool_registry: ToolRegistry | null = null,
     config: AdamConfig | null = null,
   ) {
@@ -559,22 +639,22 @@ export class BrainFallback {
     // Callables with safe defaults
     this.recall_fn =
       recall_fn ||
-      ((_x: any) => {
-        const dim = _safe_float((this.config as any).EMBEDDING_DIM, 16);
+      ((_x: unknown) => {
+        const dim = _safe_float(this.config['EMBEDDING_DIM'], 16);
         return [new Array(dim).fill(0.0), []];
       });
 
     this.ingest_fn =
       ingest_fn ||
-      ((...args: any[]) => {
+      ((...args: unknown[]) => {
         console.debug('ingest noop called with', args);
         return null;
       });
 
     this.emit_event =
       emit_event ||
-      ((eventType: string, data: Record<string, any>) => {
-        console.debug('emit_event noop:', eventType, data);
+      ((eventType: string, data: ContextData) => {
+        console.debug('event:', eventType, data);
       });
 
     this.tool_registry = tool_registry;
@@ -582,8 +662,8 @@ export class BrainFallback {
     // Subsystem Instantiation
     this.patterns = new PatternRecognizer(
       get_embedding ||
-        ((_x: any) =>
-          new Array(_safe_float((this.config as any).EMBEDDING_DIM, 16)).fill(
+        ((_x: unknown) =>
+          new Array(_safe_float(this.config['EMBEDDING_DIM'], 16)).fill(
             0.0,
           )),
       this.config,
@@ -601,10 +681,10 @@ export class BrainFallback {
     this._trace = [];
 
     // Chaotic Cognitive Core (optional)
-    if ((this.config as any).ENABLE_CHAOTIC_CORE) {
+    if (this.config['ENABLE_CHAOTIC_CORE']) {
       try {
         // TODO: Implement ChaoticCognitiveCore properly
-        this.chaotic_core = {} as ChaoticCognitiveCore; // Placeholder
+        this.chaotic_core = {} as ChaoticCore; // Placeholder
         console.info('ChaoticCognitiveCore initialized.');
       } catch (e) {
         console.error('Failed to initialize ChaoticCognitiveCore', e);
@@ -621,12 +701,12 @@ export class BrainFallback {
     // Buffered EVA writes
     this._eva_buffer = [];
     this._eva_flush_interval = _safe_float(
-      (this.config as any).BRAIN_EVA_FLUSH_S,
+      this.config['BRAIN_EVA_FLUSH_S'],
       30.0,
     );
     this._last_eva_flush_ts = Date.now() / 1000;
   }
-  async step(context: Record<string, any>): Promise<Record<string, any>> {
+  async step(context: EmotionalContext): Promise<ContextData> {
     // Recall relevant experiences from memory
     try {
       const recalled_experiences = this.recall_fn(context);
@@ -658,7 +738,7 @@ export class BrainFallback {
     // Chaotic Cognitive Core integration
     if (this.chaotic_core) {
       try {
-        const chaotic_result = await (this.chaotic_core as any).think({
+        const chaotic_result = await this.chaotic_core.think({
           problem_spec: context,
         });
         if (chaotic_result && chaotic_result.solution) {
@@ -715,7 +795,7 @@ export class BrainFallback {
       }
     }
 
-    let exec_info: Record<string, any> = {};
+    let exec_info: ToolResult = {};
     if (film_id) {
       exec_info = await this._advance_film(film_id, context);
     }
@@ -723,15 +803,15 @@ export class BrainFallback {
     this._check_alarms(film_id, context);
 
     const crisis_threat_threshold = _safe_float(
-      (this.config as any).CRISIS_THREAT_THRESHOLD,
+      this.config['CRISIS_THREAT_THRESHOLD'],
       0.9,
     );
     const high_arousal_threshold = _safe_float(
-      (this.config as any).HIGH_AROUSAL_THRESHOLD,
+      this.config['HIGH_AROUSAL_THRESHOLD'],
       0.9,
     );
     const progress_threshold_high = _safe_float(
-      (this.config as any).PROGRESS_THRESHOLD_HIGH,
+      this.config['PROGRESS_THRESHOLD_HIGH'],
       0.8,
     );
 
@@ -806,7 +886,7 @@ export class BrainFallback {
     return trace_snapshot;
   }
 
-  _select_film(_context: Record<string, any>): string | null {
+  _select_film(_context: EmotionalContext): string | null {
     // Simple implementation - returns the film with highest fitness
     let best_film: string | null = null;
     let best_fitness = -Infinity;
@@ -828,8 +908,8 @@ export class BrainFallback {
 
   async _advance_film(
     film_id: string,
-    ctx: Record<string, any>,
-  ): Promise<Record<string, any>> {
+    ctx: EmotionalContext,
+  ): Promise<ToolResult> {
     // TODO: Implement lock handling
     const f = this.films[film_id];
     if (!f) {
@@ -853,7 +933,7 @@ export class BrainFallback {
       return {};
     }
 
-    let action_result: Record<string, any> = {};
+    let action_result: ToolResult = {};
     try {
       this.cerebellum.micro_adjust(node, ctx);
       action_result = await this.actuator.execute_action(
@@ -875,9 +955,9 @@ export class BrainFallback {
         ctx[key] = value;
       }
       if (['progress', 'opportunity', 'threat', 'safe'].includes(key)) {
-        ctx[key] = clamp(ctx[key], 0.0, 1.0);
+        ctx[key] = clamp(_safe_float(ctx[key], 0.0), 0.0, 1.0);
       } else if (key === 'valence') {
-        ctx[key] = clamp(ctx[key], -1.0, 1.0);
+        ctx[key] = clamp(_safe_float(ctx[key], 0.0), -1.0, 1.0);
       }
     }
     try {
@@ -916,7 +996,7 @@ export class BrainFallback {
     };
   }
 
-  _check_alarms(film_id: string | null, ctx: Record<string, any>): void {
+  _check_alarms(film_id: string | null, ctx: ContextData): void {
     // TODO: Implement lock handling
     if (!film_id) {
       return;
@@ -961,7 +1041,7 @@ export class BrainFallback {
     }
   }
 
-  _buffer_eva(item: Record<string, any>): void {
+  _buffer_eva(item: ContextData): void {
     // TODO: Implement lock handling
     this._eva_buffer.push(item);
   }
@@ -1050,14 +1130,14 @@ export class BrainFallback {
   }
 
   _create_film_from_chaotic_solution(
-    solution: Record<string, any>,
-    _context: Record<string, any>,
+    solution: ToolResult,
+    _context: ContextData,
   ): void {
     // TODO: Implement lock handling
     try {
       const confidence = _safe_float(solution['confidence'], 0.5);
       const chaoticCoreConfidenceThreshold = _safe_float(
-        (this.config as any)['CHAOTIC_CORE_CONFIDENCE_THRESHOLD'],
+        this.config['CHAOTIC_CORE_CONFIDENCE_THRESHOLD'],
         0.7,
       );
 
@@ -1072,7 +1152,7 @@ export class BrainFallback {
       const node: FilmNode = {
         id: node_id,
         action: action_name,
-        params: solution['details'] || {},
+        params: (solution['details'] as ContextData) || {},
         expected_reward: confidence,
       };
 
@@ -1168,7 +1248,7 @@ export class BrainFallback {
 
   generate_complex_film(
     base_actions: string[],
-    _context: Record<string, any>,
+    _context: ContextData,
   ): string {
     const film_id = `complex_${gen_id()}`;
     const nodes: Record<string, FilmNode> = {};
@@ -1190,7 +1270,7 @@ export class BrainFallback {
         edges.push({
           src: prev_node_id,
           dst: node_id,
-          condition: (ctx: Record<string, any>) =>
+          condition: (ctx: ContextData) =>
             _safe_float(ctx['progress'], 0.0) > 0.1,
         });
       }
@@ -1212,11 +1292,11 @@ export class BrainFallback {
     return film_id;
   }
 
-  get_trace(last_n: number = 20): Array<Record<string, any>> {
+  get_trace(last_n: number = 20): EVABufferItem[] {
     return this._trace.slice(-last_n);
   }
 
-  get_current_state(): any {
+  get_current_state(): CurrentState {
     return {
       entity_id: this.entity_id,
       current: this.current,
@@ -1228,14 +1308,20 @@ export class BrainFallback {
     };
   }
 
-  get_learning_statistics(): Record<string, any> {
+  get_learning_statistics(): LearningStatistics {
     if (Object.keys(this.films).length === 0) {
       return {
         total_films: 0,
         average_fitness: 0.0,
         one_shot_films: 0,
         complex_films: 0,
-        fitness_distribution: {},
+        fitness_distribution: {
+          excellent: 0,
+          good: 0,
+          average: 0,
+          poor: 0,
+          terrible: 0,
+        },
       };
     }
 
@@ -1283,7 +1369,7 @@ export class BrainFallback {
     };
   }
 
-  get_film_stats(): Record<string, any> {
+  get_film_stats(): FilmStats {
     // TODO: Implement lock handling
     const film_usage: Record<string, number> = {};
     const epic_scores: Record<string, number> = {};

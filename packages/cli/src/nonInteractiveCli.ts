@@ -43,8 +43,8 @@ class OutputBuffer {
   private readonly flushInterval: number;
   private flushTimer?: NodeJS.Timeout;
 
-  constructor(maxBufferSize = 64 * 1024, flushInterval = 100) {
-    // 64KB buffer, 100ms flush interval
+  constructor(maxBufferSize = 64 * 1024, flushInterval = 10) {
+    // 64KB buffer, 10ms flush interval
     this.maxBufferSize = maxBufferSize;
     this.flushInterval = flushInterval;
   }
