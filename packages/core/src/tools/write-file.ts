@@ -444,24 +444,8 @@ class WriteFileToolInvocation extends BaseToolInvocation<
             .getFileSystemService()
             .readTextFile(file_path);
           if (!verify2.success || verify2.data !== fileContent) {
-            // restore from backup if available
-            try {
-              if (await this.config.getFileSystemService().exists(backupPath)) {
-                const restoreResult = await this.config
-                  .getFileSystemService()
-                  .copyFile(backupPath, file_path);
-                if (!restoreResult.success) {
-                  throw new Error(restoreResult.error);
-                }
-              }
-            } catch (_restoreErr) {
-              if (this.config.getDebugMode())
-                console.error(
-                  'Failed to restore backup after failed write verification',
-                  _restoreErr,
-                );
-            }
-            const errMsg = `File write verification failed for ${file_path}. Restored from backup if available.`;
+            // Write verification failed twice - this is a critical error
+            const errMsg = `File write verification failed for ${file_path} after retry. Content mismatch detected.`;
             return {
               llmContent: errMsg,
               returnDisplay: errMsg,

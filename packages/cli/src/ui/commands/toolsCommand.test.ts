@@ -10,7 +10,7 @@ import { describe, it, expect, type Mock } from 'vitest';
 import { toolsCommand } from './toolsCommand.js';
 import { createMockCommandContext } from '../../test-utils/mockCommandContext.js';
 import { MessageType } from '../types.js';
-// import { Tool } from '@google/gemini-cli-core';
+import { AnyDeclarativeTool } from '@google/gemini-cli-core';
 
 // Mock tools for testing
 const mockTools = [
@@ -26,7 +26,7 @@ const mockTools = [
     description: 'Edits code files.',
     schema: {},
   },
-] as any[];
+] as AnyDeclarativeTool[];
 
 describe('toolsCommand', () => {
   it('should display an error if the tool registry is unavailable', async () => {

@@ -5,7 +5,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ContextManager, ContextType, DualContextConfig } from '../services/contextManager.js';
+import { ContextManager, ContextType, DualContextConfig } from '../contextManager.js';
+import { TokenEstimator } from '../chatRecordingService.js';
 
 describe('ContextManager', () => {
   let contextManager: ContextManager;
@@ -21,11 +22,11 @@ describe('ContextManager', () => {
     };
 
     // Mock token estimator
-    const mockTokenEstimator = {
+    const mockTokenEstimator: TokenEstimator = {
       estimateTokens: vi.fn().mockResolvedValue(1000),
     };
 
-    contextManager = new ContextManager(mockConfig, mockTokenEstimator as any);
+    contextManager = new ContextManager(mockConfig, mockTokenEstimator);
   });
 
   describe('determineContextType', () => {
@@ -43,7 +44,10 @@ describe('ContextManager', () => {
 
     it('should return PROMPT when dual-context is disabled', () => {
       const disabledConfig = { ...mockConfig, enableDualContext: false };
-      const disabledManager = new ContextManager(disabledConfig, { estimateTokens: vi.fn() } as any);
+      const mockEstimator: TokenEstimator = {
+        estimateTokens: vi.fn().mockResolvedValue(1000),
+      };
+      const disabledManager = new ContextManager(disabledConfig, mockEstimator);
 
       const toolContent = 'Execute the edit tool';
       const contextType = disabledManager.determineContextType('edit', toolContent);
@@ -65,20 +69,20 @@ describe('ContextManager', () => {
 
   describe('canFitInContext', () => {
     it('should return true for content within limits', async () => {
-      const mockEstimator = {
+      const mockEstimator: TokenEstimator = {
         estimateTokens: vi.fn().mockResolvedValue(10000), // Within 28K limit
       };
-      const testManager = new ContextManager(mockConfig, mockEstimator as any);
+      const testManager = new ContextManager(mockConfig, mockEstimator);
 
       const canFit = await testManager.canFitInContext('test content', ContextType.TOOL_EXECUTION);
       expect(canFit).toBe(true);
     });
 
     it('should return false for content exceeding limits', async () => {
-      const mockEstimator = {
+      const mockEstimator: TokenEstimator = {
         estimateTokens: vi.fn().mockResolvedValue(30000), // Exceeds 28K limit
       };
-      const testManager = new ContextManager(mockConfig, mockEstimator as any);
+      const testManager = new ContextManager(mockConfig, mockEstimator);
 
       const canFit = await testManager.canFitInContext('large content', ContextType.TOOL_EXECUTION);
       expect(canFit).toBe(false);

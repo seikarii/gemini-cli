@@ -36,10 +36,15 @@ export const ConversationTokenDisplay: React.FC<
   // Refs for debouncing and mounted state
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
+  const lastUpdateRef = useRef<number>(0);
 
-  // Debounced token loading function
+  // Debounced token loading function with improved error handling and caching
   const loadTokens = useCallback(async () => {
     if (!getCurrentTokenCount || !getLastMessageTokenCount) return;
+
+    // Avoid excessive updates (max once per 500ms)
+    const now = Date.now();
+    if (now - lastUpdateRef.current < 500) return;
 
     // Clear any existing debounce timer
     if (debounceTimerRef.current) {
@@ -51,22 +56,38 @@ export const ConversationTokenDisplay: React.FC<
       if (!isMountedRef.current) return;
 
       try {
-        // Load both token counts in parallel
-        const [currentTokens, lastMessageTokens] = await Promise.all([
-          getCurrentTokenCount(),
-          getLastMessageTokenCount(),
-        ]);
+        // Load both token counts in parallel with timeout
+        const tokenPromises = [
+          Promise.race([
+            getCurrentTokenCount(),
+            new Promise<number>((_, reject) => 
+              setTimeout(() => reject(new Error('Timeout')), 2000)
+            )
+          ]),
+          Promise.race([
+            getLastMessageTokenCount(),
+            new Promise<number>((_, reject) => 
+              setTimeout(() => reject(new Error('Timeout')), 2000)
+            )
+          ])
+        ];
+
+        const [currentTokens, lastMessageTokens] = await Promise.all(tokenPromises);
 
         if (isMountedRef.current) {
           setCurrentTokenCount(currentTokens);
           setLastMessageTokenCount(lastMessageTokens);
+          lastUpdateRef.current = Date.now();
         }
-      } catch (error) {
-        // Silently handle errors to avoid disrupting the UI
-        console.warn('Failed to load token counts:', error);
+      } catch (_error) {
+        // Fallback to sync data on error without spamming console
+        if (isMountedRef.current) {
+          setCurrentTokenCount(totalPromptTokens);
+          setLastMessageTokenCount(lastPromptTokenCount);
+        }
       }
-    }, 300); // 300ms debounce delay
-  }, [getCurrentTokenCount, getLastMessageTokenCount]);
+    }, 200); // Reduced debounce delay for better responsiveness
+  }, [getCurrentTokenCount, getLastMessageTokenCount, totalPromptTokens, lastPromptTokenCount]);
 
   // Load tokens on mount
   useEffect(() => {

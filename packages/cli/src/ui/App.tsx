@@ -97,7 +97,7 @@ import { PrivacyNotice } from './privacy/PrivacyNotice.js';
 import { useSettingsCommand } from './hooks/useSettingsCommand.js';
 import { SettingsDialog } from './components/SettingsDialog.js';
 import { RealtimeStatsPanel } from './components/RealtimeStatsPanel.js';
-import { TokenPreview } from './components/TokenPreview.js';
+// import { TokenPreview } from './components/TokenPreview.js'; // Disabled - prescindible feature
 import { setUpdateHandler } from '../utils/handleAutoUpdate.js';
 import { appEvents, AppEvent } from '../utils/events.js';
 import { isNarrowWidth } from './utils/isNarrowWidth.js';
@@ -1330,13 +1330,14 @@ const App = ({
               {/* Show RealtimeStatsPanel when debug mode is enabled */}
               {config.getDebugMode() && <RealtimeStatsPanel />}
 
-              {/* Show TokenPreview when buffer has content */}
-              {isInputActive && buffer.text.length > 10 && (
+              {/* TokenPreview disabled - prescindible feature that doesn't add value */}
+              {/* User feedback: "alucina y ademas lo noto useless, es una feature prescindible que no aporta valor" */}
+              {/* {isInputActive && buffer.text.length > 10 && (
                 <TokenPreview
                   messageLength={buffer.text.length}
                   model={currentModel}
                 />
-              )}
+              )} */}
 
               {isInputActive && (
                 <InputPrompt

@@ -83,6 +83,22 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
     return `Upserting ${this.params.block_type || 'auto-detected'} block '${this.params.block_name}' in ${this.params.file_path}`;
   }
 
+  /**
+   * Safely gets the FileSystemService with proper error handling
+   */
+  private getFileSystemService() {
+    if (!this.config) {
+      throw new Error('Configuration is not available');
+    }
+    
+    const fileSystemService = this.config.getFileSystemService?.();
+    if (!fileSystemService) {
+      throw new Error('FileSystemService is not available - check configuration');
+    }
+    
+    return fileSystemService;
+  }
+
   async execute(_abortSignal: AbortSignal): Promise<ToolResult> {
     try {
       // Validate parameters
@@ -94,10 +110,11 @@ class UpsertCodeBlockToolInvocation extends BaseToolInvocation<
         };
       }
 
+      // Get FileSystemService with proper error handling
+      const fileSystemService = this.getFileSystemService();
+
       // Check if file exists and is readable
-      const fileExists = await this.config
-        .getFileSystemService()
-        .exists(this.params.file_path);
+      const fileExists = await fileSystemService.exists(this.params.file_path);
       if (!fileExists) {
         return {
           llmContent: `File not found: ${this.params.file_path}`,
