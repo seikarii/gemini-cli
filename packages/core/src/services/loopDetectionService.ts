@@ -1476,14 +1476,7 @@ Analyze the conversation and provide:
     // Mark the sequence number at which we reset so that subsequent
     // event-based identical checks ignore events from before this reset.
     this.lastResetSequenceNumber = this.eventSequenceNumber;
-    try {
-      console.log('resetContentTracking', {
-        recentChunkHashes: this.recentChunkHashes.length,
-        semanticChunks: this.semanticContentChunks.length,
-      });
-    } catch (_e) {
-      /* noop */
-    }
+    // Debug logging removed to prevent test pollution
   }
 
   private resetLlmCheckTracking(): void {

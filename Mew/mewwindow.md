@@ -63,5 +63,5 @@
 - **Tareas:**
   1.  Definir el bucle de orquestación completo: `Director -> Mente -> Gemini -> CRDT -> Mew -> CRDT -> Director`.
   2.  Refinar la interfaz de `MewWindow` para diferenciar visualmente los cambios hechos por Gemini de las correcciones propuestas por `Mew`.
-  3.  Implementar un sistema de aprobación/rechazo para que el Director pueda vetar las correcciones de `Mew` si es necesario.
+  3.  Implementar un sistema de aprobación/rechazo/deshacer para que el Director pueda vetar las correcciones de `Mew` si es necesario.
   4.  Realizar pruebas exhaustivas del ecosistema completo en escenarios de desarrollo reales.

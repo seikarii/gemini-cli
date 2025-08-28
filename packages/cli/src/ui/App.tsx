@@ -621,15 +621,15 @@ const App = ({
     }
   }, []);
 
-  const getPreferredEditor = useCallback(() => {
+  const getPreferredEditor = useCallback(async () => {
     const editorType = settings.merged.preferredEditor;
-    const isValidEditor = isEditorAvailable(editorType);
+    const isValidEditor = await isEditorAvailable(editorType);
     if (!isValidEditor) {
       openEditorDialog();
       return;
     }
     return editorType as EditorType;
-  }, [settings, openEditorDialog]);
+  }, [settings.merged.preferredEditor, openEditorDialog]);
 
   const onAuthError = useCallback(() => {
     setAuthError('reauth required');

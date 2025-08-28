@@ -4,7 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { execSync, spawn } from 'child_process';
+import { exec, spawn } from 'child_process';
+import { promisify } from 'util';
+
+const execPromise = promisify(exec);
 
 export type EditorType =
   | 'vscode'
@@ -34,11 +37,12 @@ interface DiffCommand {
   args: string[];
 }
 
-function commandExists(cmd: string): boolean {
+async function commandExists(cmd: string): Promise<boolean> {
   try {
-    execSync(
-      process.platform === 'win32' ? `where.exe ${cmd}` : `command -v ${cmd}`,
-      { stdio: 'ignore' },
+    // The `exec` command will throw an error if the command is not found.
+    // We don't need to inspect stdout, just catch the error.
+    await execPromise(
+      process.platform === 'win32' ? `where.exe ${cmd}` : `command -v ${cmd}`
     );
     return true;
   } catch {
@@ -64,11 +68,16 @@ const editorCommands: Record<
   emacs: { win32: ['emacs.exe'], default: ['emacs'] },
 };
 
-export function checkHasEditorType(editor: EditorType): boolean {
+export async function checkHasEditorType(editor: EditorType): Promise<boolean> {
   const commandConfig = editorCommands[editor];
   const commands =
     process.platform === 'win32' ? commandConfig.win32 : commandConfig.default;
-  return commands.some((cmd) => commandExists(cmd));
+  for (const cmd of commands) {
+    if (await commandExists(cmd)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function allowEditorTypeInSandbox(editor: EditorType): boolean {
@@ -84,9 +93,13 @@ export function allowEditorTypeInSandbox(editor: EditorType): boolean {
  * Check if the editor is valid and can be used.
  * Returns false if preferred editor is not set / invalid / not available / not allowed in sandbox.
  */
-export function isEditorAvailable(editor: string | undefined): boolean {
+export async function isEditorAvailable(
+  editor: string | undefined
+): Promise<boolean> {
   if (editor && isValidEditorType(editor)) {
-    return checkHasEditorType(editor) && allowEditorTypeInSandbox(editor);
+    return (
+      (await checkHasEditorType(editor)) && allowEditorTypeInSandbox(editor)
+    );
   }
   return false;
 }
@@ -94,20 +107,27 @@ export function isEditorAvailable(editor: string | undefined): boolean {
 /**
  * Get the diff command for a specific editor.
  */
-export function getDiffCommand(
+export async function getDiffCommand(
   oldPath: string,
   newPath: string,
-  editor: EditorType,
-): DiffCommand | null {
+  editor: EditorType
+): Promise<DiffCommand | null> {
   if (!isValidEditorType(editor)) {
     return null;
   }
   const commandConfig = editorCommands[editor];
   const commands =
     process.platform === 'win32' ? commandConfig.win32 : commandConfig.default;
-  const command =
-    commands.slice(0, -1).find((cmd) => commandExists(cmd)) ||
-    commands[commands.length - 1];
+
+  const preferredCommands = commands.slice(0, -1);
+  let foundCommand: string | undefined;
+  for (const cmd of preferredCommands) {
+    if (await commandExists(cmd)) {
+      foundCommand = cmd;
+      break;
+    }
+  }
+  const command = foundCommand || commands[commands.length - 1];
 
   switch (editor) {
     case 'vscode':
@@ -133,11 +153,11 @@ export function getDiffCommand(
           'highlight DiffAdd cterm=bold ctermbg=22 guibg=#005f00 | highlight DiffChange cterm=bold ctermbg=24 guibg=#005f87 | highlight DiffText ctermbg=21 guibg=#0000af | highlight DiffDelete ctermbg=52 guibg=#5f0000',
           // Show helpful messages
           '-c',
-          'set showtabline=2 | set tabline=[Instructions]\\ :wqa(save\\ &\\ quit)\\ \\|\\ i/esc(toggle\\ edit\\ mode)',
+          'set showtabline=2 | set tabline=[Instructions]\ :wqa(save\ &\ quit)\ \|\ i/esc(toggle\ edit\ mode)',
           '-c',
-          'wincmd h | setlocal statusline=OLD\\ FILE',
+          'wincmd h | setlocal statusline=OLD\ FILE',
           '-c',
-          'wincmd l | setlocal statusline=%#StatusBold#NEW\\ FILE\\ :wqa(save\\ &\\ quit)\\ \\|\\ i/esc(toggle\\ edit\\ mode)',
+          'wincmd l | setlocal statusline=%#StatusBold#NEW\ FILE\ :wqa(save\ &\ quit)\ \|\ i/esc(toggle\ edit\ mode)',
           // Auto close all windows when one is closed
           '-c',
           'autocmd BufWritePost * wqa',
@@ -164,9 +184,9 @@ export async function openDiff(
   oldPath: string,
   newPath: string,
   editor: EditorType,
-  onEditorClose: () => void,
+  onEditorClose: () => void
 ): Promise<void> {
-  const diffCommand = getDiffCommand(oldPath, newPath, editor);
+  const diffCommand = await getDiffCommand(oldPath, newPath, editor);
   if (!diffCommand) {
     console.error('No diff tool available. Install a supported editor.');
     return;

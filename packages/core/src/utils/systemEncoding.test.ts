@@ -14,7 +14,6 @@ vi.mock('os', () => ({
   default: {
     platform: vi.fn(),
   },
-  platform: vi.fn(),
 }));
 
 vi.mock('chardet', () => ({
@@ -23,7 +22,7 @@ vi.mock('chardet', () => ({
 
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { exec, execSync, ChildProcess } from 'child_process';
-import * as os from 'os';
+import os from 'os';
 import { detect as chardetDetect } from 'chardet';
 
 // Import the functions we want to test after mocking
@@ -49,6 +48,15 @@ describe('Shell Command Processor - Encoding Functions', () => {
     mockedExecSync = vi.mocked(execSync);
     mockedOsPlatform = vi.mocked(os.platform);
     mockedChardetDetect = vi.mocked(chardetDetect);
+
+    // Default mock implementation to prevent hanging promises
+    mockedExec.mockImplementation((command, options, callback) => {
+      if (typeof callback === 'function') {
+        // Default to error for unexpected commands
+        process.nextTick(() => callback(new Error(`Unmocked command: ${command}`), '', ''));
+      }
+      return { on: vi.fn(), kill: vi.fn() } as unknown as ChildProcess;
+    });
 
     // Reset the encoding cache before each test
     resetEncodingCache();
@@ -284,6 +292,9 @@ describe('Shell Command Processor - Encoding Functions', () => {
         if (command === 'chcp' && typeof callback === 'function') {
           // Call callback asynchronously
           process.nextTick(() => callback(null, 'Active code page: 65001', ''));
+        } else if (typeof callback === 'function') {
+          // Fallback for unexpected commands
+          process.nextTick(() => callback(new Error(`Unexpected command: ${command}`), '', ''));
         }
         return { on: vi.fn(), kill: vi.fn() } as unknown as ChildProcess;
       });
@@ -302,6 +313,8 @@ describe('Shell Command Processor - Encoding Functions', () => {
       mockedExec.mockImplementation((command, options, callback) => {
         if (command === 'chcp' && typeof callback === 'function') {
           process.nextTick(() => callback(null, 'Current code page: 1252', ''));
+        } else if (typeof callback === 'function') {
+          process.nextTick(() => callback(new Error(`Unexpected command: ${command}`), '', ''));
         }
         return { on: vi.fn(), kill: vi.fn() } as unknown as ChildProcess;
       });
@@ -315,6 +328,8 @@ describe('Shell Command Processor - Encoding Functions', () => {
       mockedExec.mockImplementation((command, options, callback) => {
         if (command === 'chcp' && typeof callback === 'function') {
           process.nextTick(() => callback(new Error('Command failed'), '', ''));
+        } else if (typeof callback === 'function') {
+          process.nextTick(() => callback(new Error(`Unexpected command: ${command}`), '', ''));
         }
         return { on: vi.fn(), kill: vi.fn() } as unknown as ChildProcess;
       });
@@ -337,6 +352,8 @@ describe('Shell Command Processor - Encoding Functions', () => {
       mockedExec.mockImplementation((command, options, callback) => {
         if (command === 'locale charmap' && typeof callback === 'function') {
           callback(null, 'ISO-8859-1', '');
+        } else if (typeof callback === 'function') {
+          callback(new Error(`Unexpected command: ${command}`), '', '');
         }
         return { on: vi.fn(), kill: vi.fn() } as unknown as ChildProcess;
       });
@@ -354,6 +371,8 @@ describe('Shell Command Processor - Encoding Functions', () => {
       mockedExec.mockImplementation((command, options, callback) => {
         if (command === 'locale charmap' && typeof callback === 'function') {
           callback(new Error('Command failed'), '', '');
+        } else if (typeof callback === 'function') {
+          callback(new Error(`Unexpected command: ${command}`), '', '');
         }
         return { on: vi.fn(), kill: vi.fn() } as unknown as ChildProcess;
       });
@@ -439,21 +458,30 @@ describe('Shell Command Processor - Encoding Functions', () => {
     });
 
     it('should handle Windows system encoding', async () => {
+      resetEncodingCache(); // Ensure clean state
       mockedOsPlatform.mockReturnValue('win32');
       mockedExec.mockImplementation((command, options, callback) => {
         if (command === 'chcp' && typeof callback === 'function') {
+          // Call immediately instead of nextTick to ensure synchronous completion
           callback(null, 'Active code page: 1252', '');
+        } else if (typeof callback === 'function') {
+          callback(new Error(`Unexpected command: ${command}`), '', '');
         }
         return { on: vi.fn(), kill: vi.fn() } as unknown as ChildProcess;
       });
 
       const buffer = Buffer.from('test');
-      const result = getCachedEncodingForBuffer(buffer);
+      
+      // First call will trigger async detection and return fallback
+      getCachedEncodingForBuffer(buffer);
+      
+      // Wait for the async detection to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      
+      // Second call should use the cached result
+      const result2 = getCachedEncodingForBuffer(buffer);
 
-      // Wait a bit for the async detection to complete
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      expect(result).toBe('windows-1252');
+      expect(result2).toBe('windows-1252');
     });
 
     it('should cache null system encoding result', async () => {
@@ -467,6 +495,8 @@ describe('Shell Command Processor - Encoding Functions', () => {
       mockedExec.mockImplementation((command, options, callback) => {
         if (command === 'locale charmap' && typeof callback === 'function') {
           callback(new Error('locale command failed'), '', '');
+        } else if (typeof callback === 'function') {
+          callback(new Error(`Unexpected command: ${command}`), '', '');
         }
         return { on: vi.fn(), kill: vi.fn() } as unknown as ChildProcess;
       });

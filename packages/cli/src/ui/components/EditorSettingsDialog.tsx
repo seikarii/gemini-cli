@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Text } from 'ink';
 import { Colors } from '../colors.js';
 import {
@@ -91,14 +91,27 @@ export function EditorSettingsDialog({
         : `(Modified in ${otherScope})`;
   }
 
-  let mergedEditorName = 'None';
-  if (
-    settings.merged.preferredEditor &&
-    isEditorAvailable(settings.merged.preferredEditor)
-  ) {
-    mergedEditorName =
-      EDITOR_DISPLAY_NAMES[settings.merged.preferredEditor as EditorType];
-  }
+  const [mergedEditorName, setMergedEditorName] = useState('None');
+
+  useEffect(() => {
+    const checkEditor = async () => {
+      if (settings.merged.preferredEditor) {
+        const isAvailable = await isEditorAvailable(
+          settings.merged.preferredEditor,
+        );
+        if (isAvailable) {
+          setMergedEditorName(
+            EDITOR_DISPLAY_NAMES[settings.merged.preferredEditor as EditorType],
+          );
+        } else {
+          setMergedEditorName('None');
+        }
+      } else {
+        setMergedEditorName('None');
+      }
+    };
+    checkEditor();
+  }, [settings.merged.preferredEditor]);
 
   return (
     <Box
