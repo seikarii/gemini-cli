@@ -71,3 +71,8 @@ export function calculateStringSimilarity(str1: string, str2: string): number {
 export function escapeRegExp(input: string): string {
   return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+
+    export function escapeBackticks(input: string): string {
+      return input.replace(/```/g, "'''"); // Replace triple backticks with triple single quotes
+    }

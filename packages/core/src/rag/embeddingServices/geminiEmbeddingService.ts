@@ -10,7 +10,7 @@ import {
   RAGConfig,
   RAGEmbeddingError,
 } from '../types.js';
-import { Config } from '../../config/config.js';
+import type { Config } from '@google/gemini-cli-core';
 import { RAGLogger } from '../logger.js';
 import { EmbeddingCacheService } from '../services/embeddingCacheService.js';
 

@@ -34,6 +34,12 @@ import {
   ToolErrorType, // <-- Import ToolErrorType
   AnyDeclarativeTool,
   GeminiChat,
+  BaseDeclarativeTool,
+  BaseToolInvocation,
+  ToolInvocation,
+  ToolResult,
+  Kind,
+  ToolCallConfirmationDetails,
 } from '@google/gemini-cli-core';
 import { Part, PartListUnion } from '@google/genai';
 import { UseHistoryManagerReturn } from './useHistoryManager.js';
@@ -63,6 +69,7 @@ const MockedGeminiClientClass = vi.hoisted(() =>
     this.startChat = mockStartChat;
     this.sendMessageStream = mockSendMessageStream;
     this.addHistory = vi.fn();
+    return this;
   }),
 );
 
@@ -147,6 +154,84 @@ vi.mock('./slashCommandProcessor.js', () => ({
 }));
 
 // --- END MOCKS ---
+
+// Mock Tool Classes
+class MockToolInvocation extends BaseToolInvocation<object, ToolResult> {
+  constructor(
+    private readonly tool: MockTool,
+    params: object,
+  ) {
+    super(params);
+  }
+
+  getDescription(): string {
+    return JSON.stringify(this.params);
+  }
+
+  shouldConfirmExecute(
+    abortSignal: AbortSignal,
+  ): Promise<ToolCallConfirmationDetails | false> {
+    return this.tool.shouldConfirmExecute(this.params, abortSignal);
+  }
+
+  execute(
+    signal: AbortSignal,
+    updateOutput?: (output: string) => void,
+    terminalColumns?: number,
+    terminalRows?: number,
+  ): Promise<ToolResult> {
+    return this.tool.execute(
+      this.params,
+      signal,
+      updateOutput,
+      terminalColumns,
+      terminalRows,
+    );
+  }
+}
+
+class MockTool extends BaseDeclarativeTool<object, ToolResult> {
+  constructor(
+    name: string,
+    displayName: string,
+    canUpdateOutput = false,
+    shouldConfirm = false,
+    isOutputMarkdown = false,
+  ) {
+    super(
+      name,
+      displayName,
+      'A mock tool for testing',
+      Kind.Other,
+      {},
+      isOutputMarkdown,
+      canUpdateOutput,
+    );
+    if (shouldConfirm) {
+      this.shouldConfirmExecute.mockImplementation(
+        async (): Promise<ToolCallConfirmationDetails | false> => ({
+          type: 'edit',
+          title: 'Mock Tool Requires Confirmation',
+          onConfirm: vi.fn(),
+          filePath: 'mock',
+          fileName: 'mockToolRequiresConfirmation.ts',
+          fileDiff: 'Mock tool requires confirmation',
+          originalContent: 'Original content',
+          newContent: 'New content',
+        }),
+      );
+    }
+  }
+
+  execute = vi.fn();
+  shouldConfirmExecute = vi.fn();
+
+  protected createInvocation(
+    params: object,
+  ): ToolInvocation<object, ToolResult> {
+    return new MockToolInvocation(this, params);
+  }
+}
 
 // --- Tests for useGeminiStream Hook ---
 describe('useGeminiStream', () => {
@@ -577,12 +662,7 @@ describe('useGeminiStream', () => {
         isClientInitiated: false,
         prompt_id: 'prompt-id-7',
       },
-      tool: {
-        name: 'toolA',
-        displayName: 'toolA',
-        description: 'descA',
-        build: vi.fn(),
-      } as unknown as AnyDeclarativeTool,
+      tool: new MockTool('toolA', 'toolA'),
       invocation: {
         getDescription: () => `Mock description`,
       } as unknown as AnyToolInvocation,

@@ -867,6 +867,10 @@ function createResult(
 /**
  * Unescapes a string that might have been overly escaped by an LLM.
  */
+function escapeBackticks(input: string): string {
+  return input.replace(/```/g, "'''"); // Replace triple backticks with triple single quotes
+}
+
 export function unescapeStringForGeminiBug(inputString: string): string {
   return inputString.replace(
     /\\+(n|t|r|'|"|`|\\|\n)/g,
@@ -1075,14 +1079,18 @@ async function correctNewStringEscaping(
   potentiallyProblematicNewString: string | undefined,
   abortSignal: AbortSignal,
 ): Promise<string | undefined> {
+  const oldStringEscaped = escapeBackticks(oldString);
+  let newString = potentiallyProblematicNewString ?? '';
+  newString = escapeBackticks(newString);
+
   const prompt = `
 Context: A text replacement operation is planned. The text to be replaced (old_string) has been correctly identified in the file. However, the replacement text (new_string) might have been improperly escaped by a previous LLM generation.
 
 old_string (this is the exact text that will be replaced):
-\`\`${oldString}
+\`\`${oldStringEscaped}
 
 potentially_problematic_new_string (this is the text that should replace old_string, but MIGHT have bad escaping, or might be entirely correct):
-\`\`${potentiallyProblematicNewString ?? ''}
+\`\`${newString}
 
 Task: Analyze the potentially_problematic_new_string. If it's syntactically invalid due to incorrect escaping, correct the invalid syntax. Return ONLY the corrected string in the specified JSON format with the key 'corrected_new_string_escaping'. If no escaping correction is needed, return the original potentially_problematic_new_string.
   `.trim();

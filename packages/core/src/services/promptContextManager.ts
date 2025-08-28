@@ -8,6 +8,8 @@ import { Content } from '@google/genai';
 import { RAGService } from '../rag/ragService.js';
 import { ChatRecordingService } from './chatRecordingService.js';
 import { Config } from '../config/config.js';
+import { ToolSelectionGuidance } from './toolSelectionGuidance.js';
+import { EnhancedContextService, ContextType } from './enhancedContextService.js';
 import {
   RAGQuery,
   EnhancedQueryResult,
@@ -67,6 +69,7 @@ export interface AssembledContext {
  */
 export class PromptContextManager {
   private readonly config: PromptContextConfig;
+  private readonly enhancedContextService: EnhancedContextService;
 
   constructor(
     private readonly ragService: RAGService,
@@ -84,6 +87,8 @@ export class PromptContextManager {
       useConversationalContext: true,
       ...config,
     };
+
+    this.enhancedContextService = new EnhancedContextService();
 
     console.log('PromptContextManager initialized', {
       config: this.config,
@@ -136,7 +141,7 @@ export class PromptContextManager {
       );
 
       // Step 6: Combine and optimize final context
-      const assembledContext = this.combineContexts(
+      const assembledContext = await this.combineContexts(
         userMessage,
         ragResults,
         compressedHistory,
@@ -271,15 +276,46 @@ export class PromptContextManager {
   /**
    * Combines RAG chunks and conversation history into optimized context
    */
-  private combineContexts(
+  private async combineContexts(
     userMessage: string,
     ragResults: EnhancedQueryResult,
     conversationData: { content: Content[]; compressionLevel: string },
-  ): AssembledContext {
+  ): Promise<AssembledContext> {
     const contents: Content[] = [];
     let estimatedTokens = 0;
 
-    // Add system context with RAG information first
+    // Determine context type and generate enhanced context
+    const contextType = this.enhancedContextService.determineContextType(
+      userMessage,
+      conversationData.content
+    );
+    
+    const enhancedContext = await this.enhancedContextService.generateEnhancedContext(
+      userMessage,
+      conversationData.content,
+      contextType
+    );
+
+    // Add enhanced context first (highest priority)
+    contents.push({
+      role: 'user',
+      parts: [{ text: enhancedContext.formattedContext }],
+    });
+    estimatedTokens += this.estimateTokens(enhancedContext.formattedContext);
+
+    // Add dynamic tool selection guidance
+    const toolGuidance = ToolSelectionGuidance.generateGuidance(
+      userMessage,
+      conversationData.content
+    );
+    
+    contents.push({
+      role: 'user',
+      parts: [{ text: toolGuidance }],
+    });
+    estimatedTokens += this.estimateTokens(toolGuidance);
+
+    // Add system context with RAG information
     if (ragResults.sourceChunks && ragResults.sourceChunks.length > 0) {
       const ragContext = this.formatRAGContext(ragResults);
       contents.push({
@@ -363,20 +399,57 @@ export class PromptContextManager {
   /**
    * Creates a fallback context when RAG fails
    */
-  private createFallbackContext(
+  private async createFallbackContext(
     userMessage: string,
     conversationHistory: Content[],
-  ): AssembledContext {
+  ): Promise<AssembledContext> {
     console.warn('Using fallback context due to RAG failure');
 
-    return {
-      contents: conversationHistory.slice(-10), // Last 10 messages
-      estimatedTokens: this.estimateTokens(
-        conversationHistory
-          .slice(-10)
+    const contents: Content[] = [];
+
+    // Generate enhanced context even in fallback
+    const contextType = this.enhancedContextService.determineContextType(
+      userMessage,
+      conversationHistory
+    );
+    
+    const enhancedContext = await this.enhancedContextService.generateEnhancedContext(
+      userMessage,
+      conversationHistory,
+      contextType
+    );
+
+    contents.push({
+      role: 'user',
+      parts: [{ text: enhancedContext.formattedContext }],
+    });
+
+    // Always include tool guidance even in fallback
+    const toolGuidance = ToolSelectionGuidance.generateGuidance(
+      userMessage,
+      conversationHistory
+    );
+    
+    contents.push({
+      role: 'user',
+      parts: [{ text: toolGuidance }],
+    });
+
+    // Add recent conversation history
+    const recentHistory = conversationHistory.slice(-10);
+    contents.push(...recentHistory);
+
+    const totalTokens = this.estimateTokens(enhancedContext.formattedContext) +
+      this.estimateTokens(toolGuidance) + 
+      this.estimateTokens(
+        recentHistory
           .map((c) => this.extractTextFromContent(c))
-          .join(' '),
-      ),
+          .join(' ')
+      );
+
+    return {
+      contents,
+      estimatedTokens: totalTokens,
       ragChunksIncluded: 0,
       conversationMessagesIncluded: Math.min(conversationHistory.length, 10),
       compressionLevel: 'moderate',

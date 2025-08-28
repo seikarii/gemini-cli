@@ -28,7 +28,7 @@ describe('validateAuthMethod', () => {
 
   describe('USE_GEMINI', () => {
     it('should return null if GEMINI_API_KEY is set', () => {
-      const env: any = {};
+      const env: NodeJS.ProcessEnv = {};
       env['GEMINI_API_KEY'] = 'test-key';
       expect(validateAuthMethod(AuthType.USE_GEMINI, env)).toBeNull();
     });
@@ -43,14 +43,14 @@ describe('validateAuthMethod', () => {
 
   describe('USE_VERTEX_AI', () => {
     it('should return null if GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION are set', () => {
-      const env: any = {};
+      const env: NodeJS.ProcessEnv = {};
       env['GOOGLE_CLOUD_PROJECT'] = 'test-project';
       env['GOOGLE_CLOUD_LOCATION'] = 'test-location';
       expect(validateAuthMethod(AuthType.USE_VERTEX_AI, env)).toBeNull();
     });
 
     it('should return null if GOOGLE_API_KEY is set', () => {
-      const env: any = {};
+      const env: NodeJS.ProcessEnv = {};
       env['GOOGLE_API_KEY'] = 'test-api-key';
       expect(validateAuthMethod(AuthType.USE_VERTEX_AI, env)).toBeNull();
     });

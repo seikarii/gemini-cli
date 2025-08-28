@@ -662,6 +662,8 @@ export class GeminiClient {
       const result = await retryWithBackoff(apiCall, {
         onPersistent429: async (authType?: string, error?: unknown) =>
           await this.handleFlashFallback(authType, error),
+        onModelNotSupported: async (error?: unknown) =>
+          await this.handleModelNotSupportedFallback(error),
         authType: this.config.getContentGeneratorConfig()?.authType,
       });
 
@@ -768,6 +770,8 @@ export class GeminiClient {
       const result = await retryWithBackoff(apiCall, {
         onPersistent429: async (authType?: string, error?: unknown) =>
           await this.handleFlashFallback(authType, error),
+        onModelNotSupported: async (error?: unknown) =>
+          await this.handleModelNotSupportedFallback(error),
         authType: this.config.getContentGeneratorConfig()?.authType,
       });
       return result;
@@ -824,6 +828,29 @@ export class GeminiClient {
       }
       return values;
     });
+  }
+
+  /**
+   * Handles falling back to Flash model when model compatibility errors occur.
+   */
+  private async handleModelNotSupportedFallback(
+    error?: unknown,
+  ): Promise<string | null> {
+    const currentModel = this.config.getModel();
+    const fallbackModel = DEFAULT_GEMINI_FLASH_MODEL;
+
+    // Don't fallback if already using Flash model
+    if (currentModel === fallbackModel) {
+      return null;
+    }
+
+    console.warn(`Model ${currentModel} not supported, falling back to ${fallbackModel}:`, error);
+
+    // Update the model in config
+    this.config.setModel(fallbackModel);
+    this.config.setFallbackMode(true);
+
+    return fallbackModel;
   }
 
   /**

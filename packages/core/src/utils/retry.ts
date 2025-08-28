@@ -23,6 +23,7 @@ export interface RetryOptions {
     authType?: string,
     error?: unknown,
   ) => Promise<string | boolean | null>;
+  onModelNotSupported?: (error?: unknown) => Promise<string | null>;
   authType?: string;
 }
 
@@ -50,6 +51,12 @@ function defaultShouldRetry(error: Error | unknown): boolean {
   if (error instanceof Error && error.message) {
     if (error.message.includes('429')) return true;
     if (error.message.match(/5\d{2}/)) return true;
+    // Check for model not supported errors
+    if (error.message.includes('not supported by this model') ||
+        error.message.includes('model not supported') ||
+        error.message.includes('unsupported model')) {
+      return true;
+    }
   }
   return false;
 }
@@ -79,6 +86,7 @@ export async function retryWithBackoff<T>(
     initialDelayMs,
     maxDelayMs,
     onPersistent429,
+    onModelNotSupported,
     authType,
     shouldRetry,
   } = {
@@ -179,6 +187,33 @@ export async function retryWithBackoff<T>(
         } catch (fallbackError) {
           // If fallback fails, continue with original error
           console.warn('Fallback to Flash model failed:', fallbackError);
+        }
+      }
+
+      // Check for model not supported errors
+      if (
+        onModelNotSupported &&
+        error instanceof Error &&
+        (error.message.includes('not supported by this model') ||
+         error.message.includes('model not supported') ||
+         error.message.includes('unsupported model'))
+      ) {
+        try {
+          const fallbackModel = await onModelNotSupported(error);
+          if (fallbackModel !== null) {
+            // Reset attempt counter and try with new model
+            attempt = 0;
+            consecutive429Count = 0;
+            currentDelay = initialDelayMs;
+            // With the model updated, we continue to the next attempt
+            continue;
+          } else {
+            // Fallback handler returned null, meaning don't continue - stop retry process
+            throw error;
+          }
+        } catch (fallbackError) {
+          // If fallback fails, continue with original error
+          console.warn('Model fallback failed:', fallbackError);
         }
       }
 

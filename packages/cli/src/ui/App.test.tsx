@@ -17,6 +17,7 @@ import {
   GeminiClient,
   ideContext,
   type AuthType,
+  PartListUnion,
 } from '@google/gemini-cli-core';
 import { LoadedSettings, SettingsFile, Settings } from '../config/settings.js';
 import process from 'node:process';
@@ -361,10 +362,12 @@ describe('App UI', () => {
 
     beforeEach(async () => {
       const { spawn } = await import('node:child_process');
-      spawnEmitter = new EventEmitter() as any;
-      (spawnEmitter as any).stdout = new EventEmitter();
-      (spawnEmitter as any).stderr = new EventEmitter();
-      (spawn as any).mockReturnValue(spawnEmitter);
+      spawnEmitter = new EventEmitter();
+      (spawnEmitter as unknown as { stdout: EventEmitter }).stdout =
+        new EventEmitter();
+      (spawnEmitter as unknown as { stderr: EventEmitter }).stderr =
+        new EventEmitter();
+      (spawn as Mock).mockReturnValue(spawnEmitter);
     });
 
     afterEach(() => {
@@ -1040,12 +1043,12 @@ describe('App UI', () => {
   it('should render correctly with the prompt input box', () => {
     vi.mocked(useGeminiStream).mockReturnValue({
       streamingState: StreamingState.Idle,
-      submitQuery: (async () => {}) as any,
+      submitQuery: async () => {},
       initError: null,
       pendingHistoryItems: [],
       thought: null,
       cancelOngoingRequest: () => {},
-    } as any);
+    });
 
     const { lastFrame, unmount } = renderWithProviders(
       <App
@@ -1067,12 +1070,12 @@ describe('App UI', () => {
 
       vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Idle,
-        submitQuery: mockSubmitQuery as unknown as (q: any) => Promise<void>,
+        submitQuery: mockSubmitQuery as unknown as (query: PartListUnion, options?: { isContinuation: boolean }, prompt_id?: string) => Promise<void>,
         initError: null,
         pendingHistoryItems: [],
         thought: null,
         cancelOngoingRequest: () => {},
-      } as any);
+      });
 
       mockConfig.getGeminiClient.mockReturnValue({
         isInitialized: vi.fn(() => true),
@@ -1321,12 +1324,12 @@ describe('App UI', () => {
     it('should queue messages when handleFinalSubmit is called during streaming', () => {
       vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Responding,
-        submitQuery: mockSubmitQuery,
+        submitQuery: mockSubmitQuery as unknown as (query: PartListUnion, options?: { isContinuation: boolean }, prompt_id?: string) => Promise<void>,
         initError: null,
         pendingHistoryItems: [],
         thought: null,
         cancelOngoingRequest: () => {},
-      } as any);
+      });
 
       const { unmount } = renderWithProviders(
         <App
@@ -1354,7 +1357,7 @@ describe('App UI', () => {
         pendingHistoryItems: [],
         thought: null,
         cancelOngoingRequest: () => {},
-      } as any);
+      });
 
       const { unmount, rerender } = renderWithProviders(
         <App
@@ -1374,7 +1377,7 @@ describe('App UI', () => {
         pendingHistoryItems: [],
         thought: null,
         cancelOngoingRequest: () => {},
-      } as any);
+      });
 
       // Rerender to trigger the useEffect with new state
       rerender(
@@ -1400,12 +1403,12 @@ describe('App UI', () => {
 
       vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Responding,
-        submitQuery: mockSubmitQuery as any,
+        submitQuery: mockSubmitQuery as unknown as (query: PartListUnion, options?: { isContinuation: boolean }, prompt_id?: string) => Promise<void>,
         initError: null,
         pendingHistoryItems: [],
-        thought: 'Processing...',
+        thought: { subject: 'Processing', description: '...' },
         cancelOngoingRequest: () => {},
-      } as any);
+      });
 
       const { unmount, lastFrame } = renderWithProviders(
         <App
@@ -1427,12 +1430,12 @@ describe('App UI', () => {
       // Start with idle to allow message queue to process
       vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Idle,
-        submitQuery: (async () => {}) as any,
+        submitQuery: (async () => {}) as unknown as (query: PartListUnion, options?: { isContinuation: boolean }, prompt_id?: string) => Promise<void>,
         initError: null,
         pendingHistoryItems: [],
         thought: null,
         cancelOngoingRequest: () => {},
-      } as any);
+      });
 
       const { unmount, lastFrame } = renderWithProviders(
         <App
@@ -1458,11 +1461,12 @@ describe('App UI', () => {
 
       vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Idle,
-        submitQuery: mockSubmitQuery,
+        submitQuery: mockSubmitQuery as unknown as (query: PartListUnion, options?: { isContinuation: boolean }, prompt_id?: string) => Promise<void>,
         initError: null,
         pendingHistoryItems: [],
         thought: null,
-      } as any);
+        cancelOngoingRequest: () => {},
+      });
 
       const { unmount } = renderWithProviders(
         <App
@@ -1492,7 +1496,7 @@ describe('App UI', () => {
         pendingHistoryItems: [],
         thought: null,
         cancelOngoingRequest: () => {},
-      } as any);
+      });
 
       const { unmount, lastFrame } = renderWithProviders(
         <App
@@ -1517,12 +1521,12 @@ describe('App UI', () => {
 
       vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Responding,
-        submitQuery: mockSubmitQuery,
+        submitQuery: mockSubmitQuery as unknown as (query: PartListUnion, options?: { isContinuation: boolean }, prompt_id?: string) => Promise<void>,
         initError: null,
         pendingHistoryItems: [],
-        thought: 'Processing...',
+        thought: { subject: 'Processing', description: '...' },
         cancelOngoingRequest: () => {},
-      } as any);
+      });
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
@@ -1550,12 +1554,12 @@ describe('App UI', () => {
 
       vi.mocked(useGeminiStream).mockReturnValue({
         streamingState: StreamingState.Responding,
-        submitQuery: mockSubmitQuery,
+        submitQuery: mockSubmitQuery as unknown as (query: PartListUnion, options?: { isContinuation: boolean }, prompt_id?: string) => Promise<void>,
         initError: null,
         pendingHistoryItems: [],
-        thought: 'Processing...',
+        thought: { subject: 'Processing', description: '...' },
         cancelOngoingRequest: () => {},
-      } as any);
+      });
 
       const { lastFrame, unmount } = renderWithProviders(
         <App
