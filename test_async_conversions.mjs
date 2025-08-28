@@ -7,6 +7,10 @@ import { promises as fsp } from 'fs';
 import { promisify } from 'util';
 import { exec } from 'child_process';
 
+// Node.js globals for ES modules
+const console = globalThis.console;
+const process = globalThis.process;
+
 const execAsync = promisify(exec);
 
 // Test 1: Validar función pathExistsAsync equivalente
@@ -22,7 +26,7 @@ async function testPathExists() {
         try {
             await fsp.access('/media/seikarii/Nvme/gemini-cli/nonexistent.file');
             console.log('❌ pathExistsAsync: Should have failed for nonexistent file');
-        } catch (error) {
+        } catch {
             console.log('✅ pathExistsAsync: Correctly detects nonexistent file - PASSED');
         }
     } catch (error) {
@@ -36,18 +40,18 @@ async function testValidateShellCommand() {
     
     try {
         // Test con comando que existe
-        const result1 = await execAsync('which "node" 2>/dev/null');
+        await execAsync('which "node" 2>/dev/null');
         console.log('✅ validateShellCommandAsync: "node" command exists - PASSED');
         
         // Test con comando que no existe
         try {
             await execAsync('which "nonexistentcommand12345" 2>/dev/null');
             console.log('❌ validateShellCommandAsync: Should have failed for nonexistent command');
-        } catch (error) {
+        } catch {
             console.log('✅ validateShellCommandAsync: Correctly detects nonexistent command - PASSED');
         }
-    } catch (error) {
-        console.log('❌ validateShellCommandAsync: Error -', error.message);
+    } catch {
+        console.log('❌ validateShellCommandAsync: Unexpected error occurred');
     }
 }
 
@@ -68,11 +72,11 @@ async function testFileReading() {
         try {
             await fsp.readFile('/media/seikarii/Nvme/gemini-cli/nonexistent.json', 'utf8');
             console.log('❌ Async file reading: Should have failed for nonexistent file');
-        } catch (error) {
+        } catch {
             console.log('✅ Async file reading: Correctly handles nonexistent file - PASSED');
         }
-    } catch (error) {
-        console.log('❌ Async file reading: Error -', error.message);
+    } catch {
+        console.log('❌ Async file reading: Unexpected error occurred');
     }
 }
 
@@ -89,7 +93,7 @@ async function testExecAsync() {
         }
         
         // Test comando con variables de entorno
-        const { stdout: envTest } = await execAsync('echo $HOME', { 
+        await execAsync('echo $HOME', { 
             env: { ...process.env, HOME: '/test/home' } 
         });
         console.log('✅ execAsync: Environment variable support works - PASSED');

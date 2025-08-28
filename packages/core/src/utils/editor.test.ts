@@ -28,7 +28,7 @@ vi.mock('child_process', () => {
   const exec = vi.fn(
     (
       command: string,
-      options: unknown,
+      _options: unknown,
       callback?: (
         error: Error | null,
         stdout: string,
@@ -36,11 +36,8 @@ vi.mock('child_process', () => {
       ) => void,
     ) => {
       if (callback) {
-        // @ts-ignore
         const mockError = exec.mock.results[exec.mock.calls.length - 1]?.value?.error;
-        // @ts-ignore
         const mockStdout = exec.mock.results[exec.mock.calls.length - 1]?.value?.stdout || '';
-        // @ts-ignore
         const mockStderr = exec.mock.results[exec.mock.calls.length - 1]?.value?.stderr || '';
         if (mockError) {
           callback(new Error(mockError), '', '');
@@ -54,10 +51,8 @@ vi.mock('child_process', () => {
     },
   );
 
-  const execSync = vi.fn((command: string) => {
-    // @ts-ignore
+  const execSync = vi.fn((_command: string) => {
     const mockError = execSync.mock.results[execSync.mock.calls.length - 1]?.value?.error;
-    // @ts-ignore
     const mockStdout = execSync.mock.results[execSync.mock.calls.length - 1]?.value?.stdout || '';
     if (mockError) {
       throw new Error(mockError);
@@ -68,9 +63,7 @@ vi.mock('child_process', () => {
   const spawn = vi.fn(() => {
     const mock = {
       on: vi.fn((event, cb) => {
-        // @ts-ignore
         const mockError = spawn.mock.results[spawn.mock.calls.length - 1]?.value?.error;
-        // @ts-ignore
         const mockExitCode = spawn.mock.results[spawn.mock.calls.length - 1]?.value?.exitCode ?? 0;
         if (event === 'error' && mockError) {
           cb(new Error(mockError));
@@ -328,11 +321,11 @@ describe('editor utils', () => {
             '-c',
             'highlight DiffAdd cterm=bold ctermbg=22 guibg=#005f00 | highlight DiffChange cterm=bold ctermbg=24 guibg=#005f87 | highlight DiffText ctermbg=21 guibg=#0000af | highlight DiffDelete ctermbg=52 guibg=#5f0000',
             '-c',
-            'set showtabline=2 | set tabline=[Instructions]\ :wqa(save\ &\ quit)\ \|\ i/esc(toggle\ edit\ mode)',
+            'set showtabline=2 | set tabline=[Instructions] :wqa(save & quit) | i/esc(toggle edit mode)',
             '-c',
-            'wincmd h | setlocal statusline=OLD\ FILE',
+            'wincmd h | setlocal statusline=OLD FILE',
             '-c',
-            'wincmd l | setlocal statusline=%#StatusBold#NEW\ FILE\ :wqa(save\ &\ quit)\ \|\ i/esc(toggle\ edit\ mode)',
+            'wincmd l | setlocal statusline=%#StatusBold#NEW FILE :wqa(save & quit) | i/esc(toggle edit mode)',
             '-c',
             'autocmd BufWritePost * wqa',
             'old.txt',

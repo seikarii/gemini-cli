@@ -153,11 +153,11 @@ export async function getDiffCommand(
           'highlight DiffAdd cterm=bold ctermbg=22 guibg=#005f00 | highlight DiffChange cterm=bold ctermbg=24 guibg=#005f87 | highlight DiffText ctermbg=21 guibg=#0000af | highlight DiffDelete ctermbg=52 guibg=#5f0000',
           // Show helpful messages
           '-c',
-          'set showtabline=2 | set tabline=[Instructions]\ :wqa(save\ &\ quit)\ \|\ i/esc(toggle\ edit\ mode)',
+          'set showtabline=2 | set tabline=[Instructions] :wqa(save & quit) | i/esc(toggle edit mode)',
           '-c',
-          'wincmd h | setlocal statusline=OLD\ FILE',
+          'wincmd h | setlocal statusline=OLD FILE',
           '-c',
-          'wincmd l | setlocal statusline=%#StatusBold#NEW\ FILE\ :wqa(save\ &\ quit)\ \|\ i/esc(toggle\ edit\ mode)',
+          'wincmd l | setlocal statusline=%#StatusBold#NEW FILE :wqa(save & quit) | i/esc(toggle edit mode)',
           // Auto close all windows when one is closed
           '-c',
           'autocmd BufWritePost * wqa',
