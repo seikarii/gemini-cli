@@ -424,22 +424,7 @@ class WriteFileToolInvocation extends BaseToolInvocation<
           throw new Error(createResult.error);
         }
       }
-      // Create a backup of the existing file to allow restore on failure.
-      const backupPath = `${file_path}.backup`;
-      try {
-        if (await this.config.getFileSystemService().exists(file_path)) {
-          const copyResult = await this.config
-            .getFileSystemService()
-            .copyFile(file_path, backupPath);
-          if (!copyResult.success) {
-            throw new Error(copyResult.error);
-          }
-        }
-      } catch (_e) {
-        // ignore backup creation failures; proceed to write but log in debug
-        if (this.config.getDebugMode())
-          console.debug('Failed to create backup before write', _e);
-      }
+
 
       await this.config
         .getFileSystemService()

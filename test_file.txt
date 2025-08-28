@@ -1,2 +1,1 @@
-This is the updated content of the test file.
-This is the second line.
+This is the NEW content of test_file.txt.
