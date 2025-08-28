@@ -72,8 +72,12 @@ export class FileStreamProcessor extends StreamProcessor<Buffer, Buffer> impleme
     const stream = createReadStream(filePath);
 
     return new Promise((resolve, reject) => {
-      stream.on('data', (data: Buffer) => {
-        hash.update(data);
+      stream.on('data', (data: Buffer | string) => {
+        if (Buffer.isBuffer(data)) {
+          hash.update(data);
+        } else {
+          hash.update(data, 'utf8');
+        }
       });
 
       stream.on('end', () => {

@@ -208,14 +208,16 @@ export class AuditLogger extends EventEmitter {
     super();
     
     this.config = {
-      maxFileSize: 10 * 1024 * 1024, // 10MB
-      maxFiles: 10,
-      rotationInterval: 24 * 60 * 60 * 1000, // 24 hours
-      minSeverity: AuditSeverity.LOW,
-      enableEncryption: false,
-      enableIntegrityCheck: true,
-      enableAlerting: false,
-      ...config
+      enabled: config.enabled,
+      logFilePath: config.logFilePath,
+      maxFileSize: config.maxFileSize ?? 10 * 1024 * 1024, // 10MB
+      maxFiles: config.maxFiles ?? 10,
+      rotationInterval: config.rotationInterval ?? 24 * 60 * 60 * 1000, // 24 hours
+      minSeverity: config.minSeverity ?? AuditSeverity.LOW,
+      enableEncryption: config.enableEncryption ?? false,
+      enableIntegrityCheck: config.enableIntegrityCheck ?? true,
+      enableAlerting: config.enableAlerting ?? false,
+      encryptionKey: config.encryptionKey,
     };
 
     this.stats = {

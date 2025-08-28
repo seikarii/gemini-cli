@@ -26,6 +26,7 @@ export interface RepositoryResult<T> {
     fromCache?: boolean;
     operationTime?: number;
     source?: string;
+    resultCount?: number;
   };
 }
 

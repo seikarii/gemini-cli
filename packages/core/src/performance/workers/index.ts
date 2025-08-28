@@ -4,12 +4,17 @@
  * @license MIT
  */
 
+// Import classes for use in factory functions
+import { TaskQueue } from './TaskQueue.js';
+import { WorkerPool } from './WorkerPool.js';
+import type { WorkerPoolConfig } from './WorkerInterfaces.js';
+import { WorkerType } from './WorkerInterfaces.js';
+
 // Core interfaces and types
 export type {
   WorkerTask,
   WorkerResult,
   WorkerConfig,
-  WorkerPoolConfig,
   WorkerInfo,
   PoolStats,
   QueueStats,
@@ -31,6 +36,7 @@ export {
   WorkerType,
   TaskPriority,
   TaskStatus,
+  WorkerPoolConfig,
 } from './WorkerInterfaces.js';
 
 // Core components
@@ -55,7 +61,7 @@ export const DEFAULT_WORKER_CONFIG: WorkerPoolConfig = {
   workerConfigs: [
     {
       type: WorkerType.FILE_PROCESSING,
-      scriptPath: new URL('./scripts/FileProcessingWorker.js', import.meta.url).pathname,
+      scriptPath: './scripts/FileProcessingWorker.js',
       maxConcurrency: 2,
       timeout: 60000, // 1 minute
       retries: 3,
@@ -64,7 +70,7 @@ export const DEFAULT_WORKER_CONFIG: WorkerPoolConfig = {
     },
     {
       type: WorkerType.EMBEDDING_GENERATION,
-      scriptPath: new URL('./scripts/EmbeddingWorker.js', import.meta.url).pathname,
+      scriptPath: './scripts/EmbeddingWorker.js',
       maxConcurrency: 1,
       timeout: 120000, // 2 minutes
       retries: 2,
@@ -73,7 +79,7 @@ export const DEFAULT_WORKER_CONFIG: WorkerPoolConfig = {
     },
     {
       type: WorkerType.CODE_ANALYSIS,
-      scriptPath: new URL('./scripts/CodeAnalysisWorker.js', import.meta.url).pathname,
+      scriptPath: './scripts/CodeAnalysisWorker.js',
       maxConcurrency: 2,
       timeout: 90000, // 1.5 minutes
       retries: 3,
@@ -87,22 +93,18 @@ export const DEFAULT_WORKER_CONFIG: WorkerPoolConfig = {
  * Create a worker pool with default configuration
  */
 export function createWorkerPool(customConfig?: Partial<WorkerPoolConfig>): WorkerPool {
-  const taskQueue = new TaskQueue({
-    maxSize: customConfig?.queueMaxSize || DEFAULT_WORKER_CONFIG.queueMaxSize!,
-  });
-
   const config: WorkerPoolConfig = {
     ...DEFAULT_WORKER_CONFIG,
     ...customConfig,
     workerConfigs: customConfig?.workerConfigs || DEFAULT_WORKER_CONFIG.workerConfigs,
   };
 
-  return new WorkerPool(config, taskQueue);
+  return new WorkerPool(config);
 }
 
 /**
  * Create a task queue with default configuration
  */
 export function createTaskQueue(maxSize = 1000): TaskQueue {
-  return new TaskQueue({ maxSize });
+  return new TaskQueue(maxSize);
 }

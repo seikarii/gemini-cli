@@ -141,7 +141,7 @@ export class MemoryRepository extends AbstractRepository<MemoryEntity> implement
    */
   async findAll(): Promise<MemoryEntity[]> {
     const memories = await this.memoryService.getAllMemories();
-    return memories.map(memory => this.memoryToEntity(memory));
+    return memories.map((memory: Memory) => this.memoryToEntity(memory));
   }
 
   /**
@@ -216,12 +216,12 @@ export class MemoryRepository extends AbstractRepository<MemoryEntity> implement
     try {
       const result = await this.withRetry(async () => {
         const allMemories = await this.memoryService.getAllMemories();
-        const matchingMemories = allMemories.filter(memory => 
+        const matchingMemories = allMemories.filter((memory: Memory) => 
           memory.metadata.tags && 
           tags.some(tag => memory.metadata.tags!.includes(tag))
         );
 
-        const entities = matchingMemories.map(memory => this.memoryToEntity(memory));
+        const entities = matchingMemories.map((memory: Memory) => this.memoryToEntity(memory));
 
         return this.createSuccessResult(entities, {
           operationTime: Date.now() - startTime,
@@ -251,17 +251,17 @@ export class MemoryRepository extends AbstractRepository<MemoryEntity> implement
     try {
       const result = await this.withRetry(async () => {
         const allMemories = await this.memoryService.getAllMemories();
-        const importantMemories = allMemories.filter(memory => 
+        const importantMemories = allMemories.filter((memory: Memory) => 
           memory.metadata.importance !== undefined && 
           memory.metadata.importance >= minImportance
         );
 
         // Sort by importance descending
-        importantMemories.sort((a, b) => 
+        importantMemories.sort((a: Memory, b: Memory) => 
           (b.metadata.importance || 0) - (a.metadata.importance || 0)
         );
 
-        const entities = importantMemories.map(memory => this.memoryToEntity(memory));
+        const entities = importantMemories.map((memory: Memory) => this.memoryToEntity(memory));
 
         return this.createSuccessResult(entities, {
           operationTime: Date.now() - startTime,
@@ -298,7 +298,7 @@ export class MemoryRepository extends AbstractRepository<MemoryEntity> implement
           status: MemoryStatus.ACTIVE,
         });
 
-        const entities = similarMemories.map(memory => this.memoryToEntity(memory));
+        const entities = similarMemories.map((memory: Memory) => this.memoryToEntity(memory));
 
         return this.createSuccessResult(entities, {
           operationTime: Date.now() - startTime,
@@ -331,48 +331,48 @@ export class MemoryRepository extends AbstractRepository<MemoryEntity> implement
 
         // Apply filters
         if (criteria.status) {
-          memories = memories.filter(m => m.status === criteria.status);
+          memories = memories.filter((m: Memory) => m.status === criteria.status);
         }
 
         if (criteria.tags && criteria.tags.length > 0) {
-          memories = memories.filter(m => 
+          memories = memories.filter((m: Memory) => 
             m.metadata.tags && 
             criteria.tags!.some(tag => m.metadata.tags!.includes(tag))
           );
         }
 
         if (criteria.importance !== undefined) {
-          memories = memories.filter(m => 
+          memories = memories.filter((m: Memory) => 
             m.metadata.importance !== undefined && 
             m.metadata.importance >= criteria.importance!
           );
         }
 
         if (criteria.type) {
-          memories = memories.filter(m => m.metadata.type === criteria.type);
+          memories = memories.filter((m: Memory) => m.metadata.type === criteria.type);
         }
 
         if (criteria.createdAfter) {
-          memories = memories.filter(m => 
+          memories = memories.filter((m: Memory) => 
             m.metadata.timestamp >= criteria.createdAfter!
           );
         }
 
         if (criteria.createdBefore) {
-          memories = memories.filter(m => 
+          memories = memories.filter((m: Memory) => 
             m.metadata.timestamp <= criteria.createdBefore!
           );
         }
 
         if (criteria.minRelevanceScore !== undefined) {
-          memories = memories.filter(m => 
+          memories = memories.filter((m: Memory) => 
             m.relevanceScore !== undefined && 
             m.relevanceScore >= criteria.minRelevanceScore!
           );
         }
 
         if (criteria.hasEmbeddings !== undefined) {
-          memories = memories.filter(m => 
+          memories = memories.filter((m: Memory) => 
             criteria.hasEmbeddings ? 
             (m.embeddings && m.embeddings.length > 0) : 
             (!m.embeddings || m.embeddings.length === 0)
@@ -387,19 +387,19 @@ export class MemoryRepository extends AbstractRepository<MemoryEntity> implement
           );
           
           // Intersect with filtered results
-          const searchIds = new Set(searchResults.map(m => m.id));
-          memories = memories.filter(m => searchIds.has(m.id));
+          const searchIds = new Set(searchResults.map((m: Memory) => m.id));
+          memories = memories.filter((m: Memory) => searchIds.has(m.id));
           
           // Preserve relevance order from search
           const relevanceMap = new Map(
-            searchResults.map((m, index) => [m.id, index])
+            searchResults.map((m: Memory, index: number) => [m.id, index])
           );
-          memories.sort((a, b) => 
+          memories.sort((a: Memory, b: Memory) => 
             (relevanceMap.get(a.id) || 999) - (relevanceMap.get(b.id) || 999)
           );
         }
 
-        const entities = memories.map(memory => this.memoryToEntity(memory));
+        const entities = memories.map((memory: Memory) => this.memoryToEntity(memory));
 
         return this.createSuccessResult(entities, {
           operationTime: Date.now() - startTime,
@@ -630,7 +630,7 @@ export class MemoryRepository extends AbstractRepository<MemoryEntity> implement
       // Get top 10 tags
       statistics.topTags = Array.from(tagCounts.entries())
         .map(([tag, count]) => ({ tag, count }))
-        .sort((a, b) => b.count - a.count)
+        .sort((a: { tag: string; count: number }, b: { tag: string; count: number }) => b.count - a.count)
         .slice(0, 10);
 
       return this.createSuccessResult(statistics, {

@@ -392,13 +392,13 @@ export const DEFAULT_STREAM_CONFIGS: Record<StreamMode, IStreamConfig> = {
 /**
  * Stream processing events
  */
-export interface IStreamEvents {
-  'chunk-processed': (chunk: IStreamChunk) => void;
-  'chunk-error': (error: Error, chunk: IStreamChunk) => void;
+export interface IStreamEvents<TInput = Buffer | string | Record<string, unknown>, TOutput = Buffer | string> {
+  'chunk-processed': (chunk: IStreamChunk<TInput>) => void;
+  'chunk-error': (error: Error, chunk: IStreamChunk<TInput>) => void;
   'backpressure-start': (level: number) => void;
   'backpressure-end': () => void;
   'stats-update': (stats: IStreamStats) => void;
-  'processing-complete': (result: IStreamResult) => void;
+  'processing-complete': (result: IStreamResult<TOutput>) => void;
   'processing-error': (error: Error) => void;
   'processing-paused': () => void;
   'processing-resumed': () => void;

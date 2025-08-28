@@ -17,13 +17,14 @@ import {
   IBackpressureManager,
   StreamMode,
   StreamPriority,
+  IStreamEvents,
   DEFAULT_STREAM_CONFIGS
 } from './StreamInterfaces.js';
 
 /**
  * Core stream processor with comprehensive backpressure management
  */
-export class StreamProcessor<TInput = Buffer | string, TOutput = Buffer | string> 
+export class StreamProcessor<TInput extends Buffer | string | Record<string, unknown> = Buffer | string, TOutput = Buffer | string> 
   extends EventEmitter implements IStreamProcessor<TInput, TOutput> {
   
   private readonly backpressureManager: BackpressureManager;
@@ -261,7 +262,7 @@ export class StreamProcessor<TInput = Buffer | string, TOutput = Buffer | string
     };
 
     if (config.enableIntegrityCheck) {
-      chunk.checksum = this.calculateChecksum(data);
+      chunk.checksum = this.calculateChunkChecksum(data);
     }
 
     return chunk;
@@ -283,7 +284,7 @@ export class StreamProcessor<TInput = Buffer | string, TOutput = Buffer | string
   /**
    * Calculate chunk checksum
    */
-  private calculateChecksum(data: TInput): string {
+  protected calculateChunkChecksum(data: TInput): string {
     const hash = createHash('sha256');
     
     if (Buffer.isBuffer(data)) {
@@ -382,7 +383,7 @@ export class BackpressureManager implements IBackpressureManager {
 /**
  * Create stream processor with default configuration
  */
-export function createStreamProcessor<TInput = Buffer | string, TOutput = Buffer | string>(
+export function createStreamProcessor<TInput extends Buffer | string | Record<string, unknown> = Buffer | string, TOutput = Buffer | string>(
   _mode: StreamMode = StreamMode.STANDARD
 ): StreamProcessor<TInput, TOutput> {
   const processor = new StreamProcessor<TInput, TOutput>();

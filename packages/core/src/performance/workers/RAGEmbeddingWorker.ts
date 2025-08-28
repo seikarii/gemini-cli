@@ -5,14 +5,37 @@
 
 import { parentPort } from 'worker_threads';
 import type { 
-  IWorkerMessage, 
-  IEmbeddingWorkerData,
-  IEmbeddingWorkerResult 
-} from '../interfaces/WorkerInterfaces';
-import { RAGGeminiEmbeddingService } from '../../rag/embeddingServices/geminiEmbeddingService';
-import { RAGLogger } from '../../rag/logger';
+  WorkerMessage, 
+  EmbeddingInput,
+  WorkerResult,
+  EmbeddingOutput
+} from './WorkerInterfaces.js';
+
+// Define missing interfaces for RAG worker
+interface IWorkerMessage<T = unknown> {
+  id: string;
+  type: string;
+  data: T;
+}
+
+interface IEmbeddingWorkerData {
+  text?: string;
+  texts?: string[];
+}
+
+interface IEmbeddingWorkerResult {
+  embedding?: number[];
+  embeddings?: number[][];
+  dimension?: number;
+  model?: string;
+  cached?: boolean;
+  processingTime?: number;
+  batchSize?: number;
+}
+import { RAGGeminiEmbeddingService } from '../../rag/embeddingServices/geminiEmbeddingService.js';
+import { ConsoleRAGLogger, RAGLogger } from '../../rag/logger.js';
 import type { Config } from '@google/gemini-cli-core';
-import type { RAGConfig } from '../../rag/types';
+import type { RAGConfig } from '../../rag/types.js';
 
 interface RAGWorkerInitData {
   config: Config;
@@ -68,7 +91,7 @@ class RAGEmbeddingWorker {
   private async handleInit(id: string, initData: RAGWorkerInitData): Promise<void> {
     try {
       // Initialize logger
-      this.logger = new RAGLogger(initData.config, initData.ragConfig);
+      this.logger = new ConsoleRAGLogger('[RAG-Worker]');
       
       // Initialize RAG embedding service
       this.embeddingService = new RAGGeminiEmbeddingService(
