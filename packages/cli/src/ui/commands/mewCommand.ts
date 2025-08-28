@@ -5,7 +5,7 @@
  */
 
 import { SlashCommand, CommandKind } from './types.js';
-import type { Config } from '../../config/config.js';
+import type { Config } from '@google/gemini-cli-core';
 
 interface GeminiAgentClass {
   new (config: Config): {

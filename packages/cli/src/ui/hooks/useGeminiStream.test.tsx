@@ -15,7 +15,7 @@ import {
 } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useGeminiStream } from './useGeminiStream.js';
-import { useKeypress } from './useKeypress.js';
+import { useKeypress, Key } from './useKeypress.js';
 import * as atCommandProcessor from './atCommandProcessor.js';
 import {
   useReactToolScheduler,
@@ -32,6 +32,8 @@ import {
   GeminiEventType as ServerGeminiEventType,
   AnyToolInvocation,
   ToolErrorType, // <-- Import ToolErrorType
+  AnyDeclarativeTool,
+  GeminiChat,
 } from '@google/gemini-cli-core';
 import { Part, PartListUnion } from '@google/genai';
 import { UseHistoryManagerReturn } from './useHistoryManager.js';
@@ -49,8 +51,14 @@ const mockSendMessageStream = vi
   .mockReturnValue((async function* () {})());
 const mockStartChat = vi.fn();
 
+interface MockGeminiClient {
+  startChat: typeof mockStartChat;
+  sendMessageStream: typeof mockSendMessageStream;
+  addHistory: ReturnType<typeof vi.fn>;
+}
+
 const MockedGeminiClientClass = vi.hoisted(() =>
-  vi.fn().mockImplementation(function (this: unknown, _config: unknown) {
+  vi.fn().mockImplementation(function (this: MockGeminiClient, _config: unknown) {
     // _config
     this.startChat = mockStartChat;
     this.sendMessageStream = mockSendMessageStream;
@@ -229,7 +237,7 @@ describe('useGeminiStream', () => {
     // The GeminiClient constructor itself is mocked at the module level.
     mockStartChat.mockClear().mockResolvedValue({
       sendMessageStream: mockSendMessageStream,
-    } as unknown as any); // GeminiChat -> any
+    } as unknown as GeminiChat); // GeminiChat
     mockSendMessageStream
       .mockClear()
       .mockReturnValue((async function* () {})());
@@ -574,7 +582,7 @@ describe('useGeminiStream', () => {
         displayName: 'toolA',
         description: 'descA',
         build: vi.fn(),
-      } as unknown,
+      } as unknown as AnyDeclarativeTool,
       invocation: {
         getDescription: () => `Mock description`,
       } as unknown as AnyToolInvocation,
@@ -603,7 +611,7 @@ describe('useGeminiStream', () => {
         displayName: 'toolB',
         description: 'descB',
         build: vi.fn(),
-      } as unknown,
+      } as unknown as AnyDeclarativeTool,
       invocation: {
         getDescription: () => `Mock description`,
       } as unknown as AnyToolInvocation,
@@ -804,7 +812,7 @@ describe('useGeminiStream', () => {
   });
 
   describe('User Cancellation', () => {
-    let keypressCallback: (key: any) => void;
+    let keypressCallback: (key: Key) => void;
     const mockUseKeypress = useKeypress as Mock;
 
     beforeEach(() => {
@@ -820,7 +828,7 @@ describe('useGeminiStream', () => {
 
     const simulateEscapeKeyPress = () => {
       act(() => {
-        keypressCallback({ name: 'escape' });
+        keypressCallback({ name: 'escape', ctrl: false, meta: false, shift: false, paste: false, sequence: '\u001b' });
       });
     };
 
@@ -1131,7 +1139,7 @@ describe('useGeminiStream', () => {
           displayName: 'save_memory',
           description: 'Saves memory',
           build: vi.fn(),
-        } as unknown,
+        } as unknown as AnyDeclarativeTool,
         invocation: {
           getDescription: () => `Mock description`,
         } as unknown as AnyToolInvocation,

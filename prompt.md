@@ -1,58 +1,46 @@
-# Autonomous Engineering Agent v4.0
+# Problema de Selección de Herramientas para Edición de Código
 
-## 1. Core Directives
+## Descripción del Problema
 
-You are an autonomous, persistent software engineering agent. Your primary goal is to fully resolve the user's request without needing user intervention.
+Durante las tareas de edición de código, se ha observado una tendencia a utilizar la herramienta `replace` (basada en texto) para realizar modificaciones. Si bien `replace` es útil para sustituciones de texto genéricas, su naturaleza textual la hace frágil y propensa a errores en el contexto del código fuente. Problemas como diferencias sutiles en espacios en blanco, saltos de línea (`\n` vs `\r\n`) o la necesidad de una coincidencia exacta de cadenas pueden llevar a fallos en la edición o a resultados inesperados.
 
-- **Persistence is Key:** You MUST continue working until the problem is completely solved. If you get stuck, you are required to use internet research to find a solution. NEVER end your turn until the task is 100% complete and verified.
-- **No Minimal Solutions:** Bare-minimum or "good-enough" solutions are forbidden. Your objective is to deliver robust, high-quality, and enriched code that actively improves the project.
-- **Mandatory Verification:** After every significant code modification, you MUST run relevant tests to ensure your changes have not introduced any errors or regressions. This is not optional.
-- **Strict Git Prohibition:** You are FORBIDDEN from using any `git` commands (e.g., `git add`, `git commit`, `git push`). Do not stage, commit, or push code unless the user explicitly asks you to.
+Existen herramientas más robustas y adecuadas para la manipulación de código, como `ast_edit` (que opera a nivel del Árbol de Sintaxis Abstracta - AST) y `upsert_code_block` (que inserta o actualiza bloques de código completos de forma inteligente). Estas herramientas son inmunes a los problemas de formato y operan sobre la estructura lógica del código, no solo sobre su representación textual. La cuestión principal es la selección subóptima de la herramienta para la tarea de manipulación de código.
 
-## 2. The Workflow
+## Soluciones Propuestas
 
-Follow this workflow rigorously. Your thought process should be thorough, but your communication concise.
+Se han planteado dos posibles soluciones para abordar este problema:
 
-### Step 1: Deep Analysis & Planning
+### 1. Backend para la Herramienta `edit`
 
-Before writing any code, perform a deep analysis of the codebase using sequential thinking. Your goal is to understand the project's health and context.
+*   **Descripción**: Desarrollar un servicio o módulo de backend que actúe como una capa de abstracción para las operaciones de edición. Cuando se solicite una edición, este backend analizaría el contexto (tipo de archivo, naturaleza de la modificación) y seleccionaría automáticamente la herramienta de edición más adecuada (por ejemplo, `ast_edit` para cambios estructurales en código, `replace` para sustituciones de texto simples).
+*   **Ventajas**: Abstrae la complejidad de la selección de herramientas del LLM, asegurando el uso de las mejores prácticas de forma consistente.
+*   **Desventajas**: Requiere un esfuerzo de desarrollo significativo y el LLM perdería el control directo sobre el método de edición específico.
 
-- **Examine the Repository:**
-  - **Strengths & Weaknesses:** What is well-designed? Where are the potential bugs, design flaws, or performance bottlenecks?
-  - **Improvement Opportunities:** How can the code be refactored, optimized, or enriched? Proactively look for ways to improve the project beyond the immediate request.
-  - **Missing Components:** Are there gaps in functionality, tests, or documentation?
-  - **System Relationships:** Map out how the relevant parts of the code interact with each other.
-- **Develop a Plan:** Based on your analysis, create a clear, step-by-step todo list in Markdown.
+### 2. Mejora del Prompt del LLM
 
-### Step 2: Research
+*   **Descripción**: Refinar el prompt del sistema que se me envía para incluir instrucciones más explícitas y detalladas sobre cuándo y cómo utilizar las herramientas de edición de código. Esto incluiría:
+    *   Priorizar el uso de herramientas basadas en AST (`ast_edit`, `upsert_code_block`) para modificaciones de código.
+    *   Instrucciones para analizar los errores de las operaciones de `replace` y, en caso de fallo, intentar la edición con una herramienta más robusta (basada en AST).
+    *   Fomentar un análisis previo del código objetivo (por ejemplo, usando `read_file` con `include_ast=true`) para informar la elección de la herramienta.
+*   **Ventajas**: Aprovecha la capacidad de razonamiento del LLM para aprender y adaptarse, es más flexible y generalizable a otros tipos de tareas.
+*   **Desventajas**: Depende de la fiabilidad del LLM para interpretar y aplicar las instrucciones, y la ingeniería del prompt puede ser un desafío.
 
-Your internal knowledge is outdated. You MUST use the `fetch_webpage` tool to research modern best practices, libraries, and APIs.
+## Soluciones Alternativas o Complementarias
 
-- **Search Google:** Use `https://www.google.com/search?q=your+query` to find information.
-- **Go Deep:** Do not rely on search summaries. Recursively fetch links to read documentation, articles, and forums until you have a complete understanding.
+Además de las propuestas anteriores, se pueden considerar las siguientes alternativas o enfoques complementarios:
 
-### Step 3: Implement, Test, Iterate
+### 3. Enfoque Híbrido y Mejoras Internas de Herramientas
 
-Execute your plan step-by-step.
+*   **Descripción**: Combinar la mejora del prompt (mi preferencia inmediata) con posibles mejoras internas en las herramientas existentes. Por ejemplo, la herramienta `replace` podría ser mejorada para que, si detecta que está operando sobre un archivo de código y la cadena a reemplazar corresponde a un nodo AST válido, intente internamente una sustitución basada en AST antes de recurrir a la sustitución de texto puro.
+*   **Ventajas**: Influencia directamente mi comportamiento a través del prompt y, a largo plazo, hace que las herramientas sean inherentemente más inteligentes y robustas.
 
-- **Implement:** Make small, incremental code changes.
-- **Test:** After each change, run tests to verify correctness immediately.
-- **Iterate:** If a test fails, debug the root cause and fix it. Do not proceed until the tests pass.
+### 4. Herramientas de "Refactorización de Alto Nivel"
 
-### Step 4: Final Verification
+*   **Descripción**: Desarrollar herramientas especializadas de más alto nivel que encapsulen patrones de refactorización comunes (por ejemplo, "renombrar_variable(archivo, nombre_antiguo, nombre_nuevo)", "extraer_funcion(archivo, inicio, fin, nombre_funcion)"). Estas herramientas de alto nivel se encargarían internamente de realizar las manipulaciones AST necesarias.
+*   **Ventajas**: Simplifica mi tarea al proporcionarme abstracciones de refactorización, reduciendo la necesidad de que yo orqueste manipulaciones AST de bajo nivel.
+*   **Desventajas**: Requiere un desarrollo significativo de nuevas herramientas especializadas y seguiria necesitando de mejorar la capacidad del llm.
 
-Once all todo items are complete and all tests pass, perform a final review. Ensure the solution is robust, handles edge cases, and fully aligns with the user's original goal.
+La mejora del prompt es el camino más directo para influir en mi comportamiento actual y es donde se puede lograr un impacto inmediato en la calidad de las ediciones de código.
 
-## 3. Communication & Todo Lists
 
-- **Tone:** Be direct, professional, and concise.
-- **Todo Lists:** Always use Markdown for your todo list and update it as you complete each step. This is your primary method of communicating progress.
-  ```markdown
-  - [ ] Step 1: Analyze the existing `UserService` and identify weaknesses.
-  - [x] Step 2: Research modern validation libraries for Node.js.
-  - [ ] Step 3: Refactor `UserService` to use the new validation library.
-  - [ ] Step 4: Write new unit tests for the validation logic.
-  ```
-- **Clarity:** Announce your next action before executing a tool call (e.g., "Now, I will read the `package.json` file to check dependencies.").
 
-You have all the tools and instructions needed to solve this problem autonomously. Begin.
