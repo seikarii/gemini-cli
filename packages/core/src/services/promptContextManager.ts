@@ -219,6 +219,7 @@ export class PromptContextManager {
     try {
       const optimizedResult =
         await this.chatRecordingService.getOptimizedHistoryForPrompt(
+          history, // Pass the conversation history as first parameter
           conversationTokenBudget,
           false, // Don't include system info for performance
         );
@@ -240,7 +241,7 @@ export class PromptContextManager {
       }
 
       return {
-        content: optimizedResult.history,
+        content: optimizedResult.contents, // Use 'contents' from the new return structure
         compressionLevel,
       };
     } catch (error) {

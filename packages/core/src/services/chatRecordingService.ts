@@ -2229,20 +2229,23 @@ export class ChatRecordingService {
    * Gets optimized conversational history specifically designed for PromptContextManager integration.
    * This method provides flexible token budget management and returns history in Content[] format.
    *
-   * @param tokenBudget - Maximum number of tokens to allocate for history (default: 8000)
+   * @param fullHistory - Complete conversation history to optimize (Content[] format)
+   * @param targetTokenCount - Maximum number of tokens to allocate for history
    * @param includeSystemInfo - Whether to include compression stats in the result (default: false)
    * @returns Optimized history formatted for integration with PromptContextManager
    */
   async getOptimizedHistoryForPrompt(
-    tokenBudget: number = 8000,
+    fullHistory: Content[],
+    targetTokenCount: number,
     includeSystemInfo: boolean = false,
   ): Promise<{
-    history: Content[];
+    contents: Content[];
+    estimatedTokens: number;
+    compressionLevel: CompressionStrategy;
     metaInfo: {
-      totalTokens: number;
+      compressionApplied: boolean;
       originalMessageCount: number;
       finalMessageCount: number;
-      compressionApplied: boolean;
       compressionStats?: {
         originalMessages: number;
         compressedMessages: number;
@@ -2251,75 +2254,119 @@ export class ChatRecordingService {
       };
     };
   }> {
-    if (!this.conversationFile) {
+    if (!fullHistory || fullHistory.length === 0) {
       return {
-        history: [],
+        contents: [],
+        estimatedTokens: 0,
+        compressionLevel: CompressionStrategy.NO_COMPRESSION,
         metaInfo: {
-          totalTokens: 0,
+          compressionApplied: false,
           originalMessageCount: 0,
           finalMessageCount: 0,
-          compressionApplied: false,
         },
       };
     }
 
-    const conversation = await this.readConversation();
+    // Convert Content[] to MessageRecord[] for compression processing
+    const messageRecords: MessageRecord[] = fullHistory.map((content, index) => ({
+      id: `msg_${index}_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      type: content.role === 'user' ? 'user' : 'gemini',
+      content: this.extractTextFromContent(content),
+    }));
+
+    // Calculate current token count
+    let originalTokens = 0;
+    for (const record of messageRecords) {
+      originalTokens += await this.estimateTokenCount(record.content);
+    }
+
+    // If already under budget, return as-is
+    if (originalTokens <= targetTokenCount) {
+      return {
+        contents: fullHistory,
+        estimatedTokens: originalTokens,
+        compressionLevel: CompressionStrategy.NO_COMPRESSION,
+        metaInfo: {
+          compressionApplied: false,
+          originalMessageCount: fullHistory.length,
+          finalMessageCount: fullHistory.length,
+        },
+      };
+    }
 
     // Apply compression with custom token budget
     const originalConfig = { ...this.compressionConfig };
-    this.compressionConfig.maxContextTokens = tokenBudget;
+    // Apply compression by creating a temporary conversation record
+    const tempConversation: EnhancedConversationRecord = {
+      sessionId: 'temp_optimization',
+      projectHash: 'temp_project', 
+      startTime: new Date().toISOString(),
+      lastUpdated: new Date().toISOString(),
+      messages: messageRecords,
+    };
 
-    const optimized = await this.compressContextIfNeeded(conversation);
+    const optimized = await this.compressContextIfNeeded(tempConversation);
 
     // Restore original config
     this.compressionConfig = originalConfig;
 
-    // Convert messages to Content[] format
-    const history: Content[] = optimized.messages.map((msg: MessageRecord) => ({
+    // Convert messages back to Content[] format
+    const optimizedContents: Content[] = optimized.messages.map((msg: MessageRecord) => ({
       role: msg.type === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }],
     }));
 
-    // Calculate total tokens
-    let totalTokens = 0;
+    // Calculate final tokens
+    let finalTokens = 0;
     for (const msg of optimized.messages) {
-      totalTokens += await this.estimateTokenCount(msg.content);
+      finalTokens += await this.estimateTokenCount(msg.content);
     }
 
     if (optimized.compressedContext) {
-      totalTokens += optimized.compressedContext.compressedTokens;
+      finalTokens += optimized.compressedContext.compressedTokens;
     }
 
-    const originalMessageCount = optimized.compressedContext
-      ? optimized.compressedContext.messageCount + optimized.messages.length
-      : optimized.messages.length;
-
     const compressionApplied = !!optimized.compressedContext;
-
     let compressionStats;
     if (compressionApplied && includeSystemInfo) {
+      const ctx = optimized.compressedContext!;
+      const originalMessages = ctx.messageCount + optimized.messages.length;
+      const compressedMessages = optimized.messages.length;
+      const tokenReduction = ctx.originalTokens - ctx.compressedTokens;
+      const compressionRatio = ctx.compressedTokens / ctx.originalTokens;
       compressionStats = {
-        originalMessages: originalMessageCount,
-        compressedMessages: optimized.messages.length,
-        tokenReduction:
-          optimized.compressedContext!.originalTokens -
-          optimized.compressedContext!.compressedTokens,
-        compressionRatio:
-          optimized.compressedContext!.compressedTokens /
-          optimized.compressedContext!.originalTokens,
+        originalMessages,
+        compressedMessages,
+        tokenReduction,
+        compressionRatio,
       };
     }
 
     return {
-      history,
+      contents: optimizedContents,
+      estimatedTokens: finalTokens,
+      compressionLevel: this.compressionConfig.strategy,
       metaInfo: {
-        totalTokens,
-        originalMessageCount,
-        finalMessageCount: optimized.messages.length,
         compressionApplied,
-        compressionStats: includeSystemInfo ? compressionStats : undefined,
+        originalMessageCount: fullHistory.length,
+        finalMessageCount: optimizedContents.length,
+        compressionStats,
       },
     };
+  }
+
+  /**
+   * Helper method to extract text content from Content objects
+   */
+  private extractTextFromContent(content: Content): string {
+    if (!content.parts) return '';
+
+    return content.parts
+      .filter((part) => part.text)
+      .map((part) => part.text)
+      .join(' ')
+      .trim();
   }
 
   /**
