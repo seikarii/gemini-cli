@@ -465,6 +465,178 @@ export class SubAgentScope {
   }
 
   /**
+   * Run multiple subagents in parallel for complex task decomposition.
+   * This static method provides a convenient way to orchestrate multiple agents
+   * without managing an AgentPool instance directly.
+   * 
+   * @param runtimeContext - The shared runtime configuration
+   * @param taskDescription - Description of the complex task to decompose
+   * @param baseConfig - Base configuration for all agents
+   * @param sharedContext - Shared context state for all agents
+   * @param strategy - Strategy for task decomposition
+   * @param maxConcurrent - Maximum number of concurrent agents
+   * @returns Promise resolving to array of agent results
+   */
+  static async runParallel(
+    runtimeContext: Config,
+    taskDescription: string,
+    baseConfig: {
+      modelConfig: ModelConfig;
+      runConfig: RunConfig;
+      toolConfig?: ToolConfig;
+    },
+    sharedContext: ContextState,
+    strategy: 'analysis' | 'modification' | 'testing' | 'custom' = 'analysis',
+    maxConcurrent: number = 3
+  ): Promise<Array<{ name: string; success: boolean; output: unknown; error?: Error; executionTime: number }>> {
+    const { AgentPool } = await import('../utils/concurrency/AgentPool.js');
+    
+    const pool = new AgentPool(runtimeContext, maxConcurrent);
+    
+    return pool.runParallelWithDecomposition({
+      taskDescription,
+      baseConfig,
+      sharedContext,
+      decompositionStrategy: strategy,
+      maxAgents: maxConcurrent
+    });
+  }
+
+  /**
+   * Delegate a specific task to a specialized subagent.
+   * This provides a simple interface for single-agent delegation.
+   * 
+   * @param runtimeContext - The runtime configuration
+   * @param agentName - Name for the specialized agent
+   * @param taskPrompt - Specific prompt for the agent's task
+   * @param modelConfig - Model configuration
+   * @param runConfig - Runtime configuration
+   * @param context - Context state for the agent
+   * @param toolConfig - Optional tool configuration
+   * @param outputConfig - Optional output configuration
+   * @returns Promise resolving to the agent's output
+   */
+  static async delegate(
+    runtimeContext: Config,
+    agentName: string,
+    taskPrompt: string,
+    modelConfig: ModelConfig,
+    runConfig: RunConfig,
+    context: ContextState,
+    toolConfig?: ToolConfig,
+    outputConfig?: OutputConfig
+  ): Promise<{ success: boolean; output: unknown; error?: Error }> {
+    try {
+      const agent = await SubAgentScope.create(
+        agentName,
+        runtimeContext,
+        { systemPrompt: taskPrompt },
+        modelConfig,
+        runConfig,
+        toolConfig,
+        outputConfig
+      );
+      
+      await agent.runNonInteractive(context);
+      
+      return {
+        success: agent.output.terminate_reason === SubagentTerminateMode.GOAL,
+        output: agent.output,
+        error: undefined
+      };
+    } catch (error) {
+      return {
+        success: false,
+        output: null,
+        error: error instanceof Error ? error : new Error(String(error))
+      };
+    }
+  }
+
+  /**
+   * Create a quick analysis agent for code review and assessment tasks.
+   * This is a convenience method for common analysis patterns.
+   * 
+   * @param runtimeContext - The runtime configuration
+   * @param analysisTarget - What to analyze (e.g., "authentication system", "performance bottlenecks")
+   * @param modelConfig - Model configuration
+   * @param runConfig - Runtime configuration
+   * @param context - Context state
+   * @returns Promise resolving to analysis results
+   */
+  static async createAnalysisAgent(
+    runtimeContext: Config,
+    analysisTarget: string,
+    modelConfig: ModelConfig,
+    runConfig: RunConfig,
+    context: ContextState
+  ): Promise<{ success: boolean; output: unknown; error?: Error }> {
+    const analysisPrompt = `
+You are a specialized code analysis agent. Your task is to thoroughly analyze ${analysisTarget}.
+
+Focus on:
+- **Strengths:** Well-designed elements and best practices
+- **Weaknesses:** Potential bugs, design flaws, or performance issues  
+- **Improvements:** Specific optimization and refactoring opportunities
+- **Missing Components:** Gaps in functionality, tests, or documentation
+- **Architecture:** Overall design patterns and structure assessment
+
+Use grep, read, and glob tools to explore the codebase systematically. Provide specific, actionable findings with code examples where relevant.
+`;
+
+    return this.delegate(
+      runtimeContext,
+      'code-analysis-agent',
+      analysisPrompt,
+      modelConfig,
+      runConfig,
+      context,
+      { tools: ['grep', 'read_file', 'glob', 'read_many_files', 'unified_search'] }
+    );
+  }
+
+  /**
+   * Create a modification agent for implementing changes and improvements.
+   * This is a convenience method for common modification patterns.
+   * 
+   * @param runtimeContext - The runtime configuration
+   * @param modificationTask - What to modify (e.g., "add validation", "refactor authentication")
+   * @param modelConfig - Model configuration
+   * @param runConfig - Runtime configuration
+   * @param context - Context state
+   * @returns Promise resolving to modification results
+   */
+  static async createModificationAgent(
+    runtimeContext: Config,
+    modificationTask: string,
+    modelConfig: ModelConfig,
+    runConfig: RunConfig,
+    context: ContextState
+  ): Promise<{ success: boolean; output: unknown; error?: Error }> {
+    const modificationPrompt = `
+You are a specialized code modification agent. Your task is to implement: ${modificationTask}.
+
+Approach:
+1. **Analyze** the current code structure and understand the existing patterns
+2. **Plan** your modifications to align with existing architecture and best practices
+3. **Implement** robust, maintainable changes with proper error handling
+4. **Validate** your changes work correctly and don't break existing functionality
+
+Use AST-based tools (upsert_code_block, ast_edit) for structural changes and edit for simple modifications. Always read files first to understand context.
+`;
+
+    return this.delegate(
+      runtimeContext,
+      'code-modification-agent', 
+      modificationPrompt,
+      modelConfig,
+      runConfig,
+      context,
+      { tools: ['read_file', 'upsert_code_block', 'edit', 'write_file', 'shell'] }
+    );
+  }
+
+  /**
    * Processes a list of function calls, executing each one and collecting their responses.
    * This method iterates through the provided function calls, executes them using the
    * `executeToolCall` function (or handles `self.emitvalue` internally), and aggregates
