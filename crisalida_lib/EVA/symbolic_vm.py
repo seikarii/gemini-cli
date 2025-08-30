@@ -16,37 +16,37 @@ from typing import Any
 
 import numpy as np
 
-# For type-checking stability and import-time safety, avoid importing the
-# heavy janus_integration module. Use Any aliases for the integration
-# symbols so static analysis remains permissive while runtime behavior
-# falls back gracefully.
-Chakra = Any
-ConsciousMind = Any
-CrystallizedQualia = Any
-CuerpoBiologico = Any
-ExternalRealityExplorer = Any
-GenomaComportamiento = Any
-HAL_Ontologica = Any
-LivingEntity = Any
-Noosphere = Any
-Proposito = Any
-QualiaChain = Any
-SelfModifyingEngine = Any
-SignedTransaction = Any
-SistemaDeChakras = Any
-SistemaHormonal = Any
-SoulKernel = Any
-UnifiedField = Any
-LivingSymbolRuntime = Any
-QuantumField = Any
-EVAExperience = Any
-OntologicalInstruction = Any
-OntologicalOpcode = Any
-RealityBytecode = Any
-SemanticType = Any
-TypedValue = Any
-DivineLanguageEvolved = Any
-QualiaState = Any
+from crisalida_lib.EARTH.DEMIURGE.janus_integration import (
+    Chakra,
+    ConsciousMind,
+    CrystallizedQualia,
+    CuerpoBiologico,
+    ExternalRealityExplorer,
+    GenomaComportamiento,
+    HAL_Ontologica,
+    LivingEntity,
+    Noosphere,
+    Proposito,
+    QualiaChain,
+    SelfModifyingEngine,
+    SignedTransaction,
+    SistemaDeChakras,
+    SistemaHormonal,
+    SoulKernel,
+    UnifiedField,
+    LivingSymbolRuntime,
+    QuantumField,
+    DivineLanguageEvolved,
+    QualiaState,
+)
+from crisalida_lib.EVA.types import (
+    EVAExperience,
+    OntologicalInstruction,
+    OntologicalOpcode,
+    RealityBytecode,
+    SemanticType,
+    TypedValue,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

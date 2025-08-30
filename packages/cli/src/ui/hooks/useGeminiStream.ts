@@ -655,6 +655,14 @@ export const useGeminiStream = (
             // before we add loop detected message to history
             loopDetectedRef.current = true;
             break;
+          case ServerGeminiEventType.AgentThinking:
+            // Handle agent thinking events (for now, just log or display)
+            console.log('Agent thinking:', event.value);
+            break;
+          case ServerGeminiEventType.AgentPlanning:
+            // Handle agent planning events (for now, just log or display)  
+            console.log('Agent planning:', event.value);
+            break;
           default: {
             // enforces exhaustive switch-case
             const unreachable: never = event;

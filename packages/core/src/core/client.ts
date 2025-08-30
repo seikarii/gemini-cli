@@ -49,6 +49,9 @@ import {
 } from '../telemetry/types.js';
 import { ClearcutLogger } from '../telemetry/clearcut-logger/clearcut-logger.js';
 import { IdeContext, File } from '../ide/ideContext.js';
+import { CognitiveOrchestrator } from '../services/cognitiveOrchestrator.js';
+import type { PromptContextManager } from '../services/promptContextManager.js';
+import type { ToolSelectionGuidance } from '../services/toolSelectionGuidance.js';
 
 function isThinkingSupported(model: string) {
   if (model.startsWith('gemini-2.5')) return true;
@@ -102,6 +105,7 @@ export class GeminiClient {
     topP: 1,
   };
   private sessionTurnCount = 0;
+  private cognitiveOrchestrator?: CognitiveOrchestrator;
 
   private readonly loopDetector: LoopDetectionService;
   private lastPromptId: string;
@@ -125,6 +129,47 @@ export class GeminiClient {
       this.config.getSessionId(),
     );
     this.chat = await this.startChat();
+    
+    // Initialize cognitive orchestrator for intelligent agent coordination
+    if (!this.cognitiveOrchestrator) {
+      // Create mock instances for now - these would be properly initialized in production
+      const contextManager = {
+        enhancedContextService: {},
+        ragService: {},
+        chatRecordingService: {},
+        systemConfig: {},
+        assembleContext: () => Promise.resolve({ 
+          context: '', 
+          metadata: {}, 
+          confidence: 0.8 
+        }),
+        updateContext: () => Promise.resolve(),
+        getContextualizedPrompt: () => Promise.resolve(''),
+        getRelevantContext: () => Promise.resolve([]),
+        trackUsage: () => {},
+        reset: () => {},
+        getSystemPrompt: () => '',
+        optimizePrompt: () => Promise.resolve(''),
+        validateContext: () => true
+      } as unknown as PromptContextManager;
+      
+      const toolGuidance = {
+        config: this.config,
+        getToolRecommendations: () => Promise.resolve([]),
+        analyzeToolUsage: () => Promise.resolve({}),
+        optimizeToolSelection: () => Promise.resolve([]),
+        getToolPerformanceMetrics: () => Promise.resolve({}),
+        updateToolPreferences: () => {},
+        reset: () => {}
+      } as unknown as ToolSelectionGuidance;
+      
+      this.cognitiveOrchestrator = new CognitiveOrchestrator(
+        this.config,
+        contextManager,
+        toolGuidance,
+        this.getContentGenerator()
+      );
+    }
   }
 
   async tryCompressChat(
@@ -532,6 +577,52 @@ export class GeminiClient {
       this.getChat().setHistory(currentHistory);
     }
     // --- END MODIFICATION FOR 8-9 TURN LIMIT ---
+
+    // **NEW: COGNITIVE ORCHESTRATION INTEGRATION**
+    // Check if we should use cognitive orchestration for this request
+    if (this.cognitiveOrchestrator && typeof request === 'object' && 'text' in request && request.text) {
+      const userMessage = request.text;
+      const conversationHistory = this.getHistory();
+      
+      // Use cognitive orchestrator to determine response mode and potentially delegate to agents
+      try {
+        const enhancedResponse = await this.cognitiveOrchestrator.processRequest(
+          userMessage,
+          conversationHistory,
+          'default-prompt-id' // TODO: Use actual prompt ID from context
+        );
+        
+        // If orchestrator used thinking or agent delegation, yield those events
+        if (enhancedResponse.thinkingSession) {
+          yield { 
+            type: GeminiEventType.AgentThinking, 
+            value: `Sequential thinking session: ${enhancedResponse.thinkingSession.steps.length} steps completed`
+          };
+        }
+        
+        // If orchestrator created an execution plan, yield that too
+        if (enhancedResponse.executionPlan) {
+          yield { 
+            type: GeminiEventType.AgentPlanning, 
+            value: `Execution plan: ${JSON.stringify(enhancedResponse.executionPlan)}`
+          };
+        }
+        
+        // Update the request with the enhanced prompt from orchestrator
+        request = { text: enhancedResponse.enhancedPrompt };
+        
+        // Add cognitive insights to the context if available
+        if (enhancedResponse.cognitiveInsights) {
+          this.getChat().addHistory({
+            role: 'user',
+            parts: [{ text: `# Cognitive Insights\n${JSON.stringify(enhancedResponse.cognitiveInsights, null, 2)}` }]
+          });
+        }
+      } catch (error) {
+        // If orchestration fails, fall back to normal processing
+        console.warn('Cognitive orchestration failed, falling back to standard processing:', error);
+      }
+    }
 
     // The tryCompressChat is no longer needed as we are enforcing a hard turn limit.
     // const compressed = await this.tryCompressChat(prompt_id);

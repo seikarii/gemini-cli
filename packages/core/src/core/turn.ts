@@ -56,6 +56,9 @@ export enum GeminiEventType {
   MaxSessionTurns = 'max_session_turns',
   Finished = 'finished',
   LoopDetected = 'loop_detected',
+  // New events for cognitive orchestration
+  AgentThinking = 'agent_thinking',
+  AgentPlanning = 'agent_planning',
 }
 
 export interface StructuredError {
@@ -161,6 +164,16 @@ export type ServerGeminiLoopDetectedEvent = {
   type: GeminiEventType.LoopDetected;
 };
 
+export type ServerGeminiAgentThinkingEvent = {
+  type: GeminiEventType.AgentThinking;
+  value: string;
+};
+
+export type ServerGeminiAgentPlanningEvent = {
+  type: GeminiEventType.AgentPlanning;
+  value: string;
+};
+
 // The original union type, now composed of the individual types
 export type ServerGeminiStreamEvent =
   | ServerGeminiContentEvent
@@ -174,7 +187,9 @@ export type ServerGeminiStreamEvent =
   | ServerGeminiThoughtEvent
   | ServerGeminiMaxSessionTurnsEvent
   | ServerGeminiFinishedEvent
-  | ServerGeminiLoopDetectedEvent;
+  | ServerGeminiLoopDetectedEvent
+  | ServerGeminiAgentThinkingEvent
+  | ServerGeminiAgentPlanningEvent;
 
 // A turn manages the agentic loop turn within the server context.
 export class Turn {
