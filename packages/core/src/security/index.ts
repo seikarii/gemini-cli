@@ -7,3 +7,4 @@ export * from './RateLimiter.js';
 export * from './InputValidator.js';
 export * from './AuditLogger.js';
 export * from './EncryptionService.js';
+export * from './SecureContentProcessor.js';

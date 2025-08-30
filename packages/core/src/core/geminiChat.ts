@@ -67,15 +67,33 @@ function isValidContent(content: Content): boolean {
   if (content.parts === undefined || content.parts.length === 0) {
     return false;
   }
+  
+  // Count valid parts - allow some empty/metadata parts in streaming
+  let validPartCount = 0;
+  
   for (const part of content.parts) {
-    if (part === undefined || Object.keys(part).length === 0) {
-      return false;
+    if (part === undefined) {
+      continue; // Skip undefined parts
     }
-    if (!part.thought && part.text !== undefined && part.text === '') {
-      return false;
+    
+    // Empty objects are OK in streaming - they might be metadata/placeholders
+    if (Object.keys(part).length === 0) {
+      continue; 
+    }
+    
+    // Text parts with empty strings are OK if they're thoughts or if we have other content
+    if (part.text !== undefined) {
+      if (part.text !== '' || part.thought) {
+        validPartCount++;
+      }
+    } else {
+      // Non-text parts (function calls, etc.) are valid
+      validPartCount++;
     }
   }
-  return true;
+  
+  // Stream is valid if it has at least one meaningful part
+  return validPartCount > 0;
 }
 
 /**
@@ -685,9 +703,10 @@ export class GeminiChat {
     userInput: Content,
   ): AsyncGenerator<GenerateContentResponse> {
     const modelResponseParts: Part[] = [];
-    let isStreamInvalid = false;
     let hasReceivedAnyChunk = false;
+    let hasValidContent = false;
     let chunkCount = 0;
+    let invalidChunkCount = 0;
     const startTime = performance.now();
 
     for await (const chunk of streamResponse) {
@@ -695,6 +714,7 @@ export class GeminiChat {
       chunkCount++;
 
       if (isValidResponse(chunk)) {
+        hasValidContent = true;
         const content = chunk.candidates?.[0]?.content;
         if (content) {
           // Filter out thought parts from being added to history.
@@ -703,8 +723,11 @@ export class GeminiChat {
           }
         }
       } else {
-        recordInvalidChunk(this.config);
-        isStreamInvalid = true;
+        invalidChunkCount++;
+        // Only record as problematic if we have many invalid chunks relative to total
+        if (chunkCount > 2 && invalidChunkCount / chunkCount > 0.8) {
+          recordInvalidChunk(this.config);
+        }
       }
       yield chunk; // Yield every chunk to the UI immediately.
     }
@@ -717,11 +740,16 @@ export class GeminiChat {
       console.debug(`Processed ${chunkCount} chunks in ${processingTime}ms`);
     }
 
-    // Now that the stream is finished, make a decision.
-    // Throw an error if the stream was invalid OR if it was completely empty.
-    if (isStreamInvalid || !hasReceivedAnyChunk) {
+    // Enhanced debugging for stream issues
+    if (invalidChunkCount > 0) {
+      console.debug(`Stream processing: ${chunkCount} total chunks, ${invalidChunkCount} invalid, hasValidContent: ${hasValidContent}`);
+    }
+
+    // Only throw error if we got NO chunks at all OR if we have no valid content whatsoever
+    // Allow some invalid chunks as they're normal in streaming (metadata, empty chunks, etc.)
+    if (!hasReceivedAnyChunk || (!hasValidContent && chunkCount > 0)) {
       throw new EmptyStreamError(
-        `Model stream was invalid or completed without valid content. Chunks: ${chunkCount}, Invalid: ${isStreamInvalid}`,
+        `Model stream completed without valid content. Chunks: ${chunkCount}, ValidContent: ${hasValidContent}, InvalidChunks: ${invalidChunkCount}`,
       );
     }
 
