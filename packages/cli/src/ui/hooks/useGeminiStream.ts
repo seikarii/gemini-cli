@@ -656,12 +656,14 @@ export const useGeminiStream = (
             loopDetectedRef.current = true;
             break;
           case ServerGeminiEventType.AgentThinking:
-            // Handle agent thinking events (for now, just log or display)
-            console.log('Agent thinking:', event.value);
+            // Handle agent thinking events with enhanced visibility
+            console.log('🧠 SEQUENTIAL THINKING EVENT:', event.value);
+            // You could also update UI state here to show thinking progress
             break;
           case ServerGeminiEventType.AgentPlanning:
-            // Handle agent planning events (for now, just log or display)  
-            console.log('Agent planning:', event.value);
+            // Handle agent planning events with enhanced visibility
+            console.log('📋 AGENT PLANNING EVENT:', event.value);
+            // You could also update UI state here to show planning progress
             break;
           default: {
             // enforces exhaustive switch-case

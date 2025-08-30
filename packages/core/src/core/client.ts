@@ -586,25 +586,33 @@ export class GeminiClient {
       
       // Use cognitive orchestrator to determine response mode and potentially delegate to agents
       try {
+        console.log('🧠 COGNITIVE ORCHESTRATION ACTIVATED');
+        console.log('📝 Input:', userMessage.substring(0, 100) + (userMessage.length > 100 ? '...' : ''));
+        
         const enhancedResponse = await this.cognitiveOrchestrator.processRequest(
           userMessage,
           conversationHistory,
           'default-prompt-id' // TODO: Use actual prompt ID from context
         );
         
+        console.log('✅ COGNITIVE PROCESSING COMPLETE');
+        console.log('🎯 Cognitive Mode Used:', enhancedResponse.cognitiveInsights?.mode || 'unknown');
+        
         // If orchestrator used thinking or agent delegation, yield those events
         if (enhancedResponse.thinkingSession) {
+          console.log('🤔 SEQUENTIAL THINKING DETECTED - Displaying thinking session');
           yield { 
             type: GeminiEventType.AgentThinking, 
-            value: `Sequential thinking session: ${enhancedResponse.thinkingSession.steps.length} steps completed`
+            value: `🧠 Sequential thinking session: ${enhancedResponse.thinkingSession.steps.length} steps completed`
           };
         }
         
         // If orchestrator created an execution plan, yield that too
         if (enhancedResponse.executionPlan) {
+          console.log('📋 EXECUTION PLAN GENERATED - Displaying plan');
           yield { 
             type: GeminiEventType.AgentPlanning, 
-            value: `Execution plan: ${JSON.stringify(enhancedResponse.executionPlan)}`
+            value: `📋 Execution plan: ${JSON.stringify(enhancedResponse.executionPlan)}`
           };
         }
         

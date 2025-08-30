@@ -53,6 +53,14 @@ import { MemoryTool, setGeminiMdFilename } from '../tools/memoryTool.js';
 import { WebSearchTool } from '../tools/web-search.js';
 import { UpsertCodeBlockTool } from '../tools/upsert_code_block.js';
 import { ASTFindTool, ASTEditTool } from '../tools/ast.js';
+import { 
+  RunParallelTool, 
+  DelegateSubagentTool, 
+  CreateAnalysisAgentTool,
+  RunParallelParams,
+  DelegateSubagentParams,
+  CreateAnalysisAgentParams
+} from '../tools/subagentOrchestration.js';
 import { GeminiClient } from '../core/client.js';
 import { FileDiscoveryService } from '../services/fileDiscoveryService.js';
 import { GitService } from '../services/gitService.js';
@@ -936,6 +944,11 @@ export class Config {
       UnifiedSearchTool,
       this,
     );
+
+    // Register subagent orchestration tools
+    registerCoreTool<RunParallelParams, ToolResult>(RunParallelTool, this);
+    registerCoreTool<DelegateSubagentParams, ToolResult>(DelegateSubagentTool, this);
+    registerCoreTool<CreateAnalysisAgentParams, ToolResult>(CreateAnalysisAgentTool, this);
 
     await registry.discoverAllTools();
     return registry;

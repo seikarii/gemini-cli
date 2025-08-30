@@ -78,6 +78,11 @@ export class CognitiveOrchestrator {
       originalContext,
       enhancedPrompt: this.buildBasicPrompt(userMessage, originalContext),
       confidence: 0.7,
+      cognitiveInsights: {
+        mode: cognitiveMode.mode,
+        triggered: true,
+        timestamp: Date.now(),
+      },
     };
 
     // Apply cognitive enhancement based on mode
