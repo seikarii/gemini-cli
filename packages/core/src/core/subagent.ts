@@ -8,7 +8,7 @@ import { reportError } from '../utils/errorReporting.js';
 import { Config } from '../config/config.js';
 import { ToolCallRequestInfo } from './turn.js';
 import { executeToolCall } from './nonInteractiveToolExecutor.js';
-import { createContentGenerator } from './contentGenerator.js';
+import { createContentGenerator, ContentGenerator } from './contentGenerator.js';
 import { getEnvironmentContext } from '../utils/environmentContext.js';
 import {
   Content,
@@ -245,6 +245,7 @@ export class SubAgentScope {
    * @param runConfig - Configuration for the subagent's execution environment.
    * @param toolConfig - Optional configuration for tools available to the subagent.
    * @param outputConfig - Optional configuration for the subagent's expected outputs.
+   * @param contentGenerator - Optional pre-authenticated content generator to reuse.
    */
   private constructor(
     readonly name: string,
@@ -254,6 +255,7 @@ export class SubAgentScope {
     private readonly runConfig: RunConfig,
     private readonly toolConfig?: ToolConfig,
     private readonly outputConfig?: OutputConfig,
+    private readonly contentGenerator?: ContentGenerator,
   ) {
     const randomPart = Math.random().toString(36).slice(2, 8);
     this.subagentId = `${this.name}-${randomPart}`;
@@ -270,6 +272,7 @@ export class SubAgentScope {
    * @param {RunConfig} runConfig - Configuration for the subagent's execution environment.
    * @param {ToolConfig} [toolConfig] - Optional configuration for tools.
    * @param {OutputConfig} [outputConfig] - Optional configuration for expected outputs.
+   * @param {ContentGenerator} [contentGenerator] - Optional pre-authenticated content generator to reuse.
    * @returns {Promise<SubAgentScope>} A promise that resolves to a valid SubAgentScope instance.
    * @throws {Error} If any tool requires user confirmation.
    */
@@ -281,6 +284,7 @@ export class SubAgentScope {
     runConfig: RunConfig,
     toolConfig?: ToolConfig,
     outputConfig?: OutputConfig,
+    contentGenerator?: ContentGenerator,
   ): Promise<SubAgentScope> {
     if (toolConfig) {
       const toolRegistry = runtimeContext.getToolRegistry();
@@ -329,6 +333,7 @@ export class SubAgentScope {
       runConfig,
       toolConfig,
       outputConfig,
+      contentGenerator,
     );
   }
 
@@ -745,7 +750,8 @@ Use AST-based tools (upsert_code_block, ast_edit) for structural changes and edi
         generationConfig.systemInstruction = systemInstruction;
       }
 
-      const contentGenerator = await createContentGenerator(
+      // Use provided contentGenerator if available, otherwise create a new one
+      const contentGenerator = this.contentGenerator || await createContentGenerator(
         this.runtimeContext.getContentGeneratorConfig(),
         this.runtimeContext,
         this.runtimeContext.getSessionId(),

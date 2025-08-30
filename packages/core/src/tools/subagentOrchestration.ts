@@ -83,7 +83,7 @@ class RunParallelToolInvocation extends BaseToolInvocation<RunParallelParams, To
             systemPrompt,
           },
           { 
-            model: 'gemini-1.5-flash-latest', 
+            model: this.config.getModel(), 
             temp: 0.7, 
             top_p: 1 
           },
@@ -99,7 +99,8 @@ class RunParallelToolInvocation extends BaseToolInvocation<RunParallelParams, To
               result: `Findings from ${agentName} for the ${this.params.strategy} strategy`,
               status: 'Completion status of the assigned task'
             }
-          }
+          },
+          this.config.getGeminiClient().getContentGenerator()
         );
         
         subagentPromises.push(subagentPromise);
@@ -190,7 +191,7 @@ class DelegateSubagentToolInvocation extends BaseToolInvocation<DelegateSubagent
         this.config,
         { systemPrompt },
         { 
-          model: 'gemini-1.5-flash-latest', 
+          model: this.config.getModel(), 
           temp: 0.5, 
           top_p: 1 
         },
@@ -207,7 +208,8 @@ class DelegateSubagentToolInvocation extends BaseToolInvocation<DelegateSubagent
             status: 'Completion status and any recommendations',
             summary: 'Brief summary of work completed'
           }
-        }
+        },
+        this.config.getGeminiClient().getContentGenerator()
       );
       
       await subagent.runNonInteractive(contextState);
@@ -305,7 +307,7 @@ class CreateAnalysisAgentToolInvocation extends BaseToolInvocation<CreateAnalysi
         this.config,
         { systemPrompt },
         { 
-          model: 'gemini-1.5-flash-latest', 
+          model: this.config.getModel(), 
           temp: 0.3, // Lower temperature for more focused analysis
           top_p: 1 
         },
@@ -323,7 +325,8 @@ class CreateAnalysisAgentToolInvocation extends BaseToolInvocation<CreateAnalysi
             recommendations: 'Specific actionable recommendations',
             metrics: 'Relevant metrics and measurements'
           }
-        }
+        },
+        this.config.getGeminiClient().getContentGenerator()
       );
       
       await analysisAgent.runNonInteractive(contextState);
