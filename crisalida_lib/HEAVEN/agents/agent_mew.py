@@ -154,6 +154,7 @@ class AgentMew(EVAMemoryMixin):
         # Initialize monitor lazily to avoid import-time side effects.
         # Use start_monitor=True to create and start it immediately.
         self.monitor = None
+        self._monitor_started: bool = False
         if start_monitor:
             self.start_monitor()
 
@@ -170,10 +171,11 @@ class AgentMew(EVAMemoryMixin):
 
     def start_monitor(self):
         """Create and start the internal MewMonitor if not already running."""
-        if self.monitor is None:
+        if self.monitor is None and not self._monitor_started:
             try:
                 self.monitor = MewMonitor(self)
                 self.monitor.start()
+                self._monitor_started = True
             except Exception:
                 logger.exception("Failed to start MewMonitor")
 
@@ -186,6 +188,7 @@ class AgentMew(EVAMemoryMixin):
                 logger.exception("Failed to stop MewMonitor")
             finally:
                 self.monitor = None
+                self._monitor_started = False
 
     def get_status(self) -> dict[str, Any]:
         """Returns the current status report from the monitor."""

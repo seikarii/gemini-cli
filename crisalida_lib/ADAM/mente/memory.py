@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import inspect
+import json
 import logging
 import math
 import random
@@ -328,6 +329,93 @@ class MentalLaby:
         self.max_nodes = int(max_nodes)
         self.storage_pressure = float(storage_pressure)
 
+    def to_json(self) -> str:
+        serializable_nodes = {}
+        for nid, node in self.nodes.items():
+            serializable_nodes[nid] = {
+                "id": node.id,
+                "kind": node.kind,
+                "embed": node.embed.tolist() if HAS_NUMPY and isinstance(node.embed, np.ndarray) else node.embed,
+                "data": node.data,
+                "valence": node.valence,
+                "arousal": node.arousal,
+                "salience": node.salience,
+                "last_access": node.last_access,
+                "freq": node.freq,
+                "origin": node.origin,
+                "edges_out": dict(node.edges_out),
+                "edges_in": dict(node.edges_in),
+            }
+
+        serializable_data = {
+            "entity_id": self.entity_id,
+            "d": self.d,
+            "nodes": serializable_nodes,
+            "next_id": self.next_id,
+            "K": self.K,
+            "temp_store": self.temp_store,
+            "tau": self.tau,
+            "replay": list(self.replay),
+            "policy": self.policy,
+            "mode": self.mode,
+            "max_nodes": self.max_nodes,
+            "storage_pressure": self.storage_pressure,
+            "_last_observed": self._last_observed.tolist() if HAS_NUMPY and isinstance(self._last_observed, np.ndarray) else self._last_observed,
+        }
+        return json.dumps(serializable_data, indent=2)
+
+    @classmethod
+    def from_json(cls, json_str: str, config: AdamConfig, eva_manager: EVAMemoryManager | None = None):
+        data = json.loads(json_str)
+        
+        # Reconstruct MentalLaby instance
+        laby = cls(
+            config=config,
+            eva_manager=eva_manager,
+            entity_id=data["entity_id"],
+            d=data["d"],
+            K=data["K"],
+            temp_store=data["temp_store"],
+            tau_recency=data["tau"],
+            max_nodes=data["max_nodes"],
+            storage_pressure=data["storage_pressure"],
+        )
+
+        laby.next_id = data["next_id"]
+        laby.policy = data["policy"]
+        laby.mode = data["mode"]
+        laby.replay = deque(data["replay"], maxlen=20_000) # Reconstruct deque with maxlen
+
+        # Reconstruct nodes
+        for nid, node_data in data["nodes"].items():
+            embed = node_data["embed"]
+            if HAS_NUMPY and isinstance(embed, list):
+                embed = np.array(embed, dtype=np.float32)
+            
+            laby.nodes[int(nid)] = Node(
+                id=node_data["id"],
+                kind=node_data["kind"],
+                embed=embed,
+                data=node_data["data"],
+                valence=node_data["valence"],
+                arousal=node_data["arousal"],
+                salience=node_data["salience"],
+                last_access=node_data["last_access"],
+                freq=node_data["freq"],
+                origin=node_data["origin"],
+                edges_out=defaultdict(float, node_data["edges_out"]),
+                edges_in=defaultdict(float, node_data["edges_in"]),
+            )
+        
+        # Reconstruct _last_observed
+        _last_observed = data.get("_last_observed")
+        if HAS_NUMPY and isinstance(_last_observed, list):
+            laby._last_observed = np.array(_last_observed, dtype=np.float32)
+        else:
+            laby._last_observed = _last_observed
+
+        return laby
+
     def store(
         self,
         data_or_embed: Any,
@@ -338,6 +426,7 @@ class MentalLaby:
         surprise: float = 0.0,
         now: float | None = None,
     ) -> int:
+
         """
         Store a data item or an embedding. Returns node id.
         Persists a compact event to EVA via EVAMemoryManager if available (best-effort).

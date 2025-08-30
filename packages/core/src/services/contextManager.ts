@@ -18,10 +18,10 @@ export enum ContextType {
  * Configuration for dual-context token management
  */
 export interface DualContextConfig {
-  promptContextTokens: number; // Tokens for prompt context (default: 1M)
-  toolContextTokens: number; // Tokens for tool execution context (default: 28K)
+  promptContextTokens: number; // Tokens for prompt context (default: 1.5M)
+  toolContextTokens: number; // Tokens for tool execution context (default: 128K)
   enableDualContext: boolean; // Whether dual-context is enabled
-  promptModel: string; // Model for prompts (default: gemini-2.5-pro)
+  promptModel: string; // Model for prompts (default: gemini-1.5-pro)
   toolModel: string; // Model for tool execution (default: gemini-2.5-flash-lite)
 }
 

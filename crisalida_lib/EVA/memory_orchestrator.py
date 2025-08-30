@@ -7,6 +7,8 @@ imports follow.
 
 from __future__ import annotations
 
+import json
+
 import hashlib
 import logging
 import math
@@ -539,7 +541,7 @@ class MentalLaby:
             cluster = self._k_hop(nid, hops=2, limit=64)
             self._compress_cluster(cluster, threshold=compress_similarity)
 
-    def _rem_pass(self, steps=10, T=0.8, gen_prob=0.15):
+    def _rem_pass(self, steps=10, T=1.0, gen_prob=0.3):
         # mezcla creativa + saltos entre clusters + generación autónoma
         seeds = [nid for _, nid in list(self.replay)[: self.K] if nid in self.nodes]
         if not seeds and len(self.nodes) > 0:
@@ -597,6 +599,8 @@ class MentalLaby:
         for _ in range(hops):
             nxt = []
             for u in frontier:
+                if u not in self.nodes:
+                    continue
                 for v in list(self.nodes[u].edges_out.keys()) + list(
                     self.nodes[u].edges_in.keys()
                 ):
@@ -765,6 +769,73 @@ class MentalLaby:
                 edges_in=defaultdict(float, n.get("edges_in", {})),
             )
             self.nodes[node.id] = node
+
+    def to_json(self) -> str:
+        serializable_nodes = {}
+        for nid, node in self.nodes.items():
+            serializable_nodes[nid] = {
+                "id": node.id,
+                "kind": node.kind,
+                "embed": node.embed.tolist() if np is not None and isinstance(node.embed, np.ndarray) else node.embed,
+                "data": node.data,
+                "valence": node.valence,
+                "arousal": node.arousal,
+                "salience": node.salience,
+                "last_access": node.last_access,
+                "freq": node.freq,
+                "origin": node.origin,
+                "edges_out": dict(node.edges_out),
+                "edges_in": dict(node.edges_in),
+            }
+
+        serializable_data = {
+            "d": self.d,
+            "nodes": serializable_nodes,
+            "next_id": self.next_id,
+            "K": self.K,
+            "temp_store": self.temp_store,
+            "tau": self.tau,
+            "replay": list(self.replay),
+            "policy": self.policy,
+            "mode": self.mode,
+            "max_nodes": self.max_nodes,
+            "storage_pressure": self.storage_pressure,
+            "_last_observed": self._last_observed.tolist() if np is not None and isinstance(self._last_observed, np.ndarray) else self._last_observed,
+        }
+        return json.dumps(serializable_data, indent=2)
+
+    def load_from_json(self, json_str: str):
+        data = json.loads(json_str)
+        self.d = data["d"]
+        self.nodes = {}
+        for nid_str, node_data in data["nodes"].items():
+            nid = int(nid_str)
+            embed = np.array(node_data["embed"], dtype=np.float32) if np is not None and isinstance(node_data["embed"], list) else node_data["embed"]
+            node = Node(
+                id=node_data["id"],
+                kind=node_data["kind"],
+                embed=embed,
+                data=node_data["data"],
+                valence=node_data["valence"],
+                arousal=node_data["arousal"],
+                salience=node_data["salience"],
+                last_access=node_data["last_access"],
+                freq=node_data["freq"],
+                origin=node_data["origin"],
+                edges_out=defaultdict(float, node_data["edges_out"]),
+                edges_in=defaultdict(float, node_data["edges_in"]),
+            )
+            self.nodes[nid] = node
+        self.next_id = data["next_id"]
+        self.K = data["K"]
+        self.temp_store = data["temp_store"]
+        self.tau = data["tau"]
+        self.replay = deque(data["replay"], maxlen=DEFAULT_MAX_REPLAY)
+        self.policy = data["policy"]
+        self.mode = data["mode"]
+        self.max_nodes = data["max_nodes"]
+        self.storage_pressure = data["storage_pressure"]
+        self._last_observed = np.array(data["_last_observed"], dtype=np.float32) if np is not None and isinstance(data["_last_observed"], list) else data["_last_observed"]
 
 
 # -----------------------------
@@ -1408,27 +1479,3 @@ class EVAMemoryOrchestrator(UniverseMindOrchestrator):
             raise TypeError("component name must be a string")
         self._ecs_components[name] = component
 
-
-    def save_all_minds_to_disk(self, path: str) -> None:
-        """Thread-safe backup of all entity memories to disk (pickle)."""
-        with self._backup_lock:
-            snapshot = {
-                eid: e.mind.export_snapshot() for eid, e in self.entities.items()
-            }
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            with open(path, "wb") as f:
-                pickle.dump({"version": 1, "snapshot": snapshot, "ts": time.time()}, f)
-            logger.info("Backup written to %s", path)
-
-    def load_all_minds_from_disk(self, path: str) -> None:
-        """Restore previously saved backup (thread-safe)."""
-        with self._backup_lock:
-            if not os.path.exists(path):
-                raise FileNotFoundError(path)
-            with open(path, "rb") as f:
-                data = pickle.load(f)
-            snapshot = data.get("snapshot", data)
-            for eid, snap in snapshot.items():
-                if eid in self.entities:
-                    self.entities[eid].mind.import_snapshot(snap)
-            logger.info("Restore completed from %s", path)

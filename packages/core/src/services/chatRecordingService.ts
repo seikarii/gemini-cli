@@ -1165,7 +1165,7 @@ export class ChatRecordingService {
   // Context compression configuration
   private compressionConfig: ContextCompressionConfig = {
     maxContextTokens: 240000, // Increased from 66k to 240k for better context preservation
-    preserveRecentMessages: 100, // Always preserve ALL user messages up to this count
+    preserveRecentMessages: 50, // Always preserve ALL user messages up to this count
     compressionRatio: 0.3,
     keywordPreservation: true,
     summarizeToolCalls: true,

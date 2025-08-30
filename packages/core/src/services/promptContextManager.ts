@@ -172,19 +172,19 @@ export class PromptContextManager {
   private extractConversationalContext(history: Content[]): string {
     if (!history || history.length === 0) return '';
 
-    // Take last 3-5 messages for context
-    const recentMessages = history.slice(-5);
+    // Take last 50 messages for context
+    const recentMessages = history.slice(-50);
     const contextParts: string[] = [];
 
     for (const content of recentMessages) {
       if (content.role === 'user') {
         const text = this.extractTextFromContent(content);
-        if (text && text.length > 10) {
+        if (text && text.length > 50) {
           contextParts.push(`User: ${text.substring(0, 200)}`);
         }
       } else if (content.role === 'model') {
         const text = this.extractTextFromContent(content);
-        if (text && text.length > 10) {
+        if (text && text.length > 50) {
           contextParts.push(`Assistant: ${text.substring(0, 150)}`);
         }
       }
@@ -263,15 +263,15 @@ export class PromptContextManager {
       }
 
       if (history.length <= 20) {
-        return { content: history.slice(-15), compressionLevel: 'minimal' };
+        return { content: history.slice(-10), compressionLevel: 'minimal' };
       }
 
       if (history.length <= 50) {
-        return { content: history.slice(-25), compressionLevel: 'moderate' };
+        return { content: history.slice(-10), compressionLevel: 'moderate' };
       }
 
       // For very long histories, use aggressive compression
-      return { content: history.slice(-20), compressionLevel: 'aggressive' };
+      return { content: history.slice(-10), compressionLevel: 'aggressive' };
     }
   }
 
@@ -440,7 +440,7 @@ export class PromptContextManager {
     });
 
     // Add recent conversation history
-    const recentHistory = conversationHistory.slice(-10);
+    const recentHistory = conversationHistory.slice(-50);
     contents.push(...recentHistory);
 
     const totalTokens =

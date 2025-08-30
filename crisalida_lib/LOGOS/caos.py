@@ -14,11 +14,27 @@ Integración con el ecosistema Crisalida:
 Basado en sistemas dinámicos de Lorenz, Rössler y atractores extraños.
 """
 
+import sys
+import os
+
+# Añadir el directorio raíz del proyecto a sys.path
+# Esto permite importar módulos como crisalida_lib.EARTH.event_bus
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '..', '..'))
+sys.path.insert(0, project_root)
+
+
 import time
 import logging
+import asyncio # Importar asyncio para manejo asíncrono
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from dataclasses import dataclass, field
 from collections import deque
+
+# Importar EVAEventBus y QualiaState
+from crisalida_lib.EARTH.event_bus import EVAEventBus, eva_event_bus
+from crisalida_lib.EVA.core_types import QualiaState
+
 
 # Defensive imports siguiendo el patrón del repo
 try:
@@ -591,7 +607,7 @@ class ChaoticCognitiveCore:
 
     def _calculate_trajectory_complexity(self, trajectory) -> float:
         """Calcula la complejidad de la trayectoria"""
-        if trajectory.size == 0:
+        if len(trajectory) == 0:
             return 0.0
         
         if hasattr(trajectory, 'shape'):
@@ -640,14 +656,14 @@ class ChaoticCognitiveCore:
             return {"cognitive_coherence": 1.0, "creative_chaos": 1.0}
 
     def _archive_chaotic_experience(
-        self, 
-        trajectory: CognitiveTrajectory, 
+        self,
+        trajectory: CognitiveTrajectory,
         problem_spec: Dict[str, Any]
     ) -> None:
-        """Archiva la experiencia caótica en EVA si está disponible"""
+        """Archiva la experiencia caótica en EVA si está disponible y publica evento CHAOS_EMERGENCE"""
         if not self.eva_helper:
             return
-        
+
         try:
             experience_data = {
                 "system_type": "chaotic_cognitive",
@@ -658,9 +674,9 @@ class ChaoticCognitiveCore:
                 "attractors_visited": trajectory.attractors_visited,
                 "emergence_events": trajectory.emergence_events
             }
-            
+
             # Crear estado qualia para la experiencia
-            qualia_state = {
+            qualia_state_dict = {
                 "cognitive_complexity": trajectory.complexity_measure,
                 "consciousness_density": self._estimate_consciousness_level(),
                 "temporal_coherence": min(1.0, 1.0 / trajectory.duration),
@@ -668,17 +684,49 @@ class ChaoticCognitiveCore:
                 "emergence_tendency": len(trajectory.emergence_events) / 5.0
             }
             
+            # Convertir el diccionario a una instancia de QualiaState
+            qualia_state_instance = QualiaState(**qualia_state_dict)
+
             # Ingerir en memoria viviente
             experience_id = self.eva_helper.ingest_experience(
-                experience_data, 
-                qualia_state, 
+                experience_data,
+                qualia_state_instance, # Pasar la instancia de QualiaState
                 phase="chaotic_cognition"
             )
-            
+
             logger.debug(f"Chaotic experience archived with ID: {experience_id}")
-            
+
+            # Publicar evento CHAOS_EMERGENCE en el EVAEventBus
+            event_data = {
+                "event_type": "CHAOS_EMERGENCE",
+                "source": "ChaoticCognitiveCore",
+                "description": f"Emergence of chaotic cognitive solution for {problem_spec.get('type', 'general')} problem.",
+                "experience_id": experience_id,
+                "solution_type": experience_data["solution_type"],
+                "trajectory_complexity": experience_data["trajectory_complexity"]
+            }
+
+            # Publicar el evento de forma asíncrona
+            async def publish_chaos_event():
+                await eva_event_bus.publish(
+                    event_type="CHAOS_EMERGENCE",
+                    data=event_data,
+                    qualia_state=qualia_state_instance
+                )
+
+            # Ejecutar la corrutina
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop and loop.is_running():
+                loop.create_task(publish_chaos_event())
+            else:
+                asyncio.run(publish_chaos_event())
+
         except Exception as e:
-            logger.debug(f"Failed to archive chaotic experience: {e}")
+            logger.debug(f"Failed to archive chaotic experience or publish event: {e}")
 
     def get_system_state(self) -> Dict[str, Any]:
         """Obtiene el estado completo del sistema cognitivo caótico"""

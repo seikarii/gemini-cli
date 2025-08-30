@@ -96,7 +96,7 @@ export class EnhancedContextService {
     }
 
     // Check if this is a fresh user prompt (no recent tool calls)
-    const recentHistory = conversationHistory.slice(-10);
+    const recentHistory = conversationHistory.slice(-20);
     const hasRecentToolCalls = this.hasRecentToolCalls(recentHistory);
     const looksBlocked = this.detectIfBlocked(recentHistory);
 
@@ -322,7 +322,7 @@ export class EnhancedContextService {
       recentFiles = fileStats
         .filter((item) => item !== null && !item.file.startsWith('.'))
         .sort((a, b) => b!.mtime.getTime() - a!.mtime.getTime())
-        .slice(0, 10)
+        .slice(0, 20)
         .map((item) => item!.file);
     } catch (_error) {
       console.warn('Could not get recent files:', _error);
@@ -348,7 +348,7 @@ export class EnhancedContextService {
     conversationHistory: Content[],
     contextType: ContextType,
   ): string {
-    const recentHistory = conversationHistory.slice(-5);
+    const recentHistory = conversationHistory.slice(-10);
     const usedTools = this.extractUsedTools(recentHistory);
 
     if (contextType === ContextType.USER_PROMPT) {
@@ -494,7 +494,7 @@ export class EnhancedContextService {
     const recentActions = this.extractRecentActions(
       conversationHistory.slice(-5),
     );
-    const newToolsUsed = this.extractUsedTools(conversationHistory.slice(-3));
+    const newToolsUsed = this.extractUsedTools(conversationHistory.slice(-10));
 
     return {
       ...turnPlan,

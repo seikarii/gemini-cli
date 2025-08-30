@@ -116,7 +116,7 @@ export class ToolSelectionGuidance {
       userMessage +
       ' ' +
       history
-        .slice(-3)
+        .slice(-50)
         .map((c) => this.extractTextFromContent(c))
         .join(' ');
 
@@ -249,7 +249,7 @@ export class ToolSelectionGuidance {
     lastFailedTool?: string;
     recentErrors: string[];
   } {
-    const recentMessages = history.slice(-6); // Last 6 messages
+    const recentMessages = history.slice(-50); // Last 50 messages
     const errors: string[] = [];
     let lastFailedTool: string | undefined;
 

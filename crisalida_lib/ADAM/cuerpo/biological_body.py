@@ -172,7 +172,6 @@ class BiologicalBody:
                         entity_id=self.entity_id,
                         event_type="biological_snapshot",
                         data=snapshot,
-                        experience_id=experience_id,
                     )
                     # if coroutine, schedule best-effort
                     if hasattr(res, "__await__"):
@@ -278,7 +277,6 @@ class BiologicalBody:
                             "state": comprehensive_state,
                             "timestamp": time.time(),
                         },
-                        experience_id=experience_id,
                     )
                     if hasattr(res, "__await__"):
                         loop = asyncio.get_event_loop()

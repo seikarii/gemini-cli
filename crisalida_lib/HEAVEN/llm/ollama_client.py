@@ -21,6 +21,7 @@ class OllamaClient:
     """
 
     def __init__(self, base_url: str = "http://localhost:11434/api"):
+        self.base_url = base_url
         self.base_generate_url = f"{base_url}/generate"
         self.base_chat_url = f"{base_url}/chat"
         self.base_tags_url = f"{base_url}/tags"
@@ -194,6 +195,23 @@ class OllamaClient:
             logger.error(f"Error pulling model {model_name}: {e}")
             self.last_error = str(e)
             return False
+
+    async def get_ollama_model_info(self, model_name: str) -> dict | None:
+        """
+        Obtiene información detallada de un modelo específico de Ollama.
+        """
+        try:
+            import aiohttp
+            info_url = f"{self.base_url}/show"
+            payload = {"name": model_name}
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60)) as session:
+                async with session.post(info_url, json=payload) as response:
+                    response.raise_for_status()
+                    return await response.json()
+        except Exception as e:
+            logger.error(f"Error getting info for model {model_name}: {e}")
+            self.last_error = str(e)
+            return None
 
     def get_health_summary(self) -> dict[str, Any]:
         """

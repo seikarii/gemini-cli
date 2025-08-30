@@ -230,7 +230,6 @@ class SoulKernel:
                         entity_id=self.entity_id,
                         event_type="soul_state_update",
                         data=state,
-                        experience_id=experience_id,
                     )
                     if hasattr(coro_or_res, "__await__"):
                         try:

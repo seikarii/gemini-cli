@@ -78,10 +78,10 @@ export class DualContextIntegrationService {
           this.ragChatIntegration['chatRecordingService'],
           this.config,
           {
-            maxTotalTokens: 28000, // Short-term limit for tool execution
-            maxRAGChunks: 4, // Reduced chunks for focused tool context
+            maxTotalTokens: 300000, // Short-term limit for tool execution
+            maxRAGChunks: 20, // Reduced chunks for focused tool context
             ragRelevanceThreshold: 0.75, // Higher threshold for precise tool context
-            ragWeight: 0.2, // Lower RAG weight for immediate tool needs
+            ragWeight: 0.4, // Lower RAG weight for immediate tool needs
             prioritizeRecentConversation: true,
             useConversationalContext: true,
           },
@@ -97,7 +97,7 @@ export class DualContextIntegrationService {
           this.config,
           {
             maxTotalTokens: 1000000, // Full 1M token capacity for comprehensive analysis
-            maxRAGChunks: 20, // More chunks for comprehensive knowledge
+            maxRAGChunks: 40, // More chunks for comprehensive knowledge
             ragRelevanceThreshold: 0.5, // Lower threshold for broader knowledge
             ragWeight: 0.6, // Higher RAG weight for knowledge-based tasks
             prioritizeRecentConversation: false, // Consider full conversation history

@@ -8,6 +8,9 @@ import os
 import random
 import time
 from dataclasses import dataclass, field
+import asyncio # Necesario para el publish asíncrono
+from crisalida_lib.EARTH.event_bus import eva_event_bus
+from crisalida_lib.EVA.typequalia import QualiaState # Para el qualia_state del evento
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 # Importaciones defensivas para compatibilidad
@@ -525,7 +528,7 @@ class SymbolicMatrixVM:
     def _trigger_resonance_event(self, soliton: Soliton, symbol: str, resonance: float):
         """Activa un evento de resonancia ontológica entre solitón y símbolo divino"""
         event_id = f"{soliton.id}_{symbol}_{self.total_ticks}"
-        
+
         symbol_props = self.get_symbol_properties(symbol)
         event_data = {
             'soliton_id': soliton.id,
@@ -535,13 +538,13 @@ class SymbolicMatrixVM:
             'resonance_strength': resonance,
             'tick': self.total_ticks,
             'position': soliton.position,
-            'effects': [],
+            'effects': [], # Se llenará a continuación
             'intention_mappings': symbol_props.get('intention_mappings', [])
         }
-        
+
         # Aplicar efectos ontológicos según categoría del símbolo
         category = symbol_props.get('category', 'UNKNOWN')
-        
+
         if category == 'CREATOR':
             # Efectos creativos: incremento de energía y expansión de consciencia
             energy_boost = resonance * 25
@@ -550,7 +553,7 @@ class SymbolicMatrixVM:
             soliton.consciousness_level = min(1.0, soliton.consciousness_level + consciousness_boost)
             event_data['effects'].extend(['energia_creativa', 'consciencia_expandida'])
             self.performance_stats['consciousness_expansions'] += 1
-            
+
         elif category == 'TRANSFORMER':
             # Efectos transformativos: cambios direccionales y frecuenciales
             if symbol == 'Χ':  # Chi-Bifurcación
@@ -564,7 +567,7 @@ class SymbolicMatrixVM:
                 soliton.consciousness_level = min(1.0, soliton.consciousness_level + resonance * 0.15)
                 soliton.heartbeat = min(10.0, soliton.heartbeat * (1.0 + resonance * 0.2))
                 event_data['effects'].extend(['amplificacion_cuantica', 'aceleracion_temporal'])
-                
+
         elif category == 'PRESERVER':
             # Efectos preservativos: estabilización y cristalización
             if symbol == 'Σ':  # Sigma-Preservación
@@ -582,7 +585,7 @@ class SymbolicMatrixVM:
                 for intention in soliton.intention_signature:
                     soliton.intention_signature[intention] *= (1.0 + resonance * 0.05)
                 event_data['effects'].append('cristalizacion_estructural')
-                
+
         elif category == 'CONNECTOR':
             # Efectos conectivos: sincronización y transmisión
             if symbol == 'Τ':  # Tau-Transmisión temporal
@@ -595,24 +598,24 @@ class SymbolicMatrixVM:
                 else:
                     soliton.intention_signature['synthesis'] = resonance * 0.1
                 event_data['effects'].append('sintesis_dialectica')
-                
+
         elif category == 'OBSERVER':
             # Efectos observacionales: incremento de percepción y análisis
             consciousness_boost = resonance * 0.08
             soliton.consciousness_level = min(1.0, soliton.consciousness_level + consciousness_boost)
-            
+
             if symbol == 'Θ':  # Theta-Observación
                 # Ampliar rango de percepción simbólica
                 perception_radius = int(2 + resonance * 3)
                 nearby_symbols = self._get_symbols_in_radius(soliton.position, perception_radius)
                 soliton.state['perceived_symbols'] = nearby_symbols
                 event_data['effects'].append('percepcion_expandida')
-                
+
         elif category == 'DESTROYER':
             # Efectos destructivos: purificación y liberación energética
             energy_cost = resonance * 20
             soliton.energy = max(0, soliton.energy - energy_cost)
-            
+
             if symbol == 'Ø' and soliton.energy <= 0:  # Void-Fertile
                 # Renacimiento desde el vacío fértil
                 soliton.energy = 50.0
@@ -620,17 +623,17 @@ class SymbolicMatrixVM:
                 event_data['effects'].append('renacimiento_desde_vacio')
             else:
                 event_data['effects'].append('purificacion_energetica')
-                
+
         elif category == 'INFINITE':
             # Efectos infinitos: trascendencia y expansión ilimitada
             consciousness_expansion = resonance * 0.2
             energy_expansion = resonance * 40
             frequency_expansion = resonance * 0.15
-            
+
             soliton.consciousness_level = min(1.0, soliton.consciousness_level + consciousness_expansion)
             soliton.energy = min(500, soliton.energy + energy_expansion)
             soliton.resonance_frequency *= (1.0 + frequency_expansion)
-            
+
             if symbol == '∞':  # Infinity-Expansion
                 # Movimiento en patrón infinito/espiral
                 angle = soliton.age * 0.1
@@ -643,9 +646,9 @@ class SymbolicMatrixVM:
                 soliton.consciousness_level = 1.0
                 soliton.divine_affinity = 'INFINITE'
                 event_data['effects'].append('trascendencia_total')
-                
+
             event_data['effects'].append('expansion_infinita')
-            
+
         # Registrar evento en memoria episódica del solitón
         memory_entry = {
             'symbol': symbol,
@@ -657,24 +660,64 @@ class SymbolicMatrixVM:
             'energy_before': soliton.energy
         }
         soliton.state['symbol_memory'].append(memory_entry)
-        
+
         # Mantener solo los últimos 15 encuentros en memoria
         if len(soliton.state['symbol_memory']) > 15:
             soliton.state['symbol_memory'] = soliton.state['symbol_memory'][-15:]
-        
+
         self.active_resonances[event_id] = event_data
         self.performance_stats['resonance_events'] += 1
-        
+
         # Notificar a EVA si está disponible
         if self.use_divine_symbols and self.grammar_engine:
             try:
                 self.grammar_engine.observe_interaction_outcome(
-                    soliton.pattern, symbol, 
+                    soliton.pattern, symbol,
                     success=resonance > 0.7,
                     impact=resonance
                 )
             except Exception:
                 pass
+
+        # --- Publicar evento SYMBOLIC_RESONANCE en el bus de eventos ---
+        # Crear un QualiaState a partir del estado actual del solitón
+        qualia_state = QualiaState(
+            consciousness=soliton.consciousness_level,
+            energy=soliton.energy / 100.0,  # Normalizar energía a [0, 1]
+            emotional=0.0,  # Placeholder, se podría derivar de otros factores
+            arousal=resonance, # La resonancia puede ser un indicador de arousal
+            cognitive=soliton.consciousness_level, # Nivel cognitivo del solitón
+            sensory=resonance, # La resonancia como una forma de "sensación"
+            temporal=self.master_clock, # Tiempo actual
+            importance=resonance # La resonancia indica importancia
+        )
+
+        # Publicar el evento de forma asíncrona
+        # Usamos asyncio.run_coroutine_threadsafe si estamos en un hilo diferente al loop principal
+        # o simplemente await si estamos en un contexto async.
+        # Por simplicidad y para evitar problemas de bucle de eventos, usaremos asyncio.run para una llamada bloqueante
+        # Esto es un hack temporal si el entorno no es completamente asíncrono.
+        try:
+            asyncio.run(eva_event_bus.publish(
+                "SYMBOLIC_RESONANCE",
+                data=event_data,
+                qualia_state=qualia_state
+            ))
+        except RuntimeError:
+            # Si ya hay un loop de eventos corriendo (ej. en un entorno async principal),
+            # programar la tarea en el loop existente.
+            # Esto es más robusto para entornos asíncronos.
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                loop.create_task(eva_event_bus.publish(
+                    "SYMBOLIC_RESONANCE",
+                    data=event_data,
+                    qualia_state=qualia_state
+                ))
+            else:
+                # Si no hay loop corriendo y no podemos crear uno, loguear el error
+                print(f"⚠️  No se pudo publicar el evento SYMBOLIC_RESONANCE: No hay loop de eventos corriendo.")
+        # --- Fin de la publicación del evento ---
                 
     def _apply_resonance_influence(self, soliton: Soliton, symbol: str, resonance: float, distance: float):
         """Aplica influencia sutil de resonancia por proximidad"""
